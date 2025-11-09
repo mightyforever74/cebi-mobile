@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Argon PRO React Native",
+    "slug": "argon-pro-react-native",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.6.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "description": "Argon Pro React Native, based on Argon Design System. Coded by Creative Tim",
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ],
+    "android": {
+      "package": "com.anonymous.argonproreactnative"
+    }
+  }
+}

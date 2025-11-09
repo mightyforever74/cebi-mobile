@@ -1,6 +1,6 @@
 # TulipFleet 🚚📍
 
-TulipFleet is a real-time fleet tracking and management system designed for mobile-first administration and IoT-driven telemetry.
+TulipFleet is a real-time fleet tracking and management platform with IoT devices, GPS telemetry, TimescaleDB backend, and a React Native mobile admin panel.
 
 ## Core Features
 - Live vehicle location tracking (GPS)
@@ -16,17 +16,16 @@ TulipFleet is a real-time fleet tracking and management system designed for mobi
 - **Database:** PostgreSQL + TimescaleDB
 - **Messaging:** MQTT (EMQX)
 - **Maps:** Google Maps
-- **DevOps:** GitHub PR workflow with AI-assisted reviews
 
 ## Development Workflow
 This repository uses:
-- Strict Pull Request templates
-- Issue-based task planning
-- AI agents for PR description generation and consistency checks
+- Pull Request templates
+- Issue templates
+- AI-assisted PR description generation (PR Writer Agent)
 
-Refer to:
+## Docs
 - `docs/map/TulipFleet_Map_Implementation_Document_v2.docx`
 - `docs/map/TulipFleet_Map_Implementation_Checklist_v2.pdf`
 
 ## Status
-🚧 Active development (Map v1 implementation in progress)
+🚧 Active development
