@@ -1,4 +1,3 @@
-import { withNavigation } from "@react-navigation/compat";
 import { CommonActions } from "@react-navigation/native";
 import { Block, Button, NavBar, Text, theme } from "galio-framework";
 import React from "react";
@@ -315,4 +314,4 @@ const styles = StyleSheet.create({
   icon: { paddingRight: 8 },
 });
 
-export default withNavigation(Header);
+export default Header;

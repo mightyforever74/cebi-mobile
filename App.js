@@ -1,51 +1,16 @@
+import "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { Asset } from "expo-asset";
-import * as Font from "expo-font";
+import { NavigationContainer } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
-import { Block, GalioProvider } from "galio-framework";
-import { useCallback, useEffect, useState } from "react";
-import { Image, StatusBar } from "react-native";
+import { GalioProvider } from "galio-framework";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// Keep the splash screen visible while we fetch resources
+import { Theme } from "./constants";
+import OnboardingStack from "./navigation/Screens";
+
 SplashScreen.preventAutoHideAsync();
-
-// Before rendering any navigation stack
-import { enableScreens } from "react-native-screens";
-enableScreens();
-
-// Auth & Navigation
-import { AuthProvider } from "./src/context/AuthContext";
-import RootNavigator from "./src/navigation/RootNavigator";
-
-// Argon theme
-import { Images, argonTheme, articles } from "./constants";
-import { COLORS } from "./src/constants/config";
-
-// Cache app images
-const assetImages = [
-  Images.Onboarding,
-  Images.LogoOnboarding,
-  Images.Logo,
-  Images.Pro,
-  Images.ArgonLogo,
-  Images.iOSLogo,
-  Images.androidLogo,
-];
-
-// Cache product images
-articles.map((article) => assetImages.push(article.image));
-
-function cacheImages(images) {
-  return images.map((image) => {
-    if (typeof image === "string") {
-      return Image.prefetch(image);
-    } else {
-      return Asset.fromModule(image).downloadAsync();
-    }
-  });
-}
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -53,34 +18,17 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Load Resources
-        await _loadResourcesAsync();
-
-        // Pre-load fonts
-        await Font.loadAsync({
-          "open-sans-regular": require("./assets/font/OpenSans-Regular.ttf"),
-          "open-sans-light": require("./assets/font/OpenSans-Light.ttf"),
-          "open-sans-bold": require("./assets/font/OpenSans-Bold.ttf"),
-        });
+        // Minimal loading
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (e) {
-        console.warn("App loading error:", e);
+        console.warn(e);
       } finally {
-        // Tell the application to render
         setAppIsReady(true);
+        SplashScreen.hideAsync();
       }
     }
     prepare();
   }, []);
-
-  const _loadResourcesAsync = async () => {
-    return Promise.all([...cacheImages(assetImages)]);
-  };
-
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
 
   if (!appIsReady) {
     return null;
@@ -88,16 +36,10 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GalioProvider theme={argonTheme}>
-        <AuthProvider>
-          <Block flex onLayout={onLayoutRootView}>
-            <StatusBar
-              barStyle="light-content"
-              backgroundColor={COLORS.primary}
-            />
-            <RootNavigator />
-          </Block>
-        </AuthProvider>
+      <GalioProvider theme={Theme}>
+        <NavigationContainer>
+          <OnboardingStack />
+        </NavigationContainer>
       </GalioProvider>
     </GestureHandlerRootView>
   );

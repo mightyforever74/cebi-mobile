@@ -1,16 +1,8 @@
-import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-  Image,
-  TouchableOpacity,
-  Linking,
-} from "react-native";
 import { Block, Text, theme } from "galio-framework";
+import { Dimensions, Image, ScrollView, StyleSheet } from "react-native";
 import { useSafeArea } from "react-native-safe-area-context";
-import Images from "../constants/Images";
 import { DrawerItem as DrawerCustomItem } from "../components/index";
+import Images from "../constants/Images";
 
 const { width } = Dimensions.get("screen");
 
@@ -24,13 +16,12 @@ function CustomDrawerContent({
 }) {
   const insets = useSafeArea();
   const screens = [
-    { title: "Home", navigateTo: "HomeDrawer" },
-    { title: "Profile", navigateTo: "ProfileDrawer" },
-    { title: "Account", navigateTo: "AccountDrawer" },
-    { title: "Elements", navigateTo: "ElementsDrawer" },
-    { title: "Articles", navigateTo: "ArticlesDrawer" },
+    { title: "Dashboard", navigateTo: "HomeDrawer" },
+    { title: "Fleet Alerts", navigateTo: "NotificationsDrawer" },
+    { title: "My Profile", navigateTo: "ProfileDrawer" },
     { title: "Settings", navigateTo: "SettingsDrawer" },
   ];
+
   return (
     <Block
       style={styles.container}

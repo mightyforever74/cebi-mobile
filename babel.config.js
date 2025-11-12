@@ -1,7 +1,7 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo"], // Expo için doğru preset
+    presets: ["babel-preset-expo"],
     plugins: [
       [
         "module:react-native-dotenv",
@@ -14,7 +14,7 @@ module.exports = function (api) {
           allowUndefined: true,
         },
       ],
-      "react-native-reanimated/plugin", // ⭐ EN SONDA OLMALI
+      "react-native-reanimated/plugin",
     ],
   };
 };

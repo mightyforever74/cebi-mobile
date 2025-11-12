@@ -1,16 +1,18 @@
+import { Block, Checkbox, Text } from "galio-framework";
 import React from "react";
 import {
-  StyleSheet,
-  ImageBackground,
   Dimensions,
+  ImageBackground,
+  Keyboard,
   StatusBar,
+  StyleSheet,
   TouchableWithoutFeedback,
-  Keyboard
 } from "react-native";
-import { Block, Checkbox, Text } from "galio-framework";
 
 import { Button, Icon, Input } from "../components";
-import { Images, argonTheme } from "../constants";
+import { Images, Theme } from "../constants";
+
+const argonTheme = Theme;
 
 const { width, height } = Dimensions.get("screen");
 
@@ -73,11 +75,11 @@ class Register extends React.Component {
                       <Text
                         style={{
                           fontFamily: "open-sans-regular",
-                          textAlign: "center"
+                          textAlign: "center",
                         }}
                         color="#8898AA"
                         size={12}
-                      >  
+                      >
                         Or sign up the classic way
                       </Text>
                     </Block>
@@ -156,12 +158,12 @@ class Register extends React.Component {
                           <Block row width={width * 0.75}>
                             <Checkbox
                               checkboxStyle={{
-                                borderWidth: 1
+                                borderWidth: 1,
                               }}
                               color={argonTheme.COLORS.PRIMARY}
                               labelStyle={{
                                 color: argonTheme.COLORS.TEXT,
-                                fontFamily: "open-sans-regular"
+                                fontFamily: "open-sans-regular",
                               }}
                               label="I agree with the"
                             />
@@ -172,7 +174,7 @@ class Register extends React.Component {
                                 color: argonTheme.COLORS.PRIMARY,
                                 fontSize: 14,
                                 fontFamily: "open-sans-regular",
-                                marginRight: 5
+                                marginRight: 5,
                               }}
                             >
                               Privacy Policy
@@ -212,17 +214,17 @@ const styles = StyleSheet.create({
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
       width: 0,
-      height: 4
+      height: 4,
     },
     shadowRadius: 8,
     shadowOpacity: 0.1,
     elevation: 1,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   socialConnect: {
     backgroundColor: argonTheme.COLORS.WHITE,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(136, 152, 170, 0.3)"
+    borderColor: "rgba(136, 152, 170, 0.3)",
   },
   socialButtons: {
     width: 120,
@@ -231,30 +233,30 @@ const styles = StyleSheet.create({
     shadowColor: argonTheme.COLORS.BLACK,
     shadowOffset: {
       width: 0,
-      height: 4
+      height: 4,
     },
     shadowRadius: 8,
     shadowOpacity: 0.1,
-    elevation: 1
+    elevation: 1,
   },
   socialTextButtons: {
     color: argonTheme.COLORS.PRIMARY,
     fontWeight: "800",
-    fontSize: 14
+    fontSize: 14,
   },
   inputIcons: {
-    marginRight: 12
+    marginRight: 12,
   },
   passwordCheck: {
     paddingLeft: 2,
     paddingTop: 6,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
   createButton: {
     width: width * 0.5,
     marginTop: 25,
-    marginBottom: 40
-  }
+    marginBottom: 40,
+  },
 });
 
 export default Register;
