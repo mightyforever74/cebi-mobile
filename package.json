@@ -34,6 +34,7 @@
     "expo-asset": "~12.0.9",
     "expo-font": "~14.0.9",
     "expo-linear-gradient": "~15.0.7",
+    "expo-location": "~19.0.8",
     "expo-splash-screen": "~31.0.10",
     "galio-framework": "^0.8.0",
     "mqtt": "^5.14.1",

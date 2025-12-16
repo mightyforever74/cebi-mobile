@@ -1,8 +1,9 @@
 // src/screens/driver/DriverDashboard.js
-// TulipFleet - Driver Dashboard (Mock Data)
+// TulipFleet - Driver Dashboard with REAL DATA
 
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -12,24 +13,67 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
-import { MOCK_DRIVER_DATA } from "../../services/mockData";
+import { driverAPI } from "../../services/api";
 
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
+
+  // State
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [driverData, setDriverData] = useState(MOCK_DRIVER_DATA);
+  const [stats, setStats] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [vehicle, setVehicle] = useState(null);
+  const [error, setError] = useState(null);
 
+  // Fetch data on mount
   useEffect(() => {
-    console.log("📊 DriverDashboard mounted for:", user?.firstName);
-  }, [user]);
+    fetchAllData();
+  }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    // Mock refresh - gerçek uygulamada API çağrısı yapılacak
-    setTimeout(() => {
-      setDriverData(MOCK_DRIVER_DATA);
+  const fetchAllData = async () => {
+    try {
+      setError(null);
+
+      // Fetch all driver data in parallel
+      const [statsData, tasksData, vehicleData] = await Promise.all([
+        driverAPI.getStats().catch((err) => ({ stats: getDefaultStats() })),
+        driverAPI.getTasks().catch((err) => ({ tasks: [] })),
+        driverAPI.getVehicle().catch((err) => ({ vehicle: null })),
+      ]);
+
+      setStats(statsData.stats);
+      setTasks(tasksData.tasks || []);
+      setVehicle(vehicleData.vehicle);
+
+      console.log("✅ Driver data loaded:", {
+        stats: statsData.stats,
+        taskCount: tasksData.tasks?.length,
+      });
+    } catch (error) {
+      console.error("❌ Error fetching driver data:", error);
+      setError("Veri yüklenirken hata oluştu");
+      // Set default values on error
+      setStats(getDefaultStats());
+      setTasks([]);
+      setVehicle(null);
+    } finally {
+      setLoading(false);
       setRefreshing(false);
-    }, 1000);
+    }
+  };
+
+  const getDefaultStats = () => ({
+    completed_tasks: 0,
+    total_distance: 0,
+    average_score: 0,
+    fuel_efficiency: 0,
+    active_tasks: 0,
+  });
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAllData();
   };
 
   const handleLogout = async () => {
@@ -39,7 +83,20 @@ const DriverDashboard = () => {
     }
   };
 
-  const { activeTasks, vehicle, stats, recentAlerts } = driverData;
+  const handleTaskPress = (task) => {
+    console.log("Task pressed:", task.id);
+    // TODO: Navigate to TaskDetails
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Yükleniyor...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -48,12 +105,12 @@ const DriverDashboard = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Header - Hoş Geldin */}
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Merhaba,</Text>
           <Text style={styles.userName}>
-            {user?.firstName} {user?.lastName}
+            {user?.first_name || user?.email?.split("@")[0] || "Sürücü"}
           </Text>
           <Text style={styles.role}>Sürücü</Text>
         </View>
@@ -62,142 +119,150 @@ const DriverDashboard = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Araç Kartı */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🚐 Aracım</Text>
-        <View style={styles.vehicleInfo}>
-          <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
-          <Text style={styles.vehicleModel}>
-            {vehicle.model} ({vehicle.year})
-          </Text>
-        </View>
-        <View style={styles.row}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{vehicle.fuelLevel}%</Text>
-            <Text style={styles.statLabel}>Yakıt</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{vehicle.odometer} km</Text>
-            <Text style={styles.statLabel}>Kilometre</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text
-              style={[
-                styles.statValue,
-                {
-                  color: vehicle.esp32Status.connected
-                    ? COLORS.success
-                    : COLORS.danger,
-                },
-              ]}
-            >
-              {vehicle.esp32Status.connected ? "●" : "○"}
-            </Text>
-            <Text style={styles.statLabel}>ESP32</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Aktif Görevler */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          📋 Aktif Görevler ({activeTasks.length})
-        </Text>
-        {activeTasks.map((task) => (
-          <View key={task.id} style={styles.taskCard}>
-            <View style={styles.taskHeader}>
-              <Text style={styles.taskTitle}>{task.title}</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor:
-                      task.status === "IN_PROGRESS"
-                        ? COLORS.info
-                        : COLORS.warning,
-                  },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {task.status === "IN_PROGRESS" ? "Devam Ediyor" : "Bekliyor"}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.taskDescription}>{task.description}</Text>
-            <View style={styles.taskProgress}>
-              <View
-                style={[
-                  styles.progressBar,
-                  { width: `${task.completionPercentage}%` },
-                ]}
-              />
-            </View>
-            <Text style={styles.progressText}>
-              %{task.completionPercentage} tamamlandı
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* İstatistikler */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📊 Performans</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {stats.totalDistance.toLocaleString()}
-            </Text>
-            <Text style={styles.statText}>Toplam KM</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.completedTasks}</Text>
-            <Text style={styles.statText}>Tamamlanan</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: COLORS.success }]}>
-              {stats.averageScore}
-            </Text>
-            <Text style={styles.statText}>Skor</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.fuelEfficiency}</Text>
-            <Text style={styles.statText}>L/100km</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Son Uyarılar */}
-      {recentAlerts.length > 0 && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>⚠️ Son Uyarılar</Text>
-          {recentAlerts.map((alert) => (
-            <View
-              key={alert.id}
-              style={[
-                styles.alertCard,
-                {
-                  borderLeftColor:
-                    alert.severity === "warning" ? COLORS.warning : COLORS.info,
-                },
-              ]}
-            >
-              <Text style={styles.alertMessage}>{alert.message}</Text>
-              <Text style={styles.alertTime}>
-                {new Date(alert.timestamp).toLocaleString("tr-TR")}
-              </Text>
-            </View>
-          ))}
+      {/* Error Message */}
+      {error && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
 
-      {/* Demo Bilgi */}
-      <View style={styles.demoCard}>
-        <Text style={styles.demoTitle}>✅ Mock Login Aktif</Text>
-        <Text style={styles.demoText}>
-          Bu ekran mock data ile çalışmaktadır.{"\n"}
-          Backend bağlantısı sonraki fazda eklenecektir.
-        </Text>
+      {/* Vehicle Card */}
+      {vehicle ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>🚙 Aracım</Text>
+          <View style={styles.vehicleInfo}>
+            <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
+            <Text style={styles.vehicleModel}>
+              {vehicle.brand} {vehicle.model} ({vehicle.year})
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>
+                {vehicle.fuelLevel !== undefined && vehicle.fuelCapacity
+                  ? `${Math.round(
+                      (vehicle.fuelLevel / vehicle.fuelCapacity) * 100
+                    )}%`
+                  : "0%"}
+              </Text>
+              <Text style={styles.statLabel}>Yakıt</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>
+                {vehicle.odometer
+                  ? `${Math.round(vehicle.odometer)} km`
+                  : "0 km"}
+              </Text>
+              <Text style={styles.statLabel}>Kilometre</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text
+                style={[
+                  styles.statValue,
+                  {
+                    color: vehicle.esp32Status?.connected
+                      ? COLORS.success
+                      : COLORS.danger,
+                  },
+                ]}
+              >
+                {vehicle.esp32Status?.connected ? "●" : "○"}
+              </Text>
+              <Text style={styles.statLabel}>ESP32</Text>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>🚙 Aracım</Text>
+          <Text style={styles.noDataText}>Atanmış araç bulunamadı</Text>
+        </View>
+      )}
+
+      {/* Active Tasks */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>📋 Aktif Görevler ({tasks.length})</Text>
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskCard}
+              onPress={() => handleTaskPress(task)}
+            >
+              <View style={styles.taskHeader}>
+                <Text style={styles.taskTitle}>
+                  {task.task_no || `Görev #${task.id}`}
+                </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor:
+                        task.status === "in_progress"
+                          ? COLORS.info
+                          : COLORS.warning,
+                    },
+                  ]}
+                >
+                  <Text style={styles.statusText}>
+                    {task.status === "in_progress"
+                      ? "Devam Ediyor"
+                      : "Bekliyor"}
+                  </Text>
+                </View>
+              </View>
+              {task.vehicle_plate && (
+                <Text style={styles.taskDescription}>
+                  Araç: {task.vehicle_plate}
+                </Text>
+              )}
+              {task.planned_start && (
+                <Text style={styles.taskTime}>
+                  Planlanan:{" "}
+                  {new Date(task.planned_start).toLocaleString("tr-TR")}
+                </Text>
+              )}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>Aktif görev bulunmuyor</Text>
+        )}
       </View>
+
+      {/* Statistics */}
+      {stats && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>📊 Performans</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {stats.total_distance
+                  ? Math.round(stats.total_distance).toLocaleString()
+                  : "0"}
+              </Text>
+              <Text style={styles.statText}>Toplam KM</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {stats.completed_tasks || 0}
+              </Text>
+              <Text style={styles.statText}>Tamamlanan</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.success }]}>
+                {stats.average_score || 0}
+              </Text>
+              <Text style={styles.statText}>Skor</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {stats.fuel_efficiency || 0}
+              </Text>
+              <Text style={styles.statText}>L/100km</Text>
+            </View>
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -206,6 +271,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: COLORS.textSecondary,
   },
   header: {
     flexDirection: "row",
@@ -242,6 +318,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  errorCard: {
+    backgroundColor: "#FEE",
+    margin: 16,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.danger,
+  },
+  errorText: {
+    color: COLORS.danger,
+    fontSize: 14,
+  },
   card: {
     backgroundColor: COLORS.white,
     margin: 16,
@@ -258,6 +346,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: COLORS.text,
     marginBottom: 16,
+  },
+  noDataText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    paddingVertical: 20,
   },
   vehicleInfo: {
     marginBottom: 16,
@@ -320,23 +414,11 @@ const styles = StyleSheet.create({
   taskDescription: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  taskProgress: {
-    height: 4,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 2,
-    overflow: "hidden",
     marginBottom: 4,
   },
-  progressBar: {
-    height: "100%",
-    backgroundColor: COLORS.success,
-  },
-  progressText: {
+  taskTime: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    textAlign: "right",
   },
   statsGrid: {
     flexDirection: "row",
@@ -360,41 +442,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 4,
-  },
-  alertCard: {
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    marginBottom: 8,
-  },
-  alertMessage: {
-    fontSize: 14,
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  alertTime: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  demoCard: {
-    backgroundColor: "#D1ECF1",
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#BEE5EB",
-  },
-  demoTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#0C5460",
-    marginBottom: 8,
-  },
-  demoText: {
-    fontSize: 14,
-    color: "#0C5460",
-    lineHeight: 20,
   },
 });
 

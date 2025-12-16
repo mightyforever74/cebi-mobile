@@ -1,0 +1,198 @@
+// src/navigation/MainNavigator.js
+// TulipFleet - Main App Navigator (After Login)
+
+import { createStackNavigator } from "@react-navigation/stack";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { COLORS } from "../constants/config";
+import { useAuth } from "../context/AuthContext";
+
+/**
+ * Simple Dashboard Screen (Placeholder)
+ * TODO: Replace with your actual Home.js dashboard
+ */
+const DashboardScreen = () => {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    console.log("🚪 Logout button pressed");
+    await logout();
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.logo}>🌷 TulipFleet</Text>
+        <Text style={styles.welcomeText}>Welcome Back!</Text>
+        <Text style={styles.emailText}>{user?.email || "User"}</Text>
+        <View style={styles.roleBadge}>
+          <Text style={styles.roleText}>
+            {user?.role?.toUpperCase() || "DRIVER"}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>✅ Login Successful!</Text>
+        <Text style={styles.cardText}>
+          You are now authenticated and can access the fleet tracking system.
+        </Text>
+
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>📊 Dashboard Features:</Text>
+          <Text style={styles.infoItem}>• Vehicle List & Status</Text>
+          <Text style={styles.infoItem}>• Active Tasks & Routes</Text>
+          <Text style={styles.infoItem}>• Real-time Telemetry</Text>
+          <Text style={styles.infoItem}>• Live Maps & Tracking</Text>
+          <Text style={styles.infoItem}>• Alerts & Notifications</Text>
+        </View>
+
+        <Text style={styles.comingSoon}>🚧 Full Dashboard Coming Soon...</Text>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>🚪 Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.footer}>
+        TulipFleet v1.0.0 • Connected to Real API
+      </Text>
+    </View>
+  );
+};
+
+const Stack = createStackNavigator();
+
+const MainNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: COLORS.primary,
+        },
+        headerTintColor: COLORS.white,
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+      }}
+    >
+      <Stack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{
+          title: "🌷 TulipFleet Dashboard",
+          headerLeft: null,
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    padding: 20,
+  },
+  header: {
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  logo: {
+    fontSize: 48,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: 5,
+  },
+  emailText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 10,
+  },
+  roleBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  roleText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.success,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  cardText: {
+    fontSize: 15,
+    color: COLORS.text,
+    lineHeight: 22,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  infoBox: {
+    backgroundColor: "#EFF6FF",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.text,
+    marginBottom: 10,
+  },
+  infoItem: {
+    fontSize: 14,
+    color: COLORS.text,
+    marginBottom: 6,
+    paddingLeft: 8,
+  },
+  comingSoon: {
+    fontSize: 13,
+    color: COLORS.warning,
+    textAlign: "center",
+    marginBottom: 20,
+    fontStyle: "italic",
+  },
+  logoutButton: {
+    backgroundColor: COLORS.danger,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  logoutButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  footer: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginTop: 20,
+  },
+});
+
+export default MainNavigator;

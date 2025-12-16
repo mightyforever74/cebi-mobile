@@ -1,5 +1,6 @@
 import { CommonActions } from "@react-navigation/native";
-import { Block, Button, NavBar, Text, theme } from "galio-framework";
+import { Block, NavBar, Text, theme } from "galio-framework"
+import Button from './Button';
 import React from "react";
 import {
   Dimensions,

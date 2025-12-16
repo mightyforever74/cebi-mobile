@@ -1,14 +1,19 @@
-import "react-native-gesture-handler";
-import "react-native-reanimated";
+// App.js - TulipFleet Mobile App
+// Updated: 16 Aralık 2025 - RootNavigator'a geçiş
 
-import { NavigationContainer } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { GalioProvider } from "galio-framework";
 import { useEffect, useState } from "react";
+import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
+import { argonTheme } from "./constants";
 
-import { Theme } from "./constants";
-import OnboardingStack from "./navigation/Screens";
+// AuthProvider import
+import { AuthProvider } from "./src/context/AuthContext";
+
+// NEW: RootNavigator (includes NavigationContainer)
+import RootNavigator from "./src/navigation/RootNavigator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,7 +23,6 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Minimal loading
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (e) {
         console.warn(e);
@@ -36,10 +40,10 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GalioProvider theme={Theme}>
-        <NavigationContainer>
-          <OnboardingStack />
-        </NavigationContainer>
+      <GalioProvider theme={argonTheme}>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
       </GalioProvider>
     </GestureHandlerRootView>
   );

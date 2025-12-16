@@ -2,7 +2,8 @@ import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { Block, Button, Text, theme } from "galio-framework";
+import { Block, Text, theme } from "galio-framework"
+import Button from '../components/Button';
 
 import argonTheme from "../constants/Theme";
 

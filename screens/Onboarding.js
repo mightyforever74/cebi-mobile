@@ -7,7 +7,8 @@ import {
   Dimensions,
   SafeAreaView
 } from "react-native";
-import { Block, Button, Text, theme } from "galio-framework";
+import { Block, Text, theme } from "galio-framework"
+import Button from '../components/Button';
 
 const { height, width } = Dimensions.get("screen");
 

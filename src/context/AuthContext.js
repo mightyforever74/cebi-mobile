@@ -1,8 +1,8 @@
 // src/context/AuthContext.js
-// TulipFleet - Authentication Context with Mock Login
+// TulipFleet - Authentication Context with MOCK MODE support
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { mockLogin, mockRegister } from "../services/mockData";
+import { authAPI } from "../services/api";
 import { getErrorMessage } from "../utils/helpers";
 import {
   clearTokens,
@@ -12,6 +12,10 @@ import {
   storeTokens,
   storeUserData,
 } from "../utils/storage";
+
+// 🧪 MOCK MODE - Network issues için
+const USE_MOCK_MODE = false; // ✅ true = Mock kullan, false = Real API
+
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
@@ -51,24 +55,62 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Mock Login - email/password ile giriş
+   * Login - MOCK MODE veya REAL API
    */
   const login = async (email, password) => {
     try {
       setLoading(true);
-      console.log("🔐 Attempting mock login:", email);
 
-      // Mock login fonksiyonunu çağır
-      const response = await mockLogin(email, password);
+      // 🧪 MOCK MODE
+      if (USE_MOCK_MODE) {
+        console.log("🧪 Using MOCK login mode");
 
-      if (response.success) {
-        const { user: userData, token } = response;
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        console.log("✅ Mock login successful:", userData.role);
+        const mockUser = {
+          id: "mock-" + Date.now(),
+          email: email,
+          role: email.includes("admin") ? "admin" : "driver",
+          firstName: email.split("@")[0],
+          lastName: "User",
+          language: "tr",
+        };
 
-        // Token ve user data'yı storage'a kaydet
-        await storeTokens(token, token); // Mock'ta refresh token yok, aynısını kullan
+        const mockToken = "mock-token-" + Date.now();
+
+        // Save to storage
+        await storeTokens(mockToken, mockToken);
+        await storeUserData(mockUser);
+
+        setUser(mockUser);
+        setIsAuthenticated(true);
+
+        console.log(
+          "✅ Mock login successful:",
+          mockUser.email,
+          "Role:",
+          mockUser.role
+        );
+        return { success: true, user: mockUser };
+      }
+
+      // 🌐 REAL API LOGIN
+      console.log("🔐 Attempting REAL API login:", email);
+
+      const response = await authAPI.login(email, password);
+      console.log("📦 Login response:", response);
+
+      const { token, user: userData } = response.data || response;
+
+      if (token && userData) {
+        console.log("✅ Real API login successful:", userData.role);
+
+        console.log("💾 Saving token to storage..."); // YENİ
+        await storeTokens(token, token);
+        console.log("💾 Saving user data to storage..."); // YENİ
         await storeUserData(userData);
+        console.log("✅ Storage complete!"); // YENİ
 
         setUser(userData);
         setIsAuthenticated(true);
@@ -77,14 +119,16 @@ export const AuthProvider = ({ children }) => {
       } else {
         return {
           success: false,
-          error: response.error || "Giriş başarısız",
+          error: "Invalid response from server",
         };
       }
     } catch (error) {
       console.error("❌ Login error:", error);
+      const errorMessage =
+        error.response?.data?.error || error.message || "Login failed";
       return {
         success: false,
-        error: error.error || getErrorMessage(error),
+        error: errorMessage,
       };
     } finally {
       setLoading(false);
@@ -92,39 +136,78 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Mock Register - yeni kullanıcı kaydı
+   * Register - MOCK MODE veya REAL API
    */
   const register = async (data) => {
     try {
       setLoading(true);
-      console.log("📝 Attempting mock registration:", data.email);
 
-      const response = await mockRegister(data);
+      // 🧪 MOCK MODE
+      if (USE_MOCK_MODE) {
+        console.log("🧪 Using MOCK register mode");
 
-      if (response.success) {
-        const { user: userData, token } = response;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const mockUser = {
+          id: "mock-" + Date.now(),
+          email: data.email,
+          role: "driver", // Default role
+          firstName: data.firstName || data.email.split("@")[0],
+          lastName: data.lastName || "User",
+          language: "tr",
+        };
+
+        const mockToken = "mock-token-" + Date.now();
+
+        await storeTokens(mockToken, mockToken);
+        await storeUserData(mockUser);
+
+        setUser(mockUser);
+        setIsAuthenticated(true);
 
         console.log("✅ Mock registration successful");
+        return {
+          success: true,
+          user: mockUser,
+          message: "Registration successful",
+        };
+      }
 
-        // Token ve user data'yı storage'a kaydet
+      // 🌐 REAL API REGISTER
+      console.log("📝 Attempting REAL API registration:", data.email);
+
+      const response = await authAPI.register(data);
+      console.log("📦 Register response:", response);
+
+      const { token, user: userData } = response.data || response;
+
+      if (token && userData) {
+        console.log("✅ Real API registration successful");
+
         await storeTokens(token, token);
         await storeUserData(userData);
 
         setUser(userData);
         setIsAuthenticated(true);
 
-        return { success: true, user: userData, message: response.message };
+        return {
+          success: true,
+          user: userData,
+          message: "Registration successful",
+        };
       } else {
         return {
           success: false,
-          error: response.error || "Kayıt başarısız",
+          error: "Invalid response from server",
         };
       }
     } catch (error) {
       console.error("❌ Register error:", error);
+      const errorMessage =
+        error.response?.data?.error || error.message || "Registration failed";
       return {
         success: false,
-        error: getErrorMessage(error),
+        error: errorMessage,
       };
     } finally {
       setLoading(false);
@@ -138,6 +221,18 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log("👋 Logging out user:", user?.email);
+
+      // MOCK MODE'da backend çağrısı yapma
+      if (!USE_MOCK_MODE) {
+        try {
+          await authAPI.logout();
+        } catch (err) {
+          console.warn(
+            "Backend logout failed, continuing with local logout:",
+            err
+          );
+        }
+      }
 
       // Storage'ı temizle
       await clearTokens();
@@ -161,13 +256,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Update user profile - mock update
+   * Update user profile
    */
   const updateProfile = async (updatedData) => {
     try {
       console.log("🔄 Updating profile:", updatedData);
 
-      // Mock update - storage'daki user'ı güncelle
+      // Update local storage
       const updatedUser = { ...user, ...updatedData };
       await storeUserData(updatedUser);
       setUser(updatedUser);

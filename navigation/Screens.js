@@ -9,6 +9,9 @@ import Profile from "../screens/Profile";
 import Register from "../screens/Register";
 import SettingsScreen from "../screens/Settings";
 
+// Login ekranı - src/screens/auth'dan import
+import LoginScreen from "../src/screens/auth/LoginScreen";
+
 // drawer
 import CustomDrawerContent from "./Menu";
 
@@ -184,6 +187,14 @@ export default function OnboardingStack(props) {
         component={Register}
         options={{
           headerTransparent: true,
+          headerShown: false,
+        }}
+      />
+      {/* LOGIN SCREEN - YENİ EKLENDİ */}
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{
           headerShown: false,
         }}
       />

@@ -1,5 +1,5 @@
 // src/screens/auth/LoginScreen.js
-// TulipFleet - Login Screen with DEBUG
+// TulipFleet - Login Screen with CORRECT credentials
 
 import { useEffect, useState } from "react";
 import {
@@ -22,7 +22,6 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // DEBUG: useAuth hook'u test et
   const auth = useAuth();
 
   useEffect(() => {
@@ -34,9 +33,9 @@ const LoginScreen = ({ navigation }) => {
   // Eğer auth undefined ise erken uyarı ver
   if (!auth || typeof auth.login !== "function") {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>⚠️ Configuration Error</Text>
-        <Text style={styles.errorText}>
+      <View style={styles.configErrorContainer}>
+        <Text style={styles.configErrorTitle}>⚠️ Configuration Error</Text>
+        <Text style={styles.configErrorText}>
           AuthContext is not properly configured.{"\n\n"}
           Please check:{"\n"}
           1. App.js has AuthProvider wrapper{"\n"}
@@ -47,7 +46,6 @@ const LoginScreen = ({ navigation }) => {
           style={styles.retryButton}
           onPress={() => {
             console.log("Retrying...");
-            // Force re-render
           }}
         >
           <Text style={styles.retryText}>Retry</Text>
@@ -80,6 +78,11 @@ const LoginScreen = ({ navigation }) => {
       if (result.success) {
         console.log("✅ Login successful, navigating...");
         // Navigation otomatik olarak AuthContext tarafından yapılacak
+        // veya manuel olarak:
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "App" }],
+        });
       } else {
         setError(result.error || "Giriş başarısız");
       }
@@ -92,16 +95,16 @@ const LoginScreen = ({ navigation }) => {
   };
 
   /**
-   * Demo butonları - Hızlı test için
+   * Demo butonları - DOĞRU CREDENTIALS
    */
   const fillDriverCredentials = () => {
-    setEmail("driver@tulipfleet.com");
-    setPassword("driver123");
+    setEmail("test@tulipfleet.com");
+    setPassword("test123");
     setError("");
   };
 
   const fillAdminCredentials = () => {
-    setEmail("admin@tulipfleet.com");
+    setEmail("admin@fleet.com");
     setPassword("admin123");
     setError("");
   };
@@ -110,7 +113,7 @@ const LoginScreen = ({ navigation }) => {
    * Kayıt ekranına git
    */
   const goToRegister = () => {
-    navigation.navigate("Register");
+    navigation.navigate("Onboarding");
   };
 
   return (
@@ -134,7 +137,7 @@ const LoginScreen = ({ navigation }) => {
 
           {/* Error Message */}
           {error ? (
-            <View style={styles.errorContainer}>
+            <View style={styles.errorBox}>
               <Text style={styles.errorText}>⚠️ {error}</Text>
             </View>
           ) : null}
@@ -203,7 +206,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Demo Buttons - Hızlı Test İçin */}
+        {/* Demo Buttons - DOĞRU HESAPLAR */}
         <View style={styles.demoContainer}>
           <Text style={styles.demoTitle}>⚡ Hızlı Test</Text>
           <Text style={styles.demoSubtitle}>
@@ -217,7 +220,7 @@ const LoginScreen = ({ navigation }) => {
             disabled={loading}
           >
             <Text style={styles.demoButtonTitle}>👤 Sürücü Hesabı</Text>
-            <Text style={styles.demoButtonEmail}>driver@tulipfleet.com</Text>
+            <Text style={styles.demoButtonEmail}>test@tulipfleet.com</Text>
           </TouchableOpacity>
 
           {/* Admin Demo Button */}
@@ -227,7 +230,7 @@ const LoginScreen = ({ navigation }) => {
             disabled={loading}
           >
             <Text style={styles.demoButtonTitle}>👔 Yönetici Hesabı</Text>
-            <Text style={styles.demoButtonEmail}>admin@tulipfleet.com</Text>
+            <Text style={styles.demoButtonEmail}>admin@fleet.com</Text>
           </TouchableOpacity>
 
           <Text style={styles.demoNote}>
@@ -236,7 +239,7 @@ const LoginScreen = ({ navigation }) => {
         </View>
 
         {/* Version Info */}
-        <Text style={styles.version}>TulipFleet v1.0.0 (Mock Mode)</Text>
+        <Text style={styles.version}>TulipFleet v1.0.0</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: "center",
   },
-  errorContainer: {
+  errorBox: {
     backgroundColor: "#FEE2E2",
     padding: 12,
     borderRadius: 8,
@@ -399,21 +402,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 24,
   },
-  // DEBUG Error Screen Styles
-  errorContainer: {
+  // Config Error Screen Styles
+  configErrorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 32,
     backgroundColor: "#FEF2F2",
   },
-  errorTitle: {
+  configErrorTitle: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#991B1B",
     marginBottom: 16,
   },
-  errorText: {
+  configErrorText: {
     fontSize: 14,
     color: "#991B1B",
     textAlign: "center",

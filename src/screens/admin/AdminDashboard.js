@@ -1,8 +1,9 @@
 // src/screens/admin/AdminDashboard.js
-// TulipFleet - Admin Dashboard (Mock Data)
+// TulipFleet - Admin Dashboard with REAL DATA
 
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -12,24 +13,85 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
-import { MOCK_ADMIN_DATA } from "../../services/mockData";
+import { adminAPI } from "../../services/api";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+
+  // State
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [adminData, setAdminData] = useState(MOCK_ADMIN_DATA);
+  const [fleetStats, setFleetStats] = useState(null);
+  const [vehicles, setVehicles] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [error, setError] = useState(null);
 
+  // Fetch data on mount
   useEffect(() => {
-    console.log("📊 AdminDashboard mounted for:", user?.firstName);
-  }, [user]);
+    fetchAllData();
+  }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    // Mock refresh
-    setTimeout(() => {
-      setAdminData(MOCK_ADMIN_DATA);
+  const fetchAllData = async () => {
+    try {
+      setError(null);
+
+      // Fetch all admin data in parallel
+      const [statsData, vehiclesData, activitiesData] = await Promise.all([
+        adminAPI.getFleetStats().catch((err) => ({ stats: getDefaultStats() })),
+        adminAPI.getVehicles().catch((err) => ({ vehicles: [] })),
+        adminAPI.getActivities().catch((err) => ({ activities: [] })),
+      ]);
+
+      setFleetStats(statsData.stats);
+      setVehicles(vehiclesData.vehicles || []);
+      setActivities(activitiesData.activities || []);
+
+      console.log("✅ Admin data loaded:", {
+        stats: statsData.stats,
+        vehicleCount: vehiclesData.vehicles?.length,
+        activityCount: activitiesData.activities?.length,
+      });
+    } catch (error) {
+      console.error("❌ Error fetching admin data:", error);
+      setError("Veri yüklenirken hata oluştu");
+      // Set default values on error
+      setFleetStats(getDefaultStats());
+      setVehicles([]);
+      setActivities([]);
+    } finally {
+      setLoading(false);
       setRefreshing(false);
-    }, 1000);
+    }
+  };
+
+  const getDefaultStats = () => ({
+    vehicles: {
+      total_vehicles: 0,
+      active_vehicles: 0,
+      maintenance_vehicles: 0,
+      available_vehicles: 0,
+    },
+    drivers: {
+      total_drivers: 0,
+      on_duty_drivers: 0,
+      idle_drivers: 0,
+      off_duty_drivers: 0,
+    },
+    tasks: {
+      total_tasks: 0,
+      pending_tasks: 0,
+      in_progress_tasks: 0,
+      completed_today: 0,
+    },
+    alerts: {
+      unresolved_alerts: 0,
+      critical_alerts: 0,
+    },
+  });
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAllData();
   };
 
   const handleLogout = async () => {
@@ -39,7 +101,20 @@ const AdminDashboard = () => {
     }
   };
 
-  const { fleetStats, vehicles, drivers, recentActivities, alerts } = adminData;
+  const handleVehiclePress = (vehicle) => {
+    console.log("Vehicle pressed:", vehicle.id);
+    // TODO: Navigate to VehicleDetails
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Yükleniyor...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -53,7 +128,7 @@ const AdminDashboard = () => {
         <View>
           <Text style={styles.greeting}>Hoş geldiniz,</Text>
           <Text style={styles.userName}>
-            {user?.firstName} {user?.lastName}
+            {user?.firstName || user?.email?.split("@")[0] || "Yönetici"}
           </Text>
           <Text style={styles.role}>Yönetici</Text>
         </View>
@@ -62,217 +137,175 @@ const AdminDashboard = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Fleet İstatistikleri */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📊 Filo Özeti</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{fleetStats.totalVehicles}</Text>
-            <Text style={styles.statLabel}>Toplam Araç</Text>
-            <Text style={styles.statSubtext}>
-              {fleetStats.activeVehicles} aktif
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{fleetStats.totalDrivers}</Text>
-            <Text style={styles.statLabel}>Toplam Sürücü</Text>
-            <Text style={styles.statSubtext}>
-              {fleetStats.activeDrivers} görevde
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: COLORS.info }]}>
-              {fleetStats.activeTasks}
-            </Text>
-            <Text style={styles.statLabel}>Aktif Görev</Text>
-            <Text style={styles.statSubtext}>
-              {fleetStats.pendingTasks} beklemede
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: COLORS.success }]}>
-              {fleetStats.completedTasksToday}
-            </Text>
-            <Text style={styles.statLabel}>Bugün Tamamlanan</Text>
-            <Text style={styles.statSubtext}>görev</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Araçlar */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🚐 Araçlar ({vehicles.length})</Text>
-        {vehicles.map((vehicle) => (
-          <View key={vehicle.id} style={styles.vehicleCard}>
-            <View style={styles.vehicleHeader}>
-              <View>
-                <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
-                <Text style={styles.vehicleModel}>{vehicle.model}</Text>
-              </View>
-              <View
-                style={[
-                  styles.statusIndicator,
-                  {
-                    backgroundColor:
-                      vehicle.status === "ACTIVE"
-                        ? COLORS.success
-                        : vehicle.status === "MAINTENANCE"
-                        ? COLORS.warning
-                        : COLORS.textSecondary,
-                  },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {vehicle.status === "ACTIVE"
-                    ? "Aktif"
-                    : vehicle.status === "MAINTENANCE"
-                    ? "Bakımda"
-                    : "Pasif"}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.infoText}>
-                👤 {vehicle.driver || "Atanmamış"}
-              </Text>
-              <Text style={styles.infoText}>⛽ %{vehicle.fuelLevel}</Text>
-            </View>
-            <Text style={styles.lastUpdate}>
-              Son güncelleme:{" "}
-              {new Date(vehicle.lastUpdate).toLocaleString("tr-TR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Sürücüler */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>👥 Sürücüler ({drivers.length})</Text>
-        {drivers.map((driver) => (
-          <View key={driver.id} style={styles.driverCard}>
-            <View style={styles.driverHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.driverName}>{driver.name}</Text>
-                <Text style={styles.driverPhone}>{driver.phone}</Text>
-              </View>
-              <View style={styles.driverStats}>
-                <Text style={styles.driverScore}>⭐ {driver.score}</Text>
-                <Text style={styles.driverTasks}>
-                  {driver.totalTasks} görev
-                </Text>
-              </View>
-            </View>
-            <View
-              style={[
-                styles.driverStatusBadge,
-                {
-                  backgroundColor:
-                    driver.status === "ACTIVE"
-                      ? COLORS.success
-                      : driver.status === "AVAILABLE"
-                      ? COLORS.info
-                      : COLORS.textSecondary,
-                },
-              ]}
-            >
-              <Text style={styles.driverStatusText}>
-                {driver.status === "ACTIVE"
-                  ? `📍 ${driver.currentTask}`
-                  : driver.status === "AVAILABLE"
-                  ? "✅ Müsait"
-                  : "💤 Mesai Dışı"}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Son Aktiviteler */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🕐 Son Aktiviteler</Text>
-        {recentActivities.map((activity) => (
-          <View key={activity.id} style={styles.activityCard}>
-            <View
-              style={[
-                styles.activityIcon,
-                {
-                  backgroundColor:
-                    activity.type === "TASK_COMPLETED"
-                      ? COLORS.success
-                      : activity.type === "ALERT"
-                      ? COLORS.warning
-                      : COLORS.info,
-                },
-              ]}
-            >
-              <Text style={styles.activityIconText}>
-                {activity.type === "TASK_COMPLETED"
-                  ? "✓"
-                  : activity.type === "ALERT"
-                  ? "!"
-                  : "🔧"}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.activityMessage}>{activity.message}</Text>
-              <Text style={styles.activityTime}>
-                {new Date(activity.timestamp).toLocaleString("tr-TR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Uyarılar */}
-      {alerts.filter((a) => !a.acknowledged).length > 0 && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>⚠️ Bekleyen Uyarılar</Text>
-          {alerts
-            .filter((a) => !a.acknowledged)
-            .map((alert) => (
-              <View
-                key={alert.id}
-                style={[
-                  styles.alertCard,
-                  {
-                    borderLeftColor:
-                      alert.severity === "high"
-                        ? COLORS.danger
-                        : COLORS.warning,
-                  },
-                ]}
-              >
-                <Text style={styles.alertMessage}>{alert.message}</Text>
-                <Text style={styles.alertVehicle}>
-                  Araç:{" "}
-                  {vehicles.find((v) => v.id === alert.vehicleId)?.plate ||
-                    "Bilinmiyor"}
-                </Text>
-                <Text style={styles.alertTime}>
-                  {new Date(alert.timestamp).toLocaleString("tr-TR")}
-                </Text>
-                <TouchableOpacity style={styles.acknowledgeButton}>
-                  <Text style={styles.acknowledgeText}>Onayla</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+      {/* Error Message */}
+      {error && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
 
-      {/* Demo Bilgi */}
-      <View style={styles.demoCard}>
-        <Text style={styles.demoTitle}>✅ Mock Login Aktif (Admin)</Text>
-        <Text style={styles.demoText}>
-          Bu ekran mock admin data ile çalışmaktadır.{"\n"}
-          Backend bağlantısı sonraki fazda eklenecektir.
-        </Text>
+      {/* Fleet Stats */}
+      {fleetStats && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>📊 Filo Özeti</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {fleetStats.vehicles?.total_vehicles || 0}
+              </Text>
+              <Text style={styles.statText}>Toplam Araç</Text>
+              <Text style={styles.statDetail}>
+                {fleetStats.vehicles?.active_vehicles || 0} aktif
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {fleetStats.drivers?.total_drivers || 0}
+              </Text>
+              <Text style={styles.statText}>Toplam Sürücü</Text>
+              <Text style={styles.statDetail}>
+                {fleetStats.drivers?.on_duty_drivers || 0} görevde
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.info }]}>
+                {fleetStats.tasks?.in_progress_tasks || 0}
+              </Text>
+              <Text style={styles.statText}>Aktif Görev</Text>
+              <Text style={styles.statDetail}>
+                {fleetStats.tasks?.pending_tasks || 0} beklemede
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.success }]}>
+                {fleetStats.tasks?.completed_today || 0}
+              </Text>
+              <Text style={styles.statText}>Bugün Tamamlanan</Text>
+              <Text style={styles.statDetail}>görev</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Vehicles */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
+        {vehicles.length > 0 ? (
+          vehicles.map((vehicle) => (
+            <TouchableOpacity
+              key={vehicle.id}
+              style={styles.vehicleCard}
+              onPress={() => handleVehiclePress(vehicle)}
+            >
+              <View style={styles.vehicleHeader}>
+                <View style={styles.vehicleInfo}>
+                  <Text style={styles.vehiclePlate}>{vehicle.plate_no}</Text>
+                  <Text style={styles.vehicleModel}>
+                    {vehicle.brand} {vehicle.model}
+                  </Text>
+                  {vehicle.driver_email && (
+                    <View style={styles.driverInfo}>
+                      <Text style={styles.driverIcon}>👤</Text>
+                      <Text style={styles.driverName}>
+                        {vehicle.driver_email.split("@")[0]}
+                      </Text>
+                    </View>
+                  )}
+                  {vehicle.last_location_time && (
+                    <Text style={styles.lastUpdate}>
+                      Son güncelleme:{" "}
+                      {new Date(vehicle.last_location_time).toLocaleTimeString(
+                        "tr-TR"
+                      )}
+                    </Text>
+                  )}
+                </View>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor:
+                        vehicle.status === "active"
+                          ? COLORS.success
+                          : vehicle.status === "maintenance"
+                          ? COLORS.warning
+                          : COLORS.textSecondary,
+                    },
+                  ]}
+                >
+                  <Text style={styles.statusText}>
+                    {vehicle.status === "active"
+                      ? "Aktif"
+                      : vehicle.status === "maintenance"
+                      ? "Bakımda"
+                      : "Atanmamış"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.vehicleStats}>
+                {vehicle.fuel_level && (
+                  <View style={styles.vehicleStat}>
+                    <Text style={styles.vehicleStatIcon}>⛽</Text>
+                    <Text style={styles.vehicleStatValue}>
+                      %{Math.round(vehicle.fuel_level)}
+                    </Text>
+                  </View>
+                )}
+                {vehicle.speed !== null && vehicle.speed !== undefined && (
+                  <View style={styles.vehicleStat}>
+                    <Text style={styles.vehicleStatIcon}>🚗</Text>
+                    <Text style={styles.vehicleStatValue}>
+                      {Math.round(vehicle.speed)} km/h
+                    </Text>
+                  </View>
+                )}
+                {vehicle.latitude && vehicle.longitude && (
+                  <View style={styles.vehicleStat}>
+                    <Text style={styles.vehicleStatIcon}>📍</Text>
+                    <Text style={styles.vehicleStatValue}>GPS Aktif</Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>Araç bulunamadı</Text>
+        )}
       </View>
+
+      {/* Recent Activities */}
+      {activities.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>📋 Son Aktiviteler</Text>
+          {activities.map((activity, index) => (
+            <View
+              key={`${activity.activity_type}-${activity.id}-${index}`}
+              style={styles.activityCard}
+            >
+              <View style={styles.activityHeader}>
+                <Text style={styles.activityTitle}>
+                  {activity.activity_type === "task" ? "📋" : "⚠️"}{" "}
+                  {activity.identifier}
+                </Text>
+                <Text style={styles.activityTime}>
+                  {new Date(activity.timestamp).toLocaleTimeString("tr-TR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </View>
+              <Text style={styles.activityDescription}>
+                Durum: {activity.status}
+              </Text>
+              {activity.user_email && (
+                <Text style={styles.activityUser}>
+                  {activity.user_email.split("@")[0]} • {activity.vehicle_plate}
+                </Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -281,6 +314,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: COLORS.textSecondary,
   },
   header: {
     flexDirection: "row",
@@ -317,6 +361,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  errorCard: {
+    backgroundColor: "#FEE",
+    margin: 16,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.danger,
+  },
+  errorText: {
+    color: COLORS.danger,
+    fontSize: 14,
+  },
   card: {
     backgroundColor: COLORS.white,
     margin: 16,
@@ -334,31 +390,37 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 16,
   },
+  noDataText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    paddingVertical: 20,
+  },
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  statCard: {
+  statItem: {
     width: "48%",
-    backgroundColor: COLORS.background,
+    alignItems: "center",
     padding: 16,
+    backgroundColor: COLORS.background,
     borderRadius: 8,
     marginBottom: 12,
-    alignItems: "center",
   },
   statNumber: {
     fontSize: 32,
     fontWeight: "bold",
     color: COLORS.primary,
   },
-  statLabel: {
+  statText: {
     fontSize: 14,
     color: COLORS.text,
     marginTop: 4,
     fontWeight: "600",
   },
-  statSubtext: {
+  statDetail: {
     fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 2,
@@ -372,8 +434,10 @@ const styles = StyleSheet.create({
   vehicleHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 8,
+  },
+  vehicleInfo: {
+    flex: 1,
   },
   vehiclePlate: {
     fontSize: 18,
@@ -385,156 +449,81 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
   },
-  statusIndicator: {
+  driverInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  driverIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  driverName: {
+    fontSize: 12,
+    color: COLORS.text,
+  },
+  lastUpdate: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    height: 28,
   },
   statusText: {
     color: COLORS.white,
     fontSize: 12,
     fontWeight: "600",
   },
-  vehicleInfo: {
+  vehicleStats: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
+    gap: 16,
   },
-  infoText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  lastUpdate: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  driverCard: {
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  driverHeader: {
+  vehicleStat: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
+    alignItems: "center",
   },
-  driverName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  driverPhone: {
+  vehicleStatIcon: {
     fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+    marginRight: 4,
   },
-  driverStats: {
-    alignItems: "flex-end",
-  },
-  driverScore: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.success,
-  },
-  driverTasks: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  driverStatusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  driverStatusText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "500",
+  vehicleStatValue: {
+    fontSize: 13,
+    color: COLORS.text,
   },
   activityCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
     backgroundColor: COLORS.background,
+    padding: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
+  activityHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginRight: 12,
+    marginBottom: 4,
   },
-  activityIconText: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  activityMessage: {
+  activityTitle: {
     fontSize: 14,
+    fontWeight: "600",
     color: COLORS.text,
-    marginBottom: 2,
+    flex: 1,
   },
   activityTime: {
     fontSize: 12,
     color: COLORS.textSecondary,
   },
-  alertCard: {
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    marginBottom: 12,
-  },
-  alertMessage: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  alertVehicle: {
+  activityDescription: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  alertTime: {
-    fontSize: 12,
+  activityUser: {
+    fontSize: 11,
     color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  acknowledgeButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-  },
-  acknowledgeText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  demoCard: {
-    backgroundColor: "#FFF3CD",
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#FFE69C",
-  },
-  demoTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#856404",
-    marginBottom: 8,
-  },
-  demoText: {
-    fontSize: 14,
-    color: "#856404",
-    lineHeight: 20,
   },
 });
 

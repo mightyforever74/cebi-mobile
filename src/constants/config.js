@@ -5,9 +5,7 @@ import {
   MQTT_PORT,
   MQTT_USERNAME,
 } from "@env";
-export const API_URL =
-  ENV_API_URL ||
-  (__DEV__ ? "http://10.0.2.2:3000" : "https://your-vps-ip:3000");
+export const API_URL = ENV_API_URL || "http://46.224.1.192:3000";
 
 export const API_TIMEOUT = 30000;
 
@@ -57,6 +55,7 @@ export const MAP_CONFIG = {
 
 // Theme Colors (Argon theme)
 export const COLORS = {
+  // Küçük harfli (yeni stil)
   primary: "#5E72E4",
   secondary: "#F7FAFC",
   success: "#2DCE89",
@@ -68,6 +67,23 @@ export const COLORS = {
   background: "#F7FAFC",
   white: "#FFFFFF",
   black: "#000000",
+  gray: "#8898AA",
+  muted: "#8898AA",
+  border: "#E7E7E7",
+  GRAY: "#8898AA",
+  BORDER: "#E7E7E7",
+  // Büyük harfli aliaslar (Argon uyumu)
+  WHITE: "#FFFFFF",
+  BLACK: "#000000",
+  PRIMARY: "#5E72E4",
+  SECONDARY: "#F7FAFC",
+  SUCCESS: "#2DCE89",
+  WARNING: "#FB6340",
+  DANGER: "#F5365C",
+  INFO: "#11CDEF",
+  MUTED: "#8898AA",
+  TEXT: "#32325D",
+  BACKGROUND: "#F7FAFC",
 };
 
 // API Endpoints

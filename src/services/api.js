@@ -1,10 +1,11 @@
+// src/services/api.js
+// TulipFleet API Service - Complete with all endpoints
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-
-// Environment variables'ı okumak için
 import { API_TIMEOUT, API_URL } from "../constants/config";
 
-// Axios instance oluştur
+// Axios instance
 const api = axios.create({
   baseURL: API_URL,
   timeout: API_TIMEOUT,
@@ -13,107 +14,333 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - Token ekle
+// Request interceptor - Add token
 api.interceptors.request.use(
   async (config) => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      console.log("API Request:", config.method.toUpperCase(), config.url);
-      return config;
-    } catch (error) {
-      console.error("Request interceptor error:", error);
-      return config;
-    }
+    const token = await AsyncStorage.getItem("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    console.log("API Request:", config.method?.toUpperCase(), config.url);
+    console.log("🔑 Token:", token ? "EXISTS" : "MISSING");
+    return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor - Token yenileme
+// Response interceptor - Handle errors
 api.interceptors.response.use(
   (response) => {
     console.log("API Response:", response.status, response.config.url);
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config;
-
-    // 401 Unauthorized - Token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = await AsyncStorage.getItem("refreshToken");
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/refresh`, {
-            refreshToken,
-          });
-
-          const { accessToken } = response.data;
-          await AsyncStorage.setItem("accessToken", accessToken);
-
-          // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // Token refresh failed - Logout
-        await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
-        console.error("Token refresh failed:", refreshError);
-        // Navigate to login screen
-        return Promise.reject(refreshError);
-      }
+  (error) => {
+    if (error.response) {
+      console.error("API Error:", error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error("API Error: No response", error.message);
+    } else {
+      console.error("API Error:", error.message);
     }
-
-    console.error("API Error:", error.response?.status, error.message);
     return Promise.reject(error);
   }
 );
 
-// Auth API
+// ============================================
+// AUTHENTICATION
+// ============================================
+
 export const authAPI = {
-  login: (email, password) => api.post("/auth/login", { email, password }),
-  register: (data) => api.post("/auth/register", data),
-  logout: () => api.post("/auth/logout"),
-  refreshToken: (refreshToken) => api.post("/auth/refresh", { refreshToken }),
-  getProfile: () => api.get("/auth/profile"),
+  login: async (email, password) => {
+    const response = await api.post("/api/auth/login", { email, password });
+    return response.data;
+  },
+
+  register: async (email, password, role = "driver") => {
+    const response = await api.post("/api/auth/register", {
+      email,
+      password,
+      role,
+    });
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await api.post("/api/auth/logout");
+    return response.data;
+  },
 };
 
-// Vehicles API
-export const vehiclesAPI = {
-  getAll: () => api.get("/vehicles"),
-  getById: (id) => api.get(`/vehicles/${id}`),
-  create: (data) => api.post("/vehicles", data),
-  update: (id, data) => api.put(`/vehicles/${id}`, data),
-  delete: (id) => api.delete(`/vehicles/${id}`),
-  getTelemetry: (id) => api.get(`/vehicles/${id}/telemetry`),
+// ============================================
+// DRIVER ENDPOINTS
+// ============================================
+
+export const driverAPI = {
+  // Get all drivers
+  getAll: async () => {
+    const response = await api.get("/api/drivers");
+    return response.data;
+  },
+
+  // Alias: getList (same as getAll)
+  getList: async () => {
+    const response = await api.get("/api/drivers");
+    return response.data;
+  },
+
+  // Create driver with linked user
+  createWithUser: async (data) => {
+    const response = await api.post("/api/drivers/create-with-user", data);
+    return response.data;
+  },
+
+  // Update driver
+  update: async (id, data) => {
+    const response = await api.put(`/api/drivers/${id}`, data);
+    return response.data;
+  },
+
+  // Delete driver
+  delete: async (id) => {
+    const response = await api.delete(`/api/drivers/${id}`);
+    return response.data;
+  },
+
+  // Existing endpoints
+  getStats: async () => {
+    const response = await api.get("/api/driver/stats");
+    return response.data;
+  },
+
+  // Get active tasks
+  getTasks: async () => {
+    const response = await api.get("/api/driver/tasks");
+    return response.data;
+  },
+
+  // Get assigned vehicle info
+  getVehicle: async () => {
+    const response = await api.get("/api/driver/vehicle");
+    return response.data;
+  },
+
+  // Update task status
+  updateTaskStatus: async (taskId, status) => {
+    const response = await api.put(`/api/driver/task/${taskId}/status`, {
+      status,
+    });
+    return response.data;
+  },
 };
 
-// Tasks API
-export const tasksAPI = {
-  getAll: (driverId) => api.get("/tasks", { params: { driverId } }),
-  getById: (id) => api.get(`/tasks/${id}`),
-  create: (data) => api.post("/tasks", data),
-  update: (id, data) => api.put(`/tasks/${id}`, data),
-  updateStatus: (id, status) => api.patch(`/tasks/${id}/status`, { status }),
-  delete: (id) => api.delete(`/tasks/${id}`),
+// ============================================
+// ADMIN ENDPOINTS
+// ============================================
+
+export const adminAPI = {
+  // Get fleet statistics
+  getFleetStats: async () => {
+    const response = await api.get("/api/admin/fleet-stats");
+    return response.data;
+  },
+
+  // Get all vehicles with details
+  getVehicles: async () => {
+    const response = await api.get("/api/admin/vehicles");
+    return response.data;
+  },
+
+  // Get recent activities
+  getActivities: async () => {
+    const response = await api.get("/api/admin/activities");
+    return response.data;
+  },
 };
 
-// Reports API
-export const reportsAPI = {
-  getDashboard: () => api.get("/reports/dashboard"),
-  getVehicleStats: (vehicleId, startDate, endDate) =>
-    api.get(`/reports/vehicles/${vehicleId}`, {
-      params: { startDate, endDate },
-    }),
-  getDriverStats: (driverId, startDate, endDate) =>
-    api.get(`/reports/drivers/${driverId}`, {
-      params: { startDate, endDate },
-    }),
+// ============================================
+// VEHICLES
+// ============================================
+export const vehicleAPI = {
+  // Get all vehicles
+  getAll: async () => {
+    const response = await api.get("/api/vehicles");
+    return response.data;
+  },
+
+  // Alias: getList (same as getAll)
+  getList: async () => {
+    const response = await api.get("/api/vehicles");
+    return response.data;
+  },
+
+  // Create vehicle
+  create: async (data) => {
+    const response = await api.post("/api/vehicles", data);
+    return response.data;
+  },
+
+  // Update vehicle
+  update: async (id, data) => {
+    const response = await api.put(`/api/vehicles/${id}`, data);
+    return response.data;
+  },
+
+  // Delete vehicle
+  delete: async (id) => {
+    const response = await api.delete(`/api/vehicles/${id}`);
+    return response.data;
+  },
+};
+
+// ============================================
+// DRIVERS
+// ============================================
+
+export const driversAPI = {
+  // Get all drivers
+  getList: async () => {
+    const response = await api.get("/api/drivers");
+    return response.data;
+  },
+
+  // Create driver
+  create: async (driverData) => {
+    const response = await api.post("/api/drivers", driverData);
+    return response.data;
+  },
+};
+
+// ============================================
+// TASKS
+// ============================================
+export const taskAPI = {
+  // Get all tasks
+  getAll: async () => {
+    const response = await api.get("/api/tasks");
+    return response.data;
+  },
+
+  // Alias: getList (same as getAll)
+  getList: async () => {
+    const response = await api.get("/api/tasks");
+    return response.data;
+  },
+
+  // Create task
+  create: async (data) => {
+    const response = await api.post("/api/tasks", data);
+    return response.data;
+  },
+
+  // Update task
+  update: async (id, data) => {
+    const response = await api.put(`/api/tasks/${id}`, data);
+    return response.data;
+  },
+
+  // Delete task
+  delete: async (id) => {
+    const response = await api.delete(`/api/tasks/${id}`);
+    return response.data;
+  },
+};
+
+// ============================================
+// ALERTS
+// ============================================
+export const alertAPI = {
+  getAll: async () => {
+    const response = await api.get("/api/alerts");
+    return response.data;
+  },
+  resolve: async (id) => {
+    const response = await api.put(`/api/alerts/${id}/resolve`);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/api/alerts/${id}`);
+    return response.data;
+  },
+};
+
+// ============================================
+// REPORTS
+// ============================================
+
+export const reportAPI = {
+  // Get fleet summary report
+  getFleetSummary: async (from, to) => {
+    const params = new URLSearchParams({ from, to }).toString();
+    const response = await api.get(`/api/reports/fleet-summary?${params}`);
+    return response.data;
+  },
+};
+
+// ============================================
+// DASHBOARD
+// ============================================
+
+export const dashboardAPI = {
+  // Get dashboard statistics
+  getStats: async () => {
+    const response = await api.get("/api/dashboard/stats");
+    return response.data;
+  },
+};
+
+// ============================================
+// HEALTH CHECK
+// ============================================
+
+export const healthAPI = {
+  check: async () => {
+    const response = await api.get("/health");
+    return response.data;
+  },
+};
+
+// ============================================
+// USER API
+// ============================================
+export const userAPI = {
+  // Profil güncelle
+  updateProfile: async (data) => {
+    const response = await api.put("/api/users/profile", data);
+    return response.data;
+  },
+
+  // Şifre değiştir
+  changePassword: async (data) => {
+    const response = await api.put("/api/users/password", data);
+    return response.data;
+  },
+
+  // Ayarları güncelle
+  updateSettings: async (data) => {
+    const response = await api.put("/api/users/settings", data);
+    return response.data;
+  },
+
+  // Push token kaydet
+  registerPushToken: async (token, platform) => {
+    const response = await api.post("/api/users/push-token", {
+      token,
+      platform,
+    });
+    return response.data;
+  },
+};
+
+// ============================================
+// DRIVER TASK API
+// ============================================
+export const driverTaskAPI = {
+  getMyTasks: async () => {
+    const response = await api.get("/api/driver/tasks");
+    return response.data;
+  },
+  updateStatus: async (id, status) => {
+    const response = await api.put(`/api/driver/task/${id}/status`, { status });
+    return response.data;
+  },
 };
 
 export default api;
