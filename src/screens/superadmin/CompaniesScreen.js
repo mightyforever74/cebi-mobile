@@ -1,4 +1,8 @@
 // src/screens/superadmin/CompaniesScreen.js
+// TulipFleet - Şirket Yönetimi
+// Updated: 27 Aralık 2025 - AsyncStorage fix
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,10 +16,8 @@ import {
   View,
 } from "react-native";
 import { API_URL } from "../../constants/config";
-import { useAuth } from "../../context/AuthContext";
 
 const CompaniesScreen = ({ navigation }) => {
-  const { token } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [companies, setCompanies] = useState([]);
@@ -24,6 +26,14 @@ const CompaniesScreen = ({ navigation }) => {
 
   const fetchCompanies = async () => {
     try {
+      const token = await AsyncStorage.getItem("accessToken");
+
+      if (!token) {
+        Alert.alert("Hata", "Oturum süresi dolmuş");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/superadmin/companies`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -36,6 +46,8 @@ const CompaniesScreen = ({ navigation }) => {
         setCompanies(data.companies || []);
         setFilteredCompanies(data.companies || []);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("API Error:", response.status, errorData);
         Alert.alert("Hata", "Şirketler yüklenemedi");
       }
     } catch (error) {
@@ -80,6 +92,7 @@ const CompaniesScreen = ({ navigation }) => {
           style: "destructive",
           onPress: async () => {
             try {
+              const token = await AsyncStorage.getItem("accessToken");
               const response = await fetch(
                 `${API_URL}/api/superadmin/companies/${company.id}`,
                 {
@@ -108,7 +121,9 @@ const CompaniesScreen = ({ navigation }) => {
   const renderCompanyItem = ({ item }) => (
     <TouchableOpacity
       style={styles.companyCard}
-      onPress={() => navigation.navigate("CompanyDetail", { company: item })}
+      onPress={() =>
+        navigation.navigate("CompanyDetail", { companyId: item.id })
+      }
     >
       <View style={styles.companyHeader}>
         <View style={styles.companyIcon}>
@@ -121,11 +136,18 @@ const CompaniesScreen = ({ navigation }) => {
         <View
           style={[
             styles.statusBadge,
-            item.active !== false ? styles.activeBadge : styles.inactiveBadge,
+            item.is_active !== false
+              ? styles.activeBadge
+              : styles.inactiveBadge,
           ]}
         >
-          <Text style={styles.statusText}>
-            {item.active !== false ? "Aktif" : "Pasif"}
+          <Text
+            style={[
+              styles.statusText,
+              { color: item.is_active !== false ? "#2DCE89" : "#F5365C" },
+            ]}
+          >
+            {item.is_active !== false ? "Aktif" : "Pasif"}
           </Text>
         </View>
       </View>
@@ -152,7 +174,9 @@ const CompaniesScreen = ({ navigation }) => {
       <View style={styles.actionsRow}>
         <TouchableOpacity
           style={[styles.actionBtn, styles.editBtn]}
-          onPress={() => navigation.navigate("EditCompany", { company: item })}
+          onPress={() =>
+            navigation.navigate("CompanyEdit", { companyId: item.id })
+          }
         >
           <Text style={styles.actionBtnText}>✏️ Düzenle</Text>
         </TouchableOpacity>

@@ -1,5 +1,6 @@
 // src/context/AuthContext.js
-// TulipFleet - Authentication Context with MOCK MODE support
+// TulipFleet - Authentication Context with Refresh Token Support
+// Updated: 26 Aralık 2025
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { authAPI } from "../services/api";
@@ -8,18 +9,17 @@ import {
   clearTokens,
   clearUserData,
   getAccessToken,
+  getRefreshToken,
   getUserData,
   storeTokens,
   storeUserData,
 } from "../utils/storage";
 
-// 🧪 MOCK MODE - Network issues için
-const USE_MOCK_MODE = false; // ✅ true = Mock kullan, false = Real API
-
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null); // Token state eklendi
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -33,20 +33,23 @@ export const AuthProvider = ({ children }) => {
    */
   const checkAuthStatus = async () => {
     try {
-      const token = await getAccessToken();
+      const storedToken = await getAccessToken();
       const userData = await getUserData();
 
-      if (token && userData) {
+      if (storedToken && userData) {
         console.log("✅ User found in storage:", userData.email);
+        setToken(storedToken); // Token'ı state'e kaydet
         setUser(userData);
         setIsAuthenticated(true);
       } else {
         console.log("ℹ️ No user in storage");
+        setToken(null);
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
       console.error("❌ Auth check error:", error);
+      setToken(null);
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -55,62 +58,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Login - MOCK MODE veya REAL API
+   * Login - Real API with Refresh Token
    */
   const login = async (email, password) => {
     try {
       setLoading(true);
 
-      // 🧪 MOCK MODE
-      if (USE_MOCK_MODE) {
-        console.log("🧪 Using MOCK login mode");
-
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const mockUser = {
-          id: "mock-" + Date.now(),
-          email: email,
-          role: email.includes("admin") ? "admin" : "driver",
-          firstName: email.split("@")[0],
-          lastName: "User",
-          language: "tr",
-        };
-
-        const mockToken = "mock-token-" + Date.now();
-
-        // Save to storage
-        await storeTokens(mockToken, mockToken);
-        await storeUserData(mockUser);
-
-        setUser(mockUser);
-        setIsAuthenticated(true);
-
-        console.log(
-          "✅ Mock login successful:",
-          mockUser.email,
-          "Role:",
-          mockUser.role
-        );
-        return { success: true, user: mockUser };
-      }
-
-      // 🌐 REAL API LOGIN
-      console.log("🔐 Attempting REAL API login:", email);
+      console.log("🔐 Attempting login:", email);
 
       const response = await authAPI.login(email, password);
-      console.log("📦 Login response:", response);
+      console.log("📦 Login response received");
 
-      const { token, user: userData } = response.data || response;
+      // Backend artık hem token hem refreshToken dönüyor
+      const {
+        token: accessToken,
+        refreshToken,
+        expiresIn,
+        user: userData,
+      } = response;
 
-      if (token && userData) {
-        console.log("✅ Real API login successful:", userData.role);
+      if (accessToken && userData) {
+        console.log("✅ Login successful:", userData.role);
 
-        console.log("💾 Saving token to storage..."); // YENİ
-        await storeTokens(token, token);
-        console.log("💾 Saving user data to storage..."); // YENİ
+        // Token'ları kaydet (refreshToken yoksa token'ı kullan - backward compatibility)
+        console.log("💾 Saving tokens to storage...");
+        await storeTokens(accessToken, refreshToken || accessToken);
+        setToken(accessToken); // State'e de kaydet
+
+        console.log("💾 Saving user data to storage...");
         await storeUserData(userData);
-        console.log("✅ Storage complete!"); // YENİ
+
+        console.log("✅ Storage complete!");
 
         setUser(userData);
         setIsAuthenticated(true);
@@ -136,55 +114,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Register - MOCK MODE veya REAL API
+   * Register - Real API with Refresh Token
    */
   const register = async (data) => {
     try {
       setLoading(true);
 
-      // 🧪 MOCK MODE
-      if (USE_MOCK_MODE) {
-        console.log("🧪 Using MOCK register mode");
+      console.log("📝 Attempting registration:", data.email);
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await authAPI.register(
+        data.email,
+        data.password,
+        data.role || "driver"
+      );
+      console.log("📦 Register response received");
 
-        const mockUser = {
-          id: "mock-" + Date.now(),
-          email: data.email,
-          role: "driver", // Default role
-          firstName: data.firstName || data.email.split("@")[0],
-          lastName: data.lastName || "User",
-          language: "tr",
-        };
+      const { token: accessToken, refreshToken, user: userData } = response;
 
-        const mockToken = "mock-token-" + Date.now();
+      if (accessToken && userData) {
+        console.log("✅ Registration successful");
 
-        await storeTokens(mockToken, mockToken);
-        await storeUserData(mockUser);
-
-        setUser(mockUser);
-        setIsAuthenticated(true);
-
-        console.log("✅ Mock registration successful");
-        return {
-          success: true,
-          user: mockUser,
-          message: "Registration successful",
-        };
-      }
-
-      // 🌐 REAL API REGISTER
-      console.log("📝 Attempting REAL API registration:", data.email);
-
-      const response = await authAPI.register(data);
-      console.log("📦 Register response:", response);
-
-      const { token, user: userData } = response.data || response;
-
-      if (token && userData) {
-        console.log("✅ Real API registration successful");
-
-        await storeTokens(token, token);
+        await storeTokens(accessToken, refreshToken || accessToken);
+        setToken(accessToken); // State'e de kaydet
         await storeUserData(userData);
 
         setUser(userData);
@@ -222,22 +173,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       console.log("👋 Logging out user:", user?.email);
 
-      // MOCK MODE'da backend çağrısı yapma
-      if (!USE_MOCK_MODE) {
-        try {
-          await authAPI.logout();
-        } catch (err) {
-          console.warn(
-            "Backend logout failed, continuing with local logout:",
-            err
-          );
-        }
+      // Backend'e logout bildirimi gönder (refresh token'ı iptal et)
+      try {
+        const refreshToken = await getRefreshToken();
+        await authAPI.logout(refreshToken);
+      } catch (err) {
+        console.warn(
+          "Backend logout failed, continuing with local logout:",
+          err
+        );
       }
 
       // Storage'ı temizle
       await clearTokens();
       await clearUserData();
 
+      setToken(null); // Token state'ini de temizle
       setUser(null);
       setIsAuthenticated(false);
 
@@ -279,8 +230,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Force refresh token (API interceptor tarafından çağrılabilir)
+   */
+  const forceRefreshToken = async () => {
+    try {
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) return false;
+
+      const response = await authAPI.refresh(refreshToken);
+      if (response.token) {
+        await storeTokens(response.token, refreshToken);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("❌ Force refresh failed:", error);
+      return false;
+    }
+  };
+
   const value = {
     user,
+    token, // Ekranlar için token
     loading,
     isAuthenticated,
     login,
@@ -288,6 +260,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     checkAuthStatus,
+    forceRefreshToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

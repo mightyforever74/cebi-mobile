@@ -1,9 +1,25 @@
 // src/services/api.js
-// TulipFleet API Service - Complete with all endpoints
+// TulipFleet API Service - With Refresh Token Support
+// Updated: 27 Aralık 2025 - Driver Task Actions eklendi
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_TIMEOUT, API_URL } from "../constants/config";
+
+// 🔐 Refresh durumu takibi
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Axios instance
 const api = axios.create({
@@ -19,26 +35,103 @@ api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem("accessToken");
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    console.log("API Request:", config.method?.toUpperCase(), config.url);
-    console.log("🔑 Token:", token ? "EXISTS" : "MISSING");
+    console.log("🌐 API Request:", config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle errors
+// Response interceptor - Handle errors & Auto refresh on 401
 api.interceptors.response.use(
   (response) => {
-    console.log("API Response:", response.status, response.config.url);
+    console.log("✅ API Response:", response.status, response.config.url);
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 401 hatası ve daha önce retry edilmemişse
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Refresh veya login endpoint'i ise direkt hata dön
+      if (
+        originalRequest.url?.includes("/auth/refresh") ||
+        originalRequest.url?.includes("/auth/login")
+      ) {
+        return Promise.reject(error);
+      }
+
+      // Zaten refresh yapılıyorsa kuyruğa ekle
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshToken = await AsyncStorage.getItem("refreshToken");
+
+        if (!refreshToken) {
+          console.log("❌ No refresh token, need to login again");
+          isRefreshing = false;
+          return Promise.reject(error);
+        }
+
+        console.log("🔄 Auto-refreshing token...");
+
+        // Refresh token endpoint'ini çağır
+        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
+          refreshToken,
+        });
+
+        const { token: newAccessToken } = response.data;
+
+        if (newAccessToken) {
+          console.log("✅ Token auto-refreshed successfully");
+
+          // Yeni token'ı kaydet
+          await AsyncStorage.setItem("accessToken", newAccessToken);
+
+          // Bekleyen istekleri işle
+          processQueue(null, newAccessToken);
+
+          // Orijinal isteği yeni token ile tekrarla
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error("❌ Token refresh failed:", refreshError.message);
+        processQueue(refreshError, null);
+        // Token'ları temizle - kullanıcı tekrar login olmalı
+        await AsyncStorage.multiRemove([
+          "accessToken",
+          "refreshToken",
+          "userData",
+        ]);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // Diğer hatalar
     if (error.response) {
-      console.error("API Error:", error.response.status, error.response.data);
+      console.error(
+        "❌ API Error:",
+        error.response.status,
+        error.response.data
+      );
     } else if (error.request) {
-      console.error("API Error: No response", error.message);
+      console.error("❌ API Error: No response", error.message);
     } else {
-      console.error("API Error:", error.message);
+      console.error("❌ API Error:", error.message);
     }
     return Promise.reject(error);
   }
@@ -63,8 +156,23 @@ export const authAPI = {
     return response.data;
   },
 
-  logout: async () => {
-    const response = await api.post("/api/auth/logout");
+  // 🔐 Refresh Token
+  refresh: async (refreshToken) => {
+    const response = await axios.post(`${API_URL}/api/auth/refresh`, {
+      refreshToken,
+    });
+    return response.data;
+  },
+
+  // Logout - refreshToken parametresi eklendi
+  logout: async (refreshToken = null) => {
+    const response = await api.post("/api/auth/logout", { refreshToken });
+    return response.data;
+  },
+
+  // 🔐 Tüm cihazlardan çıkış
+  logoutAll: async () => {
+    const response = await api.post("/api/auth/logout-all");
     return response.data;
   },
 };
@@ -151,6 +259,63 @@ export const adminAPI = {
   // Get recent activities
   getActivities: async () => {
     const response = await api.get("/api/admin/activities");
+    return response.data;
+  },
+};
+
+// ============================================
+// SUPER ADMIN ENDPOINTS
+// ============================================
+
+export const superAdminAPI = {
+  // Companies
+  getCompanies: async () => {
+    const response = await api.get("/api/superadmin/companies");
+    return response.data;
+  },
+
+  createCompany: async (data) => {
+    const response = await api.post("/api/superadmin/companies", data);
+    return response.data;
+  },
+
+  updateCompany: async (id, data) => {
+    const response = await api.put(`/api/superadmin/companies/${id}`, data);
+    return response.data;
+  },
+
+  deleteCompany: async (id) => {
+    const response = await api.delete(`/api/superadmin/companies/${id}`);
+    return response.data;
+  },
+
+  // Devices
+  getDevices: async (status = null) => {
+    const params = status ? `?status=${status}` : "";
+    const response = await api.get(`/api/superadmin/devices${params}`);
+    return response.data;
+  },
+
+  getDevice: async (id) => {
+    const response = await api.get(`/api/superadmin/devices/${id}`);
+    return response.data;
+  },
+
+  assignDevice: async (id, companyId, vehicleId = null) => {
+    const response = await api.post(`/api/superadmin/devices/${id}/assign`, {
+      company_id: companyId,
+      vehicle_id: vehicleId,
+    });
+    return response.data;
+  },
+
+  unassignDevice: async (id) => {
+    const response = await api.post(`/api/superadmin/devices/${id}/unassign`);
+    return response.data;
+  },
+
+  updateDevice: async (id, data) => {
+    const response = await api.put(`/api/superadmin/devices/${id}`, data);
     return response.data;
   },
 };
@@ -330,15 +495,58 @@ export const userAPI = {
 };
 
 // ============================================
-// DRIVER TASK API
+// DRIVER TASK API - YENİ GÖREV AKIŞI
+// Updated: 27 Aralık 2025
 // ============================================
 export const driverTaskAPI = {
+  // Sürücünün görevlerini getir
   getMyTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
   },
+
+  // Görev detayını getir
+  getTaskDetail: async (taskId) => {
+    const response = await api.get(`/api/driver/tasks/${taskId}`);
+    return response.data;
+  },
+
+  // Eski status güncelleme (geriye uyumluluk)
   updateStatus: async (id, status) => {
     const response = await api.put(`/api/driver/task/${id}/status`, { status });
+    return response.data;
+  },
+
+  // ============================================
+  // YENİ GÖREV AKSİYONLARI - 27 Aralık 2025
+  // ============================================
+
+  // Görevi kabul et
+  acceptTask: async (taskId) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/accept`);
+    return response.data;
+  },
+
+  // Görevi reddet
+  rejectTask: async (taskId, reason) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/reject`, {
+      reason,
+    });
+    return response.data;
+  },
+
+  // Göreve başla
+  startTask: async (taskId) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/start`);
+    return response.data;
+  },
+
+  // Görevi tamamla
+  completeTask: async (taskId, data = {}) => {
+    const response = await api.put(
+      `/api/driver/tasks/${taskId}/complete`,
+      data
+    );
     return response.data;
   },
 };

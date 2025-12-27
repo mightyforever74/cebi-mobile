@@ -73,6 +73,20 @@ const FleetMapScreen = ({ navigation }) => {
       .filter((v) => v && v.latitude && v.longitude);
   }, [vehicles]);
 
+  // Debug log
+  useEffect(() => {
+    console.log(
+      "[FleetMap] Normalized vehicles:",
+      normalizedVehicles.map((v) => ({
+        id: v.id,
+        plate: v.plate_no,
+        lat: v.latitude,
+        lng: v.longitude,
+        status: v.status,
+      }))
+    );
+  }, [normalizedVehicles]);
+
   // Seçili araç
   const selectedVehicle = useMemo(() => {
     if (!selectedVehicleId) return null;
@@ -258,7 +272,7 @@ const FleetMapScreen = ({ navigation }) => {
               vehicle={vehicle}
               isSelected={false}
               onPress={handleVehiclePress}
-              tracksViewChanges={false}
+              tracksViewChanges={true}
             />
           ))}
 

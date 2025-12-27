@@ -1,4 +1,7 @@
 // src/screens/superadmin/SuperAdminDashboard.js
+// Updated: 26 Aralık 2025 - Cihaz Yönetimi Eklendi
+
+import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -22,23 +25,28 @@ const SuperAdminDashboard = ({ navigation }) => {
     totalUsers: 0,
     totalVehicles: 0,
     totalDrivers: 0,
+    totalDevices: 0,
+    onlineDevices: 0,
   });
   const [companies, setCompanies] = useState([]);
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/superadmin/companies`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      // Şirket verileri
+      const companiesResponse = await fetch(
+        `${API_URL}/api/superadmin/companies`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      if (response.ok) {
-        const data = await response.json();
+      if (companiesResponse.ok) {
+        const data = await companiesResponse.json();
         setCompanies(data.companies || []);
 
-        // Calculate stats
         const totalVehicles =
           data.companies?.reduce((sum, c) => sum + (c.vehicle_count || 0), 0) ||
           0;
@@ -48,12 +56,37 @@ const SuperAdminDashboard = ({ navigation }) => {
         const totalUsers =
           data.companies?.reduce((sum, c) => sum + (c.user_count || 0), 0) || 0;
 
-        setStats({
+        setStats((prev) => ({
+          ...prev,
           totalCompanies: data.companies?.length || 0,
           totalUsers,
           totalVehicles,
           totalDrivers,
-        });
+        }));
+      }
+
+      // Cihaz verileri
+      try {
+        const devicesResponse = await fetch(
+          `${API_URL}/api/superadmin/devices`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (devicesResponse.ok) {
+          const deviceData = await devicesResponse.json();
+          setStats((prev) => ({
+            ...prev,
+            totalDevices: deviceData.stats?.total || 0,
+            onlineDevices: deviceData.stats?.online_now || 0,
+          }));
+        }
+      } catch (deviceError) {
+        console.log("Device stats not available yet");
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -118,6 +151,28 @@ const SuperAdminDashboard = ({ navigation }) => {
         </View>
       </View>
 
+      {/* Device Stats - YENİ */}
+      {stats.totalDevices > 0 && (
+        <TouchableOpacity
+          style={styles.deviceStatsCard}
+          onPress={() => navigation.navigate("Devices")}
+        >
+          <View style={styles.deviceStatsContent}>
+            <Ionicons name="hardware-chip" size={32} color="#5E72E4" />
+            <View style={styles.deviceStatsInfo}>
+              <Text style={styles.deviceStatsTitle}>ESP32 Cihazlar</Text>
+              <Text style={styles.deviceStatsSubtitle}>
+                {stats.onlineDevices} / {stats.totalDevices} online
+              </Text>
+            </View>
+          </View>
+          <View style={styles.deviceOnlineIndicator}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>{stats.onlineDevices} Online</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
@@ -126,29 +181,29 @@ const SuperAdminDashboard = ({ navigation }) => {
             style={styles.actionButton}
             onPress={() => navigation.navigate("Companies")}
           >
-            <Text style={styles.actionIcon}>🏢</Text>
+            <Ionicons name="business" size={28} color="#5E72E4" />
             <Text style={styles.actionText}>Şirketler</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => navigation.navigate("CreateCompany")}
           >
-            <Text style={styles.actionIcon}>➕</Text>
+            <Ionicons name="add-circle" size={28} color="#2DCE89" />
             <Text style={styles.actionText}>Yeni Şirket</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate("AllUsers")}
+            onPress={() => navigation.navigate("Devices")}
           >
-            <Text style={styles.actionIcon}>👥</Text>
-            <Text style={styles.actionText}>Tüm Kullanıcılar</Text>
+            <Ionicons name="hardware-chip" size={28} color="#FB6340" />
+            <Text style={styles.actionText}>Cihazlar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate("SystemLogs")}
+            onPress={() => navigation.navigate("PlatformUsers")}
           >
-            <Text style={styles.actionIcon}>📋</Text>
-            <Text style={styles.actionText}>Sistem Logları</Text>
+            <Ionicons name="people" size={28} color="#11CDEF" />
+            <Text style={styles.actionText}>Kullanıcılar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -169,7 +224,7 @@ const SuperAdminDashboard = ({ navigation }) => {
             onPress={() => navigation.navigate("CompanyDetail", { company })}
           >
             <View style={styles.companyIcon}>
-              <Text style={styles.companyIconText}>🏢</Text>
+              <Ionicons name="business" size={20} color="#FFF" />
             </View>
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>{company.name}</Text>
@@ -178,13 +233,13 @@ const SuperAdminDashboard = ({ navigation }) => {
                 sürücü
               </Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color="#8898AA" />
           </TouchableOpacity>
         ))}
 
         {companies.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🏢</Text>
+            <Ionicons name="business-outline" size={48} color="#DEE2E6" />
             <Text style={styles.emptyText}>Henüz şirket yok</Text>
             <TouchableOpacity
               style={styles.emptyButton}
@@ -219,9 +274,9 @@ const styles = StyleSheet.create({
     color: "#8898AA",
   },
   header: {
-    backgroundColor: "#5E72E4",
+    backgroundColor: "#F5365C",
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 30,
   },
   welcomeText: {
@@ -275,6 +330,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
   },
+
+  // Device Stats Card - YENİ
+  deviceStatsCard: {
+    backgroundColor: "#FFF",
+    marginHorizontal: 15,
+    marginTop: 15,
+    borderRadius: 12,
+    padding: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  deviceStatsContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  deviceStatsInfo: {
+    marginLeft: 12,
+  },
+  deviceStatsTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#32325D",
+  },
+  deviceStatsSubtitle: {
+    fontSize: 13,
+    color: "#8898AA",
+    marginTop: 2,
+  },
+  deviceOnlineIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8FFF3",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#2DCE89",
+    marginRight: 6,
+  },
+  onlineText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#2DCE89",
+  },
+
   section: {
     backgroundColor: "#FFF",
     marginHorizontal: 15,
@@ -316,14 +426,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  actionIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
   actionText: {
     color: "#32325D",
     fontSize: 13,
     fontWeight: "500",
+    marginTop: 8,
   },
   companyCard: {
     flexDirection: "row",
@@ -341,9 +448,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  companyIconText: {
-    fontSize: 20,
-  },
   companyInfo: {
     flex: 1,
     marginLeft: 12,
@@ -358,21 +462,14 @@ const styles = StyleSheet.create({
     color: "#8898AA",
     marginTop: 2,
   },
-  chevron: {
-    fontSize: 24,
-    color: "#8898AA",
-  },
   emptyState: {
     alignItems: "center",
     padding: 30,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 10,
-  },
   emptyText: {
     color: "#8898AA",
     fontSize: 14,
+    marginTop: 10,
     marginBottom: 15,
   },
   emptyButton: {

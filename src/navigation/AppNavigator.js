@@ -1,6 +1,6 @@
 ﻿// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Updated: 16 Aralık 2025 - GERÇEK EKRANLARLA
+// Updated: 26 Aralık 2025 - CİHAZ YÖNETİMİ EKLENDİ
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -19,8 +19,13 @@ import { useAuth } from "../context/AuthContext";
 // SUPER ADMIN SCREENS
 // ============================================================================
 import CompaniesScreen from "../screens/superadmin/CompaniesScreen";
+import CompanyEditScreen from "../screens/superadmin/CompanyEditScreen"; // ← EKSİK OLAN
 import CreateCompanyScreen from "../screens/superadmin/CreateCompanyScreen";
+import DeviceDetailScreen from "../screens/superadmin/DeviceDetailScreen";
+import DevicesScreen from "../screens/superadmin/DevicesScreen";
+import PlatformUsersScreen from "../screens/superadmin/PlatformUsersScreen";
 import SuperAdminDashboard from "../screens/superadmin/SuperAdminDashboard";
+import SystemHealthScreen from "../screens/superadmin/SystemHealthScreen";
 
 // ============================================================================
 // COMPANY ADMIN SCREENS
@@ -46,6 +51,7 @@ import DriverDashboard from "../screens/driver/DriverDashboard";
 import DriverProfile from "../screens/driver/DriverProfile";
 import DriverRouteMapScreen from "../screens/driver/DriverRouteMapScreen";
 import DriverSettings from "../screens/driver/DriverSettings";
+import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
 
@@ -68,21 +74,6 @@ const PlaceholderScreen = ({ title, icon, description }) => (
   </View>
 );
 
-// Super Admin Placeholders
-const PlatformUsersScreen = () => (
-  <PlaceholderScreen
-    title="Tüm Kullanıcılar"
-    icon="people-outline"
-    description="Platform genelindeki tüm kullanıcılar"
-  />
-);
-const SystemHealthScreen = () => (
-  <PlaceholderScreen
-    title="Sistem Health"
-    icon="pulse-outline"
-    description="API, MQTT, Database durumları"
-  />
-);
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
     title="Platform Raporları"
@@ -259,26 +250,10 @@ const superAdminMenuItems = [
     icon: "globe-outline",
   },
   { name: "Companies", label: "Şirket Yönetimi", icon: "business-outline" },
+  { name: "Devices", label: "Cihaz Yönetimi", icon: "hardware-chip-outline" }, // YENİ
   { name: "PlatformUsers", label: "Tüm Kullanıcılar", icon: "people-outline" },
   { name: "SystemHealth", label: "Sistem Health", icon: "pulse-outline" },
-  {
-    name: "PlatformReports",
-    label: "Platform Raporları",
-    icon: "bar-chart-outline",
-  },
-  {
-    name: "PlatformSettings",
-    label: "Platform Ayarları",
-    icon: "settings-outline",
-  },
 ];
-
-const SuperAdminStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="CompaniesMain" component={CompaniesScreen} />
-    <Stack.Screen name="CreateCompany" component={CreateCompanyScreen} />
-  </Stack.Navigator>
-);
 
 const SuperAdminNavigator = () => {
   return (
@@ -306,9 +281,26 @@ const SuperAdminNavigator = () => {
       />
       <Drawer.Screen
         name="Companies"
-        component={SuperAdminStack}
+        component={CompaniesScreen}
         options={{ title: "Şirket Yönetimi" }}
       />
+      <Drawer.Screen
+        name="CreateCompany"
+        component={CreateCompanyScreen}
+        options={{ title: "Yeni Şirket" }}
+      />
+      {/* CİHAZ YÖNETİMİ - YENİ */}
+      <Drawer.Screen
+        name="Devices"
+        component={DevicesScreen}
+        options={{ title: "Cihaz Yönetimi" }}
+      />
+      <Drawer.Screen
+        name="DeviceDetail"
+        component={DeviceDetailScreen}
+        options={{ title: "Cihaz Detay" }}
+      />
+      {/* Placeholder Screens */}
       <Drawer.Screen
         name="PlatformUsers"
         component={PlatformUsersScreen}
@@ -320,14 +312,12 @@ const SuperAdminNavigator = () => {
         options={{ title: "Sistem Health" }}
       />
       <Drawer.Screen
-        name="PlatformReports"
-        component={PlatformReportsScreen}
-        options={{ title: "Platform Raporları" }}
-      />
-      <Drawer.Screen
-        name="PlatformSettings"
-        component={PlatformSettingsScreen}
-        options={{ title: "Platform Ayarları" }}
+        name="CompanyEdit"
+        component={CompanyEditScreen}
+        options={{
+          title: "Şirket Düzenle",
+          drawerItemStyle: { display: "none" },
+        }}
       />
     </Drawer.Navigator>
   );
@@ -343,36 +333,9 @@ const companyAdminMenuItems = [
   { name: "Drivers", label: "Sürücü Yönetimi", icon: "people-outline" },
   { name: "Tasks", label: "Görev Yönetimi", icon: "clipboard-outline" },
   { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
-  { name: "Reports", label: "Raporlar", icon: "analytics-outline" },
-  { name: "Settings", label: "Şirket Ayarları", icon: "cog-outline" },
+  { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
+  { name: "Settings", label: "Şirket Ayarları", icon: "settings-outline" },
 ];
-
-// Vehicle Stack (List + Create + Edit)
-const VehicleStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="VehicleList" component={AdminVehicles} />
-    <Stack.Screen name="CreateVehicle" component={CreateVehicleScreen} />
-    <Stack.Screen name="EditVehicle" component={EditVehicleScreen} />
-  </Stack.Navigator>
-);
-
-// Driver Stack
-const DriverAdminStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="DriverList" component={AdminDrivers} />
-    <Stack.Screen name="CreateDriver" component={CreateDriverScreen} />
-    <Stack.Screen name="EditDriver" component={EditDriverScreen} />
-  </Stack.Navigator>
-);
-
-// Task Stack
-const TaskStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="TaskList" component={AdminTasks} />
-    <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
-    <Stack.Screen name="EditTask" component={EditTaskScreen} />
-  </Stack.Navigator>
-);
 
 const CompanyAdminNavigator = () => {
   return (
@@ -396,7 +359,7 @@ const CompanyAdminNavigator = () => {
       <Drawer.Screen
         name="AdminDashboard"
         component={AdminDashboard}
-        options={{ title: "Fleet Dashboard" }}
+        options={{ title: "Dashboard" }}
       />
       <Drawer.Screen
         name="FleetMap"
@@ -405,18 +368,48 @@ const CompanyAdminNavigator = () => {
       />
       <Drawer.Screen
         name="Vehicles"
-        component={VehicleStack}
+        component={AdminVehicles}
         options={{ title: "Araç Yönetimi" }}
       />
       <Drawer.Screen
+        name="CreateVehicle"
+        component={CreateVehicleScreen}
+        options={{ title: "Yeni Araç" }}
+      />
+      <Drawer.Screen
+        name="EditVehicle"
+        component={EditVehicleScreen}
+        options={{ title: "Araç Düzenle" }}
+      />
+      <Drawer.Screen
         name="Drivers"
-        component={DriverAdminStack}
+        component={AdminDrivers}
         options={{ title: "Sürücü Yönetimi" }}
       />
       <Drawer.Screen
+        name="CreateDriver"
+        component={CreateDriverScreen}
+        options={{ title: "Yeni Sürücü" }}
+      />
+      <Drawer.Screen
+        name="EditDriver"
+        component={EditDriverScreen}
+        options={{ title: "Sürücü Düzenle" }}
+      />
+      <Drawer.Screen
         name="Tasks"
-        component={TaskStack}
+        component={AdminTasks}
         options={{ title: "Görev Yönetimi" }}
+      />
+      <Drawer.Screen
+        name="CreateTask"
+        component={CreateTaskScreen}
+        options={{ title: "Yeni Görev" }}
+      />
+      <Drawer.Screen
+        name="EditTask"
+        component={EditTaskScreen}
+        options={{ title: "Görev Düzenle" }}
       />
       <Drawer.Screen
         name="Alerts"
@@ -450,6 +443,14 @@ const driverMenuItems = [
   { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
   { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
 ];
+
+// Tasks Stack - Görev listesi ve detay
+const TasksStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="TasksList" component={DriverTasks} />
+    <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
+  </Stack.Navigator>
+);
 
 // Profile Stack
 const ProfileStack = () => (
@@ -486,7 +487,7 @@ const DriverNavigator = () => {
       />
       <Drawer.Screen
         name="MyTasks"
-        component={DriverTasks}
+        component={TasksStack}
         options={{ title: "Görevlerim" }}
       />
       <Drawer.Screen
