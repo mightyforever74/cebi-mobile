@@ -1,6 +1,7 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
 
+import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,10 +14,13 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { driverAPI } from "../../services/api";
 
 const DriverDashboard = () => {
+  const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const { expoPushToken, error: pushError } = usePushNotifications();
 
   // State
   const [loading, setLoading] = useState(true);
@@ -30,6 +34,13 @@ const DriverDashboard = () => {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  // Debug: show push token when ready
+  useEffect(() => {
+    if (expoPushToken) {
+      console.log("🔔 Driver push token ready:", expoPushToken);
+    }
+  }, [expoPushToken]);
 
   const fetchAllData = async () => {
     try {
@@ -125,6 +136,23 @@ const DriverDashboard = () => {
           <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
+
+      {/* Task Offers Card - YENİ */}
+      <TouchableOpacity
+        style={styles.offersCard}
+        onPress={() => navigation.navigate("MyTasks", { screen: "TaskOffers" })}
+      >
+        <View style={styles.offersContent}>
+          <Text style={styles.offersIcon}>📬</Text>
+          <View style={styles.offersText}>
+            <Text style={styles.offersTitle}>Görev Teklifleri</Text>
+            <Text style={styles.offersSubtitle}>
+              Bekleyen teklifleri görüntüle
+            </Text>
+          </View>
+          <Text style={styles.offersArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Vehicle Card */}
       {vehicle ? (
@@ -330,6 +358,45 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
   },
+  // Task Offers Card Styles - YENİ
+  offersCard: {
+    backgroundColor: COLORS.primary,
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  offersContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  offersIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  offersText: {
+    flex: 1,
+  },
+  offersTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.white,
+  },
+  offersSubtitle: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+  offersArrow: {
+    fontSize: 24,
+    color: COLORS.white,
+  },
+  // Other styles
   card: {
     backgroundColor: COLORS.white,
     margin: 16,

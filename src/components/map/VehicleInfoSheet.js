@@ -1,39 +1,40 @@
 /**
  * TulipFleet - Vehicle Info Sheet Component
  * Paket A: Pro Marker System
- * 
+ *
  * Özellikler:
  * - Araç bilgilerini gösterir
  * - Follow mode toggle butonu (A.3)
+ * - Geçmiş Rota butonu (Faz 3)
  * - Smooth animations
  */
 
-import React, { useEffect, useRef } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useRef } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Animated,
   Dimensions,
   Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/config';
-import { clampHeading } from '../../utils/mapMath';
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { COLORS } from "../../constants/config";
+import { clampHeading } from "../../utils/mapMath";
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = 200;
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const SHEET_HEIGHT = 240; // Biraz daha yüksek - butonlar için
 
 const STATUS_CONFIG = {
-  in_use: { label: 'Aktif', color: '#10B981', icon: 'car' },
-  available: { label: 'Müsait', color: '#3B82F6', icon: 'car-outline' },
-  maintenance: { label: 'Bakımda', color: '#F59E0B', icon: 'construct' },
-  offline: { label: 'Çevrimdışı', color: '#6B7280', icon: 'cloud-offline' },
+  in_use: { label: "Aktif", color: "#10B981", icon: "car" },
+  available: { label: "Müsait", color: "#3B82F6", icon: "car-outline" },
+  maintenance: { label: "Bakımda", color: "#F59E0B", icon: "construct" },
+  offline: { label: "Çevrimdışı", color: "#6B7280", icon: "cloud-offline" },
 };
 
 // ============================================================================
@@ -45,6 +46,7 @@ const VehicleInfoSheet = ({
   onClose,
   isFollowing = false,
   onToggleFollow,
+  onPressHistory,
   isTablet = false,
 }) => {
   // Animation
@@ -75,23 +77,25 @@ const VehicleInfoSheet = ({
 
   // Status config
   const status = STATUS_CONFIG[vehicle.status] || STATUS_CONFIG.offline;
-  
+
   // Heading display
-  const headingDisplay = vehicle.heading !== null && vehicle.heading !== undefined
-    ? `${Math.round(clampHeading(vehicle.heading))}°`
-    : '-';
-  
+  const headingDisplay =
+    vehicle.heading !== null && vehicle.heading !== undefined
+      ? `${Math.round(clampHeading(vehicle.heading))}°`
+      : "-";
+
   // Speed display
-  const speedDisplay = vehicle.speed !== null && vehicle.speed !== undefined
-    ? `${Math.round(vehicle.speed)} km/s`
-    : '-';
+  const speedDisplay =
+    vehicle.speed !== null && vehicle.speed !== undefined
+      ? `${Math.round(vehicle.speed)} km/s`
+      : "-";
 
   // Last update
   const lastUpdateDisplay = vehicle.lastLocationTime
-    ? new Date(vehicle.lastLocationTime).toLocaleTimeString('tr-TR')
+    ? new Date(vehicle.lastLocationTime).toLocaleTimeString("tr-TR")
     : vehicle.last_location_time
-      ? new Date(vehicle.last_location_time).toLocaleTimeString('tr-TR')
-      : '-';
+    ? new Date(vehicle.last_location_time).toLocaleTimeString("tr-TR")
+    : "-";
 
   return (
     <Animated.View
@@ -113,13 +117,15 @@ const VehicleInfoSheet = ({
             <Ionicons name={status.icon} size={16} color="#fff" />
           </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.plateText}>{vehicle.plate_no || 'Plaka Yok'}</Text>
+            <Text style={styles.plateText}>
+              {vehicle.plate_no || "Plaka Yok"}
+            </Text>
             <Text style={styles.vehicleModel}>
               {vehicle.brand} {vehicle.model}
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.headerRight}>
           {/* Follow Mode Toggle */}
           {onToggleFollow && (
@@ -131,19 +137,21 @@ const VehicleInfoSheet = ({
               onPress={onToggleFollow}
             >
               <Ionicons
-                name={isFollowing ? 'locate' : 'locate-outline'}
+                name={isFollowing ? "locate" : "locate-outline"}
                 size={18}
-                color={isFollowing ? '#fff' : COLORS.primary}
+                color={isFollowing ? "#fff" : COLORS.primary}
               />
-              <Text style={[
-                styles.followText,
-                isFollowing && styles.followTextActive,
-              ]}>
-                {isFollowing ? 'Takip' : 'Takip Et'}
+              <Text
+                style={[
+                  styles.followText,
+                  isFollowing && styles.followTextActive,
+                ]}
+              >
+                {isFollowing ? "Takip" : "Takip Et"}
               </Text>
             </TouchableOpacity>
           )}
-          
+
           {/* Close Button */}
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Ionicons name="close" size={22} color={COLORS.gray} />
@@ -153,16 +161,8 @@ const VehicleInfoSheet = ({
 
       {/* Info Grid */}
       <View style={styles.infoGrid}>
-        <InfoItem
-          icon="speedometer-outline"
-          label="Hız"
-          value={speedDisplay}
-        />
-        <InfoItem
-          icon="compass-outline"
-          label="Yön"
-          value={headingDisplay}
-        />
+        <InfoItem icon="speedometer-outline" label="Hız" value={speedDisplay} />
+        <InfoItem icon="compass-outline" label="Yön" value={headingDisplay} />
         <InfoItem
           icon="time-outline"
           label="Son Güncelleme"
@@ -176,7 +176,41 @@ const VehicleInfoSheet = ({
         />
       </View>
 
-      {/* Coordinates (Debug - can be hidden in production) */}
+      {/* Action Buttons */}
+      <View style={styles.actionRow}>
+        {/* Geçmiş Rota Butonu */}
+        {onPressHistory && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onPressHistory(vehicle.id)}
+          >
+            <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.actionButtonText}>Geçmiş Rota</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Detay Butonu (ileride kullanılabilir) */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.actionButtonSecondary]}
+          onPress={() => {
+            // İleride VehicleDetail ekranına yönlendirme
+            console.log("Vehicle detail:", vehicle.id);
+          }}
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={20}
+            color={COLORS.gray}
+          />
+          <Text
+            style={[styles.actionButtonText, styles.actionButtonTextSecondary]}
+          >
+            Detay
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Coordinates */}
       <View style={styles.coordsRow}>
         <Text style={styles.coordsText}>
           📍 {vehicle.latitude?.toFixed(6)}, {vehicle.longitude?.toFixed(6)}
@@ -206,7 +240,7 @@ const InfoItem = ({ icon, label, value, valueColor }) => (
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -216,7 +250,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.2,
         shadowRadius: 5,
@@ -233,35 +267,35 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   handleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 8,
   },
   handle: {
     width: 36,
     height: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
     borderRadius: 2,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F3F4F6",
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   statusBadge: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerInfo: {
     marginLeft: 12,
@@ -269,7 +303,7 @@ const styles = StyleSheet.create({
   },
   plateText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   vehicleModel: {
@@ -278,16 +312,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   followToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
     marginRight: 8,
   },
   followToggleActive: {
@@ -295,25 +329,25 @@ const styles = StyleSheet.create({
   },
   followText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
     marginLeft: 4,
   },
   followTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   closeButton: {
     padding: 4,
   },
   infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 12,
     paddingTop: 12,
   },
   infoItem: {
-    width: '25%',
-    alignItems: 'center',
+    width: "25%",
+    alignItems: "center",
     paddingVertical: 8,
   },
   infoLabel: {
@@ -323,19 +357,47 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginTop: 2,
+  },
+  actionRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#EEF2FF",
+    borderRadius: 10,
+    gap: 6,
+  },
+  actionButtonSecondary: {
+    backgroundColor: "#F3F4F6",
+  },
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
+  actionButtonTextSecondary: {
+    color: COLORS.gray,
   },
   coordsRow: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+    paddingBottom: Platform.OS === "ios" ? 20 : 8,
   },
   coordsText: {
     fontSize: 11,
     color: COLORS.gray,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

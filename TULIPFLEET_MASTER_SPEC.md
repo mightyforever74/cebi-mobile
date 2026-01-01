@@ -1,4 +1,5 @@
 # 🌷 TULIPFLEET MASTER SPECIFICATION
+
 ## Tek Kaynak Doğru (Single Source of Truth)
 
 **Versiyon:** 1.0.0  
@@ -38,23 +39,23 @@ TULIPFLEET_MASTER_SPEC.md (BU DOKÜMAN)
 
 ### Tamamlanan Modüller (%90 Genel İlerleme)
 
-| Modül | Durum | Referans Doküman |
-|-------|-------|------------------|
-| Backend API | ✅ %100 | IMPLEMENTATION_GUIDE_16_12_FINAL.md |
-| Mobil UI | ✅ %100 | IMPLEMENTATION_GUIDE_16_12_FINAL.md |
-| Authentication | ✅ %100 | Refresh Token dahil |
-| ESP32 Telemetry | ✅ %100 | TULIPFLEET_CRITICAL_CONFIG_26_12.md |
-| Maps (Temel) | ✅ %100 | FleetMapScreen çalışıyor |
-| SuperAdmin Panel | ✅ %100 | 7 ekran tamamlandı |
+| Modül            | Durum   | Referans Doküman                    |
+| ---------------- | ------- | ----------------------------------- |
+| Backend API      | ✅ %100 | IMPLEMENTATION_GUIDE_16_12_FINAL.md |
+| Mobil UI         | ✅ %100 | IMPLEMENTATION_GUIDE_16_12_FINAL.md |
+| Authentication   | ✅ %100 | Refresh Token dahil                 |
+| ESP32 Telemetry  | ✅ %100 | TULIPFLEET_CRITICAL_CONFIG_26_12.md |
+| Maps (Temel)     | ✅ %100 | FleetMapScreen çalışıyor            |
+| SuperAdmin Panel | ✅ %100 | 7 ekran tamamlandı                  |
 
 ### Devam Eden / Bekleyen
 
-| Modül | Durum | Öncelik |
-|-------|-------|---------|
-| Alert Sistemi | 🟡 %40 | **P1 - KRİTİK** |
-| Harita Geliştirme (Pro) | 🔴 %0 | **P2 - SONRAKİ** |
-| Push Notifications | 🔴 %0 | P3 |
-| AI Entegrasyonu | 🔴 %0 | P4 (App Store sonrası) |
+| Modül                   | Durum  | Öncelik                |
+| ----------------------- | ------ | ---------------------- |
+| Alert Sistemi           | 🟡 %40 | **P1 - KRİTİK**        |
+| Harita Geliştirme (Pro) | 🔴 %0  | **P2 - SONRAKİ**       |
+| Push Notifications      | 🔴 %0  | P3                     |
+| AI Entegrasyonu         | 🔴 %0  | P4 (App Store sonrası) |
 
 ---
 
@@ -114,14 +115,14 @@ Driver rolü, sistemi en kapsamlı ve uzun süre kullanacak kullanıcı grubudur
 
 ### Harita ile İlişkili Tablolar
 
-| Tablo | Amaç | Kritik Alanlar |
-|-------|------|----------------|
-| `locations` | Konum verisi (TimescaleDB) | `time, lat, lng, speed, heading, accel_x/y/z` |
-| `vehicles` | Araç bilgisi | `plate_no, status, company_id` |
-| `geofences` | Bölge tanımları | `fence_type, coordinates (JSONB), radius` |
-| `geofence_violations` | İhlaller | `violation_time` (= location_time!) |
-| `alerts` | Uyarılar | `is_resolved` (❌ resolved değil!) |
-| `driver_behavior` | Davranış skoru | `harsh_brake_count, safety_score` |
+| Tablo                 | Amaç                       | Kritik Alanlar                                |
+| --------------------- | -------------------------- | --------------------------------------------- |
+| `locations`           | Konum verisi (TimescaleDB) | `time, lat, lng, speed, heading, accel_x/y/z` |
+| `vehicles`            | Araç bilgisi               | `plate_no, status, company_id`                |
+| `geofences`           | Bölge tanımları            | `fence_type, coordinates (JSONB), radius`     |
+| `geofence_violations` | İhlaller                   | `violation_time` (= location_time!)           |
+| `alerts`              | Uyarılar                   | `is_resolved` (❌ resolved değil!)            |
+| `driver_behavior`     | Davranış skoru             | `harsh_brake_count, safety_score`             |
 
 ### ⚠️ KRİTİK İSİM TUTARLILIĞI
 
@@ -139,6 +140,7 @@ Driver rolü, sistemi en kapsamlı ve uzun süre kullanacak kullanıcı grubudur
 > **📚 Detaylı Referans:** `haritageliştirme.docx` - Bölüm: "Çok araçta performans"
 
 ### Amaç
+
 200+ araçta bile stabil performans.
 
 ### Uygulama Kuralları
@@ -149,9 +151,9 @@ const shouldUpdateTarget = (id, lat, lng, heading, updatedAtISO) => {
   const prev = lastAppliedRef.current.get(id);
   if (!prev) return true;
   if (prev.updatedAtISO === updatedAtISO) return false;  // Aynı veri
-  
+
   // Küçük oynamalar için eşik
-  const movedEnough = Math.abs(prev.lat - lat) > 0.00001 || 
+  const movedEnough = Math.abs(prev.lat - lat) > 0.00001 ||
                       Math.abs(prev.lng - lng) > 0.00001;
   return movedEnough;
 };
@@ -171,12 +173,12 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ### Performans Hedefleri
 
-| Araç Sayısı | Hedef FPS | Strateji |
-|-------------|-----------|----------|
-| 1-50 | 60 | Standart |
-| 50-200 | 30 | shouldUpdateTarget aktif |
-| 200-500 | 30 | + Marker clustering |
-| 500+ | - | v2.0'da değerlendirilecek |
+| Araç Sayısı | Hedef FPS | Strateji                  |
+| ----------- | --------- | ------------------------- |
+| 1-50        | 60        | Standart                  |
+| 50-200      | 30        | shouldUpdateTarget aktif  |
+| 200-500     | 30        | + Marker clustering       |
+| 500+        | -         | v2.0'da değerlendirilecek |
 
 ---
 
@@ -192,14 +194,15 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ### AI Kullanım Alanları (Planlanan)
 
-| Alan | Açıklama | Öncelik |
-|------|----------|---------|
-| Sürüş Davranışı Skoru | ADXL345 + hız analizi | P1 (Hazır) |
-| Akıllı Alert Filtreleme | Gereksiz alarm azaltma | P2 |
-| Rota Optimizasyonu | Trafik + geçmiş veri | P3 |
-| Predictive Maintenance | Araç bakım tahmini | P4 |
+| Alan                    | Açıklama               | Öncelik    |
+| ----------------------- | ---------------------- | ---------- |
+| Sürüş Davranışı Skoru   | ADXL345 + hız analizi  | P1 (Hazır) |
+| Akıllı Alert Filtreleme | Gereksiz alarm azaltma | P2         |
+| Rota Optimizasyonu      | Trafik + geçmiş veri   | P3         |
+| Predictive Maintenance  | Araç bakım tahmini     | P4         |
 
 ### EU Uyumluluk
+
 - Safety öncelikli
 - Sustainability odaklı
 - Ethical AI deployment
@@ -210,21 +213,21 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ### Mevcut (✅)
 
-| Ekran | Dosya | Durum |
-|-------|-------|-------|
-| Dashboard | `DriverDashboard.js` | ✅ |
-| Tasks | `DriverTasks.js` | ✅ |
-| Vehicle | `DriverVehicle.js` | ✅ |
-| Profile | `DriverProfile.js` | ✅ |
-| Settings | `DriverSettings.js` | ✅ |
-| Route Map | `DriverRouteMapScreen.js` | ✅ |
+| Ekran     | Dosya                     | Durum |
+| --------- | ------------------------- | ----- |
+| Dashboard | `DriverDashboard.js`      | ✅    |
+| Tasks     | `DriverTasks.js`          | ✅    |
+| Vehicle   | `DriverVehicle.js`        | ✅    |
+| Profile   | `DriverProfile.js`        | ✅    |
+| Settings  | `DriverSettings.js`       | ✅    |
+| Route Map | `DriverRouteMapScreen.js` | ✅    |
 
 ### Planlanan (🔜)
 
-| Ekran | Özellik | Bağımlılık |
-|-------|---------|------------|
-| SafetyScoreCard | Günlük skor gösterimi | Paket A |
-| TrackPlayback | Geçmiş rota oynatma | Paket B |
+| Ekran            | Özellik                  | Bağımlılık             |
+| ---------------- | ------------------------ | ---------------------- |
+| SafetyScoreCard  | Günlük skor gösterimi    | Paket A                |
+| TrackPlayback    | Geçmiş rota oynatma      | Paket B                |
 | NavigationScreen | Turn-by-turn yönlendirme | Paket B + External API |
 
 ---
@@ -235,14 +238,14 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ### Özet
 
-| Parametre | Değer |
-|-----------|-------|
-| MQTT Port (TLS) | 8883 |
-| MQTT Credentials | fleet-backend / BackendMQTT2024! |
-| SSL Certs | /opt/fleet-certs/ (chmod 644!) |
-| ESP32 TLS | `setInsecure()` ONLY |
-| TimescaleDB Retention | 7 gün |
-| API URL | ngrok domain |
+| Parametre             | Değer                            |
+| --------------------- | -------------------------------- |
+| MQTT Port (TLS)       | 8883                             |
+| MQTT Credentials      | fleet-backend / BackendMQTT2024! |
+| SSL Certs             | /opt/fleet-certs/ (chmod 644!)   |
+| ESP32 TLS             | `setInsecure()` ONLY             |
+| TimescaleDB Retention | 7 gün                            |
+| API URL               | ngrok domain                     |
 
 ---
 
@@ -250,65 +253,65 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ### Faz 1: Alert Sistemi Tamamlama (Öncelik 1)
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 1.1 | Backend MQTT handler - alerts topic | CRITICAL_CONFIG |
-| 1.2 | Alert API test | IMPLEMENTATION_GUIDE |
-| 1.3 | AdminAlerts.js real API | IMPLEMENTATION_GUIDE |
-| 1.4 | AdminSettings.js push toggle | IMPLEMENTATION_GUIDE |
+| Adım | Görev                               | Referans             |
+| ---- | ----------------------------------- | -------------------- |
+| 1.1  | Backend MQTT handler - alerts topic | CRITICAL_CONFIG      |
+| 1.2  | Alert API test                      | IMPLEMENTATION_GUIDE |
+| 1.3  | AdminAlerts.js real API             | IMPLEMENTATION_GUIDE |
+| 1.4  | AdminSettings.js push toggle        | IMPLEMENTATION_GUIDE |
 
 ### Faz 2: Paket A - Pro Marker System
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 2.1 | `src/components/map/mapMath.js` oluştur | haritageliştirme.docx |
-| 2.2 | `VehicleMarker.js` - smoothing + rotation | haritageliştirme.docx |
-| 2.3 | `VehicleInfoSheet.js` - yeni props | haritageliştirme.docx |
-| 2.4 | FleetMapScreen entegrasyonu | haritageliştirme.docx |
-| 2.5 | Follow mode + user pan cancel | haritageliştirme.docx |
-| 2.6 | Target update stratejisi | Bu doküman |
+| Adım | Görev                                     | Referans              |
+| ---- | ----------------------------------------- | --------------------- |
+| 2.1  | `src/components/map/mapMath.js` oluştur   | haritageliştirme.docx |
+| 2.2  | `VehicleMarker.js` - smoothing + rotation | haritageliştirme.docx |
+| 2.3  | `VehicleInfoSheet.js` - yeni props        | haritageliştirme.docx |
+| 2.4  | FleetMapScreen entegrasyonu               | haritageliştirme.docx |
+| 2.5  | Follow mode + user pan cancel             | haritageliştirme.docx |
+| 2.6  | Target update stratejisi                  | Bu doküman            |
 
 ### Faz 3: Paket B - Vehicle Track
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 3.1 | Backend: GET /api/vehicles/:id/track | Database_v4 |
-| 3.2 | api.js: vehicleAPI.getTrack() | IMPLEMENTATION_GUIDE |
-| 3.3 | VehicleTrackScreen.js | haritageliştirme.docx |
-| 3.4 | Polyline + Start/End marker | Map_Checklist |
-| 3.5 | Playback slider MVP | haritageliştirme.docx |
+| Adım | Görev                                | Referans              |
+| ---- | ------------------------------------ | --------------------- |
+| 3.1  | Backend: GET /api/vehicles/:id/track | Database_v4           |
+| 3.2  | api.js: vehicleAPI.getTrack()        | IMPLEMENTATION_GUIDE  |
+| 3.3  | VehicleTrackScreen.js                | haritageliştirme.docx |
+| 3.4  | Polyline + Start/End marker          | Map_Checklist         |
+| 3.5  | Playback slider MVP                  | haritageliştirme.docx |
 
 ### Faz 4: Paket C - Geofence
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 4.1 | GeofenceLayer.js | haritageliştirme.docx |
-| 4.2 | GeofenceDrawToolbar.js | haritageliştirme.docx |
-| 4.3 | GeofenceEditorScreen.js | haritageliştirme.docx |
-| 4.4 | api.js: geofenceAPI | Database_v4 |
-| 4.5 | FleetMapScreen layer entegrasyonu | Map_Implementation |
+| Adım | Görev                             | Referans              |
+| ---- | --------------------------------- | --------------------- |
+| 4.1  | GeofenceLayer.js                  | haritageliştirme.docx |
+| 4.2  | GeofenceDrawToolbar.js            | haritageliştirme.docx |
+| 4.3  | GeofenceEditorScreen.js           | haritageliştirme.docx |
+| 4.4  | api.js: geofenceAPI               | Database_v4           |
+| 4.5  | FleetMapScreen layer entegrasyonu | Map_Implementation    |
 
 ### Faz 5: Paket D - Violations & Alerts
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 5.1 | Backend: checkGeofences() | haritageliştirme.docx |
-| 5.2 | Redis state: inside/outside | haritageliştirme.docx |
-| 5.3 | geofence_violations insert | Database_v4 |
-| 5.4 | alerts insert (is_resolved!) | Database_v4 |
-| 5.5 | Violation markers on map | Map_Checklist |
+| Adım | Görev                        | Referans              |
+| ---- | ---------------------------- | --------------------- |
+| 5.1  | Backend: checkGeofences()    | haritageliştirme.docx |
+| 5.2  | Redis state: inside/outside  | haritageliştirme.docx |
+| 5.3  | geofence_violations insert   | Database_v4           |
+| 5.4  | alerts insert (is_resolved!) | Database_v4           |
+| 5.5  | Violation markers on map     | Map_Checklist         |
 
 ### Faz 6: Driver Behavior & Scoring
 
-| Adım | Görev | Referans |
-|------|-------|----------|
-| 6.1 | driver_behavior tablosu | Database_v4 |
-| 6.2 | Batch analyzer job | haritageliştirme.docx |
-| 6.3 | SafetyScoreCard component | haritageliştirme.docx |
-| 6.4 | DriverDashboard entegrasyonu | IMPLEMENTATION_GUIDE |
-| 6.5 | AdminSafetySummaryCard | haritageliştirme.docx |
-| 6.6 | BehaviorEventLayer (sert fren noktaları) | haritageliştirme.docx |
-| 6.7 | ColoredTrackLayer (🟢🟡🔴 segmentler) | haritageliştirme.docx |
+| Adım | Görev                                    | Referans              |
+| ---- | ---------------------------------------- | --------------------- |
+| 6.1  | driver_behavior tablosu                  | Database_v4           |
+| 6.2  | Batch analyzer job                       | haritageliştirme.docx |
+| 6.3  | SafetyScoreCard component                | haritageliştirme.docx |
+| 6.4  | DriverDashboard entegrasyonu             | IMPLEMENTATION_GUIDE  |
+| 6.5  | AdminSafetySummaryCard                   | haritageliştirme.docx |
+| 6.6  | BehaviorEventLayer (sert fren noktaları) | haritageliştirme.docx |
+| 6.7  | ColoredTrackLayer (🟢🟡🔴 segmentler)    | haritageliştirme.docx |
 
 ---
 
@@ -337,6 +340,7 @@ const ingestVehiclesForTargets = (vehicles) => {
 ```
 
 ### AI Entegrasyonu
+
 - tulipfleet_ai_strategycht.pdf referans alınacak
 - Strategic filtering implementasyonu
 - Dual alert system
@@ -345,9 +349,9 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ## 📝 DEĞİŞİKLİK GEÇMİŞİ
 
-| Tarih | Versiyon | Değişiklik |
-|-------|----------|------------|
-| 27.12.2025 | 1.0.0 | İlk oluşturma |
+| Tarih      | Versiyon | Değişiklik    |
+| ---------- | -------- | ------------- |
+| 27.12.2025 | 1.0.0    | İlk oluşturma |
 
 ---
 
@@ -361,7 +365,13 @@ const ingestVehiclesForTargets = (vehicles) => {
 
 ---
 
-*Bu doküman TulipFleet projesinin TEK KAYNAK DOĞRU referansıdır.*
-*Diğer tüm dokümanlar bu dokümana bağlıdır.*
+_Bu doküman TulipFleet projesinin TEK KAYNAK DOĞRU referansıdır._
+_Diğer tüm dokümanlar bu dokümana bağlıdır._
 
 **© 2025 TulipFleet - Tüm Hakları Saklıdır**
+Mantık şöyle olmalı:
+
+pending_review → Kabul Et / Reddet
+assigned / accepted → Göreve Başla
+in_progress → Tamamla
+completed / rejected → Buton yok

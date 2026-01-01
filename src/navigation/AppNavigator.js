@@ -1,6 +1,6 @@
 ﻿// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Updated: 26 Aralık 2025 - CİHAZ YÖNETİMİ EKLENDİ
+// Updated: 01 Ocak 2026 - FAZ 4 CİHAZ KURULUMU EKLENDİ
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -19,7 +19,7 @@ import { useAuth } from "../context/AuthContext";
 // SUPER ADMIN SCREENS
 // ============================================================================
 import CompaniesScreen from "../screens/superadmin/CompaniesScreen";
-import CompanyEditScreen from "../screens/superadmin/CompanyEditScreen"; // ← EKSİK OLAN
+import CompanyEditScreen from "../screens/superadmin/CompanyEditScreen";
 import CreateCompanyScreen from "../screens/superadmin/CreateCompanyScreen";
 import DeviceDetailScreen from "../screens/superadmin/DeviceDetailScreen";
 import DevicesScreen from "../screens/superadmin/DevicesScreen";
@@ -33,6 +33,7 @@ import SystemHealthScreen from "../screens/superadmin/SystemHealthScreen";
 import AdminAlerts from "../screens/admin/AdminAlerts";
 import AdminDashboard from "../screens/admin/AdminDashboard";
 import AdminDrivers from "../screens/admin/AdminDrivers";
+import AdminReportsScreen from "../screens/admin/AdminReportsScreen";
 import AdminSettings from "../screens/admin/AdminSettings";
 import AdminTasks from "../screens/admin/AdminTasks";
 import AdminVehicles from "../screens/admin/AdminVehicles";
@@ -43,6 +44,7 @@ import EditDriverScreen from "../screens/admin/EditDriverScreen";
 import EditTaskScreen from "../screens/admin/EditTaskScreen";
 import EditVehicleScreen from "../screens/admin/EditVehicleScreen";
 import FleetMapScreen from "../screens/admin/FleetMapScreen";
+import VehicleTrackScreen from "../screens/admin/VehicleTrackScreen";
 
 // ============================================================================
 // DRIVER SCREENS
@@ -54,6 +56,13 @@ import DriverSettings from "../screens/driver/DriverSettings";
 import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
+import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
+import TaskOffers from "../screens/driver/TaskOffers";
+
+// ============================================================================
+// FAZ 4: DEVICE SETUP SCREEN (BLE + QR Activation)
+// ============================================================================
+import DeviceSetupScreen from "../screens/driver/DeviceSetupScreen";
 
 // ============================================================================
 // SHARED SCREENS
@@ -90,13 +99,6 @@ const PlatformSettingsScreen = () => (
 );
 
 // Company Admin Placeholders
-const AdminReportsScreen = () => (
-  <PlaceholderScreen
-    title="Raporlar"
-    icon="analytics-outline"
-    description="Filo raporları ve analizler"
-  />
-);
 
 // Driver Placeholders
 const DriverHistoryScreen = () => (
@@ -228,7 +230,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
         </TouchableOpacity>
 
         {/* Version Info */}
-        <Text style={styles.versionText}>TulipFleet v1.0.0</Text>
+        <Text style={styles.versionText}>TulipFleet v2.0.0</Text>
       </ScrollView>
     </View>
   );
@@ -250,7 +252,8 @@ const superAdminMenuItems = [
     icon: "globe-outline",
   },
   { name: "Companies", label: "Şirket Yönetimi", icon: "business-outline" },
-  { name: "Devices", label: "Cihaz Yönetimi", icon: "hardware-chip-outline" }, // YENİ
+  { name: "Devices", label: "Cihaz Yönetimi", icon: "hardware-chip-outline" },
+  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
   { name: "PlatformUsers", label: "Tüm Kullanıcılar", icon: "people-outline" },
   { name: "SystemHealth", label: "Sistem Health", icon: "pulse-outline" },
 ];
@@ -289,7 +292,7 @@ const SuperAdminNavigator = () => {
         component={CreateCompanyScreen}
         options={{ title: "Yeni Şirket" }}
       />
-      {/* CİHAZ YÖNETİMİ - YENİ */}
+      {/* CİHAZ YÖNETİMİ */}
       <Drawer.Screen
         name="Devices"
         component={DevicesScreen}
@@ -299,6 +302,15 @@ const SuperAdminNavigator = () => {
         name="DeviceDetail"
         component={DeviceDetailScreen}
         options={{ title: "Cihaz Detay" }}
+      />
+      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
+      <Drawer.Screen
+        name="DeviceSetup"
+        component={DeviceSetupScreen}
+        options={{
+          title: "Cihaz Kurulumu",
+          headerShown: false,
+        }}
       />
       {/* Placeholder Screens */}
       <Drawer.Screen
@@ -333,6 +345,7 @@ const companyAdminMenuItems = [
   { name: "Drivers", label: "Sürücü Yönetimi", icon: "people-outline" },
   { name: "Tasks", label: "Görev Yönetimi", icon: "clipboard-outline" },
   { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
+  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
   { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
   { name: "Settings", label: "Şirket Ayarları", icon: "settings-outline" },
 ];
@@ -365,6 +378,11 @@ const CompanyAdminNavigator = () => {
         name="FleetMap"
         component={FleetMapScreen}
         options={{ title: "Canlı Harita" }}
+      />
+      <Drawer.Screen
+        name="VehicleTrack"
+        component={VehicleTrackScreen}
+        options={{ headerShown: false, drawerItemStyle: { display: "none" } }}
       />
       <Drawer.Screen
         name="Vehicles"
@@ -416,6 +434,15 @@ const CompanyAdminNavigator = () => {
         component={AdminAlerts}
         options={{ title: "Uyarılar" }}
       />
+      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
+      <Drawer.Screen
+        name="DeviceSetup"
+        component={DeviceSetupScreen}
+        options={{
+          title: "Cihaz Kurulumu",
+          headerShown: false,
+        }}
+      />
       <Drawer.Screen
         name="Reports"
         component={AdminReportsScreen}
@@ -438,6 +465,7 @@ const driverMenuItems = [
   { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
   { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
   { name: "MyVehicle", label: "Araç Durumu", icon: "car-sport-outline" },
+  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
   { name: "TaskHistory", label: "Görev Geçmişi", icon: "time-outline" },
   { name: "Profile", label: "Profilim", icon: "person-outline" },
   { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
@@ -449,6 +477,16 @@ const TasksStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="TasksList" component={DriverTasks} />
     <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
+    <Stack.Screen
+      name="TaskOffers"
+      component={TaskOffers}
+      options={{ title: "Görev Teklifleri" }}
+    />
+    <Stack.Screen
+      name="TaskOfferDetail"
+      component={TaskOfferDetail}
+      options={{ title: "Teklif Detayı" }}
+    />
   </Stack.Navigator>
 );
 
@@ -499,6 +537,15 @@ const DriverNavigator = () => {
         name="MyVehicle"
         component={DriverVehicle}
         options={{ title: "Araç Durumu" }}
+      />
+      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
+      <Drawer.Screen
+        name="DeviceSetup"
+        component={DeviceSetupScreen}
+        options={{
+          title: "Cihaz Kurulumu",
+          headerShown: false,
+        }}
       />
       <Drawer.Screen
         name="TaskHistory"

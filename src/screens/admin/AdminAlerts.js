@@ -1,5 +1,6 @@
 // src/screens/admin/AdminAlerts.js
 // TulipFleet - Admin Uyarılar Ekranı
+// v1.1.0 - Düzeltilmiş tasarım + Tümünü Sil
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
@@ -31,6 +32,24 @@ const COLORS = {
 
 // Uyarı tipi renkleri ve ikonları
 const ALERT_CONFIG = {
+  HARD_BRAKE: { color: COLORS.danger, icon: "warning", label: "Ani Fren" },
+  HARD_ACCEL: {
+    color: COLORS.warning,
+    icon: "trending-up",
+    label: "Sert Hızlanma",
+  },
+  HARD_TURN: {
+    color: COLORS.warning,
+    icon: "return-down-forward",
+    label: "Sert Viraj",
+  },
+  SHARP_TURN: {
+    color: COLORS.warning,
+    icon: "return-down-forward",
+    label: "Keskin Viraj",
+  },
+  IMPACT: { color: COLORS.danger, icon: "alert-circle", label: "Çarpma/Kaza" },
+  OVERSPEED: { color: COLORS.danger, icon: "speedometer", label: "Hız Aşımı" },
   speed: { color: COLORS.danger, icon: "speedometer", label: "Hız İhlali" },
   geofence: { color: COLORS.warning, icon: "location", label: "Bölge İhlali" },
   fuel: { color: COLORS.info, icon: "water", label: "Yakıt Uyarısı" },
@@ -40,22 +59,9 @@ const ALERT_CONFIG = {
     label: "Bakım Uyarısı",
   },
   battery: { color: COLORS.danger, icon: "battery-dead", label: "Akü Uyarısı" },
-  harsh_braking: { color: COLORS.danger, icon: "warning", label: "Sert Fren" },
-  harsh_acceleration: {
-    color: COLORS.warning,
-    icon: "trending-up",
-    label: "Sert Hızlanma",
-  },
   idle: { color: COLORS.info, icon: "time", label: "Rölanti" },
   sos: { color: COLORS.danger, icon: "alert-circle", label: "SOS" },
   default: { color: COLORS.secondary, icon: "notifications", label: "Uyarı" },
-};
-
-// Uyarı durumu
-const STATUS_CONFIG = {
-  active: { color: COLORS.danger, label: "Aktif" },
-  acknowledged: { color: COLORS.warning, label: "Görüldü" },
-  resolved: { color: COLORS.success, label: "Çözüldü" },
 };
 
 const AdminAlerts = ({ navigation }) => {
@@ -73,7 +79,6 @@ const AdminAlerts = ({ navigation }) => {
       const data = await alertAPI.getAll();
       console.log("✅ Alerts loaded:", data);
 
-      // API response format'ına göre ayarla
       const alertList = data.alerts || data || [];
       setAlerts(Array.isArray(alertList) ? alertList : []);
     } catch (err) {
@@ -85,12 +90,10 @@ const AdminAlerts = ({ navigation }) => {
     }
   };
 
-  // İlk yükleme
   useEffect(() => {
     fetchAlerts();
   }, []);
 
-  // Pull-to-refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchAlerts();
@@ -114,36 +117,12 @@ const AdminAlerts = ({ navigation }) => {
     return date.toLocaleDateString("tr-TR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
   // Uyarıyı çözümle
-  const handleResolve = async (alertId) => {
-    Alert.alert(
-      "Uyarıyı Çözümle",
-      "Bu uyarıyı çözümlendi olarak işaretlemek istiyor musunuz?",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Çözümle",
-          onPress: async () => {
-            try {
-              await alertAPI.resolve(alertId);
-              fetchAlerts(); // Listeyi yenile
-              Alert.alert("Başarılı", "Uyarı çözümlendi");
-            } catch (err) {
-              Alert.alert("Hata", "Uyarı çözümlenemedi");
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // Fonksiyonları ekle (fetchAlerts'tan sonra):
   const handleResolveAlert = (alert) => {
     if (alert.is_resolved) {
       Alert.alert("Bilgi", "Bu uyarı zaten çözümlenmiş");
@@ -152,7 +131,7 @@ const AdminAlerts = ({ navigation }) => {
 
     Alert.alert(
       "✅ Uyarıyı Çözümle",
-      `"${alert.title}" uyarısını çözümlenmiş olarak işaretlemek istiyor musunuz?`,
+      `Bu uyarıyı çözümlenmiş olarak işaretlemek istiyor musunuz?`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -174,10 +153,11 @@ const AdminAlerts = ({ navigation }) => {
     );
   };
 
+  // Uyarıyı sil
   const handleDeleteAlert = (alert) => {
     Alert.alert(
       "🗑️ Uyarıyı Sil",
-      `"${alert.title}" uyarısını silmek istediğinize emin misiniz?`,
+      `Bu uyarıyı silmek istediğinize emin misiniz?`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -200,33 +180,46 @@ const AdminAlerts = ({ navigation }) => {
     );
   };
 
+  // Tümünü Sil
+  const handleDeleteAll = () => {
+    if (alerts.length === 0) {
+      Alert.alert("Bilgi", "Silinecek uyarı yok");
+      return;
+    }
+
+    Alert.alert(
+      "🗑️ Tüm Uyarıları Sil",
+      `${alerts.length} uyarının tamamını silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Tümünü Sil",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await alertAPI.deleteAll();
+              Alert.alert("✅ Başarılı", "Tüm uyarılar silindi");
+              fetchAlerts();
+            } catch (error) {
+              Alert.alert(
+                "Hata",
+                error.response?.data?.error || "Uyarılar silinemedi"
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Uyarı kartı
   const renderAlertCard = ({ item }) => {
     const alertType = item.alert_type || item.type || "default";
     const config = ALERT_CONFIG[alertType] || ALERT_CONFIG.default;
-    const status = item.status || "active";
-    const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.active;
+    const isResolved = item.is_resolved;
 
     return (
-      <TouchableOpacity
-        style={[styles.card, status === "active" && styles.cardActive]}
-        onPress={() => {
-          Alert.alert(
-            `${config.label}`,
-            `Araç: ${item.vehicle_plate || "-"}\n` +
-              `Mesaj: ${item.message || item.description || "-"}\n` +
-              `Tarih: ${formatDate(item.created_at)}\n` +
-              `Durum: ${statusConfig.label}`,
-            status !== "resolved"
-              ? [
-                  { text: "Kapat" },
-                  { text: "Çözümle", onPress: () => handleResolve(item.id) },
-                ]
-              : [{ text: "Tamam" }]
-          );
-        }}
-        activeOpacity={0.7}
-      >
+      <View style={[styles.card, !isResolved && styles.cardActive]}>
         <View style={styles.cardContent}>
           {/* İkon */}
           <View
@@ -245,24 +238,32 @@ const AdminAlerts = ({ navigation }) => {
               <View
                 style={[
                   styles.statusBadge,
-                  { backgroundColor: statusConfig.color },
+                  {
+                    backgroundColor: isResolved
+                      ? COLORS.success
+                      : COLORS.danger,
+                  },
                 ]}
               >
-                <Text style={styles.statusText}>{statusConfig.label}</Text>
+                <Text style={styles.statusText}>
+                  {isResolved ? "Çözüldü" : "Aktif"}
+                </Text>
               </View>
             </View>
 
-            {item.message && (
+            {item.description && (
               <Text style={styles.alertMessage} numberOfLines={2}>
-                {item.message}
+                {item.description}
               </Text>
             )}
 
             <View style={styles.metaRow}>
-              {item.vehicle_plate && (
+              {(item.vehicle_plate || item.device_id) && (
                 <View style={styles.metaItem}>
                   <Ionicons name="car" size={12} color={COLORS.secondary} />
-                  <Text style={styles.metaText}>{item.vehicle_plate}</Text>
+                  <Text style={styles.metaText}>
+                    {item.vehicle_plate || item.device_id}
+                  </Text>
                 </View>
               )}
               <View style={styles.metaItem}>
@@ -275,66 +276,61 @@ const AdminAlerts = ({ navigation }) => {
                   {formatDate(item.created_at)}
                 </Text>
               </View>
+              {item.speed && (
+                <View style={styles.metaItem}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={12}
+                    color={COLORS.secondary}
+                  />
+                  <Text style={styles.metaText}>
+                    {Math.round(item.speed)} km/h
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
-
-          {/* Çözümle Butonu */}
-          {status !== "resolved" && (
-            <TouchableOpacity
-              style={styles.resolveButton}
-              onPress={() => handleResolve(item.id)}
-            >
-              <Ionicons
-                name="checkmark-circle"
-                size={24}
-                color={COLORS.success}
-              />
-            </TouchableOpacity>
-          )}
         </View>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - TEK SATIR */}
         <View style={styles.actionButtons}>
-          {!item.is_resolved && (
+          {!isResolved ? (
             <TouchableOpacity
-              style={[styles.actionButton, styles.resolveButton]}
+              style={[styles.actionButton, styles.resolveBtn]}
               onPress={() => handleResolveAlert(item)}
             >
-              <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={16} color="#fff" />
               <Text style={styles.actionButtonText}>Çözümle</Text>
             </TouchableOpacity>
-          )}
-
-          {item.is_resolved && (
+          ) : (
             <View style={styles.resolvedBadge}>
-              <Ionicons name="checkmark" size={14} color="#2DCE89" />
-              <Text style={styles.resolvedText}>Çözümlendi</Text>
+              <Ionicons
+                name="checkmark-circle"
+                size={14}
+                color={COLORS.success}
+              />
+              <Text style={styles.resolvedText}>Çözüldü</Text>
             </View>
           )}
 
           <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
+            style={[styles.actionButton, styles.deleteBtn]}
             onPress={() => handleDeleteAlert(item)}
           >
-            <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+            <Ionicons name="trash" size={16} color="#fff" />
+            <Text style={styles.actionButtonText}>Sil</Text>
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
   // Boş liste
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons
-        name="notifications-off-outline"
-        size={64}
-        color={COLORS.muted}
-      />
-      <Text style={styles.emptyTitle}>Uyarı Bulunamadı</Text>
-      <Text style={styles.emptySubtitle}>
-        Şu anda aktif uyarı bulunmuyor. Harika! 🎉
-      </Text>
+      <Ionicons name="checkmark-circle" size={64} color={COLORS.success} />
+      <Text style={styles.emptyTitle}>Harika! 🎉</Text>
+      <Text style={styles.emptySubtitle}>Şu anda hiç uyarı yok</Text>
     </View>
   );
 
@@ -342,8 +338,8 @@ const AdminAlerts = ({ navigation }) => {
   if (error && !loading) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
-        <Text style={styles.errorTitle}>Hata Oluştu</Text>
+        <Ionicons name="cloud-offline" size={64} color={COLORS.danger} />
+        <Text style={styles.errorTitle}>Bağlantı Hatası</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchAlerts}>
           <Text style={styles.retryButtonText}>Tekrar Dene</Text>
@@ -362,12 +358,9 @@ const AdminAlerts = ({ navigation }) => {
     );
   }
 
-  // İstatistikleri hesapla
-  const activeCount = alerts.filter((a) => a.status === "active").length;
-  const acknowledgedCount = alerts.filter(
-    (a) => a.status === "acknowledged"
-  ).length;
-  const resolvedCount = alerts.filter((a) => a.status === "resolved").length;
+  // İstatistikler
+  const activeCount = alerts.filter((a) => !a.is_resolved).length;
+  const resolvedCount = alerts.filter((a) => a.is_resolved).length;
 
   return (
     <View style={styles.container}>
@@ -384,17 +377,20 @@ const AdminAlerts = ({ navigation }) => {
           <Text style={styles.headerStatLabel}>Aktif</Text>
         </View>
         <View style={styles.headerStatBox}>
-          <Text style={[styles.headerStatValue, { color: COLORS.warning }]}>
-            {acknowledgedCount}
-          </Text>
-          <Text style={styles.headerStatLabel}>Görüldü</Text>
-        </View>
-        <View style={styles.headerStatBox}>
           <Text style={[styles.headerStatValue, { color: COLORS.success }]}>
             {resolvedCount}
           </Text>
           <Text style={styles.headerStatLabel}>Çözüldü</Text>
         </View>
+
+        {/* Tümünü Sil Butonu */}
+        <TouchableOpacity
+          style={styles.deleteAllButton}
+          onPress={handleDeleteAll}
+        >
+          <Ionicons name="trash-outline" size={18} color="#fff" />
+          <Text style={styles.deleteAllText}>Tümünü Sil</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Uyarı Listesi */}
@@ -433,9 +429,10 @@ const styles = StyleSheet.create({
   // Header Stats
   statsHeader: {
     flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.white,
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     marginBottom: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -457,6 +454,20 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     marginTop: 2,
   },
+  deleteAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.danger,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  deleteAllText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
 
   // List
   listContainer: {
@@ -474,6 +485,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: "hidden",
   },
   cardActive: {
     borderLeftWidth: 4,
@@ -481,15 +493,15 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     padding: 14,
   },
 
   // Icon
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -512,8 +524,8 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
   statusText: {
     color: COLORS.white,
@@ -528,11 +540,12 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 12,
   },
   metaText: {
     fontSize: 11,
@@ -540,34 +553,24 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  // Resolve Button
-  resolveButton: {
-    // mevcut hızlı çözümle ikon butonu
-    padding: 8,
-    // action button için arka plan ekleyelim
-    backgroundColor: "#2DCE89",
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-
-  // Action Buttons (eklenen stiller)
+  // Action Buttons
   actionButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 14,
-    paddingBottom: 14,
+    paddingBottom: 12,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingVertical: 6,
+    borderRadius: 6,
     gap: 4,
   },
   actionButtonText: {
@@ -575,8 +578,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 12,
   },
-  deleteButton: {
-    backgroundColor: "#F5365C",
+  resolveBtn: {
+    backgroundColor: COLORS.success,
+  },
+  deleteBtn: {
+    backgroundColor: COLORS.danger,
   },
   resolvedBadge: {
     flexDirection: "row",
@@ -585,10 +591,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     backgroundColor: "#E8F5E9",
-    borderRadius: 12,
+    borderRadius: 6,
   },
   resolvedText: {
-    color: "#2DCE89",
+    color: COLORS.success,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -611,7 +617,6 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     textAlign: "center",
     marginTop: 8,
-    paddingHorizontal: 40,
   },
 
   // Error State

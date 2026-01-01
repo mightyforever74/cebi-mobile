@@ -1,13 +1,15 @@
 /**
  * TulipFleet - Fleet Map Screen
- * Paket A: Pro Marker System
+ * Çoklu Araç Yönetimi ile Güncellenmiş
  *
  * Özellikler:
- * - Real-time vehicle tracking with smooth animations (A.2)
- * - Follow mode with drag-to-disable (A.3)
- * - Z-index control for selected marker (A.4)
- * - Performance optimized updates (A.4)
- * - Type normalized data (A.1)
+ * - Real-time vehicle tracking
+ * - VehicleListModal ile araç seçimi
+ * - Follow mode with drag-to-disable
+ * - Stats bar tıklanabilir
+ *
+ * @version 1.2.0
+ * @date 28 Aralık 2025
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -20,9 +22,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import VehicleInfoSheet from "../../components/map/VehicleInfoSheet";
-import VehicleMarker from "../../components/map/VehicleMarker";
+import VehicleListModal from "../../components/map/VehicleListModal";
 import { COLORS } from "../../constants/config";
 import { vehicleAPI } from "../../services/api";
 import {
@@ -37,13 +39,16 @@ import {
 // CONSTANTS
 // ============================================================================
 
-const REFRESH_INTERVAL = 10000; // 10 saniye (daha sık güncelleme)
+const REFRESH_INTERVAL = 10000; // 10 saniye
 const INITIAL_REGION = {
   latitude: 41.015137,
   longitude: 28.97953,
   latitudeDelta: 0.15,
   longitudeDelta: 0.15,
 };
+
+// Debug mode - production'da false
+const DEBUG = __DEV__;
 
 // ============================================================================
 // FLEET MAP SCREEN COMPONENT
@@ -61,6 +66,7 @@ const FleetMapScreen = ({ navigation }) => {
   const [followMode, setFollowMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [showVehicleList, setShowVehicleList] = useState(false); // YENİ
 
   // ============================================================================
   // DERIVED STATE
@@ -73,18 +79,19 @@ const FleetMapScreen = ({ navigation }) => {
       .filter((v) => v && v.latitude && v.longitude);
   }, [vehicles]);
 
+  // Tüm araçlar (konum olmayanlar dahil) - Modal için
+  const allVehicles = useMemo(() => {
+    return vehicles.map(normalizeVehicle).filter((v) => v);
+  }, [vehicles]);
+
   // Debug log
   useEffect(() => {
-    console.log(
-      "[FleetMap] Normalized vehicles:",
-      normalizedVehicles.map((v) => ({
-        id: v.id,
-        plate: v.plate_no,
-        lat: v.latitude,
-        lng: v.longitude,
-        status: v.status,
-      }))
-    );
+    if (DEBUG) {
+      console.log(
+        "[FleetMap] Vehicles:",
+        normalizedVehicles.map((v) => `${v.plate_no}(${v.status})`).join(", ")
+      );
+    }
   }, [normalizedVehicles]);
 
   // Seçili araç
@@ -96,12 +103,12 @@ const FleetMapScreen = ({ navigation }) => {
   // İstatistikler
   const stats = useMemo(
     () => ({
-      total: normalizedVehicles.length,
-      active: normalizedVehicles.filter((v) => v.status === "in_use").length,
-      available: normalizedVehicles.filter((v) => v.status === "available")
-        .length,
+      total: allVehicles.length,
+      active: allVehicles.filter((v) => v.status === "in_use").length,
+      available: allVehicles.filter((v) => v.status === "available").length,
+      withLocation: normalizedVehicles.length,
     }),
-    [normalizedVehicles]
+    [allVehicles, normalizedVehicles]
   );
 
   // ============================================================================
@@ -114,16 +121,17 @@ const FleetMapScreen = ({ navigation }) => {
       const list = res.vehicles || [];
 
       // A.4 Performance: Sadece değişen araçları logla
-      const previousMap = new Map(
-        previousVehiclesRef.current.map((v) => [v.id, v])
-      );
-      const updatedCount = list.filter((v) =>
-        shouldUpdateVehicle(previousMap.get(v.id), v)
-      ).length;
-
-      console.log(
-        `[FleetMap] Fetched: ${list.length} total, ${updatedCount} updated`
-      );
+      if (DEBUG) {
+        const previousMap = new Map(
+          previousVehiclesRef.current.map((v) => [v.id, v])
+        );
+        const updatedCount = list.filter((v) =>
+          shouldUpdateVehicle(previousMap.get(v.id), v)
+        ).length;
+        console.log(
+          `[FleetMap] Fetched: ${list.length} total, ${updatedCount} updated`
+        );
+      }
 
       // State güncelle
       setVehicles(list);
@@ -166,7 +174,7 @@ const FleetMapScreen = ({ navigation }) => {
     return () => clearInterval(interval);
   }, [fetchVehicles]);
 
-  // A.3 Follow Mode: Kamera takibi
+  // Follow Mode: Kamera takibi
   useEffect(() => {
     if (!followMode || !selectedVehicle || !mapRef.current) return;
 
@@ -182,35 +190,52 @@ const FleetMapScreen = ({ navigation }) => {
   // EVENT HANDLERS
   // ============================================================================
 
-  // A.3: Araç seçimi
+  // Araç seçimi (marker'dan)
   const handleVehiclePress = useCallback(
     (vehicle) => {
       const isSameVehicle = selectedVehicleId === vehicle.id;
 
       if (isSameVehicle) {
-        // Aynı araç tekrar seçildi → follow mode aç
         setFollowMode(true);
       } else {
-        // Farklı araç seçildi
         setSelectedVehicleId(vehicle.id);
-        setFollowMode(true); // Yeni araç seçilince follow başlat
+        setFollowMode(true);
 
-        // Kamerayı araca götür
         if (mapRef.current) {
-          mapRef.current.animateToRegion(
-            createFollowRegion(vehicle),
-            FOLLOW_CONFIG.ANIMATION_DURATION
-          );
+          const region = createFollowRegion(vehicle);
+          if (region) {
+            mapRef.current.animateToRegion(
+              region,
+              FOLLOW_CONFIG.ANIMATION_DURATION
+            );
+          }
         }
       }
     },
     [selectedVehicleId]
   );
 
-  // A.3: Harita drag → follow kapat
+  // Araç seçimi (modal'dan) - YENİ
+  const handleSelectFromModal = useCallback((vehicle) => {
+    setSelectedVehicleId(vehicle.id);
+    setFollowMode(true);
+
+    // Haritada araca zoom yap
+    if (mapRef.current && vehicle.latitude && vehicle.longitude) {
+      const region = createFollowRegion(vehicle);
+      if (region) {
+        mapRef.current.animateToRegion(
+          region,
+          FOLLOW_CONFIG.ANIMATION_DURATION
+        );
+      }
+    }
+  }, []);
+
+  // Harita drag → follow kapat
   const handleMapPanDrag = useCallback(() => {
     if (followModeActiveRef.current) {
-      console.log("[FleetMap] User dragged map, disabling follow mode");
+      if (DEBUG) console.log("[FleetMap] User dragged, follow disabled");
       setFollowMode(false);
       followModeActiveRef.current = false;
     }
@@ -258,34 +283,21 @@ const FleetMapScreen = ({ navigation }) => {
         showsUserLocation={false}
         showsMyLocationButton={false}
         onPanDrag={handleMapPanDrag}
-        onPress={() => {
-          // Boş alana tıklanınca sheet kapat (opsiyonel)
-          // handleCloseSheet();
-        }}
       >
-        {/* A.4: Markers - selectedVehicleId en sona render (zIndex backup) */}
-        {normalizedVehicles
-          .filter((v) => v.id !== selectedVehicleId)
-          .map((vehicle) => (
-            <VehicleMarker
-              key={vehicle.id}
-              vehicle={vehicle}
-              isSelected={false}
-              onPress={handleVehiclePress}
-              tracksViewChanges={true}
-            />
-          ))}
-
-        {/* Seçili marker en son render (her zaman üstte) */}
-        {selectedVehicle && (
-          <VehicleMarker
-            key={`selected-${selectedVehicle.id}`}
-            vehicle={selectedVehicle}
-            isSelected={true}
-            onPress={handleVehiclePress}
-            tracksViewChanges={true}
+        {/* Native Markers */}
+        {normalizedVehicles.map((vehicle) => (
+          <Marker
+            key={vehicle.id}
+            coordinate={{
+              latitude: vehicle.latitude,
+              longitude: vehicle.longitude,
+            }}
+            title={vehicle.plate_no}
+            description={`${vehicle.brand || ""} ${vehicle.model || ""}`}
+            pinColor={vehicle.status === "in_use" ? "#10B981" : "#3B82F6"}
+            onPress={() => handleVehiclePress(vehicle)}
           />
-        )}
+        ))}
       </MapView>
 
       {/* Back Button */}
@@ -296,12 +308,25 @@ const FleetMapScreen = ({ navigation }) => {
         <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
       </TouchableOpacity>
 
+      {/* Vehicle List Button - YENİ */}
+      <TouchableOpacity
+        style={styles.listButton}
+        onPress={() => setShowVehicleList(true)}
+      >
+        <Ionicons name="list" size={22} color={COLORS.primary} />
+        {stats.total > 0 && (
+          <View style={styles.listBadge}>
+            <Text style={styles.listBadgeText}>{stats.total}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
       {/* Refresh Button */}
       <TouchableOpacity style={styles.refreshButton} onPress={fetchVehicles}>
         <Ionicons name="refresh" size={22} color={COLORS.primary} />
       </TouchableOpacity>
 
-      {/* A.3: Follow Mode Indicator */}
+      {/* Follow Mode Button (sadece seçili araç varken) */}
       {selectedVehicle && (
         <TouchableOpacity
           style={[styles.followButton, followMode && styles.followButtonActive]}
@@ -315,19 +340,34 @@ const FleetMapScreen = ({ navigation }) => {
         </TouchableOpacity>
       )}
 
-      {/* Stats Bar */}
-      <View style={styles.statsBar}>
-        <Text style={styles.statsText}>
-          🚗 {stats.total} Araç |
-          <Text style={styles.activeText}> ● {stats.active} Aktif</Text> |
-          <Text style={styles.availableText}> ● {stats.available} Müsait</Text>
-        </Text>
-        {lastUpdate && (
-          <Text style={styles.updateText}>
-            Son güncelleme: {lastUpdate.toLocaleTimeString("tr-TR")}
+      {/* Stats Bar - Tıklanabilir - Sheet açıkken gizle */}
+      {!selectedVehicle && (
+        <TouchableOpacity
+          style={styles.statsBar}
+          onPress={() => setShowVehicleList(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.statsText}>
+            {"🚗"} {stats.withLocation} Araç{" | "}
+            <Text style={styles.activeText}>
+              {"●"} {stats.active} Aktif
+            </Text>
+            {" | "}
+            <Text style={styles.availableText}>
+              {"●"} {stats.available} Müsait
+            </Text>
           </Text>
-        )}
-      </View>
+          {lastUpdate && (
+            <Text style={styles.updateText}>
+              Son güncelleme: {lastUpdate.toLocaleTimeString("tr-TR")}
+            </Text>
+          )}
+          <View style={styles.statsHint}>
+            <Ionicons name="chevron-up" size={14} color={COLORS.gray} />
+            <Text style={styles.statsHintText}>Liste için dokun</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Vehicle Info Sheet */}
       {selectedVehicle && (
@@ -336,9 +376,24 @@ const FleetMapScreen = ({ navigation }) => {
           onClose={handleCloseSheet}
           isFollowing={followMode}
           onToggleFollow={toggleFollowMode}
+          onPressHistory={(vehicleId) => {
+            navigation.navigate("VehicleTrack", {
+              vehicleId: vehicleId,
+              vehiclePlate: selectedVehicle?.plate_no,
+            });
+          }}
           isTablet={false}
         />
       )}
+
+      {/* Vehicle List Modal - YENİ */}
+      <VehicleListModal
+        visible={showVehicleList}
+        vehicles={allVehicles}
+        onClose={() => setShowVehicleList(false)}
+        onSelectVehicle={handleSelectFromModal}
+        selectedVehicleId={selectedVehicleId}
+      />
     </View>
   );
 };
@@ -384,6 +439,42 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
+  },
+  listButton: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 14,
+    left: 70,
+    backgroundColor: COLORS.white,
+    padding: 10,
+    borderRadius: 24,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  listBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  listBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#fff",
   },
   refreshButton: {
     position: "absolute",
@@ -464,6 +555,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.gray,
     marginTop: 4,
+  },
+  statsHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 6,
+    gap: 4,
+  },
+  statsHintText: {
+    fontSize: 11,
+    color: COLORS.gray,
   },
 });
 

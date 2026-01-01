@@ -1,6 +1,6 @@
 // src/screens/driver/DriverTaskDetail.js
 // TulipFleet - Sürücü Görev Detay Ekranı
-// Created: 27 Aralık 2025 - driverTaskAPI kullanır
+// Updated: 30 Aralık 2025 - assigned için "Göreve Başla" butonu, kısa görev no formatı
 
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -62,7 +62,6 @@ const STATUS_CONFIG = {
     text: "Reddedildi",
     icon: "close-circle",
   },
-  // Eski değerler için fallback
   pending: {
     color: COLORS.warning,
     bg: "#FFF5F3",
@@ -116,6 +115,18 @@ const DriverTaskDetail = ({ route, navigation }) => {
     }
   };
 
+  // Görev numarasını kısa formatta al
+  const getShortTaskNo = () => {
+    const taskNo = task?.task_no || task?.task_code;
+    if (!taskNo) return `TSK-${task?.id?.slice(0, 6) || "??????"}`;
+
+    // Eğer çok uzunsa son 6 karakteri al
+    if (taskNo.length > 12) {
+      return `TSK-${taskNo.slice(-6)}`;
+    }
+    return taskNo;
+  };
+
   // Lokasyon bilgisini al
   const getOrigin = () => {
     if (task?.route_json?.origin) return task.route_json.origin;
@@ -135,7 +146,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     return null;
   };
 
-  // Görevi Kabul Et
+  // Görevi Kabul Et (sadece pending_review için)
   const handleAccept = () => {
     Alert.alert(
       "Görevi Kabul Et",
@@ -165,7 +176,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
-  // Görevi Reddet
+  // Görevi Reddet (sadece pending_review için)
   const handleReject = async () => {
     if (!rejectReason.trim()) {
       Alert.alert("Uyarı", "Lütfen red nedenini belirtin");
@@ -186,7 +197,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     }
   };
 
-  // Göreve Başla
+  // Göreve Başla (assigned veya accepted için)
   const handleStart = () => {
     Alert.alert("Göreve Başla", "Göreve başlamak istediğinize emin misiniz?", [
       { text: "İptal", style: "cancel" },
@@ -282,10 +293,22 @@ const DriverTaskDetail = ({ route, navigation }) => {
   const status = task.status || "pending";
   const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
 
+  // Buton mantığı:
+  // pending_review → Kabul/Reddet
+  // assigned, accepted → Göreve Başla
+  // in_progress → Tamamla
+  // completed, rejected, cancelled → Sadece bilgi
+
+  const showAcceptReject = status === "pending_review";
+  const showStart = status === "assigned" || status === "accepted";
+  const showComplete = status === "in_progress";
+  const showInfo = ["completed", "rejected", "cancelled"].includes(status);
+
   return (
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Status Banner */}
@@ -310,9 +333,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Görev No</Text>
-            <Text style={styles.infoValue}>
-              {task.task_no || task.task_code || `TSK-${task.id?.slice(0, 8)}`}
-            </Text>
+            <Text style={styles.infoValue}>{getShortTaskNo()}</Text>
           </View>
 
           {task.vehicle_plate && (
@@ -321,22 +342,12 @@ const DriverTaskDetail = ({ route, navigation }) => {
               <View style={styles.vehicleBadge}>
                 <Ionicons name="car" size={14} color={COLORS.primary} />
                 <Text style={styles.vehicleText}>{task.vehicle_plate}</Text>
-                {(task.vehicle_brand || task.brand) && (
+                {(task.vehicle_brand || task.vehicle_model) && (
                   <Text style={styles.vehicleModel}>
-                    {task.vehicle_brand || task.brand}{" "}
-                    {task.vehicle_model || task.model}
+                    {task.vehicle_brand} {task.vehicle_model}
                   </Text>
                 )}
               </View>
-            </View>
-          )}
-
-          {task.planned_start && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Planlanan Başlangıç</Text>
-              <Text style={styles.infoValue}>
-                {formatDate(task.planned_start)}
-              </Text>
             </View>
           )}
 
@@ -375,7 +386,6 @@ const DriverTaskDetail = ({ route, navigation }) => {
               </View>
             </View>
 
-            {/* Çizgi */}
             <View style={styles.routeLineVertical} />
 
             {/* Varış */}
@@ -388,17 +398,17 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 <Text style={styles.routeAddress}>{getDestination()}</Text>
               </View>
             </View>
-          </View>
 
-          {/* Mesafe */}
-          {getDistance() && (
-            <View style={styles.distanceBox}>
-              <Ionicons name="speedometer" size={20} color={COLORS.primary} />
-              <Text style={styles.distanceText}>
-                Tahmini Mesafe: {getDistance()} km
-              </Text>
-            </View>
-          )}
+            {/* Mesafe */}
+            {getDistance() && (
+              <View style={styles.distanceBox}>
+                <Ionicons name="speedometer" size={20} color={COLORS.primary} />
+                <Text style={styles.distanceText}>
+                  Tahmini Mesafe: {getDistance()} km
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Notlar */}
@@ -409,25 +419,27 @@ const DriverTaskDetail = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Red Nedeni Input */}
+        {/* Reject Input (if showing) */}
         {showRejectInput && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Red Nedeni</Text>
             <TextInput
               style={styles.rejectInput}
+              placeholder="Red nedeninizi yazın..."
               value={rejectReason}
               onChangeText={setRejectReason}
-              placeholder="Neden reddediyorsunuz?"
-              placeholderTextColor={COLORS.muted}
               multiline
               numberOfLines={3}
             />
             <View style={styles.rejectButtons}>
               <TouchableOpacity
                 style={styles.cancelRejectButton}
-                onPress={() => setShowRejectInput(false)}
+                onPress={() => {
+                  setShowRejectInput(false);
+                  setRejectReason("");
+                }}
               >
-                <Text style={styles.cancelRejectText}>Vazgeç</Text>
+                <Text style={styles.cancelRejectText}>İptal</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmRejectButton}
@@ -443,18 +455,13 @@ const DriverTaskDetail = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
-        {/* Spacer for buttons */}
-        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Action Buttons (Fixed at bottom) */}
+      {/* Action Buttons */}
       {!showRejectInput && (
         <View style={styles.actionContainer}>
-          {/* pending_review veya pending: Kabul/Red */}
-          {(status === "pending_review" ||
-            status === "pending" ||
-            status === "assigned") && (
+          {/* pending_review: Kabul/Reddet */}
+          {showAcceptReject && (
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.rejectButton]}
@@ -486,8 +493,8 @@ const DriverTaskDetail = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* accepted: Başlat */}
-          {status === "accepted" && (
+          {/* assigned/accepted: Göreve Başla */}
+          {showStart && (
             <TouchableOpacity
               style={[
                 styles.actionButton,
@@ -501,7 +508,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 <ActivityIndicator color={COLORS.white} size="small" />
               ) : (
                 <>
-                  <Ionicons name="navigate" size={20} color={COLORS.white} />
+                  <Ionicons name="play-circle" size={20} color={COLORS.white} />
                   <Text style={styles.actionButtonText}>Göreve Başla</Text>
                 </>
               )}
@@ -509,7 +516,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
           )}
 
           {/* in_progress: Tamamla */}
-          {status === "in_progress" && (
+          {showComplete && (
             <TouchableOpacity
               style={[
                 styles.actionButton,
@@ -535,9 +542,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
           )}
 
           {/* completed/rejected/cancelled: Bilgi */}
-          {(status === "completed" ||
-            status === "rejected" ||
-            status === "cancelled") && (
+          {showInfo && (
             <View
               style={[styles.infoBox, { backgroundColor: statusConfig.bg }]}
             >

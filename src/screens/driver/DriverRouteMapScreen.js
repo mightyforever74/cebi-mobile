@@ -1,3 +1,7 @@
+// src/screens/driver/DriverRouteMapScreen.js
+// TulipFleet - Driver Navigation Map Screen
+// Updated: 30 Aralık 2025 - Yeni status değerleri (accepted, pending_review)
+
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
@@ -12,7 +16,7 @@ import {
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { COLORS } from "../../constants/config";
-import { taskAPI } from "../../services/api";
+import { driverTaskAPI } from "../../services/api";
 
 const DriverRouteMapScreen = ({ navigation, route }) => {
   // Eğer route params'tan task geliyorsa onu kullan
@@ -32,11 +36,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const loadActiveTask = async () => {
     try {
-      const res = await taskAPI.getDriverTasks();
-      // in_progress olan görevi bul, yoksa assigned olanı al
+      const res = await driverTaskAPI.getMyTasks();
+      // Öncelik: in_progress > accepted > pending_review
       const activeTask =
         res.tasks?.find((t) => t.status === "in_progress") ||
-        res.tasks?.find((t) => t.status === "assigned") ||
+        res.tasks?.find((t) => t.status === "accepted") ||
+        res.tasks?.find((t) => t.status === "pending_review") ||
         res.tasks?.[0];
       setTask(activeTask || null);
     } catch (e) {
@@ -65,13 +70,46 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  const openInMaps = () => {
-    if (!task?.end_location) return;
+  // Lokasyon bilgisini al (route_json + start_location/end_location desteği)
+  const getStartLocation = () => {
+    if (task?.route_json?.origin) return task.route_json.origin;
+    if (task?.start_location) return task.start_location;
+    return null;
+  };
 
-    const destination = encodeURIComponent(task.end_location);
+  const getEndLocation = () => {
+    if (task?.route_json?.destination) return task.route_json.destination;
+    if (task?.end_location) return task.end_location;
+    return null;
+  };
+
+  // Mesafe bilgisi
+  const getDistance = () => {
+    if (task?.route_json?.distance) return task.route_json.distance;
+    if (task?.total_distance_km) return task.total_distance_km;
+    return null;
+  };
+
+  // Görev numarasını kısa formatta al
+  const getShortTaskNo = () => {
+    const taskNo = task?.task_no || task?.task_code;
+    if (!taskNo) return `TSK-${task?.id?.slice(0, 6) || "??????"}`;
+
+    // Eğer çok uzunsa son 6 karakteri al
+    if (taskNo.length > 12) {
+      return `TSK-${taskNo.slice(-6)}`;
+    }
+    return taskNo;
+  };
+
+  const openInMaps = () => {
+    const destination = getEndLocation();
+    if (!destination) return;
+
+    const encodedDest = encodeURIComponent(destination);
     const url = Platform.select({
-      ios: `maps://app?daddr=${destination}`,
-      android: `google.navigation:q=${destination}`,
+      ios: `maps://app?daddr=${encodedDest}`,
+      android: `google.navigation:q=${encodedDest}`,
     });
 
     Linking.canOpenURL(url).then((supported) => {
@@ -80,17 +118,20 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       } else {
         // Fallback to Google Maps web
         Linking.openURL(
-          `https://www.google.com/maps/dir/?api=1&destination=${destination}`
+          `https://www.google.com/maps/dir/?api=1&destination=${encodedDest}`
         );
       }
     });
   };
 
+  // YENİ STATUS DEĞERLERİ
   const getStatusBadge = (status) => {
     const config = {
       in_progress: { label: "Devam Ediyor", color: "#8B5CF6", bg: "#EDE9FE" },
-      assigned: { label: "Atandı", color: "#3B82F6", bg: "#DBEAFE" },
-      pending: { label: "Bekliyor", color: "#F59E0B", bg: "#FEF3C7" },
+      accepted: { label: "Kabul Edildi", color: "#3B82F6", bg: "#DBEAFE" },
+      pending_review: { label: "İnceleniyor", color: "#F59E0B", bg: "#FEF3C7" },
+      completed: { label: "Tamamlandı", color: "#10B981", bg: "#D1FAE5" },
+      rejected: { label: "Reddedildi", color: "#EF4444", bg: "#FEE2E2" },
     };
     return config[status] || { label: status, color: "#6B7280", bg: "#F3F4F6" };
   };
@@ -124,6 +165,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   }
 
   const statusBadge = getStatusBadge(task.status);
+  const startLocation = getStartLocation();
+  const endLocation = getEndLocation();
+  const distance = getDistance();
 
   return (
     <View style={{ flex: 1 }}>
@@ -175,8 +219,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       <View style={styles.card}>
         {/* Header */}
         <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.taskCode}>{task.task_code}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
             <Text style={styles.taskTitle} numberOfLines={1}>
               {task.title || "Görev"}
             </Text>
@@ -197,7 +241,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <View style={styles.locationInfo}>
               <Text style={styles.locationLabel}>Başlangıç</Text>
               <Text style={styles.locationText} numberOfLines={2}>
-                {task.start_location || "Belirtilmemiş"}
+                {startLocation || "Belirtilmemiş"}
               </Text>
             </View>
           </View>
@@ -209,16 +253,28 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               style={[styles.locationDot, { backgroundColor: "#EF4444" }]}
             />
             <View style={styles.locationInfo}>
-              <Text style={styles.locationLabel}>Bitiş</Text>
+              <Text style={styles.locationLabel}>Varış</Text>
               <Text style={styles.locationText} numberOfLines={2}>
-                {task.end_location || "Belirtilmemiş"}
+                {endLocation || "Belirtilmemiş"}
               </Text>
             </View>
           </View>
         </View>
 
+        {/* Distance Info */}
+        {distance && (
+          <View style={styles.distanceRow}>
+            <Ionicons
+              name="speedometer-outline"
+              size={16}
+              color={COLORS.gray}
+            />
+            <Text style={styles.distanceText}>Mesafe: {distance} km</Text>
+          </View>
+        )}
+
         {/* Action Button */}
-        {task.end_location && (
+        {endLocation && (
           <TouchableOpacity style={styles.navigateBtn} onPress={openInMaps}>
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.navigateBtnText}>Google Maps'te Aç</Text>
@@ -369,6 +425,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
     marginTop: 2,
+  },
+  distanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+  },
+  distanceText: {
+    fontSize: 13,
+    color: COLORS.gray,
+    fontWeight: "500",
   },
   navigateBtn: {
     flexDirection: "row",

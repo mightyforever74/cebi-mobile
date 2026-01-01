@@ -1,5 +1,6 @@
 // src/screens/admin/AdminTasks.js
 // TulipFleet - Admin Görev Listesi Ekranı
+// Updated: 30 Aralık 2025 - pendingCount fix + Teklif Gönder
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -38,6 +39,7 @@ const STATUS_COLORS = {
   completed: COLORS.success,
   cancelled: COLORS.danger,
   failed: COLORS.danger,
+  pending_review: COLORS.info,
 };
 
 // Görev durumu Türkçe karşılıkları
@@ -48,6 +50,7 @@ const STATUS_LABELS = {
   completed: "Tamamlandı",
   cancelled: "İptal",
   failed: "Başarısız",
+  pending_review: "İnceleme Bekliyor",
 };
 
 // Görev önceliği renkleri
@@ -73,6 +76,50 @@ const AdminTasks = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
+  // ✅ İstatistik hesaplamaları
+  const pendingCount = tasks.filter((t) =>
+    ["pending", "pending_review"].includes(t.status)
+  ).length;
+  const inProgressCount = tasks.filter((t) =>
+    ["in_progress", "assigned"].includes(t.status)
+  ).length;
+  const completedCount = tasks.filter((t) => t.status === "completed").length;
+
+  // Görev için teklif gönder
+  const handleSendOffer = async (task) => {
+    if (!task.driver_id) {
+      Alert.alert("Uyarı", "Bu göreve henüz sürücü atanmamış!");
+      return;
+    }
+
+    Alert.alert(
+      "Teklif Gönder",
+      `${
+        task.driver_first_name || task.driver_email?.split("@")[0] || "Sürücüye"
+      } görev teklifi göndermek istiyor musunuz?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Gönder",
+          onPress: async () => {
+            try {
+              await taskAPI.sendOffer(task.id, task.driver_id);
+              Alert.alert("✅ Başarılı", "Görev teklifi gönderildi!");
+              // Listeyi yenile
+              fetchTasks();
+            } catch (error) {
+              console.error("Send offer error:", error);
+              Alert.alert(
+                "Hata",
+                error.response?.data?.error || "Teklif gönderilemedi"
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // API'den görevleri çek
   const fetchTasks = async () => {
     try {
@@ -94,10 +141,7 @@ const AdminTasks = ({ navigation }) => {
     }
   };
 
-  // İlk yükleme
-  // useEffect(() => {
-  //   fetchTasks();
-  // }, []);
+  // Ekrana her dönüşte yenile
   useFocusEffect(
     React.useCallback(() => {
       fetchTasks();
@@ -123,6 +167,35 @@ const AdminTasks = ({ navigation }) => {
     });
   };
 
+  // Görev sil
+  const handleDeleteTask = (task) => {
+    Alert.alert(
+      "Görevi Sil",
+      `"${
+        task.title || task.task_no
+      }" görevini silmek istediğinize emin misiniz?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Sil",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await taskAPI.delete(task.id);
+              Alert.alert("✅ Başarılı", "Görev silindi");
+              fetchTasks();
+            } catch (error) {
+              Alert.alert(
+                "Hata",
+                error.response?.data?.error || "Görev silinemedi"
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Görev kartı
   const renderTaskCard = ({ item }) => {
     const status = item.status || "pending";
@@ -131,6 +204,11 @@ const AdminTasks = ({ navigation }) => {
     const priority = item.priority || "normal";
     const priorityColor = PRIORITY_COLORS[priority] || COLORS.info;
     const priorityLabel = PRIORITY_LABELS[priority] || priority;
+
+    // Teklif gönder butonu sadece pending/assigned görevlerde göster
+    const canSendOffer = ["pending", "assigned", "pending_review"].includes(
+      status
+    );
 
     return (
       <TouchableOpacity
@@ -142,7 +220,7 @@ const AdminTasks = ({ navigation }) => {
               `Durum: ${statusLabel}\n` +
               `Öncelik: ${priorityLabel}\n` +
               `Açıklama: ${item.description || "-"}\n` +
-              `Başlangıç: ${formatDate(item.start_location) || "-"}\n` +
+              `Başlangıç: ${item.start_location || "-"}\n` +
               `Varış: ${item.end_location || "-"}`,
             [{ text: "Tamam" }]
           );
@@ -156,7 +234,10 @@ const AdminTasks = ({ navigation }) => {
               style={[styles.priorityDot, { backgroundColor: priorityColor }]}
             />
             <Text style={styles.taskCode}>
-              {item.task_code || `TSK-${item.id}`}
+              {item.title ||
+                item.task_code ||
+                item.task_no ||
+                `TSK-${item.id?.slice(0, 6)}`}
             </Text>
           </View>
           <View style={styles.headerActions}>
@@ -166,6 +247,14 @@ const AdminTasks = ({ navigation }) => {
             >
               <Ionicons name="pencil" size={18} color={COLORS.primary} />
             </TouchableOpacity>
+            {canSendOffer && (
+              <TouchableOpacity
+                style={styles.offerButton}
+                onPress={() => handleSendOffer(item)}
+              >
+                <Ionicons name="send" size={18} color={COLORS.success} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDeleteTask(item)}
@@ -272,8 +361,18 @@ const AdminTasks = ({ navigation }) => {
     </View>
   );
 
-  // Hata durumu
-  if (error && !loading) {
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
@@ -285,52 +384,6 @@ const AdminTasks = ({ navigation }) => {
       </View>
     );
   }
-
-  // Yükleniyor
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
-      </View>
-    );
-  }
-
-  // İstatistikleri hesapla
-  const pendingCount = tasks.filter(
-    (t) => t.status === "pending" || t.status === "assigned"
-  ).length;
-  const inProgressCount = tasks.filter(
-    (t) => t.status === "in_progress"
-  ).length;
-  const completedCount = tasks.filter((t) => t.status === "completed").length;
-
-  // Silme işlemi (handleAddTask'tan önce)
-  const handleDeleteTask = (task) => {
-    Alert.alert(
-      "🗑️ Görevi Sil",
-      `"${task.task_code}" kodlu görevi silmek istediğinize emin misiniz?`,
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Sil",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await taskAPI.delete(task.id);
-              Alert.alert("✅ Başarılı", "Görev silindi");
-              fetchTasks();
-            } catch (error) {
-              Alert.alert(
-                "Hata",
-                error.response?.data?.error || "Görev silinemedi"
-              );
-            }
-          },
-        },
-      ]
-    );
-  };
 
   const handleAddTask = () => {
     navigation.navigate("CreateTask");
@@ -382,10 +435,7 @@ const AdminTasks = ({ navigation }) => {
       />
 
       {/* FAB - Yeni Görev Ekle */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleAddTask} // ← navigate to CreateTask
-      >
+      <TouchableOpacity style={styles.fab} onPress={handleAddTask}>
         <Ionicons name="add" size={28} color={COLORS.white} />
       </TouchableOpacity>
     </View>
@@ -462,6 +512,7 @@ const styles = StyleSheet.create({
   taskTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   priorityDot: {
     width: 10,
@@ -470,14 +521,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   taskCode: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     color: COLORS.dark,
+    flex: 1,
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
+  },
+  offerButton: {
+    padding: 6,
+    backgroundColor: "#E8FCF1",
+    borderRadius: 6,
   },
   editButton: {
     padding: 6,
@@ -489,6 +546,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
+    marginLeft: 4,
   },
   statusText: {
     color: COLORS.white,

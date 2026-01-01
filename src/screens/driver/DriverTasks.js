@@ -1,6 +1,6 @@
 // src/screens/driver/DriverTasks.js
 // TulipFleet - Sürücü Görevlerim Ekranı
-// Updated: 27 Aralık 2025 - Yeni görev akışı (Tab + Detay navigasyonu)
+// Updated: 30 Aralık 2025 - Tab mantığı düzeltildi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { driverTaskAPI } from "../../services/api";
+import { driverTaskAPI, taskOffersAPI } from "../../services/api";
 
 // Theme colors
 const COLORS = {
@@ -30,7 +30,7 @@ const COLORS = {
   muted: "#ADB5BD",
 };
 
-// Görev durumu - YENİ STATUS DEĞERLERİ
+// Görev durumu
 const STATUS_CONFIG = {
   pending_review: {
     color: COLORS.warning,
@@ -62,7 +62,6 @@ const STATUS_CONFIG = {
     icon: "close-circle",
     label: "Reddedildi",
   },
-  // Eski değerler için fallback
   pending: {
     color: COLORS.warning,
     bg: "#FFF5F3",
@@ -86,6 +85,7 @@ const STATUS_CONFIG = {
 const DriverTasks = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("active"); // active, completed
   const [tasks, setTasks] = useState([]);
+  const [pendingOffersCount, setPendingOffersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -94,6 +94,7 @@ const DriverTasks = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchTasks();
+      fetchPendingOffers();
     }, [])
   );
 
@@ -117,15 +118,28 @@ const DriverTasks = ({ navigation }) => {
     }
   };
 
+  // Bekleyen teklifleri say
+  const fetchPendingOffers = async () => {
+    try {
+      const data = await taskOffersAPI.getOffers("pending");
+      setPendingOffersCount(data.offers?.length || 0);
+    } catch (err) {
+      console.log("Pending offers fetch error:", err);
+      setPendingOffersCount(0);
+    }
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTasks();
+    fetchPendingOffers();
   }, []);
 
-  // Görevleri filtrele - YENİ STATUS DEĞERLERİ İLE
+  // Görevleri filtrele
   const filteredTasks = tasks.filter((task) => {
     const status = task.status || "pending";
     if (activeTab === "active") {
+      // Aktif görevler: assigned, accepted, in_progress, pending_review
       return [
         "pending_review",
         "accepted",
@@ -134,11 +148,26 @@ const DriverTasks = ({ navigation }) => {
         "assigned",
       ].includes(status);
     } else {
+      // Tamamlanan görevler: completed, rejected, cancelled
       return ["completed", "rejected", "cancelled"].includes(status);
     }
   });
 
-  // Lokasyon bilgisini al (hem eski hem yeni format desteği)
+  // İstatistikler
+  const activeCount = tasks.filter((t) =>
+    [
+      "pending_review",
+      "accepted",
+      "in_progress",
+      "pending",
+      "assigned",
+    ].includes(t.status)
+  ).length;
+  const completedCount = tasks.filter((t) =>
+    ["completed", "rejected", "cancelled"].includes(t.status)
+  ).length;
+
+  // Lokasyon bilgisini al
   const getOrigin = (task) => {
     if (task.route_json?.origin) return task.route_json.origin;
     if (task.start_location) return task.start_location;
@@ -169,13 +198,53 @@ const DriverTasks = ({ navigation }) => {
     });
   };
 
-  // Görev kartı - TIKLANINCA DETAYA GİT
+  // Görev Teklifleri Kartı
+  const renderOffersCard = () => {
+    if (pendingOffersCount === 0) return null;
+
+    return (
+      <TouchableOpacity
+        style={styles.offersCard}
+        onPress={() => navigation.navigate("TaskOffers")}
+        activeOpacity={0.8}
+      >
+        <View style={styles.offersContent}>
+          <View style={styles.offersIconContainer}>
+            <Ionicons name="mail-unread" size={24} color={COLORS.white} />
+            {pendingOffersCount > 0 && (
+              <View style={styles.offersBadge}>
+                <Text style={styles.offersBadgeText}>{pendingOffersCount}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.offersTextContainer}>
+            <Text style={styles.offersTitle}>Bekleyen Görev Teklifleri</Text>
+            <Text style={styles.offersSubtitle}>
+              {pendingOffersCount} yeni teklif bekliyor - Kabul/Red için
+              tıklayın
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Görev kartı
   const renderTaskCard = ({ item }) => {
     const status = item.status || "pending";
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
     const origin = getOrigin(item);
     const destination = getDestination(item);
     const distance = getDistance(item);
+
+    // Kısa görev numarası
+    const getShortTaskNo = () => {
+      const taskNo = item.task_no || item.task_code;
+      if (!taskNo) return `TSK-${item.id?.slice(0, 6) || "??????"}`;
+      if (taskNo.length > 12) return `TSK-${taskNo.slice(-6)}`;
+      return taskNo;
+    };
 
     return (
       <TouchableOpacity
@@ -187,9 +256,7 @@ const DriverTasks = ({ navigation }) => {
         <View style={styles.cardHeader}>
           <View style={styles.taskIdContainer}>
             <Ionicons name="document-text" size={18} color={COLORS.primary} />
-            <Text style={styles.taskId}>
-              {item.task_no || item.task_code || `TSK-${item.id?.slice(0, 8)}`}
-            </Text>
+            <Text style={styles.taskId}>{getShortTaskNo()}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
             <Ionicons name={config.icon} size={12} color={config.color} />
@@ -267,9 +334,22 @@ const DriverTasks = ({ navigation }) => {
               </Text>
             </View>
           </View>
+
+          {/* Aksiyon ipucu */}
+          <View style={styles.actionHint}>
+            {status === "assigned" || status === "accepted" ? (
+              <Text style={[styles.actionHintText, { color: COLORS.primary }]}>
+                📍 Detay için tıklayın → Göreve Başla
+              </Text>
+            ) : status === "in_progress" ? (
+              <Text style={[styles.actionHintText, { color: COLORS.success }]}>
+                🚀 Devam ediyor → Tamamla
+              </Text>
+            ) : null}
+          </View>
         </View>
 
-        {/* Detaya Git İkonu */}
+        {/* Chevron */}
         <View style={styles.chevronContainer}>
           <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
         </View>
@@ -281,7 +361,11 @@ const DriverTasks = ({ navigation }) => {
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
       <Ionicons
-        name={activeTab === "active" ? "clipboard-outline" : "archive-outline"}
+        name={
+          activeTab === "active"
+            ? "car-outline"
+            : "checkmark-done-circle-outline"
+        }
         size={64}
         color={COLORS.muted}
       />
@@ -290,13 +374,30 @@ const DriverTasks = ({ navigation }) => {
       </Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === "active"
-          ? "Yeni görevler burada görünecek"
-          : "Tamamlanan görevler burada listenecek"}
+          ? "Yeni görev teklifleri için yukarıdaki kartı kontrol edin"
+          : "Henüz tamamladığınız görev bulunmuyor"}
       </Text>
     </View>
   );
 
-  if (error && !loading) {
+  // Liste başlığı (teklifler kartı)
+  const renderListHeader = () => {
+    if (activeTab !== "active") return null;
+    return renderOffersCard();
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.success} />
+        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
@@ -308,29 +409,6 @@ const DriverTasks = ({ navigation }) => {
       </View>
     );
   }
-
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.success} />
-        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
-      </View>
-    );
-  }
-
-  // Sayılar
-  const activeCount = tasks.filter((t) =>
-    [
-      "pending_review",
-      "accepted",
-      "in_progress",
-      "pending",
-      "assigned",
-    ].includes(t.status)
-  ).length;
-  const completedCount = tasks.filter((t) =>
-    ["completed", "rejected", "cancelled"].includes(t.status)
-  ).length;
 
   return (
     <View style={styles.container}>
@@ -346,7 +424,7 @@ const DriverTasks = ({ navigation }) => {
               activeTab === "active" && styles.activeTabText,
             ]}
           >
-            Aktif
+            Aktif Görevler
           </Text>
           {activeCount > 0 && (
             <View
@@ -401,6 +479,7 @@ const DriverTasks = ({ navigation }) => {
             tintColor={COLORS.success}
           />
         }
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
       />
@@ -472,7 +551,58 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  // Card - Tıklanabilir
+  // Offers Card
+  offersCard: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    marginBottom: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  offersContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  offersIconContainer: {
+    position: "relative",
+    marginRight: 14,
+  },
+  offersBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: COLORS.danger,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
+  },
+  offersBadgeText: {
+    color: COLORS.white,
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+  offersTextContainer: {
+    flex: 1,
+  },
+  offersTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.white,
+  },
+  offersSubtitle: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+
+  // Card
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -571,6 +701,18 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
+  // Action Hint
+  actionHint: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.background,
+  },
+  actionHintText: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+
   // Chevron
   chevronContainer: {
     position: "absolute",
@@ -597,6 +739,7 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     textAlign: "center",
     marginTop: 8,
+    paddingHorizontal: 20,
   },
 
   // Error & Loading

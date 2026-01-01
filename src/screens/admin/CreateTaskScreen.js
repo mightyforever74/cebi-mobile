@@ -90,8 +90,15 @@ const CreateTaskScreen = ({ navigation }) => {
         description: formData.description.trim(),
         start_location: formData.startAddress.trim(),
         end_location: formData.endAddress.trim(),
-        scheduled_start: formData.plannedStart || null,
-        scheduled_end: formData.plannedEnd || null,
+        // Tarih validasyonu - boş veya eksik ise null gönder
+        scheduled_start:
+          formData.plannedStart && formData.plannedStart.length > 10
+            ? formData.plannedStart
+            : null,
+        scheduled_end:
+          formData.plannedEnd && formData.plannedEnd.length > 10
+            ? formData.plannedEnd
+            : null,
         priority: "normal",
       };
 

@@ -1,3 +1,57 @@
 .expo/
 node_modules/
 pr-context.json
+
+# Environment files (NEVER commit!)
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Native builds
+android/
+ios/
+
+# Expo
+dist/
+web-build/
+
+# Metro bundler
+.metro-health-check*
+
+# Build artifacts
+*.jks
+*.p8
+*.keystore
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Local config
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
