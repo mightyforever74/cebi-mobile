@@ -20,6 +20,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.tulipfleet.app",
       "googleServicesFile": "./GoogleService-Info.plist",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk"
+      },
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "Cihazları bulmak ve bağlanmak için Bluetooth izni gerekli",
         "NSBluetoothPeripheralUsageDescription": "Cihazlara bağlanmak için Bluetooth izni gerekli",
@@ -34,6 +37,11 @@
     },
     "android": {
       "package": "com.tulipfleet.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk"
+        }
+      },
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
