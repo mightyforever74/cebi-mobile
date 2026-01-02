@@ -48,7 +48,8 @@
       "distribution": "store",
       "env": {
         "API_URL": "https://api.tulipfleet.com",
-        "MQTT_HOST": "mqtt.tulipfleet.com"
+        "MQTT_HOST": "mqtt.tulipfleet.com",
+        "GOOGLE_SERVICES_PLIST": "@eas/GOOGLE_SERVICES_PLIST"
       },
       "android": {
         "buildType": "app-bundle"
