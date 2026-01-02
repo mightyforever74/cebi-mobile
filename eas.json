@@ -64,12 +64,12 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./google-services.json",
+        "serviceAccountKeyPath": "./pc-api-service-account.json",
         "track": "internal"
       },
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id"
+        "appleId": "cem.sahinkaya6@icloud.com",
+        "ascAppId": "6757311314"
       }
     }
   }
