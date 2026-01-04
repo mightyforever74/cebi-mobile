@@ -85,3 +85,8 @@ Gerekli değişiklikler:
 - Message queue (RabbitMQ/Kafka)
 - Separate microservices
 - CDN for mobile assets
+  Önemli güvenlik notu
+
+Mesajlarında canlı JWT token’lar açıkça görünüyor. Bunları artık kopyalayıp paylaşmamanı öneririm; mümkünse bu token’ları da yenile/expire et (logout / token rotate).
+
+İstersen sıradaki adım: DeviceSetupScreen.js içinde Gate’i nereye koyduğunu söyle, ben bu endpoint response’una göre en kısa entegrasyon kodunu (React Native) yazayım.

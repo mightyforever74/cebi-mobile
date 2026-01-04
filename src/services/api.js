@@ -357,6 +357,12 @@ export const driverAPI = {
     return response.data;
   },
 
+  // 🆕 Get assigned device info (MVP Endpoint)
+  getAssignedDevice: async () => {
+    const response = await api.get("/api/drivers/me/assigned-device");
+    return response.data;
+  },
+
   // Update task status
   updateTaskStatus: async (taskId, status) => {
     const response = await api.put(`/api/driver/task/${taskId}/status`, {
@@ -796,6 +802,30 @@ export const taskOffersAPI = {
       response: "rejected",
       reason,
     });
+    return response.data;
+  },
+};
+
+// ============================================
+// ADMIN DEVICE API (Company Admin için)
+// ============================================
+export const adminDeviceAPI = {
+  getDevices: async () => {
+    const response = await api.get("/api/admin/devices");
+    return response.data;
+  },
+  setReprovision: async (deviceId, reason) => {
+    const response = await api.put(
+      `/api/admin/devices/${deviceId}/reprovision`,
+      { reason }
+    );
+    return response.data;
+  },
+  clearReprovision: async (deviceId) => {
+    const response = await api.put(
+      `/api/admin/devices/${deviceId}/reprovision`,
+      { clear: true }
+    );
     return response.data;
   },
 };

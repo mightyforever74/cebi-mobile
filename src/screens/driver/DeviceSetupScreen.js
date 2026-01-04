@@ -1,7 +1,7 @@
 // src/screens/driver/DeviceSetupScreen.js
-// TulipFleet Device Setup - FAZ 4 BLE Activation
+// TulipFleet Device Setup - FAZ 4 BLE Activation + WiFi Provisioning
 // Created: 01 Ocak 2026
-// Updated: 02 Ocak 2026 - Smart Gate (Koşullu Atla)
+// Updated: 05 Ocak 2026 - WiFi-via-BLE Provisioning eklendi
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
@@ -16,6 +16,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -23,12 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  BLE_CONFIG,
-  BLE_RESULT,
-  BLE_STATUS,
-  COLORS,
-} from "../../constants/config";
+import { BLE_RESULT, BLE_STATUS, COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { deviceAPI, driverAPI } from "../../services/api";
 import { bleService } from "../../services/bleService";
@@ -39,6 +35,7 @@ const STORAGE_KEYS = {
   PROVISIONED_DRIVER: "tulipfleet_provisioned_driver",
   PROVISIONED_VEHICLE: "tulipfleet_provisioned_vehicle",
   PROVISIONED_AT: "tulipfleet_provisioned_at",
+  LAST_WIFI_SSID: "tulipfleet_last_wifi_ssid",
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -49,6 +46,8 @@ const STEPS = {
   QR_SCAN: "qr_scan",
   BLE_SCAN: "ble_scan",
   CONNECTING: "connecting",
+  WIFI_FORM: "wifi_form",
+  WIFI_PROVISIONING: "wifi_provisioning",
   ACTIVATING: "activating",
   SUCCESS: "success",
   ERROR: "error",
@@ -61,6 +60,13 @@ const STEPS = {
 export default function DeviceSetupScreen({ navigation }) {
   // Auth context
   const { user } = useAuth();
+
+  // WiFi Form State
+  const [wifiSsid, setWifiSsid] = useState("");
+  const [wifiPassword, setWifiPassword] = useState("");
+  const [showWifiPassword, setShowWifiPassword] = useState(false);
+  const [wifiStatus, setWifiStatus] = useState("");
+  const [lastUsedSsid, setLastUsedSsid] = useState(null);
 
   // State
   const [step, setStep] = useState(STEPS.QR_SCAN);
@@ -107,7 +113,7 @@ export default function DeviceSetupScreen({ navigation }) {
       try {
         console.log("[SmartGate] Checking vehicle device status...");
         const response = await driverAPI.getVehicle();
-        const vehicle = response?.vehicle || response; // API formatına göre
+        const vehicle = response?.vehicle || response;
 
         console.log("[SmartGate] Vehicle:", JSON.stringify(vehicle));
 
@@ -133,7 +139,6 @@ export default function DeviceSetupScreen({ navigation }) {
         }
       } catch (e) {
         console.log("[SmartGate] Vehicle check error (continuing):", e.message);
-        // Hata olursa devam et, normal akışa geç
       }
 
       // ════════════════════════════════════════════════════════════
@@ -258,6 +263,23 @@ export default function DeviceSetupScreen({ navigation }) {
     };
   }, []);
 
+  // Load last used SSID
+  useEffect(() => {
+    const loadLastSsid = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(STORAGE_KEYS.LAST_WIFI_SSID);
+        if (saved) {
+          setLastUsedSsid(saved);
+          setWifiSsid(saved);
+          console.log("[WiFi] Last used SSID loaded:", saved);
+        }
+      } catch (e) {
+        console.log("[WiFi] Failed to load last SSID:", e.message);
+      }
+    };
+    loadLastSsid();
+  }, []);
+
   const initializeBLE = async () => {
     try {
       await bleService.initialize();
@@ -268,7 +290,10 @@ export default function DeviceSetupScreen({ navigation }) {
         console.log("[Setup] BLE Disconnected");
         if (
           !resultReceivedRef.current &&
-          (step === STEPS.CONNECTING || step === STEPS.ACTIVATING)
+          (step === STEPS.CONNECTING ||
+            step === STEPS.ACTIVATING ||
+            step === STEPS.WIFI_FORM ||
+            step === STEPS.WIFI_PROVISIONING)
         ) {
           setError("Bağlantı koptu: " + (error?.message || "Bilinmeyen hata"));
           setStep(STEPS.ERROR);
@@ -387,7 +412,6 @@ export default function DeviceSetupScreen({ navigation }) {
         }
       } catch (e) {
         console.log("[Setup] Validation skipped:", e.message);
-        // Validation başarısız olsa bile devam et
       }
 
       // BLE initialized kontrolü
@@ -416,7 +440,6 @@ export default function DeviceSetupScreen({ navigation }) {
 
     console.log("[Setup] Manual Serial:", data);
 
-    // QR format: TF-2025-XXXXX-X veya TF-XXXX-XXXXX-X
     const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
 
     if (!serialRegex.test(data)) {
@@ -432,7 +455,6 @@ export default function DeviceSetupScreen({ navigation }) {
     setSerial(data);
     setStatus("Serial doğrulanıyor...");
 
-    // Opsiyonel: Backend'de serial var mı kontrol et
     try {
       const validation = await deviceAPI.validateSerial(data);
 
@@ -443,10 +465,8 @@ export default function DeviceSetupScreen({ navigation }) {
       }
     } catch (e) {
       console.log("[Setup] Validation skipped:", e.message);
-      // Validation başarısız olsa bile devam et
     }
 
-    // BLE initialized kontrolü
     if (!bleInitialized) {
       Alert.alert(
         "Bluetooth Hazır Değil",
@@ -455,7 +475,6 @@ export default function DeviceSetupScreen({ navigation }) {
       return;
     }
 
-    // Sonraki adım: BLE tarama
     setStep(STEPS.BLE_SCAN);
     startBLEScan();
   };
@@ -473,7 +492,6 @@ export default function DeviceSetupScreen({ navigation }) {
     scanCleanupRef.current = bleService.startScan(
       // onDeviceFound
       (device) => {
-        // useRef ile güncel listeye eriş (closure bug fix)
         if (!devicesRef.current.find((d) => d.id === device.id)) {
           devicesRef.current = [...devicesRef.current, device];
           setDevices([...devicesRef.current]);
@@ -505,7 +523,7 @@ export default function DeviceSetupScreen({ navigation }) {
   };
 
   // ════════════════════════════════════════════════════════════
-  // CONNECT & ACTIVATE
+  // CONNECT TO DEVICE (BLE bağlantısı → WiFi Form'a geç)
   // ════════════════════════════════════════════════════════════
 
   const handleDeviceSelect = async (device) => {
@@ -521,130 +539,173 @@ export default function DeviceSetupScreen({ navigation }) {
       await bleService.connect(device.id);
       setStatus("Bağlandı, hazırlanıyor...");
 
-      // 2. Subscribe ÖNCE (kritik!)
+      // 2. Subscribe to notifications
       await bleService.subscribeToNotifications(
-        // onStatus
         (value) => {
           console.log("[Setup] Status update:", value);
           setStatus(getStatusText(value));
         },
-        // onResult
         (value) => {
           console.log("[Setup] Result received:", value);
-          handleActivationResult(value);
+          // WiFi provisioning akışında bu callback farklı kullanılacak
         }
       );
 
-      // 3. Write Serial
-      setStep(STEPS.ACTIVATING);
-      setStatus("Serial gönderiliyor...");
-
-      await bleService.writeSerial(serial);
-      setStatus(
-        "ESP32 işlem yapıyor...\n\nBu işlem 30 saniye kadar sürebilir."
-      );
-
-      // 4. Timeout - 30 saniye içinde sonuç gelmezse
-      setTimeout(() => {
-        if (!resultReceivedRef.current && step === STEPS.ACTIVATING) {
-          console.log("[Setup] Response timeout");
-          // Sonucu manuel kontrol et
-          checkResultManually();
-        }
-      }, BLE_CONFIG.TIMEOUTS.RESPONSE);
+      // 3. ✅ YENİ: WiFi Form'a geç (eski: ACTIVATING)
+      console.log("[Setup] BLE connected, showing WiFi form...");
+      setStep(STEPS.WIFI_FORM);
+      setStatus("WiFi bilgilerini girin");
     } catch (error) {
-      console.error("[Setup] Connection/Write error:", error.message);
-      setError("İşlem hatası: " + error.message);
+      console.error("[Setup] Connection error:", error.message);
+      setError("Bağlantı hatası: " + error.message);
       setStep(STEPS.ERROR);
     }
   };
 
-  const checkResultManually = async () => {
+  // ════════════════════════════════════════════════════════════
+  // WIFI PROVISIONING
+  // ════════════════════════════════════════════════════════════
+
+  const handleWifiFormSubmit = async () => {
+    // Validation
+    if (!wifiSsid || wifiSsid.trim().length === 0) {
+      Alert.alert("Hata", "WiFi ağ adı (SSID) boş olamaz");
+      return;
+    }
+    if (!wifiPassword || wifiPassword.length < 8) {
+      Alert.alert("Hata", "WiFi şifresi en az 8 karakter olmalı");
+      return;
+    }
+
+    console.log("[WiFi] Form submitted, SSID:", wifiSsid);
+    setStep(STEPS.WIFI_PROVISIONING);
+    setWifiStatus("WiFi bilgileri gönderiliyor...");
+
     try {
-      const result = await bleService.readResult();
-      if (result && result !== "PENDING" && result !== "IDLE") {
-        handleActivationResult(result);
+      // 1. Serial gönder (ESP32'nin bilmesi için)
+      console.log("[WiFi] Writing serial first:", serial);
+      await bleService.writeSerial(serial);
+
+      // Kısa bekleme
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // 2. WiFi credentials gönder
+      const result = await bleService.provisionWifi(
+        wifiSsid.trim(),
+        wifiPassword,
+        (phase, message) => {
+          console.log("[WiFi] Progress:", phase, message);
+          setWifiStatus(message);
+        }
+      );
+
+      if (result.success) {
+        console.log("[WiFi] Provisioning successful!");
+
+        // Son kullanılan SSID'yi kaydet
+        try {
+          await AsyncStorage.setItem(
+            STORAGE_KEYS.LAST_WIFI_SSID,
+            wifiSsid.trim()
+          );
+        } catch (e) {
+          console.log("[WiFi] Failed to save SSID:", e.message);
+        }
+
+        // Backend aktivasyona geç
+        setStep(STEPS.ACTIVATING);
+        setStatus("Cihaz aktive ediliyor...");
+        await performActivation();
       } else {
-        setError("Zaman aşımı: ESP32'den yanıt alınamadı");
+        console.log("[WiFi] Provisioning failed:", result.error);
+        setError(result.message || "WiFi bağlantısı başarısız");
         setStep(STEPS.ERROR);
       }
     } catch (e) {
-      setError("Zaman aşımı: ESP32'den yanıt alınamadı");
+      console.error("[WiFi] Exception:", e.message);
+      setError("WiFi kurulumu sırasında hata: " + e.message);
       setStep(STEPS.ERROR);
     }
   };
 
-  const handleActivationResult = async (result) => {
-    if (resultReceivedRef.current) return; // Duplicate prevention
-    resultReceivedRef.current = true;
+  const handleWifiRetry = () => {
+    setWifiStatus("");
+    setStep(STEPS.WIFI_FORM);
+  };
 
-    console.log("[Setup] Processing result:", result);
+  const performActivation = async () => {
+    try {
+      console.log("[Setup] Calling backend activation for serial:", serial);
+      const activationResult = await deviceAPI.activate(serial);
 
-    if (result === BLE_RESULT.SUCCESS || result === "SUCCESS") {
-      setStatus("ESP32 başarılı, backend doğrulanıyor...");
-
-      // ═══════════════════════════════════════════════════════════
-      // FAZ 4 KRİTİK: Mobil JWT ile backend'i de çağır (idempotent)
-      // ESP32 zaten çağırmış olabilir, bu çağrı doğrulama amaçlı
-      // ═══════════════════════════════════════════════════════════
-      try {
-        console.log("[Setup] Calling backend with JWT for serial:", serial);
-        const apiResult = await deviceAPI.activate(serial);
-
-        if (apiResult.success) {
-          console.log("[Setup] Backend activation confirmed:", apiResult.data);
-          setStep(STEPS.SUCCESS);
-          setStatus("Cihaz başarıyla aktive edildi!");
-          // ✅ Smart Gate için kaydet
-          await saveProvisionData(serial);
-        } else {
-          // Backend hatası - ama ESP32 başarılı demişti
-          // Muhtemelen zaten aktive (409) - bu OK
-          if (
-            apiResult.statusCode === 409 ||
-            apiResult.error === "ESP_ALREADY_BOUND"
-          ) {
-            console.log("[Setup] Device already activated (expected)");
-            setStep(STEPS.SUCCESS);
-            setStatus("Cihaz aktive edildi!");
-            // ✅ Smart Gate için kaydet
-            await saveProvisionData(serial);
-          } else {
-            // Gerçek bir hata
-            console.error("[Setup] Backend error:", apiResult);
-            setError("Backend doğrulama hatası: " + apiResult.message);
-            setStep(STEPS.ERROR);
-          }
-        }
-      } catch (apiError) {
-        // Network hatası - ESP32 başarılı olduğu için yine de SUCCESS sayabiliriz
-        console.error("[Setup] Backend call failed:", apiError);
-        // ESP32 zaten başarılı, backend'e ulaşamadık ama cihaz çalışıyor
-        setStep(STEPS.SUCCESS);
-        setStatus(
-          "Cihaz aktive edildi!\n(Backend doğrulaması sonra yapılacak)"
-        );
-        // ✅ Smart Gate için kaydet
+      if (activationResult.success) {
+        console.log("[Setup] Activation successful!");
         await saveProvisionData(serial);
-      }
+        setStep(STEPS.SUCCESS);
+        setStatus("Cihaz başarıyla aktive edildi!");
 
-      // Bağlantıyı kapat
+        // Bağlantıyı kapat
+        setTimeout(async () => {
+          await bleService.disconnect();
+        }, 1000);
+      } else {
+        // 409 = zaten aktive - bu OK
+        if (
+          activationResult.statusCode === 409 ||
+          activationResult.error === "ESP_ALREADY_BOUND"
+        ) {
+          console.log("[Setup] Device already activated (OK)");
+          await saveProvisionData(serial);
+          setStep(STEPS.SUCCESS);
+          setStatus("Cihaz aktive edildi!");
+
+          setTimeout(async () => {
+            await bleService.disconnect();
+          }, 1000);
+        } else {
+          console.log("[Setup] Activation failed:", activationResult.error);
+          setError(activationResult.message || "Aktivasyon başarısız");
+          setStep(STEPS.ERROR);
+        }
+      }
+    } catch (e) {
+      console.error("[Setup] Activation exception:", e.message);
+      // Network hatası olsa bile ESP32 WiFi'ye bağlandı, başarılı sayabiliriz
+      console.log("[Setup] Network error but WiFi OK, marking success");
+      await saveProvisionData(serial);
+      setStep(STEPS.SUCCESS);
+      setStatus("Cihaz aktive edildi!\n(Backend doğrulaması sonra yapılacak)");
+
       setTimeout(async () => {
         await bleService.disconnect();
       }, 1000);
-    } else if (
-      result === BLE_RESULT.FAILED ||
-      result === "FAILED" ||
-      result.startsWith("ERROR") ||
-      result === BLE_RESULT.INVALID_SERIAL ||
-      result === BLE_RESULT.ALREADY_ACTIVATED ||
-      result === BLE_RESULT.NETWORK_ERROR ||
-      result === BLE_RESULT.SERVER_ERROR
-    ) {
-      setError("Aktivasyon başarısız: " + getResultText(result));
-      setStep(STEPS.ERROR);
-      await bleService.disconnect();
     }
+  };
+
+  // ════════════════════════════════════════════════════════════
+  // RETRY & DONE
+  // ════════════════════════════════════════════════════════════
+
+  const handleRetry = async () => {
+    console.log("[Setup] Retry requested");
+    await bleService.disconnect();
+    setError(null);
+    setSerial(null);
+    setDevices([]);
+    devicesRef.current = [];
+    setSelectedDevice(null);
+    setStatus("");
+    setScanned(false);
+    resultReceivedRef.current = false;
+    // WiFi state temizle
+    setWifiSsid(lastUsedSsid || "");
+    setWifiPassword("");
+    setWifiStatus("");
+    setStep(STEPS.QR_SCAN);
+  };
+
+  const handleDone = () => {
+    navigation.goBack();
   };
 
   // ════════════════════════════════════════════════════════════
@@ -665,6 +726,9 @@ export default function DeviceSetupScreen({ navigation }) {
       [BLE_STATUS.COMPLETE]: "Tamamlandı",
       WAITING_SERIAL: "Serial bekleniyor",
       ACTIVATING: "Aktivasyon başlıyor...",
+      WIFI_CRED_RECEIVED: "WiFi bilgileri alındı",
+      WIFI_PROVISION_OK: "WiFi bağlantısı başarılı",
+      WIFI_PROVISION_FAIL: "WiFi bağlantısı başarısız",
     };
     return map[status] || status;
   };
@@ -687,14 +751,16 @@ export default function DeviceSetupScreen({ navigation }) {
 
   const getStepTitle = (step) => {
     const titles = {
-      [STEPS.QR_SCAN]: "Adım 1: QR Kod Okutun",
-      [STEPS.BLE_SCAN]: "Adım 2: Cihaz Seçin",
-      [STEPS.CONNECTING]: "Adım 3: Bağlanıyor",
-      [STEPS.ACTIVATING]: "Adım 4: Aktivasyon",
+      [STEPS.QR_SCAN]: "QR Kod Okutun",
+      [STEPS.BLE_SCAN]: "Cihaz Aranıyor",
+      [STEPS.CONNECTING]: "Bağlanıyor",
+      [STEPS.WIFI_FORM]: "WiFi Ayarları",
+      [STEPS.WIFI_PROVISIONING]: "WiFi Bağlantısı",
+      [STEPS.ACTIVATING]: "Aktive Ediliyor",
       [STEPS.SUCCESS]: "Tamamlandı",
       [STEPS.ERROR]: "Hata",
     };
-    return titles[step];
+    return titles[step] || "";
   };
 
   const getStepNumber = (step) => {
@@ -702,39 +768,20 @@ export default function DeviceSetupScreen({ navigation }) {
       [STEPS.QR_SCAN]: 1,
       [STEPS.BLE_SCAN]: 2,
       [STEPS.CONNECTING]: 3,
-      [STEPS.ACTIVATING]: 4,
-      [STEPS.SUCCESS]: 5,
+      [STEPS.WIFI_FORM]: 4,
+      [STEPS.WIFI_PROVISIONING]: 5,
+      [STEPS.ACTIVATING]: 6,
+      [STEPS.SUCCESS]: 7,
       [STEPS.ERROR]: 0,
     };
     return numbers[step];
-  };
-
-  const handleRetry = async () => {
-    console.log("[Setup] Retry requested");
-    await bleService.disconnect();
-    setError(null);
-    setSerial(null);
-    setDevices([]);
-    devicesRef.current = [];
-    setSelectedDevice(null);
-    setStatus("");
-    setScanned(false);
-    resultReceivedRef.current = false;
-    setStep(STEPS.QR_SCAN);
-  };
-
-  const handleDone = () => {
-    navigation.goBack();
   };
 
   // ════════════════════════════════════════════════════════════
   // RENDER
   // ════════════════════════════════════════════════════════════
 
-  // ════════════════════════════════════════════════════════════
-  // SMART GATE: Kontrol ekranı
-  // ════════════════════════════════════════════════════════════
-
+  // Smart Gate: Kontrol ekranı
   if (gateChecking) {
     return (
       <SafeAreaView style={styles.container}>
@@ -825,7 +872,7 @@ export default function DeviceSetupScreen({ navigation }) {
       {/* Progress */}
       {step !== STEPS.SUCCESS && step !== STEPS.ERROR && (
         <View style={styles.progressContainer}>
-          {[1, 2, 3, 4].map((num) => (
+          {[1, 2, 3, 4, 5, 6].map((num) => (
             <View
               key={num}
               style={[
@@ -840,6 +887,7 @@ export default function DeviceSetupScreen({ navigation }) {
 
       {/* Content */}
       <View style={styles.content}>
+        {/* QR SCAN */}
         {step === STEPS.QR_SCAN && (
           <View style={styles.scannerContainer}>
             <CameraView
@@ -864,7 +912,6 @@ export default function DeviceSetupScreen({ navigation }) {
               </Text>
             </View>
 
-            {/* Manuel Giriş Butonu */}
             <TouchableOpacity
               style={styles.manualEntryButton}
               onPress={() => setShowManualInput(true)}
@@ -876,6 +923,7 @@ export default function DeviceSetupScreen({ navigation }) {
           </View>
         )}
 
+        {/* BLE SCAN */}
         {step === STEPS.BLE_SCAN && (
           <View style={styles.listContainer}>
             <View style={styles.listHeader}>
@@ -948,22 +996,139 @@ export default function DeviceSetupScreen({ navigation }) {
           </View>
         )}
 
-        {(step === STEPS.CONNECTING || step === STEPS.ACTIVATING) && (
+        {/* CONNECTING */}
+        {step === STEPS.CONNECTING && (
           <View style={styles.centerContainer}>
             <View style={styles.progressCircle}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
             </View>
             <Text style={styles.activatingDevice}>{selectedDevice?.name}</Text>
             <Text style={styles.activatingStatus}>{status}</Text>
-            {step === STEPS.ACTIVATING && (
-              <Text style={styles.activatingHint}>
-                Lütfen bekleyin, cihaz WiFi'a bağlanıp sunucu ile iletişim
-                kuruyor...
-              </Text>
-            )}
           </View>
         )}
 
+        {/* WIFI FORM */}
+        {step === STEPS.WIFI_FORM && (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.wifiFormContainer}
+          >
+            <ScrollView
+              contentContainerStyle={styles.wifiFormContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.wifiIcon}>
+                <Text style={{ fontSize: 50 }}>📶</Text>
+              </View>
+
+              <Text style={styles.wifiTitle}>WiFi Bağlantısı</Text>
+              <Text style={styles.wifiSubtitle}>
+                ESP32 cihazının bağlanacağı WiFi ağ bilgilerini girin
+              </Text>
+
+              {/* SSID Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>WiFi Ağ Adı (SSID)</Text>
+                <TextInput
+                  style={styles.wifiInput}
+                  value={wifiSsid}
+                  onChangeText={setWifiSsid}
+                  placeholder="Örn: Ev_WiFi"
+                  placeholderTextColor="#ADB5BD"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {lastUsedSsid && lastUsedSsid !== wifiSsid && (
+                  <TouchableOpacity
+                    style={styles.lastSsidButton}
+                    onPress={() => setWifiSsid(lastUsedSsid)}
+                  >
+                    <Text style={styles.lastSsidText}>
+                      Son kullanılan: {lastUsedSsid}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>WiFi Şifresi</Text>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={wifiPassword}
+                    onChangeText={setWifiPassword}
+                    placeholder="En az 8 karakter"
+                    placeholderTextColor="#ADB5BD"
+                    secureTextEntry={!showWifiPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowWifiPassword(!showWifiPassword)}
+                  >
+                    <Text style={{ fontSize: 20 }}>
+                      {showWifiPassword ? "🙈" : "👁️"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Hint */}
+              <View style={styles.wifiHintBox}>
+                <Text style={styles.wifiHintText}>
+                  💡 Cihaz bu WiFi ağına bağlanarak veri gönderecek. Ağın 2.4GHz
+                  olduğundan emin olun (5GHz desteklenmez).
+                </Text>
+              </View>
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  (!wifiSsid || wifiPassword.length < 8) &&
+                    styles.buttonDisabled,
+                ]}
+                onPress={handleWifiFormSubmit}
+                disabled={!wifiSsid || wifiPassword.length < 8}
+              >
+                <Text style={styles.primaryButtonText}>Bağlan</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
+
+        {/* WIFI PROVISIONING */}
+        {step === STEPS.WIFI_PROVISIONING && (
+          <View style={styles.centerContainer}>
+            <View style={styles.progressCircle}>
+              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+            </View>
+            <Text style={styles.wifiConnectingTitle}>📶 WiFi Bağlantısı</Text>
+            <Text style={styles.wifiConnectingStatus}>{wifiStatus}</Text>
+            <Text style={styles.wifiConnectingSsid}>Ağ: {wifiSsid}</Text>
+            <Text style={styles.activatingHint}>
+              ESP32 cihazı WiFi ağına bağlanıyor, lütfen bekleyin...
+            </Text>
+          </View>
+        )}
+
+        {/* ACTIVATING */}
+        {step === STEPS.ACTIVATING && (
+          <View style={styles.centerContainer}>
+            <View style={styles.progressCircle}>
+              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+            </View>
+            <Text style={styles.activatingDevice}>{selectedDevice?.name}</Text>
+            <Text style={styles.activatingStatus}>{status}</Text>
+            <Text style={styles.activatingHint}>
+              Cihaz sunucu ile iletişim kuruyor...
+            </Text>
+          </View>
+        )}
+
+        {/* SUCCESS */}
         {step === STEPS.SUCCESS && (
           <View style={styles.centerContainer}>
             <View style={styles.successCircle}>
@@ -980,6 +1145,7 @@ export default function DeviceSetupScreen({ navigation }) {
           </View>
         )}
 
+        {/* ERROR */}
         {step === STEPS.ERROR && (
           <View style={styles.centerContainer}>
             <View style={styles.errorCircle}>
@@ -1101,22 +1267,22 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: "rgba(255,255,255,0.8)",
-    marginTop: 5,
+    marginTop: 4,
   },
   serialBadge: {
+    position: "absolute",
+    right: 15,
+    top: Platform.OS === "ios" ? 15 : StatusBar.currentHeight + 15,
     backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "center",
-    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
   serialBadgeText: {
+    fontSize: 10,
     color: COLORS.WHITE,
-    fontSize: 13,
-    fontWeight: "600",
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
 
@@ -1125,7 +1291,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 20,
     backgroundColor: COLORS.WHITE,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.BORDER,
@@ -1135,23 +1301,89 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: COLORS.BORDER,
-    marginHorizontal: 8,
+    marginHorizontal: 6,
   },
   progressDotActive: {
-    backgroundColor: COLORS.SUCCESS,
+    backgroundColor: COLORS.PRIMARY,
   },
   progressDotCurrent: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: COLORS.PRIMARY,
   },
 
+  // Content
   content: {
     flex: 1,
   },
 
-  // Camera Permission
+  // Camera/Scanner
+  scannerContainer: {
+    flex: 1,
+    position: "relative",
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  scanFrame: {
+    width: 250,
+    height: 250,
+    backgroundColor: "transparent",
+  },
+  corner: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+    borderColor: COLORS.WHITE,
+  },
+  cornerTL: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+  },
+  cornerTR: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+  },
+  cornerBL: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+  },
+  cornerBR: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+  },
+  hintContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  hint: {
+    backgroundColor: "rgba(0,0,0,0.7)",
+    color: COLORS.WHITE,
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 25,
+    fontSize: 15,
+    overflow: "hidden",
+  },
+
+  // Permissions
   permissionIcon: {
     fontSize: 60,
     marginBottom: 20,
@@ -1166,71 +1398,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.MUTED,
     textAlign: "center",
-    marginBottom: 30,
-    paddingHorizontal: 20,
-  },
-
-  // Scanner
-  scannerContainer: {
-    flex: 1,
-  },
-  camera: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  scanFrame: {
-    width: 260,
-    height: 260,
-    position: "relative",
-  },
-  corner: {
-    position: "absolute",
-    width: 30,
-    height: 30,
-    borderColor: COLORS.PRIMARY,
-  },
-  cornerTL: {
-    top: 0,
-    left: 0,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderTopLeftRadius: 12,
-  },
-  cornerTR: {
-    top: 0,
-    right: 0,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderTopRightRadius: 12,
-  },
-  cornerBL: {
-    bottom: 0,
-    left: 0,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderBottomLeftRadius: 12,
-  },
-  cornerBR: {
-    bottom: 0,
-    right: 0,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderBottomRightRadius: 12,
-  },
-  hintContainer: {
-    backgroundColor: COLORS.WHITE,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-  },
-  hint: {
-    textAlign: "center",
-    fontSize: 16,
-    color: COLORS.TEXT,
+    paddingHorizontal: 40,
+    lineHeight: 24,
   },
 
   // Device List
@@ -1241,27 +1410,27 @@ const styles = StyleSheet.create({
   listHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   listHeaderIcon: {
-    fontSize: 20,
+    fontSize: 24,
     marginRight: 10,
   },
   listHeaderText: {
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.MUTED,
     flex: 1,
   },
   deviceList: {
-    paddingBottom: 10,
+    paddingBottom: 20,
   },
   deviceItem: {
-    backgroundColor: COLORS.WHITE,
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: COLORS.WHITE,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -1349,6 +1518,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "600",
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   secondaryButton: {
     backgroundColor: COLORS.WHITE,
     padding: 16,
@@ -1372,7 +1544,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Activating
+  // Activating/Progress
   progressCircle: {
     width: 100,
     height: 100,
@@ -1401,6 +1573,109 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 30,
     fontStyle: "italic",
+  },
+
+  // WiFi Form Styles
+  wifiFormContainer: {
+    flex: 1,
+  },
+  wifiFormContent: {
+    padding: 20,
+    alignItems: "center",
+  },
+  wifiIcon: {
+    marginBottom: 20,
+  },
+  wifiTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.TEXT,
+    marginBottom: 8,
+  },
+  wifiSubtitle: {
+    fontSize: 14,
+    color: COLORS.MUTED,
+    textAlign: "center",
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  inputGroup: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.TEXT,
+    marginBottom: 8,
+  },
+  wifiInput: {
+    backgroundColor: COLORS.WHITE,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.TEXT,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.WHITE,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.TEXT,
+  },
+  eyeButton: {
+    padding: 14,
+  },
+  lastSsidButton: {
+    marginTop: 8,
+    padding: 8,
+  },
+  lastSsidText: {
+    fontSize: 12,
+    color: COLORS.PRIMARY,
+  },
+  wifiHintBox: {
+    backgroundColor: "#FFF9E6",
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 20,
+    width: "100%",
+  },
+  wifiHintText: {
+    fontSize: 13,
+    color: "#8B6914",
+    lineHeight: 20,
+  },
+
+  // WiFi Connecting Styles
+  wifiConnectingTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: COLORS.TEXT,
+    marginBottom: 10,
+  },
+  wifiConnectingStatus: {
+    fontSize: 16,
+    color: COLORS.MUTED,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  wifiConnectingSsid: {
+    fontSize: 14,
+    color: COLORS.PRIMARY,
+    fontWeight: "600",
+    marginBottom: 20,
   },
 
   // Results

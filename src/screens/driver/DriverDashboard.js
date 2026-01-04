@@ -1,8 +1,9 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
+// Updated: 05 Ocak 2026 - Gate Logic Added
 
-import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -30,10 +31,64 @@ const DriverDashboard = () => {
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
 
-  // Fetch data on mount
+  // 🆕 Gate Logic State
+  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
+  const [checkingDevice, setCheckingDevice] = useState(true);
+
+  // 🆕 Gate Logic - Her ekran açılışında cihaz durumu kontrol
+  useFocusEffect(
+    useCallback(() => {
+      checkDeviceStatus();
+    }, [])
+  );
+
+  const checkDeviceStatus = async () => {
+    try {
+      setCheckingDevice(true);
+      console.log("[Gate] Checking device status...");
+
+      // Yeni MVP endpoint'i kullan
+      const response = await driverAPI.getAssignedDevice();
+      console.log("[Gate] Response:", JSON.stringify(response));
+
+      // Gate Logic
+      if (!response.has_vehicle) {
+        // Araç atanmamış - dashboard'da kal
+        console.log("[Gate] No vehicle assigned");
+        setCheckingDevice(false);
+        setDeviceCheckDone(true);
+        return;
+      }
+
+      if (response.setup_required) {
+        // Kurulum gerekli - DeviceSetup ekranına yönlendir
+        console.log("[Gate] Setup required, redirecting to DeviceSetup...");
+        setCheckingDevice(false);
+        navigation.replace("DeviceSetup", {
+          device: response.device,
+          vehicle: response.vehicle,
+        });
+        return;
+      }
+
+      // Normal akış - dashboard göster
+      console.log("[Gate] All good, showing dashboard");
+      setCheckingDevice(false);
+      setDeviceCheckDone(true);
+    } catch (error) {
+      console.log("[Gate] Error:", error.message);
+      // Hata durumunda dashboard'ı göster (graceful degradation)
+      setCheckingDevice(false);
+      setDeviceCheckDone(true);
+    }
+  };
+
+  // Fetch data on mount - deviceCheckDone olunca çalışsın
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (deviceCheckDone) {
+      fetchAllData();
+    }
+  }, [deviceCheckDone]);
 
   // Debug: show push token when ready
   useEffect(() => {
@@ -98,6 +153,16 @@ const DriverDashboard = () => {
     console.log("Task pressed:", task.id);
     // TODO: Navigate to TaskDetails
   };
+
+  // 🆕 Device Check Loading
+  if (checkingDevice) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Cihaz durumu kontrol ediliyor...</Text>
+      </View>
+    );
+  }
 
   // Loading state
   if (loading) {

@@ -50,6 +50,9 @@ export const BLE_CONFIG = {
     SERIAL: "beb5483e-36e1-4688-b7f5-ea07361b26a8", // WRITE
     STATUS: "beb5483e-36e1-4688-b7f5-ea07361b26a9", // READ + NOTIFY
     RESULT: "beb5483e-36e1-4688-b7f5-ea07361b26aa", // READ + NOTIFY
+    // 🆕 WiFi Provisioning
+    WIFI_CREDENTIALS: "beb5483e-36e1-4688-b7f5-ea07361b26ab", // WRITE - JSON {ssid, password}
+    WIFI_STATUS: "beb5483e-36e1-4688-b7f5-ea07361b26ac", // READ + NOTIFY
   },
 
   // Device discovery (iOS cache için esnek prefix)
@@ -63,11 +66,12 @@ export const BLE_CONFIG = {
 
   // Timeouts (ms)
   TIMEOUTS: {
-    SCAN: 12000, // 12 saniye tarama
-    SCAN_UNFILTERED: 3000, // Filtered scan başarısızsa
-    CONNECT: 15000, // 15 saniye bağlantı
-    WRITE: 5000, // 5 saniye yazma
-    RESPONSE: 30000, // 30 saniye ESP32 yanıtı
+    SCAN: 12000,
+    SCAN_UNFILTERED: 3000,
+    CONNECT: 15000,
+    WRITE: 5000,
+    RESPONSE: 30000,
+    WIFI_CONNECT: 30000, // 🆕 WiFi bağlantı timeout (30 saniye)
   },
 
   // Retry
@@ -87,6 +91,10 @@ export const BLE_STATUS = {
   API_FAILED: "API_FAILED",
   SAVING_NVS: "SAVING_NVS",
   COMPLETE: "COMPLETE",
+  // 🆕 WiFi Provisioning Status
+  WIFI_CRED_RECEIVED: "WIFI_CRED_RECEIVED",
+  WIFI_PROVISION_OK: "WIFI_PROVISION_OK",
+  WIFI_PROVISION_FAIL: "WIFI_PROVISION_FAIL",
 };
 
 // BLE Result Values (ESP32 → Mobile)
@@ -98,6 +106,30 @@ export const BLE_RESULT = {
   ALREADY_ACTIVATED: "ALREADY_ACTIVATED",
   NETWORK_ERROR: "NETWORK_ERROR",
   SERVER_ERROR: "SERVER_ERROR",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// WiFi Provisioning Status & Errors
+// ═══════════════════════════════════════════════════════════════════
+
+// 🆕 WiFi Provisioning Status Values (ESP32 → Mobile via WIFI_STATUS characteristic)
+export const WIFI_STATUS = {
+  IDLE: "IDLE",
+  CONNECTING: "CONNECTING",
+  OK: "OK",
+  ERR_AUTH: "ERR_AUTH",
+  ERR_TIMEOUT: "ERR_TIMEOUT",
+  ERR_NOT_FOUND: "ERR_NOT_FOUND",
+  ERR_UNKNOWN: "ERR_UNKNOWN",
+};
+
+// 🆕 WiFi hata mesajları (UI için Türkçe)
+export const WIFI_ERROR_MESSAGES = {
+  ERR_AUTH: "WiFi şifresi yanlış",
+  ERR_TIMEOUT: "WiFi ağına bağlanılamadı (zaman aşımı)",
+  ERR_NOT_FOUND: "WiFi ağı bulunamadı (5GHz desteklenmez)",
+  ERR_UNKNOWN: "Bilinmeyen bir hata oluştu",
+  WIFI_TIMEOUT: "WiFi bağlantısı zaman aşımına uğradı",
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -293,4 +325,15 @@ export const ALERT_TYPES = {
   IDLE: "idle_too_long",
   GEOFENCE_ENTER: "geofence_enter",
   GEOFENCE_EXIT: "geofence_exit",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// AsyncStorage Keys (Device Setup cache)
+// ═══════════════════════════════════════════════════════════════════
+export const STORAGE_KEYS = {
+  PROVISIONED_SERIAL: "tulipfleet_provisioned_serial",
+  PROVISIONED_DRIVER: "tulipfleet_provisioned_driver",
+  PROVISIONED_VEHICLE: "tulipfleet_provisioned_vehicle",
+  PROVISIONED_AT: "tulipfleet_provisioned_at",
+  LAST_WIFI_SSID: "tulipfleet_last_wifi_ssid",
 };
