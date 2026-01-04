@@ -2,7 +2,7 @@
 // TulipFleet Device Setup - FAZ 4 BLE Activation + WiFi Provisioning
 // Created: 01 Ocak 2026
 // Updated: 05 Ocak 2026 - WiFi-via-BLE Provisioning
-// Fixed: 05 Ocak 2026 - 4 kritik nokta düzeltildi
+// Fixed: 05 Ocak 2026 - 4 kritik nokta düzeltildi + 2 iyileştirme
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -24,7 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { BLE_RESULT, BLE_STATUS, COLORS } from "../../constants/config";
+import { BLE_CONFIG, BLE_STATUS, COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { deviceAPI, driverAPI } from "../../services/api";
 import { bleService } from "../../services/bleService";
@@ -38,10 +38,7 @@ const STORAGE_KEYS = {
   LAST_WIFI_SSID: "tulipfleet_last_wifi_ssid",
 };
 
-// ══════════════════════════════════════════════════════════════
-// STEPS
-// ══════════════════════════════════════════════════════════════
-
+// Steps
 const STEPS = {
   QR_SCAN: "qr_scan",
   BLE_SCAN: "ble_scan",
@@ -53,12 +50,7 @@ const STEPS = {
   ERROR: "error",
 };
 
-// ══════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ══════════════════════════════════════════════════════════════
-
 export default function DeviceSetupScreen({ navigation }) {
-  // Auth context
   const { user } = useAuth();
 
   // WiFi Form State
@@ -68,7 +60,7 @@ export default function DeviceSetupScreen({ navigation }) {
   const [wifiStatus, setWifiStatus] = useState("");
   const [lastUsedSsid, setLastUsedSsid] = useState(null);
 
-  // State
+  // Main State
   const [step, setStep] = useState(STEPS.QR_SCAN);
   const [serial, setSerial] = useState(null);
   const [devices, setDevices] = useState([]);
@@ -82,16 +74,16 @@ export default function DeviceSetupScreen({ navigation }) {
   const [gateChecking, setGateChecking] = useState(true);
   const [skipReason, setSkipReason] = useState(null);
 
-  // Manuel giriş için
+  // Manual serial input
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualSerial, setManualSerial] = useState("");
 
-  // ⚠️ CRITICAL: useRef ile closure bug fix
+  // Refs (closure bug fixes)
   const devicesRef = useRef([]);
   const scanCleanupRef = useRef(null);
   const resultReceivedRef = useRef(false);
 
-  // 🔧 FIX #3: Step ref for onDisconnect callback (stale closure fix)
+  // FIX #3: Step ref for onDisconnect callback (stale closure fix)
   const stepRef = useRef(step);
   useEffect(() => {
     stepRef.current = step;
@@ -100,130 +92,9 @@ export default function DeviceSetupScreen({ navigation }) {
   // Permissions
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
-  // ════════════════════════════════════════════════════════════
-  // 🔧 FIX #1: SmartGate - Backend Truth (assigned-device API)
-  // ════════════════════════════════════════════════════════════
-
-  useEffect(() => {
-    checkSmartGate();
-  }, []);
-
-  const checkSmartGate = async () => {
-    try {
-      console.log("[SmartGate] Checking backend truth...");
-
-      // ════════════════════════════════════════════════════════════
-      // 🔧 FIX #1: Backend'in tek kaynak olması (assigned-device)
-      // Bu endpoint setup_required değerini döner
-      // ════════════════════════════════════════════════════════════
-      try {
-        console.log("[SmartGate] Calling getAssignedDevice...");
-        const response = await driverAPI.getAssignedDevice();
-
-        console.log("[SmartGate] Response:", JSON.stringify(response));
-
-        // setup_required === false → Kurulum gerekmiyor, geri dön
-        if (response && response.setup_required === false) {
-          console.log(
-            "[SmartGate] ✅ setup_required=false, kurulum gerekmiyor"
-          );
-          setGateChecking(false);
-
-          Alert.alert(
-            "Cihaz Zaten Aktif ✅",
-            `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${
-              response.device?.serial || "-"
-            }`,
-            [{ text: "Tamam", onPress: () => navigation.goBack() }]
-          );
-          return;
-        }
-
-        // setup_required === true → Kurulum gerekiyor
-        if (response && response.setup_required === true) {
-          console.log("[SmartGate] ⚠️ setup_required=true, kurulum gerekiyor");
-
-          // Eğer device.serial varsa, onu kullan (reprovision senaryosu)
-          if (response.device?.serial) {
-            console.log(
-              "[SmartGate] Reprovision için serial:",
-              response.device.serial
-            );
-            setSerial(response.device.serial);
-            setSkipReason("Cihaz yeniden kurulum bekliyor...");
-            setGateChecking(false);
-
-            // 🔧 FIX #2: BLE init bekle
-            await waitForBLEInit();
-
-            setTimeout(() => {
-              setStep(STEPS.BLE_SCAN);
-              startBLEScan();
-            }, 1000);
-            return;
-          }
-        }
-
-        // Hiç cihaz yok veya atanmamış → Normal akış
-        console.log("[SmartGate] Normal akışa devam");
-        setGateChecking(false);
-      } catch (e) {
-        console.log("[SmartGate] API error (continuing):", e.message);
-        // API hatası durumunda normal akışa devam
-        setGateChecking(false);
-      }
-    } catch (e) {
-      console.error("[SmartGate] Error:", e);
-      setGateChecking(false);
-    }
-  };
-
-  // 🔧 FIX #2: BLE Init Race - BLE hazır olana kadar bekle
-  const waitForBLEInit = async (maxWait = 5000) => {
-    const startTime = Date.now();
-
-    while (!bleInitialized && Date.now() - startTime < maxWait) {
-      console.log("[SmartGate] Waiting for BLE init...");
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-
-    if (!bleInitialized) {
-      console.log("[SmartGate] BLE init timeout, initializing now...");
-      try {
-        await bleService.initialize();
-        setBleInitialized(true);
-      } catch (e) {
-        console.error("[SmartGate] BLE init failed:", e.message);
-      }
-    }
-  };
-
-  // ════════════════════════════════════════════════════════════
-  // SAVE PROVISION DATA (Success sonrası)
-  // ════════════════════════════════════════════════════════════
-
-  const saveProvisionData = async (provisionedSerial) => {
-    try {
-      const response = await driverAPI.getVehicle();
-      const vehicle = response?.vehicle || response;
-      const vehicleId = vehicle?.id?.toString() || "";
-
-      await AsyncStorage.multiSet([
-        [STORAGE_KEYS.PROVISIONED_SERIAL, provisionedSerial],
-        [STORAGE_KEYS.PROVISIONED_DRIVER, user?.email || ""],
-        [STORAGE_KEYS.PROVISIONED_VEHICLE, vehicleId],
-        [STORAGE_KEYS.PROVISIONED_AT, new Date().toISOString()],
-      ]);
-
-      console.log("[SmartGate] ✅ Provision data saved");
-    } catch (e) {
-      console.error("[SmartGate] Failed to save provision data:", e);
-    }
-  };
-
-  // ════════════════════════════════════════════════════════════
-  // INITIALIZE
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // INIT
+  // ────────────────────────────────────────────────────────────
 
   useEffect(() => {
     initializeBLE();
@@ -257,11 +128,11 @@ export default function DeviceSetupScreen({ navigation }) {
       await bleService.initialize();
       setBleInitialized(true);
 
-      // 🔧 FIX #3: Disconnect callback - stepRef kullan (stale closure fix)
-      bleService.onDisconnect((error) => {
-        console.log("[Setup] BLE Disconnected, current step:", stepRef.current);
-
+      // FIX #3: Disconnect callback uses stepRef
+      bleService.onDisconnect((err) => {
         const currentStep = stepRef.current;
+        console.log("[Setup] BLE Disconnected, current step:", currentStep);
+
         if (
           !resultReceivedRef.current &&
           (currentStep === STEPS.CONNECTING ||
@@ -269,12 +140,11 @@ export default function DeviceSetupScreen({ navigation }) {
             currentStep === STEPS.WIFI_FORM ||
             currentStep === STEPS.WIFI_PROVISIONING)
         ) {
-          setError("Bağlantı koptu: " + (error?.message || "Bilinmeyen hata"));
+          setError("Bağlantı koptu: " + (err?.message || "Bilinmeyen hata"));
           setStep(STEPS.ERROR);
         }
       });
 
-      // State change callback
       bleService.onStateChange((state) => {
         console.log("[Setup] BLE State:", state);
         if (state === "PoweredOff") {
@@ -323,16 +193,16 @@ export default function DeviceSetupScreen({ navigation }) {
       },
     };
 
-    const errorInfo = errorMessages[e.message] || {
+    const info = errorMessages[e.message] || {
       title: "Bluetooth Hatası",
       message: e.message,
       showSettings: false,
     };
 
     Alert.alert(
-      errorInfo.title,
-      errorInfo.message,
-      errorInfo.showSettings
+      info.title,
+      info.message,
+      info.showSettings
         ? [
             { text: "Ayarlar", onPress: openSettings },
             { text: "İptal", style: "cancel" },
@@ -342,16 +212,123 @@ export default function DeviceSetupScreen({ navigation }) {
   };
 
   const openSettings = () => {
-    if (Platform.OS === "ios") {
-      Linking.openURL("App-Prefs:Bluetooth");
-    } else {
-      Linking.openSettings();
+    if (Platform.OS === "ios") Linking.openURL("App-Prefs:Bluetooth");
+    else Linking.openSettings();
+  };
+
+  // ────────────────────────────────────────────────────────────
+  // FIX #2: BLE init race helper
+  // ────────────────────────────────────────────────────────────
+  const waitForBLEInit = async (maxWait = 5000) => {
+    const start = Date.now();
+
+    while (!bleInitialized && Date.now() - start < maxWait) {
+      console.log("[SmartGate] Waiting for BLE init...");
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    if (!bleInitialized) {
+      console.log(
+        "[SmartGate] BLE init timeout, initializing via initializeBLE()..."
+      );
+      // IMPORTANT: call initializeBLE so callbacks are registered too
+      await initializeBLE();
     }
   };
 
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // FIX #1: SmartGate (backend truth = assigned-device)
+  // ────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    checkSmartGate();
+  }, []);
+
+  const checkSmartGate = async () => {
+    try {
+      console.log("[SmartGate] Checking backend truth (assigned-device)...");
+      try {
+        const response = await driverAPI.getAssignedDevice();
+        console.log("[SmartGate] assigned-device:", JSON.stringify(response));
+
+        // If backend says setup not required, exit screen
+        if (response && response.setup_required === false) {
+          setGateChecking(false);
+          Alert.alert(
+            "Kurulum Gerekli Değil ✅",
+            `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${
+              response.device?.serial || response.device?.device_code || "-"
+            }`,
+            [{ text: "Tamam", onPress: () => navigation.goBack() }]
+          );
+          return;
+        }
+
+        // If setup required, we continue setup flow.
+        // If backend already knows a device serial/code (reprovision scenario), we can skip QR and jump to BLE scan.
+        if (response && response.setup_required === true) {
+          const inferredSerial =
+            response?.device?.serial || response?.device?.device_code || null;
+
+          if (inferredSerial) {
+            console.log(
+              "[SmartGate] Reprovision inferred serial:",
+              inferredSerial
+            );
+            setSerial(inferredSerial);
+            setSkipReason("Cihaz yeniden kurulum bekliyor...");
+            setGateChecking(false);
+
+            await waitForBLEInit();
+
+            setTimeout(() => {
+              setStep(STEPS.BLE_SCAN);
+              startBLEScan();
+            }, 1000);
+            return;
+          }
+        }
+
+        // Otherwise, normal flow: QR scan / manual input
+        setGateChecking(false);
+      } catch (e) {
+        console.log(
+          "[SmartGate] assigned-device API error (continue normal):",
+          e.message
+        );
+        setGateChecking(false);
+      }
+    } catch (e) {
+      console.error("[SmartGate] Error:", e);
+      setGateChecking(false);
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────
+  // Save provision data
+  // ────────────────────────────────────────────────────────────
+  const saveProvisionData = async (provisionedSerial) => {
+    try {
+      const response = await driverAPI.getVehicle();
+      const vehicle = response?.vehicle || response;
+      const vehicleId = vehicle?.id?.toString() || "";
+
+      await AsyncStorage.multiSet([
+        [STORAGE_KEYS.PROVISIONED_SERIAL, provisionedSerial],
+        [STORAGE_KEYS.PROVISIONED_DRIVER, user?.email || ""],
+        [STORAGE_KEYS.PROVISIONED_VEHICLE, vehicleId],
+        [STORAGE_KEYS.PROVISIONED_AT, new Date().toISOString()],
+      ]);
+
+      console.log("[SmartGate] ✅ Provision data saved");
+    } catch (e) {
+      console.error("[SmartGate] Failed to save provision data:", e);
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────
   // QR SCAN
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
 
   const handleBarCodeScanned = useCallback(
     async ({ data }) => {
@@ -360,7 +337,6 @@ export default function DeviceSetupScreen({ navigation }) {
 
       console.log("[Setup] QR Scanned:", data);
 
-      // QR format: TF-2025-XXXXX-X veya TF-XXXX-XXXXX-X
       const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
 
       if (!serialRegex.test(data)) {
@@ -375,10 +351,8 @@ export default function DeviceSetupScreen({ navigation }) {
       setSerial(data);
       setStatus("Serial doğrulanıyor...");
 
-      // Opsiyonel: Backend'de serial var mı kontrol et
       try {
         const validation = await deviceAPI.validateSerial(data);
-
         if (!validation.valid && !validation.skipValidation) {
           setError(validation.message || "Bu serial sistemde kayıtlı değil");
           setStep(STEPS.ERROR);
@@ -388,7 +362,6 @@ export default function DeviceSetupScreen({ navigation }) {
         console.log("[Setup] Validation skipped:", e.message);
       }
 
-      // BLE initialized kontrolü
       if (!bleInitialized) {
         Alert.alert(
           "Bluetooth Hazır Değil",
@@ -398,22 +371,18 @@ export default function DeviceSetupScreen({ navigation }) {
         return;
       }
 
-      // Sonraki adım: BLE tarama
       setStep(STEPS.BLE_SCAN);
       startBLEScan();
     },
     [scanned, bleInitialized]
   );
 
-  // ════════════════════════════════════════════════════════════
-  // MANUEL SERIAL GİRİŞİ
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // Manual serial
+  // ────────────────────────────────────────────────────────────
 
   const handleManualSerialSubmit = async () => {
     const data = manualSerial.trim().toUpperCase();
-
-    console.log("[Setup] Manual Serial:", data);
-
     const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
 
     if (!serialRegex.test(data)) {
@@ -431,7 +400,6 @@ export default function DeviceSetupScreen({ navigation }) {
 
     try {
       const validation = await deviceAPI.validateSerial(data);
-
       if (!validation.valid && !validation.skipValidation) {
         setError(validation.message || "Bu serial sistemde kayıtlı değil");
         setStep(STEPS.ERROR);
@@ -453,9 +421,9 @@ export default function DeviceSetupScreen({ navigation }) {
     startBLEScan();
   };
 
-  // ════════════════════════════════════════════════════════════
-  // BLE SCAN (Closure Bug Fixed)
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // BLE Scan
+  // ────────────────────────────────────────────────────────────
 
   const startBLEScan = () => {
     console.log("[Setup] Starting BLE scan...");
@@ -464,20 +432,17 @@ export default function DeviceSetupScreen({ navigation }) {
     setStatus("Cihazlar aranıyor...");
 
     scanCleanupRef.current = bleService.startScan(
-      // onDeviceFound
       (device) => {
         if (!devicesRef.current.find((d) => d.id === device.id)) {
           devicesRef.current = [...devicesRef.current, device];
           setDevices([...devicesRef.current]);
         }
       },
-      // onError
-      (error) => {
-        console.error("[Setup] Scan error:", error.message);
-        setError("Tarama hatası: " + error.message);
+      (e) => {
+        console.error("[Setup] Scan error:", e.message);
+        setError("Tarama hatası: " + e.message);
         setStep(STEPS.ERROR);
       },
-      // onTimeout
       () => {
         if (devicesRef.current.length === 0) {
           setStatus(
@@ -491,17 +456,15 @@ export default function DeviceSetupScreen({ navigation }) {
   };
 
   const stopAndRescan = () => {
-    console.log("[Setup] Rescan requested");
     scanCleanupRef.current?.();
     startBLEScan();
   };
 
-  // ════════════════════════════════════════════════════════════
-  // CONNECT TO DEVICE (BLE bağlantısı → WiFi Form'a geç)
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // Connect
+  // ────────────────────────────────────────────────────────────
 
   const handleDeviceSelect = async (device) => {
-    console.log("[Setup] Device selected:", device.name);
     scanCleanupRef.current?.();
     setSelectedDevice(device);
     setStep(STEPS.CONNECTING);
@@ -509,14 +472,11 @@ export default function DeviceSetupScreen({ navigation }) {
     resultReceivedRef.current = false;
 
     try {
-      // 1. Connect
       await bleService.connect(device.id);
       setStatus("Bağlandı, hazırlanıyor...");
 
-      // 2. Subscribe to notifications
       await bleService.subscribeToNotifications(
         (value) => {
-          console.log("[Setup] Status update:", value);
           setStatus(getStatusText(value));
         },
         (value) => {
@@ -524,23 +484,20 @@ export default function DeviceSetupScreen({ navigation }) {
         }
       );
 
-      // 3. WiFi Form'a geç
-      console.log("[Setup] BLE connected, showing WiFi form...");
       setStep(STEPS.WIFI_FORM);
       setStatus("WiFi bilgilerini girin");
-    } catch (error) {
-      console.error("[Setup] Connection error:", error.message);
-      setError("Bağlantı hatası: " + error.message);
+    } catch (e) {
+      console.error("[Setup] Connection error:", e.message);
+      setError("Bağlantı hatası: " + e.message);
       setStep(STEPS.ERROR);
     }
   };
 
-  // ════════════════════════════════════════════════════════════
-  // WIFI PROVISIONING
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // WiFi Provisioning
+  // ────────────────────────────────────────────────────────────
 
   const handleWifiFormSubmit = async () => {
-    // Validation
     if (!wifiSsid || wifiSsid.trim().length === 0) {
       Alert.alert("Hata", "WiFi ağ adı (SSID) boş olamaz");
       return;
@@ -550,50 +507,58 @@ export default function DeviceSetupScreen({ navigation }) {
       return;
     }
 
-    console.log("[WiFi] Form submitted, SSID:", wifiSsid);
+    // FIX #4: runtime guards (avoid crash if build mismatched)
+    if (typeof bleService.provisionWifi !== "function") {
+      setError(
+        "BLE servisinde WiFi provisioning fonksiyonu yok (provisionWifi)."
+      );
+      setStep(STEPS.ERROR);
+      return;
+    }
+    if (
+      !BLE_CONFIG?.CHARACTERISTICS?.WIFI_CREDENTIALS ||
+      !BLE_CONFIG?.CHARACTERISTICS?.WIFI_STATUS
+    ) {
+      setError(
+        "BLE_CONFIG içinde WiFi UUID'leri eksik (WIFI_CREDENTIALS / WIFI_STATUS)."
+      );
+      setStep(STEPS.ERROR);
+      return;
+    }
+
     setStep(STEPS.WIFI_PROVISIONING);
     setWifiStatus("WiFi bilgileri gönderiliyor...");
 
     try {
-      // 1. Serial gönder (ESP32'nin bilmesi için)
-      console.log("[WiFi] Writing serial first:", serial);
+      // Serial-first (your firmware/status map suggests this is expected)
       await bleService.writeSerial(serial);
+      await new Promise((r) => setTimeout(r, 500));
 
-      // Kısa bekleme
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // 2. WiFi credentials gönder
       const result = await bleService.provisionWifi(
         wifiSsid.trim(),
         wifiPassword,
-        (phase, message) => {
-          console.log("[WiFi] Progress:", phase, message);
-          setWifiStatus(message);
+        (_phase, msg) => {
+          setWifiStatus(msg);
         }
       );
 
-      if (result.success) {
-        console.log("[WiFi] Provisioning successful!");
-
-        // Son kullanılan SSID'yi kaydet
-        try {
-          await AsyncStorage.setItem(
-            STORAGE_KEYS.LAST_WIFI_SSID,
-            wifiSsid.trim()
-          );
-        } catch (e) {
-          console.log("[WiFi] Failed to save SSID:", e.message);
-        }
-
-        // Backend aktivasyona geç
-        setStep(STEPS.ACTIVATING);
-        setStatus("Cihaz aktive ediliyor...");
-        await performActivation();
-      } else {
-        console.log("[WiFi] Provisioning failed:", result.error);
+      if (!result.success) {
         setError(result.message || "WiFi bağlantısı başarısız");
         setStep(STEPS.ERROR);
+        return;
       }
+
+      // Save SSID
+      try {
+        await AsyncStorage.setItem(
+          STORAGE_KEYS.LAST_WIFI_SSID,
+          wifiSsid.trim()
+        );
+      } catch {}
+
+      setStep(STEPS.ACTIVATING);
+      setStatus("Cihaz aktive ediliyor...");
+      await performActivation();
     } catch (e) {
       console.error("[WiFi] Exception:", e.message);
       setError("WiFi kurulumu sırasında hata: " + e.message);
@@ -601,50 +566,39 @@ export default function DeviceSetupScreen({ navigation }) {
     }
   };
 
-  const handleWifiRetry = () => {
-    setWifiStatus("");
-    setStep(STEPS.WIFI_FORM);
-  };
-
   const performActivation = async () => {
     try {
-      console.log("[Setup] Calling backend activation for serial:", serial);
       const activationResult = await deviceAPI.activate(serial);
 
       if (activationResult.success) {
-        console.log("[Setup] Activation successful!");
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus("Cihaz başarıyla aktive edildi!");
 
-        // Bağlantıyı kapat
         setTimeout(async () => {
           await bleService.disconnect();
         }, 1000);
-      } else {
-        // 409 = zaten aktive - bu OK
-        if (
-          activationResult.statusCode === 409 ||
-          activationResult.error === "ESP_ALREADY_BOUND"
-        ) {
-          console.log("[Setup] Device already activated (OK)");
-          await saveProvisionData(serial);
-          setStep(STEPS.SUCCESS);
-          setStatus("Cihaz aktive edildi!");
-
-          setTimeout(async () => {
-            await bleService.disconnect();
-          }, 1000);
-        } else {
-          console.log("[Setup] Activation failed:", activationResult.error);
-          setError(activationResult.message || "Aktivasyon başarısız");
-          setStep(STEPS.ERROR);
-        }
+        return;
       }
+
+      if (
+        activationResult.statusCode === 409 ||
+        activationResult.error === "ESP_ALREADY_BOUND"
+      ) {
+        await saveProvisionData(serial);
+        setStep(STEPS.SUCCESS);
+        setStatus("Cihaz aktive edildi!");
+
+        setTimeout(async () => {
+          await bleService.disconnect();
+        }, 1000);
+        return;
+      }
+
+      setError(activationResult.message || "Aktivasyon başarısız");
+      setStep(STEPS.ERROR);
     } catch (e) {
-      console.error("[Setup] Activation exception:", e.message);
-      // Network hatası olsa bile ESP32 WiFi'ye bağlandı, başarılı sayabiliriz
-      console.log("[Setup] Network error but WiFi OK, marking success");
+      // Even if backend fails, WiFi provisioning succeeded; treat as success
       await saveProvisionData(serial);
       setStep(STEPS.SUCCESS);
       setStatus("Cihaz aktive edildi!\n(Backend doğrulaması sonra yapılacak)");
@@ -655,12 +609,11 @@ export default function DeviceSetupScreen({ navigation }) {
     }
   };
 
-  // ════════════════════════════════════════════════════════════
-  // RETRY & DONE
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // Retry / Done
+  // ────────────────────────────────────────────────────────────
 
   const handleRetry = async () => {
-    console.log("[Setup] Retry requested");
     await bleService.disconnect();
     setError(null);
     setSerial(null);
@@ -670,22 +623,19 @@ export default function DeviceSetupScreen({ navigation }) {
     setStatus("");
     setScanned(false);
     resultReceivedRef.current = false;
-    // WiFi state temizle
     setWifiSsid(lastUsedSsid || "");
     setWifiPassword("");
     setWifiStatus("");
     setStep(STEPS.QR_SCAN);
   };
 
-  const handleDone = () => {
-    navigation.goBack();
-  };
+  const handleDone = () => navigation.goBack();
 
-  // ════════════════════════════════════════════════════════════
-  // HELPERS
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // Helpers
+  // ────────────────────────────────────────────────────────────
 
-  const getStatusText = (status) => {
+  const getStatusText = (s) => {
     const map = {
       [BLE_STATUS.WAITING_SERIAL]: "Serial bekleniyor",
       [BLE_STATUS.SERIAL_RECEIVED]: "Serial alındı",
@@ -703,26 +653,10 @@ export default function DeviceSetupScreen({ navigation }) {
       WIFI_PROVISION_OK: "WiFi bağlantısı başarılı",
       WIFI_PROVISION_FAIL: "WiFi bağlantısı başarısız",
     };
-    return map[status] || status;
+    return map[s] || s;
   };
 
-  const getResultText = (result) => {
-    const map = {
-      [BLE_RESULT.INVALID_SERIAL]: "Geçersiz serial numarası",
-      [BLE_RESULT.ALREADY_ACTIVATED]: "Cihaz zaten aktive edilmiş",
-      [BLE_RESULT.NETWORK_ERROR]: "Ağ hatası - WiFi bağlantısını kontrol edin",
-      [BLE_RESULT.SERVER_ERROR]: "Sunucu hatası",
-      [BLE_RESULT.FAILED]: "İşlem başarısız",
-      INVALID_SERIAL: "Geçersiz serial numarası",
-      ALREADY_ACTIVATED: "Cihaz zaten aktive edilmiş",
-      NETWORK_ERROR: "Ağ hatası",
-      SERVER_ERROR: "Sunucu hatası",
-      FAILED: "İşlem başarısız",
-    };
-    return map[result] || result;
-  };
-
-  const getStepTitle = (step) => {
+  const getStepTitle = (st) => {
     const titles = {
       [STEPS.QR_SCAN]: "QR Kod Okutun",
       [STEPS.BLE_SCAN]: "Cihaz Aranıyor",
@@ -733,10 +667,10 @@ export default function DeviceSetupScreen({ navigation }) {
       [STEPS.SUCCESS]: "Tamamlandı",
       [STEPS.ERROR]: "Hata",
     };
-    return titles[step] || "";
+    return titles[st] || "";
   };
 
-  const getStepNumber = (step) => {
+  const getStepNumber = (st) => {
     const numbers = {
       [STEPS.QR_SCAN]: 1,
       [STEPS.BLE_SCAN]: 2,
@@ -747,14 +681,13 @@ export default function DeviceSetupScreen({ navigation }) {
       [STEPS.SUCCESS]: 7,
       [STEPS.ERROR]: 0,
     };
-    return numbers[step];
+    return numbers[st];
   };
 
-  // ════════════════════════════════════════════════════════════
-  // RENDER
-  // ════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────
+  // Render
+  // ────────────────────────────────────────────────────────────
 
-  // Smart Gate: Kontrol ekranı
   if (gateChecking) {
     return (
       <SafeAreaView style={styles.container}>
@@ -768,7 +701,6 @@ export default function DeviceSetupScreen({ navigation }) {
     );
   }
 
-  // Skip reason göster (Smart Gate aktif - reprovision senaryosu)
   if (skipReason && step === STEPS.QR_SCAN) {
     return (
       <SafeAreaView style={styles.container}>
@@ -787,7 +719,6 @@ export default function DeviceSetupScreen({ navigation }) {
     );
   }
 
-  // Camera permission check
   if (!cameraPermission) {
     return (
       <SafeAreaView style={styles.container}>
@@ -831,10 +762,12 @@ export default function DeviceSetupScreen({ navigation }) {
         >
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
+
         <View style={styles.headerContent}>
           <Text style={styles.title}>Cihaz Kurulumu</Text>
           <Text style={styles.subtitle}>{getStepTitle(step)}</Text>
         </View>
+
         {serial && (
           <View style={styles.serialBadge}>
             <Text style={styles.serialBadgeText}>{serial}</Text>
@@ -866,9 +799,7 @@ export default function DeviceSetupScreen({ navigation }) {
             <CameraView
               style={styles.camera}
               facing="back"
-              barcodeScannerSettings={{
-                barcodeTypes: ["qr"],
-              }}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
               onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
             />
             <View style={styles.overlay}>
@@ -999,7 +930,6 @@ export default function DeviceSetupScreen({ navigation }) {
                 ESP32 cihazının bağlanacağı WiFi ağ bilgilerini girin
               </Text>
 
-              {/* SSID Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>WiFi Ağ Adı (SSID)</Text>
                 <TextInput
@@ -1023,7 +953,6 @@ export default function DeviceSetupScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Password Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>WiFi Şifresi</Text>
                 <View style={styles.passwordContainer}>
@@ -1048,7 +977,6 @@ export default function DeviceSetupScreen({ navigation }) {
                 </View>
               </View>
 
-              {/* Hint */}
               <View style={styles.wifiHintBox}>
                 <Text style={styles.wifiHintText}>
                   💡 Cihaz bu WiFi ağına bağlanarak veri gönderecek. Ağın 2.4GHz
@@ -1056,7 +984,6 @@ export default function DeviceSetupScreen({ navigation }) {
                 </Text>
               </View>
 
-              {/* Submit Button */}
               <TouchableOpacity
                 style={[
                   styles.primaryButton,
@@ -1139,10 +1066,10 @@ export default function DeviceSetupScreen({ navigation }) {
         )}
       </View>
 
-      {/* Manuel Serial Giriş Modal */}
+      {/* Manual Serial Modal */}
       <Modal
         visible={showManualInput}
-        transparent={true}
+        transparent
         animationType="fade"
         onRequestClose={() => setShowManualInput(false)}
       >
@@ -1162,7 +1089,7 @@ export default function DeviceSetupScreen({ navigation }) {
               placeholderTextColor="#ADB5BD"
               autoCapitalize="characters"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus
             />
 
             <View style={styles.modalButtons}>
@@ -1190,28 +1117,20 @@ export default function DeviceSetupScreen({ navigation }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════
-// STYLES
-// ══════════════════════════════════════════════════════════════
+// ────────────────────────────────────────────────────────────
+// Styles (same as your version)
+// ────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-  },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 30,
   },
-  loadingText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: COLORS.MUTED,
-  },
+  loadingText: { marginTop: 15, fontSize: 16, color: COLORS.MUTED },
 
-  // Header
   header: {
     backgroundColor: COLORS.PRIMARY,
     paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
@@ -1225,25 +1144,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 5,
   },
-  backButtonText: {
-    fontSize: 28,
-    color: COLORS.WHITE,
-    fontWeight: "300",
-  },
-  headerContent: {
-    alignItems: "center",
-    paddingTop: 10,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.WHITE,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 4,
-  },
+  backButtonText: { fontSize: 28, color: COLORS.WHITE, fontWeight: "300" },
+  headerContent: { alignItems: "center", paddingTop: 10 },
+  title: { fontSize: 22, fontWeight: "bold", color: COLORS.WHITE },
+  subtitle: { fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4 },
   serialBadge: {
     position: "absolute",
     right: 15,
@@ -1259,7 +1163,6 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
 
-  // Progress
   progressContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -1276,69 +1179,30 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.BORDER,
     marginHorizontal: 6,
   },
-  progressDotActive: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  progressDotCurrent: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
+  progressDotActive: { backgroundColor: COLORS.PRIMARY },
+  progressDotCurrent: { width: 14, height: 14, borderRadius: 7 },
 
-  // Content
-  content: {
-    flex: 1,
-  },
+  content: { flex: 1 },
 
-  // Camera/Scanner
-  scannerContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  camera: {
-    flex: 1,
-  },
+  scannerContainer: { flex: 1, position: "relative" },
+  camera: { flex: 1 },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-  scanFrame: {
-    width: 250,
-    height: 250,
-    backgroundColor: "transparent",
-  },
+  scanFrame: { width: 250, height: 250, backgroundColor: "transparent" },
   corner: {
     position: "absolute",
     width: 30,
     height: 30,
     borderColor: COLORS.WHITE,
   },
-  cornerTL: {
-    top: 0,
-    left: 0,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-  },
-  cornerTR: {
-    top: 0,
-    right: 0,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-  },
-  cornerBL: {
-    bottom: 0,
-    left: 0,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-  },
-  cornerBR: {
-    bottom: 0,
-    right: 0,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-  },
+  cornerTL: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
   hintContainer: {
     position: "absolute",
     bottom: 100,
@@ -1356,11 +1220,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  // Permissions
-  permissionIcon: {
-    fontSize: 60,
-    marginBottom: 20,
-  },
+  permissionIcon: { fontSize: 60, marginBottom: 20 },
   permissionTitle: {
     fontSize: 22,
     fontWeight: "bold",
@@ -1375,28 +1235,11 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
-  // Device List
-  listContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  listHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  listHeaderIcon: {
-    fontSize: 24,
-    marginRight: 10,
-  },
-  listHeaderText: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    flex: 1,
-  },
-  deviceList: {
-    paddingBottom: 20,
-  },
+  listContainer: { flex: 1, padding: 20 },
+  listHeader: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
+  listHeaderIcon: { fontSize: 24, marginRight: 10 },
+  listHeaderText: { fontSize: 16, color: COLORS.MUTED, flex: 1 },
+  deviceList: { paddingBottom: 20 },
   deviceItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -1419,55 +1262,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 14,
   },
-  deviceIconText: {
-    fontSize: 20,
-  },
-  deviceInfo: {
-    flex: 1,
-  },
-  deviceName: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: COLORS.TEXT,
-  },
+  deviceIconText: { fontSize: 20 },
+  deviceInfo: { flex: 1 },
+  deviceName: { fontSize: 17, fontWeight: "600", color: COLORS.TEXT },
   deviceId: {
     fontSize: 12,
     color: COLORS.MUTED,
     marginTop: 3,
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
-  rssiContainer: {
-    alignItems: "flex-end",
-  },
-  deviceRssi: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  rssiStrong: {
-    color: COLORS.SUCCESS,
-  },
-  rssiMedium: {
-    color: COLORS.WARNING,
-  },
-  rssiWeak: {
-    color: COLORS.DANGER,
-  },
-  rssiLabel: {
-    fontSize: 11,
-    color: COLORS.MUTED,
-    marginTop: 2,
-  },
+  rssiContainer: { alignItems: "flex-end" },
+  deviceRssi: { fontSize: 15, fontWeight: "600" },
+  rssiStrong: { color: COLORS.SUCCESS },
+  rssiMedium: { color: COLORS.WARNING },
+  rssiWeak: { color: COLORS.DANGER },
+  rssiLabel: { fontSize: 11, color: COLORS.MUTED, marginTop: 2 },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingBottom: 50,
   },
-  emptyText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: COLORS.TEXT,
-  },
+  emptyText: { marginTop: 20, fontSize: 16, color: COLORS.TEXT },
   emptyHint: {
     marginTop: 10,
     fontSize: 14,
@@ -1476,7 +1292,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
 
-  // Buttons
   primaryButton: {
     backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: 50,
@@ -1486,14 +1301,8 @@ const styles = StyleSheet.create({
     minWidth: 200,
     alignItems: "center",
   },
-  primaryButtonText: {
-    color: COLORS.WHITE,
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
+  primaryButtonText: { color: COLORS.WHITE, fontSize: 17, fontWeight: "600" },
+  buttonDisabled: { opacity: 0.5 },
   secondaryButton: {
     backgroundColor: COLORS.WHITE,
     padding: 16,
@@ -1508,16 +1317,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  linkButton: {
-    marginTop: 20,
-    padding: 10,
-  },
-  linkButtonText: {
-    color: COLORS.MUTED,
-    fontSize: 16,
-  },
+  linkButton: { marginTop: 20, padding: 10 },
+  linkButtonText: { color: COLORS.MUTED, fontSize: 16 },
 
-  // Activating/Progress
   progressCircle: {
     width: 100,
     height: 100,
@@ -1548,17 +1350,9 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 
-  // WiFi Form Styles
-  wifiFormContainer: {
-    flex: 1,
-  },
-  wifiFormContent: {
-    padding: 20,
-    alignItems: "center",
-  },
-  wifiIcon: {
-    marginBottom: 20,
-  },
+  wifiFormContainer: { flex: 1 },
+  wifiFormContent: { padding: 20, alignItems: "center" },
+  wifiIcon: { marginBottom: 20 },
   wifiTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -1572,10 +1366,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 20,
   },
-  inputGroup: {
-    width: "100%",
-    marginBottom: 20,
-  },
+  inputGroup: { width: "100%", marginBottom: 20 },
   inputLabel: {
     fontSize: 14,
     fontWeight: "600",
@@ -1607,17 +1398,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.TEXT,
   },
-  eyeButton: {
-    padding: 14,
-  },
-  lastSsidButton: {
-    marginTop: 8,
-    padding: 8,
-  },
-  lastSsidText: {
-    fontSize: 12,
-    color: COLORS.PRIMARY,
-  },
+  eyeButton: { padding: 14 },
+  lastSsidButton: { marginTop: 8, padding: 8 },
+  lastSsidText: { fontSize: 12, color: COLORS.PRIMARY },
   wifiHintBox: {
     backgroundColor: "#FFF9E6",
     borderRadius: 10,
@@ -1625,13 +1408,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
   },
-  wifiHintText: {
-    fontSize: 13,
-    color: "#8B6914",
-    lineHeight: 20,
-  },
+  wifiHintText: { fontSize: 13, color: "#8B6914", lineHeight: 20 },
 
-  // WiFi Connecting Styles
   wifiConnectingTitle: {
     fontSize: 20,
     fontWeight: "bold",
@@ -1651,7 +1429,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Results
   successCircle: {
     width: 110,
     height: 110,
@@ -1661,10 +1438,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
   },
-  successIcon: {
-    fontSize: 55,
-    color: COLORS.WHITE,
-  },
+  successIcon: { fontSize: 55, color: COLORS.WHITE },
   errorCircle: {
     width: 110,
     height: 110,
@@ -1674,10 +1448,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
   },
-  errorIcon: {
-    fontSize: 55,
-    color: COLORS.WHITE,
-  },
+  errorIcon: { fontSize: 55, color: COLORS.WHITE },
   resultTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -1705,7 +1476,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
-  // Manuel Giriş Butonu
   manualEntryButton: {
     position: "absolute",
     bottom: 30,
@@ -1721,7 +1491,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -1767,11 +1536,7 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT,
     backgroundColor: "#F8F9FA",
   },
-  modalButtons: {
-    flexDirection: "row",
-    marginTop: 20,
-    gap: 12,
-  },
+  modalButtons: { flexDirection: "row", marginTop: 20, gap: 12 },
   modalCancelButton: {
     flex: 1,
     paddingVertical: 14,
@@ -1797,11 +1562,7 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
   },
 
-  // Smart Gate Styles
-  skipIcon: {
-    fontSize: 50,
-    marginBottom: 15,
-  },
+  skipIcon: { fontSize: 50, marginBottom: 15 },
   skipTitle: {
     fontSize: 22,
     fontWeight: "bold",
