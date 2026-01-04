@@ -1,10 +1,10 @@
 // src/screens/driver/DeviceSetupScreen.js
 // TulipFleet Device Setup - FAZ 4 BLE Activation + WiFi Provisioning
 // Created: 01 Ocak 2026
-// Updated: 05 Ocak 2026 - WiFi-via-BLE Provisioning eklendi
+// Updated: 05 Ocak 2026 - WiFi-via-BLE Provisioning
+// Fixed: 05 Ocak 2026 - 4 kritik nokta düzeltildi
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import NetInfo from "@react-native-community/netinfo";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -91,11 +91,17 @@ export default function DeviceSetupScreen({ navigation }) {
   const scanCleanupRef = useRef(null);
   const resultReceivedRef = useRef(false);
 
+  // 🔧 FIX #3: Step ref for onDisconnect callback (stale closure fix)
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+
   // Permissions
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   // ════════════════════════════════════════════════════════════
-  // SMART GATE: Koşullu Atlama Kontrolü
+  // 🔧 FIX #1: SmartGate - Backend Truth (assigned-device API)
   // ════════════════════════════════════════════════════════════
 
   useEffect(() => {
@@ -104,125 +110,91 @@ export default function DeviceSetupScreen({ navigation }) {
 
   const checkSmartGate = async () => {
     try {
-      console.log("[SmartGate] Checking conditions...");
+      console.log("[SmartGate] Checking backend truth...");
 
       // ════════════════════════════════════════════════════════════
-      // ÖNCELİKLİ: Backend'den cihaz durumu kontrolü
-      // Eğer driver'ın aracında aktif cihaz varsa → kurulumu atla!
+      // 🔧 FIX #1: Backend'in tek kaynak olması (assigned-device)
+      // Bu endpoint setup_required değerini döner
       // ════════════════════════════════════════════════════════════
       try {
-        console.log("[SmartGate] Checking vehicle device status...");
-        const response = await driverAPI.getVehicle();
-        const vehicle = response?.vehicle || response;
+        console.log("[SmartGate] Calling getAssignedDevice...");
+        const response = await driverAPI.getAssignedDevice();
 
-        console.log("[SmartGate] Vehicle:", JSON.stringify(vehicle));
+        console.log("[SmartGate] Response:", JSON.stringify(response));
 
-        // ESP32 bağlı ve aktif mi?
-        const esp32Status = vehicle?.esp32Status;
-        const isDeviceActive = esp32Status?.connected && esp32Status?.deviceId;
-
-        if (isDeviceActive) {
+        // setup_required === false → Kurulum gerekmiyor, geri dön
+        if (response && response.setup_required === false) {
           console.log(
-            "[SmartGate] ✅ Device already active:",
-            esp32Status.deviceId
+            "[SmartGate] ✅ setup_required=false, kurulum gerekmiyor"
           );
           setGateChecking(false);
 
           Alert.alert(
             "Cihaz Zaten Aktif ✅",
             `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${
-              esp32Status.deviceId
-            }\nPlaka: ${vehicle?.plate || "-"}`,
+              response.device?.serial || "-"
+            }`,
             [{ text: "Tamam", onPress: () => navigation.goBack() }]
           );
           return;
         }
-      } catch (e) {
-        console.log("[SmartGate] Vehicle check error (continuing):", e.message);
-      }
 
-      // ════════════════════════════════════════════════════════════
-      // SECONDARY: WiFi + Storage kontrolü (önceki mantık)
-      // ════════════════════════════════════════════════════════════
+        // setup_required === true → Kurulum gerekiyor
+        if (response && response.setup_required === true) {
+          console.log("[SmartGate] ⚠️ setup_required=true, kurulum gerekiyor");
 
-      // 1. WiFi kontrolü
-      const netState = await NetInfo.fetch();
-      const hasWifi = netState.isConnected && netState.type === "wifi";
-      console.log("[SmartGate] WiFi:", hasWifi);
+          // Eğer device.serial varsa, onu kullan (reprovision senaryosu)
+          if (response.device?.serial) {
+            console.log(
+              "[SmartGate] Reprovision için serial:",
+              response.device.serial
+            );
+            setSerial(response.device.serial);
+            setSkipReason("Cihaz yeniden kurulum bekliyor...");
+            setGateChecking(false);
 
-      if (!hasWifi) {
-        console.log("[SmartGate] No WiFi, showing normal flow");
-        setGateChecking(false);
-        return;
-      }
+            // 🔧 FIX #2: BLE init bekle
+            await waitForBLEInit();
 
-      // 2. Daha önce provision edilmiş mi?
-      const storedSerial = await AsyncStorage.getItem(
-        STORAGE_KEYS.PROVISIONED_SERIAL
-      );
-      const storedDriver = await AsyncStorage.getItem(
-        STORAGE_KEYS.PROVISIONED_DRIVER
-      );
-      const storedVehicle = await AsyncStorage.getItem(
-        STORAGE_KEYS.PROVISIONED_VEHICLE
-      );
-
-      console.log("[SmartGate] Stored:", {
-        storedSerial,
-        storedDriver,
-        storedVehicle,
-      });
-
-      if (!storedSerial) {
-        console.log("[SmartGate] No stored serial, showing normal flow");
-        setGateChecking(false);
-        return;
-      }
-
-      // 3. Aynı driver mı?
-      const currentDriverEmail = user?.email;
-      if (storedDriver !== currentDriverEmail) {
-        console.log("[SmartGate] Different driver, showing normal flow");
-        setGateChecking(false);
-        return;
-      }
-
-      // 4. Aynı araç mı? (API'den kontrol)
-      try {
-        const response = await driverAPI.getVehicle();
-        const vehicle = response?.vehicle || response;
-        const currentVehicleId = vehicle?.id?.toString();
-
-        if (storedVehicle !== currentVehicleId) {
-          console.log("[SmartGate] Different vehicle, showing normal flow");
-          setGateChecking(false);
-          return;
+            setTimeout(() => {
+              setStep(STEPS.BLE_SCAN);
+              startBLEScan();
+            }, 1000);
+            return;
+          }
         }
-      } catch (e) {
-        console.log("[SmartGate] Vehicle check failed, showing normal flow");
+
+        // Hiç cihaz yok veya atanmamış → Normal akış
+        console.log("[SmartGate] Normal akışa devam");
         setGateChecking(false);
-        return;
+      } catch (e) {
+        console.log("[SmartGate] API error (continuing):", e.message);
+        // API hatası durumunda normal akışa devam
+        setGateChecking(false);
       }
-
-      // ✅ Tüm koşullar sağlandı - Serial ile direkt BLE Scan'e geç
-      console.log(
-        "[SmartGate] ✅ All conditions met, skipping to BLE scan with serial:",
-        storedSerial
-      );
-      setSerial(storedSerial);
-      setSkipReason(
-        "Daha önce kurulum yapıldı, direkt bağlantıya geçiliyor..."
-      );
-      setGateChecking(false);
-
-      // Kısa bir gecikme sonra BLE Scan'e geç
-      setTimeout(() => {
-        setStep(STEPS.BLE_SCAN);
-        startBLEScan();
-      }, 1500);
     } catch (e) {
       console.error("[SmartGate] Error:", e);
       setGateChecking(false);
+    }
+  };
+
+  // 🔧 FIX #2: BLE Init Race - BLE hazır olana kadar bekle
+  const waitForBLEInit = async (maxWait = 5000) => {
+    const startTime = Date.now();
+
+    while (!bleInitialized && Date.now() - startTime < maxWait) {
+      console.log("[SmartGate] Waiting for BLE init...");
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    if (!bleInitialized) {
+      console.log("[SmartGate] BLE init timeout, initializing now...");
+      try {
+        await bleService.initialize();
+        setBleInitialized(true);
+      } catch (e) {
+        console.error("[SmartGate] BLE init failed:", e.message);
+      }
     }
   };
 
@@ -285,15 +257,17 @@ export default function DeviceSetupScreen({ navigation }) {
       await bleService.initialize();
       setBleInitialized(true);
 
-      // Disconnect callback
+      // 🔧 FIX #3: Disconnect callback - stepRef kullan (stale closure fix)
       bleService.onDisconnect((error) => {
-        console.log("[Setup] BLE Disconnected");
+        console.log("[Setup] BLE Disconnected, current step:", stepRef.current);
+
+        const currentStep = stepRef.current;
         if (
           !resultReceivedRef.current &&
-          (step === STEPS.CONNECTING ||
-            step === STEPS.ACTIVATING ||
-            step === STEPS.WIFI_FORM ||
-            step === STEPS.WIFI_PROVISIONING)
+          (currentStep === STEPS.CONNECTING ||
+            currentStep === STEPS.ACTIVATING ||
+            currentStep === STEPS.WIFI_FORM ||
+            currentStep === STEPS.WIFI_PROVISIONING)
         ) {
           setError("Bağlantı koptu: " + (error?.message || "Bilinmeyen hata"));
           setStep(STEPS.ERROR);
@@ -547,11 +521,10 @@ export default function DeviceSetupScreen({ navigation }) {
         },
         (value) => {
           console.log("[Setup] Result received:", value);
-          // WiFi provisioning akışında bu callback farklı kullanılacak
         }
       );
 
-      // 3. ✅ YENİ: WiFi Form'a geç (eski: ACTIVATING)
+      // 3. WiFi Form'a geç
       console.log("[Setup] BLE connected, showing WiFi form...");
       setStep(STEPS.WIFI_FORM);
       setStatus("WiFi bilgilerini girin");
@@ -795,13 +768,13 @@ export default function DeviceSetupScreen({ navigation }) {
     );
   }
 
-  // Skip reason göster (Smart Gate aktif)
+  // Skip reason göster (Smart Gate aktif - reprovision senaryosu)
   if (skipReason && step === STEPS.QR_SCAN) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <Text style={styles.skipIcon}>🔄</Text>
-          <Text style={styles.skipTitle}>Otomatik Bağlantı</Text>
+          <Text style={styles.skipTitle}>Cihaz Yeniden Kurulumu</Text>
           <Text style={styles.skipText}>{skipReason}</Text>
           <Text style={styles.skipSerial}>{serial}</Text>
           <ActivityIndicator
