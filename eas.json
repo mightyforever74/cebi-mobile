@@ -52,7 +52,7 @@
         "GOOGLE_SERVICES_PLIST": "@eas/GOOGLE_SERVICES_PLIST"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       },
       "ios": {
         "resourceClass": "m-medium"
