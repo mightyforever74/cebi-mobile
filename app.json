@@ -36,6 +36,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "package": "com.tulipfleet.app",
       "config": {
         "googleMaps": {
