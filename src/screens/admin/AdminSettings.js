@@ -1,19 +1,24 @@
 // src/screens/admin/AdminSettings.js
 // TulipFleet - Admin Ayarlar Ekranı
+// Updated: 06 Ocak 2026 - Profil düzenle, şifre değiştir, bildirim toggle düzeltildi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   Alert,
   Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { userAPI } from "../../services/api";
 
 // Theme colors
 const COLORS = {
@@ -74,9 +79,28 @@ const SectionHeader = ({ title }) => (
 
 const AdminSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
+  
+  // Bildirim ayarları
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [alertNotifications, setAlertNotifications] = useState(true);
+  const [taskNotifications, setTaskNotifications] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+
+  // Modal state
+  const [editProfileModal, setEditProfileModal] = useState(false);
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Profile edit state
+  const [firstName, setFirstName] = useState(user?.firstName || "");
+  const [lastName, setLastName] = useState(user?.lastName || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Çıkış yap
   const handleLogout = () => {
@@ -99,14 +123,85 @@ const AdminSettings = ({ navigation }) => {
     );
   };
 
-  // Profil düzenleme - Alert yerine navigate
+  // 🆕 Profil düzenleme
   const handleEditProfile = () => {
-    navigation.navigate("EditProfile");
+    setFirstName(user?.firstName || user?.first_name || "");
+    setLastName(user?.lastName || user?.last_name || "");
+    setPhone(user?.phone || "");
+    setEditProfileModal(true);
   };
 
-  // Şifre değiştir
+  const handleSaveProfile = async () => {
+    if (!firstName.trim()) {
+      Alert.alert("Hata", "Ad alanı boş olamaz");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await userAPI.updateProfile({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        phone: phone.trim(),
+      });
+      Alert.alert("Başarılı", "Profil bilgileriniz güncellendi");
+      setEditProfileModal(false);
+    } catch (err) {
+      console.error("Profile update error:", err);
+      Alert.alert("Hata", err.message || "Profil güncellenemedi");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 🆕 Şifre değiştir
   const handleChangePassword = () => {
-    Alert.alert("Şifre Değiştir", "Şifre değiştirme ekranı yakında eklenecek");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setChangePasswordModal(true);
+  };
+
+  const handleSavePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert("Hata", "Tüm alanları doldurun");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert("Hata", "Yeni şifre en az 6 karakter olmalı");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Hata", "Yeni şifreler eşleşmiyor");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await userAPI.changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      Alert.alert("Başarılı", "Şifreniz değiştirildi");
+      setChangePasswordModal(false);
+    } catch (err) {
+      console.error("Password change error:", err);
+      Alert.alert("Hata", err.message || "Şifre değiştirilemedi");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 🆕 Push bildirimleri toggle - alt seçenekleri kontrol et
+  const handleNotificationsToggle = (value) => {
+    setNotificationsEnabled(value);
+    if (!value) {
+      // Push kapalıyken alt seçenekleri de kapat
+      setAlertNotifications(false);
+      setTaskNotifications(false);
+    }
   };
 
   // Destek
@@ -149,11 +244,11 @@ const AdminSettings = ({ navigation }) => {
       <View style={styles.profileCard}>
         <View style={styles.avatarLarge}>
           <Text style={styles.avatarText}>
-            {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "A"}
+            {user?.firstName?.[0] || user?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || "A"}
           </Text>
         </View>
         <Text style={styles.profileName}>
-          {user?.firstName || user?.email?.split("@")[0] || "Admin"}
+          {user?.firstName || user?.first_name || user?.email?.split("@")[0] || "Admin"}
         </Text>
         <Text style={styles.profileEmail}>{user?.email || "-"}</Text>
         <View style={styles.roleBadge}>
@@ -188,23 +283,62 @@ const AdminSettings = ({ navigation }) => {
           icon="notifications-outline"
           iconColor={COLORS.info}
           title="Push Bildirimleri"
-          subtitle="Uyarı ve güncellemeler"
+          subtitle="Tüm bildirimler"
           showArrow={false}
           rightElement={
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              onValueChange={handleNotificationsToggle}
               trackColor={{ false: COLORS.muted, true: COLORS.primary }}
               thumbColor={COLORS.white}
             />
           }
         />
+        
+        {/* Push açıkken alt seçenekleri göster */}
+        {notificationsEnabled && (
+          <>
+            <View style={styles.divider} />
+            <SettingItem
+              icon="warning-outline"
+              iconColor={COLORS.warning}
+              title="Uyarı Bildirimleri"
+              subtitle="Kritik uyarılar ve alarmlar"
+              showArrow={false}
+              rightElement={
+                <Switch
+                  value={alertNotifications}
+                  onValueChange={setAlertNotifications}
+                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              }
+            />
+            <View style={styles.divider} />
+            <SettingItem
+              icon="clipboard-outline"
+              iconColor={COLORS.success}
+              title="Görev Güncellemeleri"
+              subtitle="Görev durumu değişiklikleri"
+              showArrow={false}
+              rightElement={
+                <Switch
+                  value={taskNotifications}
+                  onValueChange={setTaskNotifications}
+                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              }
+            />
+          </>
+        )}
+
         <View style={styles.divider} />
         <SettingItem
           icon="location-outline"
           iconColor={COLORS.success}
           title="Konum Servisi"
-          subtitle="Araç takibi için gerekli"
+          subtitle="Araç takibi için cihaz konumunu kullan"
           showArrow={false}
           rightElement={
             <Switch
@@ -224,19 +358,23 @@ const AdminSettings = ({ navigation }) => {
           icon="moon-outline"
           iconColor={COLORS.dark}
           title="Karanlık Mod"
-          subtitle="Yakında"
+          subtitle={darkMode ? "Açık" : "Kapalı"}
           showArrow={false}
           rightElement={
             <Switch
               value={darkMode}
               onValueChange={(value) => {
                 setDarkMode(value);
-                Alert.alert("Yakında", "Karanlık mod yakında eklenecek");
-                setDarkMode(false);
+                // TODO: ThemeContext ile entegre et
+                Alert.alert(
+                  "Karanlık Mod",
+                  value 
+                    ? "Karanlık mod etkinleştirildi. Tam destek yakında!" 
+                    : "Karanlık mod kapatıldı."
+                );
               }}
               trackColor={{ false: COLORS.muted, true: COLORS.primary }}
               thumbColor={COLORS.white}
-              disabled
             />
           }
         />
@@ -298,6 +436,130 @@ const AdminSettings = ({ navigation }) => {
           © 2025 TulipFleet. Tüm hakları saklıdır.
         </Text>
       </View>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* Profil Düzenle Modal */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={editProfileModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditProfileModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Profili Düzenle</Text>
+            
+            <Text style={styles.inputLabel}>Ad</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="Adınız"
+            />
+
+            <Text style={styles.inputLabel}>Soyad</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Soyadınız"
+            />
+
+            <Text style={styles.inputLabel}>Telefon</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="05XX XXX XX XX"
+              keyboardType="phone-pad"
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setEditProfileModal(false)}
+              >
+                <Text style={styles.modalButtonCancelText}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleSaveProfile}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonSaveText}>Kaydet</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* Şifre Değiştir Modal */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={changePasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setChangePasswordModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Şifre Değiştir</Text>
+            
+            <Text style={styles.inputLabel}>Mevcut Şifre</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="Mevcut şifreniz"
+              secureTextEntry
+            />
+
+            <Text style={styles.inputLabel}>Yeni Şifre</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="En az 6 karakter"
+              secureTextEntry
+            />
+
+            <Text style={styles.inputLabel}>Yeni Şifre (Tekrar)</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Yeni şifrenizi tekrarlayın"
+              secureTextEntry
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setChangePasswordModal(false)}
+              >
+                <Text style={styles.modalButtonCancelText}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleSavePassword}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonSaveText}>Değiştir</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -428,6 +690,69 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.muted,
     marginTop: 4,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: "90%",
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: COLORS.dark,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: COLORS.dark,
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalButtonCancel: {
+    backgroundColor: COLORS.background,
+  },
+  modalButtonCancelText: {
+    color: COLORS.dark,
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  modalButtonSave: {
+    backgroundColor: COLORS.primary,
+  },
+  modalButtonSaveText: {
+    color: COLORS.white,
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

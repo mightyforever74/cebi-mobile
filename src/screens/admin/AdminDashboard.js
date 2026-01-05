@@ -1,7 +1,9 @@
 // src/screens/admin/AdminDashboard.js
 // TulipFleet - Admin Dashboard with REAL DATA
-// v1.1.0 - Aktivite formatı iyileştirildi
+// Updated: 06 Ocak 2026 - Canlı harita bölümü, tıklanabilir araçlar, infogram
 
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -52,7 +54,6 @@ const TASK_STATUS_MAP = {
 // HELPER FUNCTIONS
 // ============================================
 
-// Relative time (5 dk önce, 2 saat önce)
 const getRelativeTime = (timestamp) => {
   const now = new Date();
   const time = new Date(timestamp);
@@ -68,17 +69,14 @@ const getRelativeTime = (timestamp) => {
   return time.toLocaleDateString("tr-TR");
 };
 
-// Alert tipi için bilgi al
 const getAlertInfo = (type) => {
   return ALERT_TYPE_MAP[type] || { icon: "⚠️", label: type, color: "#6B7280" };
 };
 
-// Severity için bilgi al
 const getSeverityInfo = (severity) => {
   return SEVERITY_MAP[severity] || SEVERITY_MAP["medium"];
 };
 
-// Task status için bilgi al
 const getTaskStatusInfo = (status) => {
   return (
     TASK_STATUS_MAP[status] || {
@@ -94,6 +92,7 @@ const getTaskStatusInfo = (status) => {
 // ============================================
 
 const AdminDashboard = () => {
+  const navigation = useNavigation();
   const { user, logout } = useAuth();
 
   // State
@@ -113,7 +112,6 @@ const AdminDashboard = () => {
     try {
       setError(null);
 
-      // Fetch all admin data in parallel
       const [statsData, vehiclesData, activitiesData] = await Promise.all([
         adminAPI.getFleetStats().catch((err) => ({ stats: getDefaultStats() })),
         adminAPI.getVehicles().catch((err) => ({ vehicles: [] })),
@@ -132,7 +130,6 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("❌ Error fetching admin data:", error);
       setError("Veri yüklenirken hata oluştu");
-      // Set default values on error
       setFleetStats(getDefaultStats());
       setVehicles([]);
       setActivities([]);
@@ -179,9 +176,10 @@ const AdminDashboard = () => {
     }
   };
 
+  // 🆕 Araç kartına tıklanınca Araç Yönetimi'ne git
   const handleVehiclePress = (vehicle) => {
     console.log("Vehicle pressed:", vehicle.id);
-    // TODO: Navigate to VehicleDetails
+    navigation.navigate("AdminVehicles");
   };
 
   // ============================================
@@ -192,7 +190,6 @@ const AdminDashboard = () => {
     const isAlert = activity.activity_type === "alert";
 
     if (isAlert) {
-      // Alert aktivitesi
       const alertInfo = getAlertInfo(activity.identifier);
       const severityInfo = getSeverityInfo(activity.status);
 
@@ -215,7 +212,6 @@ const AdminDashboard = () => {
           </View>
 
           <View style={styles.activityDetails}>
-            {/* Araç/Cihaz bilgisi */}
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
                 <Text style={styles.activityTagText}>
@@ -223,8 +219,6 @@ const AdminDashboard = () => {
                 </Text>
               </View>
             )}
-
-            {/* Severity badge */}
             <View
               style={[
                 styles.severityBadge,
@@ -241,7 +235,6 @@ const AdminDashboard = () => {
         </View>
       );
     } else {
-      // Task aktivitesi
       const statusInfo = getTaskStatusInfo(activity.status);
 
       return (
@@ -265,7 +258,6 @@ const AdminDashboard = () => {
           </View>
 
           <View style={styles.activityDetails}>
-            {/* Araç */}
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
                 <Text style={styles.activityTagText}>
@@ -273,8 +265,6 @@ const AdminDashboard = () => {
                 </Text>
               </View>
             )}
-
-            {/* Sürücü */}
             {activity.user_email && (
               <View style={styles.activityTag}>
                 <Text style={styles.activityTagText}>
@@ -282,8 +272,6 @@ const AdminDashboard = () => {
                 </Text>
               </View>
             )}
-
-            {/* Status badge */}
             <View
               style={[styles.severityBadge, { backgroundColor: statusInfo.bg }]}
             >
@@ -314,17 +302,19 @@ const AdminDashboard = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Header */}
+      {/* Header with Modern Greeting */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hoş geldiniz,</Text>
-          <Text style={styles.userName}>
-            {user?.firstName || user?.email?.split("@")[0] || "Yönetici"}
-          </Text>
-          <Text style={styles.role}>Yönetici</Text>
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greetingEmoji}>👋</Text>
+          <View>
+            <Text style={styles.greeting}>Hoş geldiniz,</Text>
+            <Text style={styles.userName}>
+              {user?.firstName || user?.email?.split("@")[0] || "Yönetici"}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Çıkış</Text>
+          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
         </TouchableOpacity>
       </View>
 
@@ -334,6 +324,63 @@ const AdminDashboard = () => {
           <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
+
+      {/* 🆕 Fleet Command Center Infogram */}
+      {fleetStats && (
+        <View style={styles.commandCenterCard}>
+          <Text style={styles.commandCenterTitle}>🎯 Komuta Merkezi</Text>
+          <View style={styles.commandCenterGrid}>
+            <View style={styles.commandItem}>
+              <View style={[styles.commandIcon, { backgroundColor: "#EEF2FF" }]}>
+                <Ionicons name="car" size={24} color="#5E72E4" />
+              </View>
+              <Text style={styles.commandNumber}>
+                {fleetStats.vehicles?.total_vehicles || 0}
+              </Text>
+              <Text style={styles.commandLabel}>Araç</Text>
+            </View>
+            <View style={styles.commandItem}>
+              <View style={[styles.commandIcon, { backgroundColor: "#F0FDF4" }]}>
+                <Ionicons name="people" size={24} color="#10B981" />
+              </View>
+              <Text style={styles.commandNumber}>
+                {fleetStats.drivers?.total_drivers || 0}
+              </Text>
+              <Text style={styles.commandLabel}>Sürücü</Text>
+            </View>
+            <View style={styles.commandItem}>
+              <View style={[styles.commandIcon, { backgroundColor: "#FEF3C7" }]}>
+                <Ionicons name="hardware-chip" size={24} color="#F59E0B" />
+              </View>
+              <Text style={styles.commandNumber}>
+                {fleetStats.vehicles?.active_vehicles || 0}
+              </Text>
+              <Text style={styles.commandLabel}>Aktif Cihaz</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 🆕 Canlı Harita Bölümü */}
+      <TouchableOpacity
+        style={styles.liveMapCard}
+        onPress={() => navigation.navigate("AdminMap")}
+        activeOpacity={0.8}
+      >
+        <View style={styles.liveMapContent}>
+          <View style={styles.liveMapIconContainer}>
+            <Ionicons name="map" size={32} color={COLORS.white} />
+            <View style={styles.livePulse} />
+          </View>
+          <View style={styles.liveMapText}>
+            <Text style={styles.liveMapTitle}>🗺️ Canlı Harita</Text>
+            <Text style={styles.liveMapSubtitle}>
+              Araçları gerçek zamanlı takip edin
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+        </View>
+      </TouchableOpacity>
 
       {/* Fleet Stats */}
       {fleetStats && (
@@ -378,7 +425,7 @@ const AdminDashboard = () => {
         </View>
       )}
 
-      {/* Alert Stats - Yeni */}
+      {/* Alert Stats */}
       {fleetStats?.alerts && (
         <View style={styles.alertStatsCard}>
           <View style={styles.alertStatItem}>
@@ -399,9 +446,16 @@ const AdminDashboard = () => {
         </View>
       )}
 
-      {/* Vehicles */}
+      {/* Vehicles - Tıklanabilir */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
+        <TouchableOpacity
+          style={styles.cardTitleRow}
+          onPress={() => navigation.navigate("AdminVehicles")}
+        >
+          <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+        
         {vehicles.length > 0 ? (
           vehicles.slice(0, 3).map((vehicle) => (
             <TouchableOpacity
@@ -423,61 +477,44 @@ const AdminDashboard = () => {
                       </Text>
                     </View>
                   )}
-                  {vehicle.last_location_time && (
-                    <Text style={styles.lastUpdate}>
-                      Son güncelleme:{" "}
-                      {new Date(vehicle.last_location_time).toLocaleTimeString(
-                        "tr-TR"
-                      )}
-                    </Text>
-                  )}
                 </View>
                 <View
                   style={[
                     styles.statusBadge,
                     {
                       backgroundColor:
-                        vehicle.status === "active" ||
                         vehicle.status === "in_use"
                           ? COLORS.success
-                          : vehicle.status === "maintenance"
-                          ? COLORS.warning
-                          : COLORS.textSecondary,
+                          : vehicle.status === "available"
+                          ? COLORS.info
+                          : COLORS.warning,
                     },
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {vehicle.status === "active" || vehicle.status === "in_use"
-                      ? "Aktif"
-                      : vehicle.status === "maintenance"
-                      ? "Bakımda"
+                    {vehicle.status === "in_use"
+                      ? "Kullanımda"
                       : vehicle.status === "available"
                       ? "Müsait"
-                      : "Atanmamış"}
+                      : "Bakımda"}
                   </Text>
                 </View>
               </View>
               <View style={styles.vehicleStats}>
+                {vehicle.odometer && (
+                  <View style={styles.vehicleStat}>
+                    <Text style={styles.vehicleStatIcon}>🛣️</Text>
+                    <Text style={styles.vehicleStatValue}>
+                      {Math.round(vehicle.odometer).toLocaleString()} km
+                    </Text>
+                  </View>
+                )}
                 {vehicle.fuel_level && (
                   <View style={styles.vehicleStat}>
                     <Text style={styles.vehicleStatIcon}>⛽</Text>
                     <Text style={styles.vehicleStatValue}>
-                      %{Math.round(vehicle.fuel_level)}
+                      {vehicle.fuel_level}%
                     </Text>
-                  </View>
-                )}
-                {vehicle.speed !== null && vehicle.speed !== undefined && (
-                  <View style={styles.vehicleStat}>
-                    <Text style={styles.vehicleStatIcon}>🚗</Text>
-                    <Text style={styles.vehicleStatValue}>
-                      {Math.round(vehicle.speed)} km/h
-                    </Text>
-                  </View>
-                )}
-                {vehicle.latitude && vehicle.longitude && (
-                  <View style={styles.vehicleStat}>
-                    <Text style={styles.vehicleStatIcon}>📍</Text>
-                    <Text style={styles.vehicleStatValue}>GPS Aktif</Text>
                   </View>
                 )}
               </View>
@@ -486,8 +523,12 @@ const AdminDashboard = () => {
         ) : (
           <Text style={styles.noDataText}>Araç bulunamadı</Text>
         )}
+
         {vehicles.length > 3 && (
-          <TouchableOpacity style={styles.seeAllButton}>
+          <TouchableOpacity
+            style={styles.seeAllButton}
+            onPress={() => navigation.navigate("AdminVehicles")}
+          >
             <Text style={styles.seeAllText}>
               Tümünü Gör ({vehicles.length})
             </Text>
@@ -495,13 +536,13 @@ const AdminDashboard = () => {
         )}
       </View>
 
-      {/* Recent Activities - İyileştirilmiş */}
+      {/* Activities */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>📋 Son Aktiviteler</Text>
+        <Text style={styles.cardTitle}>📝 Son Aktiviteler</Text>
         {activities.length > 0 ? (
-          activities
-            .slice(0, 10)
-            .map((activity, index) => renderActivityItem(activity, index))
+          activities.slice(0, 5).map((activity, index) => 
+            renderActivityItem(activity, index)
+          )
         ) : (
           <Text style={styles.noDataText}>Henüz aktivite yok</Text>
         )}
@@ -538,30 +579,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.primary,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  greetingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  greetingEmoji: {
+    fontSize: 32,
+    marginRight: 12,
   },
   greeting: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: "rgba(255,255,255,0.8)",
   },
   userName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: COLORS.text,
-    marginTop: 4,
-  },
-  role: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.white,
     marginTop: 2,
   },
   logoutButton: {
-    backgroundColor: COLORS.danger,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    padding: 10,
+    borderRadius: 12,
   },
   logoutText: {
     color: COLORS.white,
@@ -580,6 +623,97 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
   },
+  // Command Center
+  commandCenterCard: {
+    backgroundColor: COLORS.white,
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  commandCenterTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.text,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  commandCenterGrid: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  commandItem: {
+    alignItems: "center",
+  },
+  commandIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  commandNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.text,
+  },
+  commandLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  // Live Map Card
+  liveMapCard: {
+    backgroundColor: COLORS.primary,
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  liveMapContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  liveMapIconContainer: {
+    position: "relative",
+    marginRight: 12,
+  },
+  livePulse: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#10B981",
+    borderWidth: 2,
+    borderColor: COLORS.white,
+  },
+  liveMapText: {
+    flex: 1,
+  },
+  liveMapTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.white,
+  },
+  liveMapSubtitle: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+  // Card
   card: {
     backgroundColor: COLORS.white,
     margin: 16,
@@ -591,6 +725,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  cardTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   cardTitle: {
     fontSize: 18,
@@ -753,7 +893,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "600",
   },
-  // Activity Card - İyileştirilmiş
+  // Activity Card
   activityCard: {
     backgroundColor: COLORS.background,
     padding: 12,

@@ -1,15 +1,19 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 05 Ocak 2026 - Gate Logic Added
+// Updated: 06 Ocak 2026 - Tıklanabilir kartlar + Yakıt/KM düzenleme
 
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -31,11 +35,16 @@ const DriverDashboard = () => {
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
 
-  // 🆕 Gate Logic State
+  // Gate Logic State
   const [deviceCheckDone, setDeviceCheckDone] = useState(false);
   const [checkingDevice, setCheckingDevice] = useState(true);
 
-  // 🆕 Gate Logic - Her ekran açılışında cihaz durumu kontrol
+  // 🆕 Edit Modal State (Yakıt/KM)
+  const [editModal, setEditModal] = useState({ visible: false, type: null });
+  const [editValue, setEditValue] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Gate Logic - Her ekran açılışında cihaz durumu kontrol
   useFocusEffect(
     useCallback(() => {
       checkDeviceStatus();
@@ -47,13 +56,10 @@ const DriverDashboard = () => {
       setCheckingDevice(true);
       console.log("[Gate] Checking device status...");
 
-      // Yeni MVP endpoint'i kullan
       const response = await driverAPI.getAssignedDevice();
       console.log("[Gate] Response:", JSON.stringify(response));
 
-      // Gate Logic
       if (!response.has_vehicle) {
-        // Araç atanmamış - dashboard'da kal
         console.log("[Gate] No vehicle assigned");
         setCheckingDevice(false);
         setDeviceCheckDone(true);
@@ -61,7 +67,6 @@ const DriverDashboard = () => {
       }
 
       if (response.setup_required) {
-        // Kurulum gerekli - DeviceSetup ekranına yönlendir
         console.log("[Gate] Setup required, redirecting to DeviceSetup...");
         setCheckingDevice(false);
         navigation.replace("DeviceSetup", {
@@ -71,13 +76,11 @@ const DriverDashboard = () => {
         return;
       }
 
-      // Normal akış - dashboard göster
       console.log("[Gate] All good, showing dashboard");
       setCheckingDevice(false);
       setDeviceCheckDone(true);
     } catch (error) {
       console.log("[Gate] Error:", error.message);
-      // Hata durumunda dashboard'ı göster (graceful degradation)
       setCheckingDevice(false);
       setDeviceCheckDone(true);
     }
@@ -101,7 +104,6 @@ const DriverDashboard = () => {
     try {
       setError(null);
 
-      // Fetch all driver data in parallel
       const [statsData, tasksData, vehicleData] = await Promise.all([
         driverAPI.getStats().catch((err) => ({ stats: getDefaultStats() })),
         driverAPI.getTasks().catch((err) => ({ tasks: [] })),
@@ -119,7 +121,6 @@ const DriverDashboard = () => {
     } catch (error) {
       console.error("❌ Error fetching driver data:", error);
       setError("Veri yüklenirken hata oluştu");
-      // Set default values on error
       setStats(getDefaultStats());
       setTasks([]);
       setVehicle(null);
@@ -149,12 +150,77 @@ const DriverDashboard = () => {
     }
   };
 
+  // 🆕 Görev kartına tıklanınca Görevlerim'e git
   const handleTaskPress = (task) => {
     console.log("Task pressed:", task.id);
-    // TODO: Navigate to TaskDetails
+    navigation.navigate("DriverTasks");
   };
 
-  // 🆕 Device Check Loading
+  // 🆕 Aracım kartına tıklanınca detaya git
+  const handleVehiclePress = () => {
+    if (vehicle) {
+      // VehicleStatus ekranı varsa oraya git, yoksa alert göster
+      Alert.alert(
+        "Araç Detayı",
+        `${vehicle.plate}\n${vehicle.brand} ${vehicle.model}\n\nYakıt veya kilometre güncellemek için ilgili alana dokunun.`
+      );
+    }
+  };
+
+  // 🆕 Yakıt/KM düzenleme
+  const openEditModal = (type) => {
+    if (!vehicle) return;
+    
+    if (type === "fuel") {
+      setEditValue(vehicle.fuelLevel?.toString() || "0");
+    } else if (type === "km") {
+      setEditValue(vehicle.odometer?.toString() || "0");
+    }
+    setEditModal({ visible: true, type });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!vehicle || !editModal.type) return;
+    
+    const numValue = parseFloat(editValue);
+    if (isNaN(numValue) || numValue < 0) {
+      Alert.alert("Hata", "Geçerli bir değer girin");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (editModal.type === "fuel") {
+        // Yakıt max 4 haneli (9999 litre)
+        if (numValue > 9999) {
+          Alert.alert("Hata", "Yakıt değeri en fazla 9999 litre olabilir");
+          setSaving(false);
+          return;
+        }
+        await driverAPI.updateVehicleFuel(vehicle.id, numValue);
+        setVehicle({ ...vehicle, fuelLevel: numValue });
+        Alert.alert("Başarılı", "Yakıt bilgisi güncellendi");
+      } else if (editModal.type === "km") {
+        // KM max 7 haneli (9999999 km)
+        if (numValue > 9999999) {
+          Alert.alert("Hata", "Kilometre değeri en fazla 9999999 olabilir");
+          setSaving(false);
+          return;
+        }
+        await driverAPI.updateVehicleKm(vehicle.id, numValue);
+        setVehicle({ ...vehicle, odometer: numValue });
+        Alert.alert("Başarılı", "Kilometre bilgisi güncellendi");
+      }
+      setEditModal({ visible: false, type: null });
+    } catch (err) {
+      console.error("Update error:", err);
+      Alert.alert("Hata", err.message || "Güncelleme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Device Check Loading
   if (checkingDevice) {
     return (
       <View style={styles.loadingContainer}>
@@ -181,17 +247,19 @@ const DriverDashboard = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Header */}
+      {/* Header with Greeting Animation */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Merhaba,</Text>
-          <Text style={styles.userName}>
-            {user?.first_name || user?.email?.split("@")[0] || "Sürücü"}
-          </Text>
-          <Text style={styles.role}>Sürücü</Text>
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greetingEmoji}>👋</Text>
+          <View>
+            <Text style={styles.greeting}>Merhaba,</Text>
+            <Text style={styles.userName}>
+              {user?.first_name || user?.email?.split("@")[0] || "Sürücü"}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Çıkış</Text>
+          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
         </TouchableOpacity>
       </View>
 
@@ -202,10 +270,10 @@ const DriverDashboard = () => {
         </View>
       )}
 
-      {/* Task Offers Card - YENİ */}
+      {/* Task Offers Card */}
       <TouchableOpacity
         style={styles.offersCard}
-        onPress={() => navigation.navigate("MyTasks", { screen: "TaskOffers" })}
+        onPress={() => navigation.navigate("DriverTasks", { screen: "TaskOffers" })}
       >
         <View style={styles.offersContent}>
           <Text style={styles.offersIcon}>📬</Text>
@@ -215,14 +283,21 @@ const DriverDashboard = () => {
               Bekleyen teklifleri görüntüle
             </Text>
           </View>
-          <Text style={styles.offersArrow}>→</Text>
+          <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
         </View>
       </TouchableOpacity>
 
-      {/* Vehicle Card */}
+      {/* Vehicle Card - Tıklanabilir */}
       {vehicle ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🚙 Aracım</Text>
+        <TouchableOpacity 
+          style={styles.card}
+          onPress={handleVehiclePress}
+          activeOpacity={0.8}
+        >
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>🚙 Aracım</Text>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          </View>
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
             <Text style={styles.vehicleModel}>
@@ -230,24 +305,39 @@ const DriverDashboard = () => {
             </Text>
           </View>
           <View style={styles.row}>
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>
-                {vehicle.fuelLevel !== undefined && vehicle.fuelCapacity
-                  ? `${Math.round(
-                      (vehicle.fuelLevel / vehicle.fuelCapacity) * 100
-                    )}%`
-                  : "0%"}
-              </Text>
+            {/* Yakıt - Düzenlenebilir */}
+            <TouchableOpacity 
+              style={styles.statBox}
+              onPress={() => openEditModal("fuel")}
+            >
+              <View style={styles.editableStatRow}>
+                <Text style={styles.statValue}>
+                  {vehicle.fuelLevel !== undefined
+                    ? `${Math.round(vehicle.fuelLevel)} L`
+                    : "- L"}
+                </Text>
+                <Ionicons name="pencil" size={14} color={COLORS.primary} />
+              </View>
               <Text style={styles.statLabel}>Yakıt</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>
-                {vehicle.odometer
-                  ? `${Math.round(vehicle.odometer)} km`
-                  : "0 km"}
-              </Text>
+            </TouchableOpacity>
+
+            {/* Kilometre - Düzenlenebilir */}
+            <TouchableOpacity 
+              style={styles.statBox}
+              onPress={() => openEditModal("km")}
+            >
+              <View style={styles.editableStatRow}>
+                <Text style={styles.statValue}>
+                  {vehicle.odometer
+                    ? `${Math.round(vehicle.odometer).toLocaleString()}`
+                    : "0"}
+                </Text>
+                <Ionicons name="pencil" size={14} color={COLORS.primary} />
+              </View>
               <Text style={styles.statLabel}>Kilometre</Text>
-            </View>
+            </TouchableOpacity>
+
+            {/* ESP32 Status */}
             <View style={styles.statBox}>
               <Text
                 style={[
@@ -264,7 +354,7 @@ const DriverDashboard = () => {
               <Text style={styles.statLabel}>ESP32</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       ) : (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🚙 Aracım</Text>
@@ -272,11 +362,18 @@ const DriverDashboard = () => {
         </View>
       )}
 
-      {/* Active Tasks */}
+      {/* Active Tasks - Tıklanabilir */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>📋 Aktif Görevler ({tasks.length})</Text>
+        <TouchableOpacity 
+          style={styles.cardTitleRow}
+          onPress={() => navigation.navigate("DriverTasks")}
+        >
+          <Text style={styles.cardTitle}>📋 Aktif Görevler ({tasks.length})</Text>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+        
         {tasks.length > 0 ? (
-          tasks.map((task) => (
+          tasks.slice(0, 3).map((task) => (
             <TouchableOpacity
               key={task.id}
               style={styles.taskCard}
@@ -284,7 +381,7 @@ const DriverDashboard = () => {
             >
               <View style={styles.taskHeader}>
                 <Text style={styles.taskTitle}>
-                  {task.task_no || `Görev #${task.id}`}
+                  {task.task_no || `Görev #${task.id?.slice(0, 6)}`}
                 </Text>
                 <View
                   style={[
@@ -293,26 +390,29 @@ const DriverDashboard = () => {
                       backgroundColor:
                         task.status === "in_progress"
                           ? COLORS.info
-                          : COLORS.warning,
+                          : task.status === "pending_review"
+                          ? COLORS.warning
+                          : COLORS.primary,
                     },
                   ]}
                 >
                   <Text style={styles.statusText}>
                     {task.status === "in_progress"
                       ? "Devam Ediyor"
+                      : task.status === "pending_review"
+                      ? "Onay Bekliyor"
                       : "Bekliyor"}
                   </Text>
                 </View>
               </View>
-              {task.vehicle_plate && (
-                <Text style={styles.taskDescription}>
-                  Araç: {task.vehicle_plate}
+              {task.title && (
+                <Text style={styles.taskDescription} numberOfLines={1}>
+                  {task.title}
                 </Text>
               )}
-              {task.planned_start && (
+              {task.vehicle_plate && (
                 <Text style={styles.taskTime}>
-                  Planlanan:{" "}
-                  {new Date(task.planned_start).toLocaleString("tr-TR")}
+                  Araç: {task.vehicle_plate}
                 </Text>
               )}
             </TouchableOpacity>
@@ -320,12 +420,28 @@ const DriverDashboard = () => {
         ) : (
           <Text style={styles.noDataText}>Aktif görev bulunmuyor</Text>
         )}
+
+        {tasks.length > 3 && (
+          <TouchableOpacity 
+            style={styles.seeAllButton}
+            onPress={() => navigation.navigate("DriverTasks")}
+          >
+            <Text style={styles.seeAllText}>Tümünü Gör ({tasks.length})</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Statistics */}
+      {/* Statistics - Tıklanabilir */}
       {stats && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📊 Performans</Text>
+        <TouchableOpacity 
+          style={styles.card}
+          onPress={() => navigation.navigate("DriverTasks")}
+          activeOpacity={0.8}
+        >
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>📊 Performans</Text>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          </View>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
@@ -354,8 +470,59 @@ const DriverDashboard = () => {
               <Text style={styles.statText}>L/100km</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
+
+      {/* Bottom Spacing */}
+      <View style={{ height: 20 }} />
+
+      {/* Edit Modal */}
+      <Modal
+        visible={editModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditModal({ visible: false, type: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editModal.type === "fuel" ? "Yakıt Güncelle" : "Kilometre Güncelle"}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {editModal.type === "fuel" 
+                ? "Litre cinsinden girin (max 9999)" 
+                : "Kilometre girin (max 9999999)"}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editValue}
+              onChangeText={setEditValue}
+              keyboardType="numeric"
+              placeholder={editModal.type === "fuel" ? "Örn: 45" : "Örn: 125000"}
+              maxLength={editModal.type === "fuel" ? 4 : 7}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setEditModal({ visible: false, type: null })}
+              >
+                <Text style={styles.modalButtonCancelText}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleSaveEdit}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonSaveText}>Kaydet</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -381,35 +548,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.primary,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  greetingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  greetingEmoji: {
+    fontSize: 32,
+    marginRight: 12,
   },
   greeting: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: "rgba(255,255,255,0.8)",
   },
   userName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: COLORS.text,
-    marginTop: 4,
-  },
-  role: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.white,
     marginTop: 2,
   },
   logoutButton: {
-    backgroundColor: COLORS.danger,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  logoutText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: "600",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    padding: 10,
+    borderRadius: 12,
   },
   errorCard: {
     backgroundColor: "#FEE",
@@ -423,9 +587,9 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
   },
-  // Task Offers Card Styles - YENİ
+  // Task Offers Card
   offersCard: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.success,
     margin: 16,
     marginBottom: 0,
     padding: 16,
@@ -457,11 +621,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.8)",
     marginTop: 2,
   },
-  offersArrow: {
-    fontSize: 24,
-    color: COLORS.white,
-  },
-  // Other styles
+  // Card
   card: {
     backgroundColor: COLORS.white,
     margin: 16,
@@ -473,11 +633,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  cardTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: COLORS.text,
-    marginBottom: 16,
   },
   noDataText: {
     fontSize: 14,
@@ -504,9 +669,15 @@ const styles = StyleSheet.create({
   },
   statBox: {
     alignItems: "center",
+    padding: 8,
+  },
+  editableStatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     color: COLORS.text,
   },
@@ -552,6 +723,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
   },
+  seeAllButton: {
+    alignItems: "center",
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    marginTop: 4,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -574,6 +757,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 4,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: "85%",
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.text,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalButtonCancel: {
+    backgroundColor: COLORS.background,
+  },
+  modalButtonCancelText: {
+    color: COLORS.text,
+    fontWeight: "600",
+  },
+  modalButtonSave: {
+    backgroundColor: COLORS.primary,
+  },
+  modalButtonSaveText: {
+    color: COLORS.white,
+    fontWeight: "600",
   },
 });
 

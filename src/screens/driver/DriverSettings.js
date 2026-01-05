@@ -1,5 +1,6 @@
 // src/screens/driver/DriverSettings.js
 // TulipFleet - Sürücü Ayarlar Ekranı
+// Updated: 06 Ocak 2026 - Karanlık mod switch düzeltildi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -74,11 +75,16 @@ const SectionHeader = ({ title }) => (
 
 const DriverSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
+  
+  // Bildirim ayarları
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [taskNotifications, setTaskNotifications] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  
+  // 🆕 Karanlık mod
+  const [darkMode, setDarkMode] = useState(false);
 
   // Çıkış yap
   const handleLogout = () => {
@@ -95,6 +101,28 @@ const DriverSettings = ({ navigation }) => {
           },
         },
       ]
+    );
+  };
+
+  // 🆕 Push bildirimleri toggle
+  const handleNotificationsToggle = (value) => {
+    setNotificationsEnabled(value);
+    if (!value) {
+      setTaskNotifications(false);
+      setSoundEnabled(false);
+      setVibrationEnabled(false);
+    }
+  };
+
+  // 🆕 Karanlık mod toggle
+  const handleDarkModeToggle = (value) => {
+    setDarkMode(value);
+    // TODO: ThemeContext entegrasyonu
+    Alert.alert(
+      "Karanlık Mod",
+      value 
+        ? "Karanlık mod etkinleştirildi. Tam destek yakında eklenecek!" 
+        : "Karanlık mod kapatıldı."
     );
   };
 
@@ -150,60 +178,66 @@ const DriverSettings = ({ navigation }) => {
           rightElement={
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              onValueChange={handleNotificationsToggle}
               trackColor={{ false: COLORS.muted, true: COLORS.primary }}
               thumbColor={COLORS.white}
             />
           }
         />
-        <View style={styles.divider} />
-        <SettingItem
-          icon="clipboard-outline"
-          iconColor={COLORS.warning}
-          title="Görev Bildirimleri"
-          subtitle="Yeni görev atamaları"
-          showArrow={false}
-          rightElement={
-            <Switch
-              value={taskNotifications}
-              onValueChange={setTaskNotifications}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+        
+        {/* Push açıkken alt seçenekleri göster */}
+        {notificationsEnabled && (
+          <>
+            <View style={styles.divider} />
+            <SettingItem
+              icon="clipboard-outline"
+              iconColor={COLORS.warning}
+              title="Görev Bildirimleri"
+              subtitle="Yeni görev atamaları"
+              showArrow={false}
+              rightElement={
+                <Switch
+                  value={taskNotifications}
+                  onValueChange={setTaskNotifications}
+                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              }
             />
-          }
-        />
-        <View style={styles.divider} />
-        <SettingItem
-          icon="volume-high-outline"
-          iconColor={COLORS.success}
-          title="Ses"
-          subtitle="Bildirim sesleri"
-          showArrow={false}
-          rightElement={
-            <Switch
-              value={soundEnabled}
-              onValueChange={setSoundEnabled}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+            <View style={styles.divider} />
+            <SettingItem
+              icon="volume-high-outline"
+              iconColor={COLORS.success}
+              title="Ses"
+              subtitle="Bildirim sesleri"
+              showArrow={false}
+              rightElement={
+                <Switch
+                  value={soundEnabled}
+                  onValueChange={setSoundEnabled}
+                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              }
             />
-          }
-        />
-        <View style={styles.divider} />
-        <SettingItem
-          icon="phone-portrait-outline"
-          iconColor={COLORS.secondary}
-          title="Titreşim"
-          subtitle="Bildirim titreşimi"
-          showArrow={false}
-          rightElement={
-            <Switch
-              value={vibrationEnabled}
-              onValueChange={setVibrationEnabled}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+            <View style={styles.divider} />
+            <SettingItem
+              icon="phone-portrait-outline"
+              iconColor={COLORS.secondary}
+              title="Titreşim"
+              subtitle="Bildirim titreşimi"
+              showArrow={false}
+              rightElement={
+                <Switch
+                  value={vibrationEnabled}
+                  onValueChange={setVibrationEnabled}
+                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              }
             />
-          }
-        />
+          </>
+        )}
       </View>
 
       {/* Konum Ayarları */}
@@ -249,13 +283,20 @@ const DriverSettings = ({ navigation }) => {
           }
         />
         <View style={styles.divider} />
+        {/* 🆕 Karanlık Mod - Çalışan Switch */}
         <SettingItem
           icon="moon-outline"
           iconColor={COLORS.dark}
           title="Karanlık Mod"
-          subtitle="Yakında"
-          onPress={() =>
-            Alert.alert("Yakında", "Karanlık mod yakında eklenecek")
+          subtitle={darkMode ? "Açık" : "Kapalı"}
+          showArrow={false}
+          rightElement={
+            <Switch
+              value={darkMode}
+              onValueChange={handleDarkModeToggle}
+              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
+              thumbColor={COLORS.white}
+            />
           }
         />
         <View style={styles.divider} />

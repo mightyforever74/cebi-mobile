@@ -1,6 +1,6 @@
 // src/screens/driver/DriverTasks.js
 // TulipFleet - Sürücü Görevlerim Ekranı
-// Updated: 05 Ocak 2026 - Kabul/Ret butonları + Admin alert
+// Updated: 06 Ocak 2026 - Kabul/Ret butonları FIX + Geçmiş görevler
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -86,31 +86,40 @@ const STATUS_CONFIG = {
 const DriverTasks = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("active"); // active, completed
   const [tasks, setTasks] = useState([]);
+  const [completedTasks, setCompletedTasks] = useState([]); // Geçmiş görevler için ayrı state
   const [pendingOffersCount, setPendingOffersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [actionLoading, setActionLoading] = useState(null); // Hangi görev için işlem yapılıyor
+  const [actionLoading, setActionLoading] = useState(null);
 
   // Ekrana her dönüşte verileri yenile
   useFocusEffect(
     useCallback(() => {
       fetchTasks();
       fetchPendingOffers();
-    }, [])
+    }, [activeTab])
   );
 
   // API'den görevleri çek
   const fetchTasks = async () => {
     try {
       setError(null);
-      console.log("📋 Fetching driver tasks...");
+      console.log("📋 Fetching driver tasks...", { activeTab });
 
-      const data = await driverTaskAPI.getMyTasks();
-      console.log("✅ Driver tasks loaded:", data);
-
-      const taskList = data.tasks || data || [];
-      setTasks(Array.isArray(taskList) ? taskList : []);
+      if (activeTab === "completed") {
+        // Tamamlanan görevleri çek
+        const data = await driverTaskAPI.getCompletedTasks();
+        console.log("✅ Completed tasks loaded:", data);
+        const taskList = data.tasks || data || [];
+        setCompletedTasks(Array.isArray(taskList) ? taskList : []);
+      } else {
+        // Aktif görevleri çek
+        const data = await driverTaskAPI.getMyTasks();
+        console.log("✅ Active tasks loaded:", data);
+        const taskList = data.tasks || data || [];
+        setTasks(Array.isArray(taskList) ? taskList : []);
+      }
     } catch (err) {
       console.error("❌ Fetch tasks error:", err);
       setError(err.message || "Görevler yüklenemedi");
@@ -135,18 +144,22 @@ const DriverTasks = ({ navigation }) => {
     setRefreshing(true);
     fetchTasks();
     fetchPendingOffers();
-  }, []);
+  }, [activeTab]);
+
+  // Tab değiştiğinde veri çek
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setLoading(true);
+  };
 
   // ═══════════════════════════════════════════════════════════════
-  // TASK ACTIONS - Kabul / Ret
+  // TASK ACTIONS - Kabul / Ret (DÜZELTİLDİ)
   // ═══════════════════════════════════════════════════════════════
 
   const handleAcceptTask = async (task) => {
     Alert.alert(
       "Görevi Kabul Et",
-      `"${
-        task.title || task.task_no
-      }" görevini kabul etmek istediğinize emin misiniz?`,
+      `"${task.title || task.task_no}" görevini kabul etmek istediğinize emin misiniz?`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -154,7 +167,8 @@ const DriverTasks = ({ navigation }) => {
           onPress: async () => {
             setActionLoading(task.id);
             try {
-              await driverTaskAPI.updateTaskStatus(task.id, "accepted");
+              // DÜZELTİLDİ: acceptTask fonksiyonunu kullan
+              await driverTaskAPI.acceptTask(task.id);
 
               // Lokal state güncelle
               setTasks((prev) =>
@@ -165,12 +179,12 @@ const DriverTasks = ({ navigation }) => {
 
               Alert.alert(
                 "✅ Görev Kabul Edildi",
-                "Navigasyon sayfasından görevi başlatabilirsiniz.",
+                "Harita sayfasından görevi başlatabilirsiniz.",
                 [
                   {
-                    text: "Navigasyona Git",
+                    text: "Haritaya Git",
                     onPress: () =>
-                      navigation.navigate("Navigation", {
+                      navigation.navigate("DriverMap", {
                         task: { ...task, status: "accepted" },
                       }),
                   },
@@ -192,9 +206,7 @@ const DriverTasks = ({ navigation }) => {
   const handleRejectTask = async (task) => {
     Alert.alert(
       "Görevi Reddet",
-      `"${
-        task.title || task.task_no
-      }" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
+      `"${task.title || task.task_no}" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -203,14 +215,11 @@ const DriverTasks = ({ navigation }) => {
           onPress: async () => {
             setActionLoading(task.id);
             try {
-              await driverTaskAPI.updateTaskStatus(task.id, "rejected");
+              // DÜZELTİLDİ: rejectTask fonksiyonunu kullan
+              await driverTaskAPI.rejectTask(task.id);
 
-              // Lokal state güncelle
-              setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === task.id ? { ...t, status: "rejected" } : t
-                )
-              );
+              // Lokal state güncelle - rejected görevleri listeden çıkar
+              setTasks((prev) => prev.filter((t) => t.id !== task.id));
 
               Alert.alert(
                 "Bilgi",
@@ -233,19 +242,15 @@ const DriverTasks = ({ navigation }) => {
   // ═══════════════════════════════════════════════════════════════
 
   // Görevleri filtrele
-  const filteredTasks = tasks.filter((task) => {
+  const filteredTasks = activeTab === "completed" ? completedTasks : tasks.filter((task) => {
     const status = task.status || "pending";
-    if (activeTab === "active") {
-      return [
-        "pending_review",
-        "accepted",
-        "in_progress",
-        "pending",
-        "assigned",
-      ].includes(status);
-    } else {
-      return ["completed", "rejected", "cancelled"].includes(status);
-    }
+    return [
+      "pending_review",
+      "accepted",
+      "in_progress",
+      "pending",
+      "assigned",
+    ].includes(status);
   });
 
   // İstatistikler
@@ -259,9 +264,7 @@ const DriverTasks = ({ navigation }) => {
     ].includes(t.status)
   ).length;
 
-  const completedCount = tasks.filter((t) =>
-    ["completed", "rejected", "cancelled"].includes(t.status)
-  ).length;
+  const completedCount = completedTasks.length;
 
   const pendingReviewCount = tasks.filter(
     (t) => t.status === "pending_review"
@@ -331,6 +334,25 @@ const DriverTasks = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
         </View>
       </TouchableOpacity>
+    );
+  };
+
+  // Pending Review Uyarısı
+  const renderPendingReviewAlert = () => {
+    if (pendingReviewCount === 0 || activeTab !== "active") return null;
+
+    return (
+      <View style={styles.pendingReviewAlert}>
+        <Ionicons name="alert-circle" size={24} color="#D97706" />
+        <View style={styles.pendingReviewAlertContent}>
+          <Text style={styles.pendingReviewAlertTitle}>
+            {pendingReviewCount} görev onayınızı bekliyor
+          </Text>
+          <Text style={styles.pendingReviewAlertSubtitle}>
+            Kabul veya reddetmek için aşağıdaki kartları inceleyin
+          </Text>
+        </View>
+      </View>
     );
   };
 
@@ -452,9 +474,9 @@ const DriverTasks = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
-        {/* ═══════════════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         {/* KABUL / RET BUTONLARI (Sadece pending_review için) */}
-        {/* ═══════════════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         {isPendingReview && (
           <View style={styles.actionButtonsContainer}>
             {isLoading ? (
@@ -484,15 +506,15 @@ const DriverTasks = ({ navigation }) => {
           </View>
         )}
 
-        {/* accepted durumunda Navigasyona Git butonu */}
+        {/* accepted durumunda Haritaya Git butonu */}
         {status === "accepted" && (
           <TouchableOpacity
             style={styles.goToNavButton}
-            onPress={() => navigation.navigate("Navigation", { task: item })}
+            onPress={() => navigation.navigate("DriverMap", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.goToNavButtonText}>
-              Navigasyona Git - Başlat
+              Haritaya Git - Başlat
             </Text>
           </TouchableOpacity>
         )}
@@ -501,11 +523,11 @@ const DriverTasks = ({ navigation }) => {
         {status === "in_progress" && (
           <TouchableOpacity
             style={styles.continueNavButton}
-            onPress={() => navigation.navigate("Navigation", { task: item })}
+            onPress={() => navigation.navigate("DriverMap", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.continueNavButtonText}>
-              Navigasyona Devam Et
+              Haritaya Devam Et
             </Text>
           </TouchableOpacity>
         )}
@@ -514,69 +536,40 @@ const DriverTasks = ({ navigation }) => {
   };
 
   // Boş liste
-  const renderEmptyList = () => (
+  const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons
-        name={
-          activeTab === "active"
-            ? "clipboard-outline"
-            : "checkmark-done-outline"
-        }
+        name={activeTab === "active" ? "clipboard-outline" : "checkmark-done-outline"}
         size={64}
         color={COLORS.muted}
       />
       <Text style={styles.emptyTitle}>
-        {activeTab === "active" ? "Aktif Görev Yok" : "Tamamlanan Görev Yok"}
+        {activeTab === "active" ? "Aktif görev yok" : "Tamamlanan görev yok"}
       </Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === "active"
-          ? "Size atanan yeni görevler burada görünecek"
-          : "Tamamladığınız görevler burada listelenecek"}
+          ? "Yeni görev atamaları burada görünecek"
+          : "Son 7 günde tamamlanan görevler burada görünecek"}
       </Text>
     </View>
   );
 
-  // Liste header (bekleyen görev uyarısı)
-  const renderListHeader = () => (
-    <View>
-      {/* Bekleyen Görev Teklifleri */}
-      {renderOffersCard()}
-
-      {/* Pending Review Uyarısı */}
-      {activeTab === "active" && pendingReviewCount > 0 && (
-        <View style={styles.pendingReviewAlert}>
-          <Ionicons name="alert-circle" size={22} color="#D97706" />
-          <View style={styles.pendingReviewAlertContent}>
-            <Text style={styles.pendingReviewAlertTitle}>
-              {pendingReviewCount} görev onayınızı bekliyor
-            </Text>
-            <Text style={styles.pendingReviewAlertSubtitle}>
-              Kabul veya reddetmek için aşağıdaki kartları inceleyin
-            </Text>
-          </View>
-        </View>
-      )}
-    </View>
-  );
-
-  // ═══════════════════════════════════════════════════════════════
-  // MAIN RENDER
-  // ═══════════════════════════════════════════════════════════════
-
-  if (loading) {
+  // Loading state
+  if (loading && !refreshing) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.success} />
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
       </View>
     );
   }
 
-  if (error) {
+  // Error state
+  if (error && !refreshing) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.emptyContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
-        <Text style={styles.errorTitle}>Hata Oluştu</Text>
+        <Text style={styles.errorTitle}>Hata</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchTasks}>
           <Text style={styles.retryButtonText}>Tekrar Dene</Text>
@@ -587,11 +580,11 @@ const DriverTasks = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Tab Bar */}
+      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "active" && styles.activeTab]}
-          onPress={() => setActiveTab("active")}
+          onPress={() => handleTabChange("active")}
         >
           <Text
             style={[
@@ -608,14 +601,21 @@ const DriverTasks = ({ navigation }) => {
                 activeTab === "active" && styles.activeTabBadge,
               ]}
             >
-              <Text style={styles.tabBadgeText}>{activeCount}</Text>
+              <Text
+                style={[
+                  styles.tabBadgeText,
+                  activeTab !== "active" && { color: COLORS.primary },
+                ]}
+              >
+                {activeCount}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tab, activeTab === "completed" && styles.activeTab]}
-          onPress={() => setActiveTab("completed")}
+          onPress={() => handleTabChange("completed")}
         >
           <Text
             style={[
@@ -625,16 +625,6 @@ const DriverTasks = ({ navigation }) => {
           >
             Tamamlanan
           </Text>
-          {completedCount > 0 && (
-            <View
-              style={[
-                styles.tabBadge,
-                activeTab === "completed" && styles.activeTabBadge,
-              ]}
-            >
-              <Text style={styles.tabBadgeText}>{completedCount}</Text>
-            </View>
-          )}
         </TouchableOpacity>
       </View>
 
@@ -642,20 +632,23 @@ const DriverTasks = ({ navigation }) => {
       <FlatList
         data={filteredTasks}
         renderItem={renderTaskCard}
-        keyExtractor={(item) =>
-          item.id?.toString() || item.task_code || item.task_no
-        }
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
+        ListHeaderComponent={
+          <>
+            {activeTab === "active" && renderOffersCard()}
+            {renderPendingReviewAlert()}
+          </>
+        }
+        ListEmptyComponent={renderEmpty}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.success]}
-            tintColor={COLORS.success}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
           />
         }
-        ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -667,38 +660,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-    padding: 20,
-  },
 
-  // Tab Styles
+  // Tabs
   tabContainer: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#E9ECEF",
+    borderBottomColor: "#E5E7EB",
   },
   tab: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    marginHorizontal: 5,
-    borderRadius: 10,
-    backgroundColor: COLORS.background,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginHorizontal: 4,
   },
   activeTab: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.primary,
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
     color: COLORS.secondary,
   },
@@ -706,11 +691,11 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   tabBadge: {
-    backgroundColor: COLORS.success,
-    borderRadius: 10,
+    marginLeft: 6,
+    backgroundColor: "#E0E7FF",
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginLeft: 8,
+    borderRadius: 10,
   },
   activeTabBadge: {
     backgroundColor: "rgba(255,255,255,0.3)",

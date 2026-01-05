@@ -1,144 +1,67 @@
 // src/services/api.js
-// TulipFleet API Service - With Refresh Token Support
-// Updated: 01 Ocak 2026 - FAZ 4 BLE Device Activation
+// TulipFleet API Service
+// Updated: 06 Ocak 2026 - getCompletedTasks, updateVehicleFuel, updateVehicleKm eklendi
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_TIMEOUT, API_URL } from "../constants/config";
-
-// 🔐 Refresh durumu takibi
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
+import { API_BASE_URL } from "../constants/config";
 
 // Axios instance
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: API_TIMEOUT,
+  baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor - Add token
+// Request interceptor - add token
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("accessToken");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    console.log("🌐 API Request:", config.method?.toUpperCase(), config.url);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("Error getting token:", error);
+    }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor - Handle errors & Auto refresh on 401
+// Response interceptor - handle errors
 api.interceptors.response.use(
-  (response) => {
-    console.log("✅ API Response:", response.status, response.config.url);
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    // 401 hatası ve daha önce retry edilmemişse
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      // Refresh veya login endpoint'i ise direkt hata dön
-      if (
-        originalRequest.url?.includes("/auth/refresh") ||
-        originalRequest.url?.includes("/auth/login")
-      ) {
-        return Promise.reject(error);
-      }
-
-      // Zaten refresh yapılıyorsa kuyruğa ekle
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = await AsyncStorage.getItem("refreshToken");
-
-        if (!refreshToken) {
-          console.log("❌ No refresh token, need to login again");
-          isRefreshing = false;
-          return Promise.reject(error);
-        }
-
-        console.log("🔄 Auto-refreshing token...");
-
-        // Refresh token endpoint'ini çağır
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { token: newAccessToken } = response.data;
-
-        if (newAccessToken) {
-          console.log("✅ Token auto-refreshed successfully");
-
-          // Yeni token'ı kaydet
-          await AsyncStorage.setItem("accessToken", newAccessToken);
-
-          // Bekleyen istekleri işle
-          processQueue(null, newAccessToken);
-
-          // Orijinal isteği yeni token ile tekrarla
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        console.error("❌ Token refresh failed:", refreshError.message);
-        processQueue(refreshError, null);
-        // Token'ları temizle - kullanıcı tekrar login olmalı
-        await AsyncStorage.multiRemove([
-          "accessToken",
-          "refreshToken",
-          "userData",
-        ]);
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401) {
+      console.log("🔒 Token expired or invalid");
+      // Clear stored token
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("user");
     }
 
-    // Diğer hatalar
+    // Log error details
     if (error.response) {
-      console.error(
-        "❌ API Error:",
-        error.response.status,
-        error.response.data
-      );
+      console.error("API Error:", {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config?.url,
+      });
     } else if (error.request) {
-      console.error("❌ API Error: No response", error.message);
-    } else {
-      console.error("❌ API Error:", error.message);
+      console.error("Network Error:", error.message);
     }
+
     return Promise.reject(error);
   }
 );
 
 // ============================================
-// AUTHENTICATION
+// AUTH ENDPOINTS
 // ============================================
 
 export const authAPI = {
@@ -147,146 +70,181 @@ export const authAPI = {
     return response.data;
   },
 
-  register: async (email, password, role = "driver") => {
-    const response = await api.post("/api/auth/register", {
-      email,
-      password,
-      role,
-    });
+  logout: async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch (error) {
+      // Ignore logout errors
+    }
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("user");
+    return { success: true };
+  },
+
+  register: async (data) => {
+    const response = await api.post("/api/auth/register", data);
     return response.data;
   },
 
-  // 🔐 Refresh Token
-  refresh: async (refreshToken) => {
-    const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-      refreshToken,
-    });
+  me: async () => {
+    const response = await api.get("/api/auth/me");
     return response.data;
   },
 
-  // Logout - refreshToken parametresi eklendi
-  logout: async (refreshToken = null) => {
-    const response = await api.post("/api/auth/logout", { refreshToken });
-    return response.data;
-  },
-
-  // 🔐 Tüm cihazlardan çıkış
-  logoutAll: async () => {
-    const response = await api.post("/api/auth/logout-all");
+  changePassword: async (data) => {
+    const response = await api.put("/api/auth/change-password", data);
     return response.data;
   },
 };
 
 // ============================================
-// DEVICE API - FAZ 4 BLE ACTIVATION
+// USER ENDPOINTS
 // ============================================
 
-export const deviceAPI = {
-  // Get all devices (SuperAdmin)
-  getAll: async () => {
+export const userAPI = {
+  getProfile: async () => {
+    const response = await api.get("/api/user/profile");
+    return response.data;
+  },
+
+  updateProfile: async (data) => {
+    const response = await api.put("/api/user/profile", data);
+    return response.data;
+  },
+
+  changePassword: async (data) => {
+    const response = await api.put("/api/user/change-password", data);
+    return response.data;
+  },
+};
+
+// ============================================
+// ADMIN ENDPOINTS
+// ============================================
+
+export const adminAPI = {
+  // Fleet Stats
+  getFleetStats: async () => {
+    const response = await api.get("/api/admin/stats");
+    return response.data;
+  },
+
+  // Vehicles
+  getVehicles: async () => {
+    const response = await api.get("/api/vehicles");
+    return response.data;
+  },
+
+  // Drivers
+  getDrivers: async () => {
+    const response = await api.get("/api/drivers");
+    return response.data;
+  },
+
+  // Tasks
+  getTasks: async () => {
+    const response = await api.get("/api/tasks");
+    return response.data;
+  },
+
+  // Alerts
+  getAlerts: async (status) => {
+    const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  resolveAlert: async (alertId, resolution) => {
+    const response = await api.put(`/api/alerts/${alertId}/resolve`, {
+      resolution,
+    });
+    return response.data;
+  },
+
+  // Activities (combined alerts + tasks)
+  getActivities: async () => {
+    const response = await api.get("/api/admin/activities");
+    return response.data;
+  },
+};
+
+// ============================================
+// SUPER ADMIN ENDPOINTS
+// ============================================
+
+export const superAdminAPI = {
+  // Companies
+  getCompanies: async () => {
+    const response = await api.get("/api/superadmin/companies");
+    return response.data;
+  },
+
+  createCompany: async (data) => {
+    const response = await api.post("/api/superadmin/companies", data);
+    return response.data;
+  },
+
+  updateCompany: async (id, data) => {
+    const response = await api.put(`/api/superadmin/companies/${id}`, data);
+    return response.data;
+  },
+
+  deleteCompany: async (id) => {
+    const response = await api.delete(`/api/superadmin/companies/${id}`);
+    return response.data;
+  },
+
+  // Devices
+  getDevices: async () => {
     const response = await api.get("/api/superadmin/devices");
     return response.data;
   },
 
-  // Get device by ID
-  getById: async (id) => {
-    const response = await api.get(`/api/superadmin/devices/${id}`);
+  // Users
+  getUsers: async () => {
+    const response = await api.get("/api/superadmin/users");
     return response.data;
   },
 
-  // Get device by serial
-  getBySerial: async (serial) => {
-    const response = await api.get(`/api/devices/serial/${serial}`);
+  // System Health
+  getSystemHealth: async () => {
+    const response = await api.get("/api/superadmin/system-health");
     return response.data;
   },
+};
 
-  // Validate serial (opsiyonel - endpoint varsa kullan)
+// ============================================
+// DEVICE ENDPOINTS
+// ============================================
+
+export const deviceAPI = {
+  // Validate serial
   validateSerial: async (serial) => {
-    try {
-      const response = await api.get(`/api/devices/serial/${serial}/check`);
-      return {
-        valid: true,
-        device: response.data,
-      };
-    } catch (error) {
-      // Endpoint yoksa (404) bile devam et
-      if (error.response?.status === 404) {
-        // Endpoint yok, validation skip
-        return { valid: true, skipValidation: true };
-      }
-      return {
-        valid: false,
-        error: error.response?.data?.error || "VALIDATION_ERROR",
-        message: error.response?.data?.message || "Doğrulama hatası",
-      };
-    }
-  },
-
-  // 🔵 ACTIVATE DEVICE (Mobil JWT ile)
-  activate: async (serial, espChipId = null) => {
-    try {
-      const body = { serial };
-      if (espChipId) body.esp_chip_id = espChipId;
-
-      const response = await api.post("/api/devices/activate", body);
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      const data = error.response?.data || {};
-      return {
-        success: false,
-        error: data.error || "UNKNOWN_ERROR",
-        message: data.message || "Aktivasyon başarısız",
-        statusCode: error.response?.status,
-      };
-    }
-  },
-
-  // Generate serials (batch)
-  generateSerials: async (count, createdBy) => {
-    const response = await api.post(
-      "/api/superadmin/devices/generate-serials",
-      {
-        count,
-        created_by: createdBy,
-      }
-    );
+    const response = await api.post("/api/devices/validate-serial", { serial });
     return response.data;
   },
 
-  // Assign device to vehicle
-  assignToVehicle: async (deviceId, vehicleId) => {
-    const response = await api.post(
-      `/api/superadmin/devices/${deviceId}/assign`,
-      {
-        vehicle_id: vehicleId,
-      }
-    );
+  // Activate device
+  activate: async (data) => {
+    const response = await api.post("/api/devices/activate", data);
     return response.data;
   },
 
-  // Unassign device from vehicle
-  unassign: async (deviceId) => {
-    const response = await api.post(
-      `/api/superadmin/devices/${deviceId}/unassign`
-    );
+  // Get device info
+  getInfo: async (deviceId) => {
+    const response = await api.get(`/api/devices/${deviceId}`);
     return response.data;
   },
 
   // Update device status
   updateStatus: async (deviceId, status) => {
-    const response = await api.put(
-      `/api/superadmin/devices/${deviceId}/status`,
-      {
-        status,
-      }
-    );
+    const response = await api.put(`/api/devices/${deviceId}/status`, {
+      status,
+    });
     return response.data;
   },
 
-  // Alias for backward compatibility
+  // Driver task status (eski endpoint)
   updateTaskStatus: async (id, status) => {
     const response = await api.put(`/api/driver/task/${id}/status`, { status });
     return response.data;
@@ -369,80 +327,19 @@ export const driverAPI = {
     return response.data;
   },
 
-  // Update task status
-  updateTaskStatus: async (taskId, status) => {
-    const response = await api.put(`/api/driver/task/${taskId}/status`, {
-      status,
+  // 🆕 Araç yakıt güncelle (06 Ocak 2026)
+  updateVehicleFuel: async (vehicleId, fuelLevel) => {
+    const response = await api.put(`/api/driver/vehicle/${vehicleId}/fuel`, {
+      fuel_level: fuelLevel,
     });
     return response.data;
   },
-};
 
-// ============================================
-// ADMIN ENDPOINTS
-// ============================================
-
-export const adminAPI = {
-  // Get fleet statistics
-  getFleetStats: async () => {
-    const response = await api.get("/api/admin/fleet-stats");
-    return response.data;
-  },
-
-  // Get all vehicles with details
-  getVehicles: async () => {
-    const response = await api.get("/api/admin/vehicles");
-    return response.data;
-  },
-
-  // Get recent activities
-  getActivities: async () => {
-    const response = await api.get("/api/admin/activities");
-    return response.data;
-  },
-};
-
-// ============================================
-// SUPER ADMIN ENDPOINTS
-// ============================================
-
-export const superAdminAPI = {
-  // Companies
-  getCompanies: async () => {
-    const response = await api.get("/api/superadmin/companies");
-    return response.data;
-  },
-
-  createCompany: async (data) => {
-    const response = await api.post("/api/superadmin/companies", data);
-    return response.data;
-  },
-
-  updateCompany: async (id, data) => {
-    const response = await api.put(`/api/superadmin/companies/${id}`, data);
-    return response.data;
-  },
-
-  deleteCompany: async (id) => {
-    const response = await api.delete(`/api/superadmin/companies/${id}`);
-    return response.data;
-  },
-
-  // Devices
-  getDevices: async () => {
-    const response = await api.get("/api/superadmin/devices");
-    return response.data;
-  },
-
-  // Users
-  getUsers: async () => {
-    const response = await api.get("/api/superadmin/users");
-    return response.data;
-  },
-
-  // System Health
-  getSystemHealth: async () => {
-    const response = await api.get("/api/superadmin/system-health");
+  // 🆕 Araç km güncelle (06 Ocak 2026)
+  updateVehicleKm: async (vehicleId, odometer) => {
+    const response = await api.put(`/api/driver/vehicle/${vehicleId}/odometer`, {
+      odometer: odometer,
+    });
     return response.data;
   },
 };
@@ -488,20 +385,23 @@ export const vehicleAPI = {
     return response.data;
   },
 
-  // Get vehicle telemetry
-  getTelemetry: async (id) => {
-    const response = await api.get(`/api/vehicles/${id}/telemetry`);
+  // Get vehicle location history
+  getLocationHistory: async (vehicleId, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.start) queryParams.append("start", params.start);
+    if (params.end) queryParams.append("end", params.end);
+    if (params.limit) queryParams.append("limit", params.limit);
+
+    const url = `/api/vehicles/${vehicleId}/locations${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+    const response = await api.get(url);
     return response.data;
   },
 
-  // Get vehicle track (history)
-  getTrack: async (id, from, to) => {
-    const params = new URLSearchParams();
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-    const response = await api.get(
-      `/api/vehicles/${id}/track?${params.toString()}`
-    );
+  // Get latest location
+  getLatestLocation: async (vehicleId) => {
+    const response = await api.get(`/api/vehicles/${vehicleId}/location`);
     return response.data;
   },
 };
@@ -563,129 +463,35 @@ export const taskAPI = {
 };
 
 // ============================================
-// ALERTS
-// ============================================
-export const alertAPI = {
-  getAll: async () => {
-    const response = await api.get("/api/alerts");
-    return response.data;
-  },
-  resolve: async (id) => {
-    const response = await api.put(`/api/alerts/${id}/resolve`);
-    return response.data;
-  },
-  delete: async (id) => {
-    const response = await api.delete(`/api/alerts/${id}`);
-    return response.data;
-  },
-  deleteAll: async () => {
-    const response = await api.delete("/api/alerts/all");
-    return response.data;
-  },
-};
-
-// ============================================
-// REPORTS
+// TASK OFFERS API (Sürücü için görev teklifleri)
 // ============================================
 
-export const reportAPI = {
-  // Eski: Filo özeti raporu (geriye uyumluluk)
-  getFleetSummary: async (from, to) => {
-    const params = new URLSearchParams({ from, to }).toString();
-    const response = await api.get(`/api/reports/fleet-summary?${params}`);
+export const taskOffersAPI = {
+  // Tüm teklifleri getir
+  getOffers: async (status) => {
+    const url = status
+      ? `/api/task-offers?status=${status}`
+      : "/api/task-offers";
+    const response = await api.get(url);
     return response.data;
   },
 
-  // Yeni: Genel özet
-  getSummary: async (from, to) => {
-    const params = new URLSearchParams();
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-    const response = await api.get(`/api/reports/summary?${params.toString()}`);
+  // Teklif detayı
+  getOfferDetail: async (offerId) => {
+    const response = await api.get(`/api/task-offers/${offerId}`);
     return response.data;
   },
 
-  // Araç raporları
-  getVehicles: async () => {
-    const response = await api.get("/api/reports/vehicles");
+  // Teklifi kabul et
+  acceptOffer: async (offerId) => {
+    const response = await api.put(`/api/task-offers/${offerId}/accept`);
     return response.data;
   },
 
-  // Sürücü raporları
-  getDrivers: async () => {
-    const response = await api.get("/api/reports/drivers");
-    return response.data;
-  },
-
-  // Uyarı raporları
-  getAlerts: async (from, to) => {
-    const params = new URLSearchParams();
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-    const response = await api.get(`/api/reports/alerts?${params.toString()}`);
-    return response.data;
-  },
-
-  // Görev raporları
-  getTasks: async (from, to) => {
-    const params = new URLSearchParams();
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-    const response = await api.get(`/api/reports/tasks?${params.toString()}`);
-    return response.data;
-  },
-};
-
-// ============================================
-// DASHBOARD
-// ============================================
-
-export const dashboardAPI = {
-  // Get dashboard statistics
-  getStats: async () => {
-    const response = await api.get("/api/dashboard/stats");
-    return response.data;
-  },
-};
-
-// ============================================
-// HEALTH CHECK
-// ============================================
-
-export const healthAPI = {
-  check: async () => {
-    const response = await api.get("/health");
-    return response.data;
-  },
-};
-
-// ============================================
-// USER API
-// ============================================
-export const userAPI = {
-  // Profil güncelle
-  updateProfile: async (data) => {
-    const response = await api.put("/api/users/profile", data);
-    return response.data;
-  },
-
-  // Şifre değiştir
-  changePassword: async (data) => {
-    const response = await api.put("/api/users/password", data);
-    return response.data;
-  },
-
-  // Ayarları güncelle
-  updateSettings: async (data) => {
-    const response = await api.put("/api/users/settings", data);
-    return response.data;
-  },
-
-  // Push token kaydet
-  registerPushToken: async (token, platform) => {
-    const response = await api.post("/api/users/push-token", {
-      token,
-      platform,
+  // Teklifi reddet
+  rejectOffer: async (offerId, reason) => {
+    const response = await api.put(`/api/task-offers/${offerId}/reject`, {
+      reason,
     });
     return response.data;
   },
@@ -693,12 +499,18 @@ export const userAPI = {
 
 // ============================================
 // DRIVER TASK API - YENİ GÖREV AKIŞI
-// Updated: 27 Aralık 2025
+// Updated: 06 Ocak 2026 - getCompletedTasks eklendi
 // ============================================
 export const driverTaskAPI = {
-  // Sürücünün görevlerini getir
+  // Sürücünün aktif görevlerini getir
   getMyTasks: async () => {
     const response = await api.get("/api/driver/tasks");
+    return response.data;
+  },
+
+  // 🆕 Tamamlanan görevleri getir (son 7 gün)
+  getCompletedTasks: async () => {
+    const response = await api.get("/api/driver/tasks?status=completed");
     return response.data;
   },
 
@@ -758,82 +570,15 @@ export const pushAPI = {
     return response.data;
   },
 
-  // Unregister push token
-  unregister: async () => {
-    const response = await api.delete("/api/push/unregister");
-    return response.data;
-  },
-
-  // Enable/disable push notifications
-  toggle: async (enabled) => {
-    const response = await api.put("/api/push/toggle", { enabled });
-    return response.data;
-  },
-
-  // Get push status
-  getStatus: async () => {
-    const response = await api.get("/api/push/status");
+  // Send test notification
+  sendTest: async () => {
+    const response = await api.post("/api/push/test");
     return response.data;
   },
 };
 
 // ============================================
-// TASK OFFERS (Driver Inbox)
+// DEFAULT EXPORT
 // ============================================
-export const taskOffersAPI = {
-  // Tüm teklifleri getir (inbox)
-  getOffers: async (status = null) => {
-    const params = status ? `?status=${status}` : "";
-    const response = await api.get(`/api/task-offers${params}`);
-    return response.data;
-  },
-
-  // Teklif detayı
-  getOfferDetail: async (offerId) => {
-    const response = await api.get(`/api/task-offers/${offerId}`);
-    return response.data;
-  },
-
-  // Teklifi kabul et
-  accept: async (offerId) => {
-    const response = await api.post(`/api/task-offers/${offerId}/respond`, {
-      response: "accepted",
-    });
-    return response.data;
-  },
-
-  // Teklifi reddet
-  reject: async (offerId, reason = null) => {
-    const response = await api.post(`/api/task-offers/${offerId}/respond`, {
-      response: "rejected",
-      reason,
-    });
-    return response.data;
-  },
-};
-
-// ============================================
-// ADMIN DEVICE API (Company Admin için)
-// ============================================
-export const adminDeviceAPI = {
-  getDevices: async () => {
-    const response = await api.get("/api/admin/devices");
-    return response.data;
-  },
-  setReprovision: async (deviceId, reason) => {
-    const response = await api.put(
-      `/api/admin/devices/${deviceId}/reprovision`,
-      { reason }
-    );
-    return response.data;
-  },
-  clearReprovision: async (deviceId) => {
-    const response = await api.put(
-      `/api/admin/devices/${deviceId}/reprovision`,
-      { clear: true }
-    );
-    return response.data;
-  },
-};
 
 export default api;
