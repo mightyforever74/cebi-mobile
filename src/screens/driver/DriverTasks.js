@@ -1,12 +1,13 @@
 // src/screens/driver/DriverTasks.js
 // TulipFleet - Sürücü Görevlerim Ekranı
-// Updated: 30 Aralık 2025 - Tab mantığı düzeltildi
+// Updated: 05 Ocak 2026 - Kabul/Ret butonları + Admin alert
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -42,7 +43,7 @@ const STATUS_CONFIG = {
     color: COLORS.info,
     bg: "#E8FAFC",
     icon: "checkmark-circle",
-    label: "Onaylandı",
+    label: "Kabul Edildi",
   },
   in_progress: {
     color: COLORS.primary,
@@ -89,6 +90,7 @@ const DriverTasks = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null); // Hangi görev için işlem yapılıyor
 
   // Ekrana her dönüşte verileri yenile
   useFocusEffect(
@@ -135,11 +137,105 @@ const DriverTasks = ({ navigation }) => {
     fetchPendingOffers();
   }, []);
 
+  // ═══════════════════════════════════════════════════════════════
+  // TASK ACTIONS - Kabul / Ret
+  // ═══════════════════════════════════════════════════════════════
+
+  const handleAcceptTask = async (task) => {
+    Alert.alert(
+      "Görevi Kabul Et",
+      `"${
+        task.title || task.task_no
+      }" görevini kabul etmek istediğinize emin misiniz?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Kabul Et",
+          onPress: async () => {
+            setActionLoading(task.id);
+            try {
+              await driverTaskAPI.updateTaskStatus(task.id, "accepted");
+
+              // Lokal state güncelle
+              setTasks((prev) =>
+                prev.map((t) =>
+                  t.id === task.id ? { ...t, status: "accepted" } : t
+                )
+              );
+
+              Alert.alert(
+                "✅ Görev Kabul Edildi",
+                "Navigasyon sayfasından görevi başlatabilirsiniz.",
+                [
+                  {
+                    text: "Navigasyona Git",
+                    onPress: () =>
+                      navigation.navigate("Navigation", {
+                        task: { ...task, status: "accepted" },
+                      }),
+                  },
+                  { text: "Tamam", style: "cancel" },
+                ]
+              );
+            } catch (err) {
+              console.error("Accept task error:", err);
+              Alert.alert("Hata", err.message || "Görev kabul edilemedi");
+            } finally {
+              setActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectTask = async (task) => {
+    Alert.alert(
+      "Görevi Reddet",
+      `"${
+        task.title || task.task_no
+      }" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Reddet",
+          style: "destructive",
+          onPress: async () => {
+            setActionLoading(task.id);
+            try {
+              await driverTaskAPI.updateTaskStatus(task.id, "rejected");
+
+              // Lokal state güncelle
+              setTasks((prev) =>
+                prev.map((t) =>
+                  t.id === task.id ? { ...t, status: "rejected" } : t
+                )
+              );
+
+              Alert.alert(
+                "Bilgi",
+                "Görev reddedildi. Yöneticinize bildirildi."
+              );
+            } catch (err) {
+              console.error("Reject task error:", err);
+              Alert.alert("Hata", err.message || "Görev reddedilemedi");
+            } finally {
+              setActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════════════════
+
   // Görevleri filtrele
   const filteredTasks = tasks.filter((task) => {
     const status = task.status || "pending";
     if (activeTab === "active") {
-      // Aktif görevler: assigned, accepted, in_progress, pending_review
       return [
         "pending_review",
         "accepted",
@@ -148,7 +244,6 @@ const DriverTasks = ({ navigation }) => {
         "assigned",
       ].includes(status);
     } else {
-      // Tamamlanan görevler: completed, rejected, cancelled
       return ["completed", "rejected", "cancelled"].includes(status);
     }
   });
@@ -163,8 +258,13 @@ const DriverTasks = ({ navigation }) => {
       "assigned",
     ].includes(t.status)
   ).length;
+
   const completedCount = tasks.filter((t) =>
     ["completed", "rejected", "cancelled"].includes(t.status)
+  ).length;
+
+  const pendingReviewCount = tasks.filter(
+    (t) => t.status === "pending_review"
   ).length;
 
   // Lokasyon bilgisini al
@@ -197,6 +297,10 @@ const DriverTasks = ({ navigation }) => {
       minute: "2-digit",
     });
   };
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER COMPONENTS
+  // ═══════════════════════════════════════════════════════════════
 
   // Görev Teklifleri Kartı
   const renderOffersCard = () => {
@@ -237,6 +341,8 @@ const DriverTasks = ({ navigation }) => {
     const origin = getOrigin(item);
     const destination = getDestination(item);
     const distance = getDistance(item);
+    const isPendingReview = status === "pending_review";
+    const isLoading = actionLoading === item.id;
 
     // Kısa görev numarası
     const getShortTaskNo = () => {
@@ -247,113 +353,163 @@ const DriverTasks = ({ navigation }) => {
     };
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
-        activeOpacity={0.7}
-      >
-        {/* Header with Status Badge */}
-        <View style={styles.cardHeader}>
-          <View style={styles.taskIdContainer}>
-            <Ionicons name="document-text" size={18} color={COLORS.primary} />
-            <Text style={styles.taskId}>{getShortTaskNo()}</Text>
+      <View style={[styles.card, isPendingReview && styles.cardPendingReview]}>
+        {/* Yeni Görev Banner */}
+        {isPendingReview && (
+          <View style={styles.newTaskBanner}>
+            <Ionicons name="notifications" size={16} color="#fff" />
+            <Text style={styles.newTaskBannerText}>Yeni Görev Teklifi!</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
-            <Ionicons name={config.icon} size={12} color={config.color} />
-            <Text style={[styles.statusText, { color: config.color }]}>
-              {config.label}
-            </Text>
-          </View>
-        </View>
+        )}
 
-        {/* Body */}
-        <View style={styles.cardBody}>
-          {item.title && <Text style={styles.taskTitle}>{item.title}</Text>}
-
-          {/* Lokasyonlar */}
-          {(origin || destination) && (
-            <View style={styles.locationContainer}>
-              {origin && (
-                <View style={styles.locationRow}>
-                  <View
-                    style={[
-                      styles.locationDot,
-                      { backgroundColor: COLORS.success },
-                    ]}
-                  />
-                  <Text style={styles.locationText} numberOfLines={1}>
-                    {origin}
-                  </Text>
-                </View>
-              )}
-              {origin && destination && <View style={styles.locationLine} />}
-              {destination && (
-                <View style={styles.locationRow}>
-                  <View
-                    style={[
-                      styles.locationDot,
-                      { backgroundColor: COLORS.danger },
-                    ]}
-                  />
-                  <Text style={styles.locationText} numberOfLines={1}>
-                    {destination}
-                  </Text>
-                </View>
-              )}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
+          activeOpacity={0.7}
+          disabled={isLoading}
+        >
+          {/* Header with Status Badge */}
+          <View style={styles.cardHeader}>
+            <View style={styles.taskIdContainer}>
+              <Ionicons name="document-text" size={18} color={COLORS.primary} />
+              <Text style={styles.taskId}>{getShortTaskNo()}</Text>
             </View>
-          )}
+            <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
+              <Ionicons name={config.icon} size={12} color={config.color} />
+              <Text style={[styles.statusText, { color: config.color }]}>
+                {config.label}
+              </Text>
+            </View>
+          </View>
 
-          {/* Alt Bilgiler */}
-          <View style={styles.metaRow}>
-            {item.vehicle_plate && (
-              <View style={styles.metaItem}>
-                <Ionicons name="car" size={14} color={COLORS.secondary} />
-                <Text style={styles.metaText}>{item.vehicle_plate}</Text>
-              </View>
-            )}
-            {distance && (
-              <View style={styles.metaItem}>
-                <Ionicons
-                  name="speedometer"
-                  size={14}
-                  color={COLORS.secondary}
-                />
-                <Text style={styles.metaText}>{distance} km</Text>
-              </View>
-            )}
-            <View style={styles.metaItem}>
-              <Ionicons
-                name="calendar-outline"
-                size={14}
-                color={COLORS.secondary}
-              />
-              <Text style={styles.metaText}>
-                {formatDate(
-                  item.planned_start || item.scheduled_date || item.created_at
+          {/* Body */}
+          <View style={styles.cardBody}>
+            {item.title && <Text style={styles.taskTitle}>{item.title}</Text>}
+
+            {/* Lokasyonlar */}
+            {(origin || destination) && (
+              <View style={styles.locationContainer}>
+                {origin && (
+                  <View style={styles.locationRow}>
+                    <View
+                      style={[
+                        styles.locationDot,
+                        { backgroundColor: COLORS.success },
+                      ]}
+                    />
+                    <Text style={styles.locationText} numberOfLines={1}>
+                      {origin}
+                    </Text>
+                  </View>
                 )}
-              </Text>
+                {origin && destination && <View style={styles.locationLine} />}
+                {destination && (
+                  <View style={styles.locationRow}>
+                    <View
+                      style={[
+                        styles.locationDot,
+                        { backgroundColor: COLORS.danger },
+                      ]}
+                    />
+                    <Text style={styles.locationText} numberOfLines={1}>
+                      {destination}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Alt Bilgiler */}
+            <View style={styles.metaRow}>
+              {item.vehicle_plate && (
+                <View style={styles.metaItem}>
+                  <Ionicons name="car" size={14} color={COLORS.secondary} />
+                  <Text style={styles.metaText}>{item.vehicle_plate}</Text>
+                </View>
+              )}
+              {distance && (
+                <View style={styles.metaItem}>
+                  <Ionicons
+                    name="speedometer"
+                    size={14}
+                    color={COLORS.secondary}
+                  />
+                  <Text style={styles.metaText}>{distance} km</Text>
+                </View>
+              )}
+              {item.scheduled_start && (
+                <View style={styles.metaItem}>
+                  <Ionicons
+                    name="calendar"
+                    size={14}
+                    color={COLORS.secondary}
+                  />
+                  <Text style={styles.metaText}>
+                    {formatDate(item.scheduled_start)}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
+        </TouchableOpacity>
 
-          {/* Aksiyon ipucu */}
-          <View style={styles.actionHint}>
-            {status === "assigned" || status === "accepted" ? (
-              <Text style={[styles.actionHintText, { color: COLORS.primary }]}>
-                📍 Detay için tıklayın → Göreve Başla
-              </Text>
-            ) : status === "in_progress" ? (
-              <Text style={[styles.actionHintText, { color: COLORS.success }]}>
-                🚀 Devam ediyor → Tamamla
-              </Text>
-            ) : null}
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* KABUL / RET BUTONLARI (Sadece pending_review için) */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        {isPendingReview && (
+          <View style={styles.actionButtonsContainer}>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+                <Text style={styles.loadingText}>İşleniyor...</Text>
+              </View>
+            ) : (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.rejectButton]}
+                  onPress={() => handleRejectTask(item)}
+                >
+                  <Ionicons name="close" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Reddet</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.acceptButton]}
+                  onPress={() => handleAcceptTask(item)}
+                >
+                  <Ionicons name="checkmark" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Kabul Et</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </View>
+        )}
 
-        {/* Chevron */}
-        <View style={styles.chevronContainer}>
-          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
-        </View>
-      </TouchableOpacity>
+        {/* accepted durumunda Navigasyona Git butonu */}
+        {status === "accepted" && (
+          <TouchableOpacity
+            style={styles.goToNavButton}
+            onPress={() => navigation.navigate("Navigation", { task: item })}
+          >
+            <Ionicons name="navigate" size={18} color="#fff" />
+            <Text style={styles.goToNavButtonText}>
+              Navigasyona Git - Başlat
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* in_progress durumunda Devam Et butonu */}
+        {status === "in_progress" && (
+          <TouchableOpacity
+            style={styles.continueNavButton}
+            onPress={() => navigation.navigate("Navigation", { task: item })}
+          >
+            <Ionicons name="navigate" size={18} color="#fff" />
+            <Text style={styles.continueNavButtonText}>
+              Navigasyona Devam Et
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
@@ -363,8 +519,8 @@ const DriverTasks = ({ navigation }) => {
       <Ionicons
         name={
           activeTab === "active"
-            ? "car-outline"
-            : "checkmark-done-circle-outline"
+            ? "clipboard-outline"
+            : "checkmark-done-outline"
         }
         size={64}
         color={COLORS.muted}
@@ -374,19 +530,39 @@ const DriverTasks = ({ navigation }) => {
       </Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === "active"
-          ? "Yeni görev teklifleri için yukarıdaki kartı kontrol edin"
-          : "Henüz tamamladığınız görev bulunmuyor"}
+          ? "Size atanan yeni görevler burada görünecek"
+          : "Tamamladığınız görevler burada listelenecek"}
       </Text>
     </View>
   );
 
-  // Liste başlığı (teklifler kartı)
-  const renderListHeader = () => {
-    if (activeTab !== "active") return null;
-    return renderOffersCard();
-  };
+  // Liste header (bekleyen görev uyarısı)
+  const renderListHeader = () => (
+    <View>
+      {/* Bekleyen Görev Teklifleri */}
+      {renderOffersCard()}
 
-  // Loading state
+      {/* Pending Review Uyarısı */}
+      {activeTab === "active" && pendingReviewCount > 0 && (
+        <View style={styles.pendingReviewAlert}>
+          <Ionicons name="alert-circle" size={22} color="#D97706" />
+          <View style={styles.pendingReviewAlertContent}>
+            <Text style={styles.pendingReviewAlertTitle}>
+              {pendingReviewCount} görev onayınızı bekliyor
+            </Text>
+            <Text style={styles.pendingReviewAlertSubtitle}>
+              Kabul veya reddetmek için aşağıdaki kartları inceleyin
+            </Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
+  // ═══════════════════════════════════════════════════════════════
+  // MAIN RENDER
+  // ═══════════════════════════════════════════════════════════════
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -396,7 +572,6 @@ const DriverTasks = ({ navigation }) => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <View style={styles.centerContainer}>
@@ -424,7 +599,7 @@ const DriverTasks = ({ navigation }) => {
               activeTab === "active" && styles.activeTabText,
             ]}
           >
-            Aktif Görevler
+            Aktif
           </Text>
           {activeCount > 0 && (
             <View
@@ -551,6 +726,32 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
+  // Pending Review Alert
+  pendingReviewAlert: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEF3C7",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#D97706",
+  },
+  pendingReviewAlertContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  pendingReviewAlertTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#92400E",
+  },
+  pendingReviewAlertSubtitle: {
+    fontSize: 12,
+    color: "#B45309",
+    marginTop: 2,
+  },
+
   // Offers Card
   offersCard: {
     backgroundColor: COLORS.primary,
@@ -614,6 +815,26 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: "hidden",
   },
+  cardPendingReview: {
+    borderWidth: 2,
+    borderColor: COLORS.warning,
+  },
+
+  // New Task Banner
+  newTaskBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.warning,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  newTaskBannerText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 13,
+  },
+
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -701,24 +922,77 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  // Action Hint
-  actionHint: {
-    marginTop: 10,
-    paddingTop: 10,
+  // Action Buttons (Kabul/Ret)
+  actionButtonsContainer: {
     borderTopWidth: 1,
     borderTopColor: COLORS.background,
+    padding: 12,
   },
-  actionHintText: {
-    fontSize: 12,
-    fontWeight: "500",
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  rejectButton: {
+    backgroundColor: COLORS.danger,
+  },
+  acceptButton: {
+    backgroundColor: COLORS.success,
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
   },
 
-  // Chevron
-  chevronContainer: {
-    position: "absolute",
-    right: 10,
-    top: "50%",
-    marginTop: -11,
+  // Go to Navigation Button
+  goToNavButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  goToNavButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  // Continue Navigation Button
+  continueNavButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.info,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  continueNavButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
   },
 
   // Empty

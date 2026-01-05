@@ -24,8 +24,8 @@
         "googleMapsApiKey": "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk"
       },
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription": "Cihazları bulmak ve bağlanmak için Bluetooth izni gerekli",
-        "NSBluetoothPeripheralUsageDescription": "Cihazlara bağlanmak için Bluetooth izni gerekli",
+        "NSBluetoothAlwaysUsageDescription": "Cihaz kurulumu için Bluetooth gereklidir",
+        "NSBluetoothPeripheralUsageDescription": "ESP32 cihazıyla iletişim için Bluetooth gereklidir",
         "NSCameraUsageDescription": "QR kod okumak için kamera izni gerekli",
         "NSLocationWhenInUseUsageDescription": "Bluetooth cihazlarını bulmak için konum izni gerekli",
         "ITSAppUsesNonExemptEncryption": false,
