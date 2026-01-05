@@ -1,6 +1,8 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 05 Ocak 2026 - Akışa uygun: accepted/in_progress'te kart, dahili navigasyon
+// Updated: 05 Ocak 2026 v4 - Final Akış:
+// - accepted: Kart + Başla butonu
+// - in_progress: Kart YOK, Floating Tamamla + Dahili Navigasyon
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -9,8 +11,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Linking,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,10 +20,9 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { COLORS } from "../../constants/config";
 import { driverTaskAPI } from "../../services/api";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const DriverRouteMapScreen = ({ navigation, route }) => {
-  // Route params'tan task geliyorsa onu kullan
   const initialTask = route?.params?.task || null;
 
   const [task, setTask] = useState(initialTask);
@@ -33,7 +32,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [routeCoords, setRouteCoords] = useState([]);
   const [watchSubscription, setWatchSubscription] = useState(null);
-  const [navigationInfo, setNavigationInfo] = useState(null); // Dahili nav bilgisi
+  const [navigationInfo, setNavigationInfo] = useState(null);
 
   const mapRef = useRef(null);
 
@@ -46,7 +45,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     getLocation();
 
     return () => {
-      // Cleanup location watch
       if (watchSubscription) {
         watchSubscription.remove();
       }
@@ -67,7 +65,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const loadActiveTask = async () => {
     try {
       const res = await driverTaskAPI.getMyTasks();
-      // Sadece accepted veya in_progress görevleri al (pending_review hariç)
+      // Sadece accepted veya in_progress görevleri al
+      // pending_review NAVİGASYONDA GÖSTERİLMEZ (Görevlerim'de kabul edilir)
       const activeTask =
         res.tasks?.find((t) => t.status === "in_progress") ||
         res.tasks?.find((t) => t.status === "accepted") ||
@@ -100,7 +99,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   // ══════════════════════════════════════════════════════════════
-  // NAVIGATION & ROUTE
+  // NAVIGATION & ROUTE (in_progress için)
   // ══════════════════════════════════════════════════════════════
 
   const fetchRouteAndStartNav = async () => {
@@ -134,7 +133,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     if (mapRef.current && coords.length > 1) {
       setTimeout(() => {
         mapRef.current.fitToCoordinates(coords, {
-          edgePadding: { top: 100, right: 50, bottom: 300, left: 50 },
+          edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
           animated: true,
         });
       }, 500);
@@ -163,7 +162,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 3000,
+          timeInterval: 3000, // 3 saniyede bir
           distanceInterval: 10,
         },
         (newLocation) => {
@@ -332,52 +331,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return taskNo;
   };
 
-  const openInGoogleMaps = () => {
-    const destination = getEndLocation();
-    if (!destination) return;
-
-    const encodedDest = encodeURIComponent(destination);
-    const url = Platform.select({
-      ios: `maps://app?daddr=${encodedDest}`,
-      android: `google.navigation:q=${encodedDest}`,
-    });
-
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Linking.openURL(
-          `https://www.google.com/maps/dir/?api=1&destination=${encodedDest}`
-        );
-      }
-    });
-  };
-
-  const getStatusConfig = (status) => {
-    const config = {
-      in_progress: {
-        label: "Navigasyon Aktif",
-        color: "#10B981",
-        bg: "#D1FAE5",
-        icon: "navigate",
-      },
-      accepted: {
-        label: "Başlamaya Hazır",
-        color: "#3B82F6",
-        bg: "#DBEAFE",
-        icon: "checkmark-circle",
-      },
-    };
-    return (
-      config[status] || {
-        label: status,
-        color: "#6B7280",
-        bg: "#F3F4F6",
-        icon: "help",
-      }
-    );
-  };
-
   const centerOnLocation = useCallback(() => {
     if (mapRef.current && location) {
       mapRef.current.animateToRegion({
@@ -392,7 +345,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const fitToRoute = useCallback(() => {
     if (mapRef.current && routeCoords.length > 1) {
       mapRef.current.fitToCoordinates(routeCoords, {
-        edgePadding: { top: 100, right: 50, bottom: 300, left: 50 },
+        edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
         animated: true,
       });
     }
@@ -412,9 +365,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   }
 
   const isNavigating = task?.status === "in_progress";
-  const showTaskCard =
-    task && (task.status === "accepted" || task.status === "in_progress");
-  const statusConfig = task ? getStatusConfig(task.status) : null;
+  const isAccepted = task?.status === "accepted";
+  // KART SADECE accepted DURUMUNDA GÖSTERİLİR
+  const showTaskCard = task && isAccepted;
 
   return (
     <View style={{ flex: 1 }}>
@@ -566,17 +519,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <Text style={styles.navInfoValue}>{navigationInfo.eta} dk</Text>
             <Text style={styles.navInfoLabel}>Tahmini</Text>
           </View>
-          <TouchableOpacity
-            style={styles.navInfoMapsBtn}
-            onPress={openInGoogleMaps}
-          >
-            <Ionicons name="navigate" size={18} color="#3B82F6" />
-          </TouchableOpacity>
+          <View style={styles.navInfoDivider} />
+          <View style={styles.navInfoItem}>
+            <Text style={styles.navInfoTaskNo}>{getShortTaskNo()}</Text>
+            <Text style={styles.navInfoLabel}>Görev</Text>
+          </View>
         </View>
       )}
 
       {/* ════════════════════════════════════════════════════════ */}
-      {/* NO TASK INFO */}
+      {/* NO TASK INFO (Görev yok veya pending_review) */}
       {/* ════════════════════════════════════════════════════════ */}
       {!task && location && (
         <View style={styles.noTaskBanner}>
@@ -591,12 +543,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* ════════════════════════════════════════════════════════ */}
-      {/* TASK CARD (accepted veya in_progress) */}
+      {/* TASK CARD - SADECE accepted DURUMUNDA */}
       {/* ════════════════════════════════════════════════════════ */}
       {showTaskCard && (
-        <View
-          style={[styles.taskCard, isNavigating && styles.taskCardNavigating]}
-        >
+        <View style={styles.taskCard}>
           {/* Header */}
           <View style={styles.taskHeader}>
             <View style={{ flex: 1 }}>
@@ -605,17 +555,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 {task.title || "Teslimat Görevi"}
               </Text>
             </View>
-            <View
-              style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}
-            >
-              <Ionicons
-                name={statusConfig.icon}
-                size={14}
-                color={statusConfig.color}
-              />
-              <Text style={[styles.statusText, { color: statusConfig.color }]}>
-                {statusConfig.label}
-              </Text>
+            <View style={styles.statusBadge}>
+              <Ionicons name="checkmark-circle" size={14} color="#3B82F6" />
+              <Text style={styles.statusText}>Başlamaya Hazır</Text>
             </View>
           </View>
 
@@ -651,44 +593,49 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           {/* Distance */}
           {getDistance() && (
             <View style={styles.distanceContainer}>
-              <Ionicons name="analytics" size={16} color={COLORS.gray} />
+              <Ionicons name="analytics" size={16} color="#64748B" />
               <Text style={styles.distanceText}>
                 Toplam: {getDistance()} km
               </Text>
             </View>
           )}
 
-          {/* Action Buttons */}
-          <View style={styles.actionContainer}>
+          {/* BAŞLA BUTONU */}
+          <TouchableOpacity
+            style={styles.startBtn}
+            onPress={handleStartTask}
+            disabled={actionLoading}
+          >
             {actionLoading ? (
-              <ActivityIndicator size="small" color={COLORS.primary} />
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
-                {/* accepted: Başla butonu */}
-                {task.status === "accepted" && (
-                  <TouchableOpacity
-                    style={styles.startBtn}
-                    onPress={handleStartTask}
-                  >
-                    <Ionicons name="play-circle" size={22} color="#fff" />
-                    <Text style={styles.startBtnText}>Görevi Başlat</Text>
-                  </TouchableOpacity>
-                )}
-
-                {/* in_progress: Tamamla butonu */}
-                {task.status === "in_progress" && (
-                  <TouchableOpacity
-                    style={styles.completeBtn}
-                    onPress={handleCompleteTask}
-                  >
-                    <Ionicons name="checkmark-circle" size={22} color="#fff" />
-                    <Text style={styles.completeBtnText}>Görevi Tamamla</Text>
-                  </TouchableOpacity>
-                )}
+                <Ionicons name="play-circle" size={22} color="#fff" />
+                <Text style={styles.startBtnText}>Görevi Başlat</Text>
               </>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
+      )}
+
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* FLOATING TAMAMLA BUTONU - SADECE in_progress DURUMUNDA */}
+      {/* ════════════════════════════════════════════════════════ */}
+      {isNavigating && (
+        <TouchableOpacity
+          style={styles.floatingCompleteBtn}
+          onPress={handleCompleteTask}
+          disabled={actionLoading}
+        >
+          {actionLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="checkmark-circle" size={24} color="#fff" />
+              <Text style={styles.floatingCompleteBtnText}>Tamamla</Text>
+            </>
+          )}
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -807,7 +754,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1E293B",
-    padding: 12,
+    padding: 14,
     borderRadius: 16,
     elevation: 6,
   },
@@ -821,6 +768,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 4,
   },
+  navInfoTaskNo: {
+    color: "#3B82F6",
+    fontSize: 14,
+    fontWeight: "700",
+  },
   navInfoLabel: {
     color: "#94A3B8",
     fontSize: 11,
@@ -830,12 +782,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: "#334155",
-  },
-  navInfoMapsBtn: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-    marginLeft: 12,
   },
 
   // No Task Banner
@@ -870,7 +816,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Task Card
+  // Task Card (sadece accepted)
   taskCard: {
     position: "absolute",
     left: 16,
@@ -884,10 +830,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
-  },
-  taskCardNavigating: {
-    borderWidth: 2,
-    borderColor: "#10B981",
   },
   taskHeader: {
     flexDirection: "row",
@@ -909,6 +851,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#DBEAFE",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
@@ -917,6 +860,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: "600",
+    color: "#3B82F6",
   },
 
   // Locations
@@ -972,10 +916,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Actions
-  actionContainer: {
-    marginTop: 4,
-  },
+  // Start Button (accepted kartında)
   startBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -990,19 +931,30 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
   },
-  completeBtn: {
+
+  // Floating Complete Button (in_progress)
+  floatingCompleteBtn: {
+    position: "absolute",
+    bottom: 30,
+    left: 16,
+    right: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#10B981",
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 10,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  completeBtnText: {
+  floatingCompleteBtnText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 18,
   },
 });
 
