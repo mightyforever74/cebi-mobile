@@ -286,6 +286,12 @@ export const deviceAPI = {
     return response.data;
   },
 
+  // Alias for backward compatibility
+  updateTaskStatus: async (id, status) => {
+    const response = await api.put(`/api/driver/task/${id}/status`, { status });
+    return response.data;
+  },
+
   // Quarantine device
   quarantine: async (deviceId, reason) => {
     const response = await api.post(
