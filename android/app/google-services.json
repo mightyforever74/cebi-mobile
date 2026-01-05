@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851514187466",
+    "project_id": "tulipfleet-523be",
+    "storage_bucket": "tulipfleet-523be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851514187466:android:3dcb28cd52a0eb417c1e33",
+        "android_client_info": {
+          "package_name": "com.tulipfleet.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBw8h5r7M_5XxkSz-aUohlAHrV5o_lrSig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
