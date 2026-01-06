@@ -2,8 +2,8 @@
 // TulipFleet - Root Navigator (Auth Check)
 // Single NavigationContainer - this is critical!
 
-import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
+import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/config";
 import { useAuth } from "../context/AuthContext";
@@ -23,9 +23,9 @@ const RootNavigator = () => {
         <View style={styles.loadingContent}>
           <Text style={styles.loadingLogo}>🚛</Text>
           <Text style={styles.loadingTitle}>TulipFleet</Text>
-          <ActivityIndicator 
-            size="large" 
-            color={COLORS.primary} 
+          <ActivityIndicator
+            size="large"
+            color={COLORS.primary}
             style={styles.spinner}
           />
           <Text style={styles.loadingText}>Yükleniyor...</Text>
@@ -34,7 +34,14 @@ const RootNavigator = () => {
     );
   }
 
-  console.log("🚦 RootNavigator - Auth:", isAuthenticated, "User:", user?.email, "Role:", user?.role);
+  console.log(
+    "🚦 RootNavigator - Auth:",
+    isAuthenticated,
+    "User:",
+    user?.email,
+    "Role:",
+    user?.role
+  );
 
   return (
     <NavigationContainer
@@ -55,7 +62,21 @@ const RootNavigator = () => {
         }
       }}
     >
-      {isAuthenticated && user ? <AppNavigator /> : <AuthNavigator />}
+      {isAuthenticated && user ? (
+        <View style={{ flex: 1 }}>
+          <Text style={{ padding: 50, fontSize: 20, textAlign: "center" }}>
+            ✅ LOGIN BAŞARILI!{"\n"}
+            User: {user?.email}
+            {"\n"}
+            Role: {user?.role}
+            {"\n"}
+            {"\n"}AppNavigator yükleniyor...
+          </Text>
+          <AppNavigator />
+        </View>
+      ) : (
+        <AuthNavigator />
+      )}
     </NavigationContainer>
   );
 };
