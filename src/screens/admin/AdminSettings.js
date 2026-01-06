@@ -5,7 +5,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   Modal,
@@ -16,6 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../services/api";
@@ -79,7 +79,7 @@ const SectionHeader = ({ title }) => (
 
 const AdminSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
-
+  
   // Bildirim ayarları
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [alertNotifications, setAlertNotifications] = useState(true);
@@ -244,17 +244,11 @@ const AdminSettings = ({ navigation }) => {
       <View style={styles.profileCard}>
         <View style={styles.avatarLarge}>
           <Text style={styles.avatarText}>
-            {user?.firstName?.[0] ||
-              user?.first_name?.[0] ||
-              user?.email?.[0]?.toUpperCase() ||
-              "A"}
+            {user?.firstName?.[0] || user?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || "A"}
           </Text>
         </View>
         <Text style={styles.profileName}>
-          {user?.firstName ||
-            user?.first_name ||
-            user?.email?.split("@")[0] ||
-            "Admin"}
+          {user?.firstName || user?.first_name || user?.email?.split("@")[0] || "Admin"}
         </Text>
         <Text style={styles.profileEmail}>{user?.email || "-"}</Text>
         <View style={styles.roleBadge}>
@@ -300,7 +294,7 @@ const AdminSettings = ({ navigation }) => {
             />
           }
         />
-
+        
         {/* Push açıkken alt seçenekleri göster */}
         {notificationsEnabled && (
           <>
@@ -374,8 +368,8 @@ const AdminSettings = ({ navigation }) => {
                 // TODO: ThemeContext ile entegre et
                 Alert.alert(
                   "Karanlık Mod",
-                  value
-                    ? "Karanlık mod etkinleştirildi. Tam destek yakında!"
+                  value 
+                    ? "Karanlık mod etkinleştirildi. Tam destek yakında!" 
                     : "Karanlık mod kapatıldı."
                 );
               }}
@@ -455,7 +449,7 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Profili Düzenle</Text>
-
+            
             <Text style={styles.inputLabel}>Ad</Text>
             <TextInput
               style={styles.modalInput}
@@ -516,7 +510,7 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Şifre Değiştir</Text>
-
+            
             <Text style={styles.inputLabel}>Mevcut Şifre</Text>
             <TextInput
               style={styles.modalInput}

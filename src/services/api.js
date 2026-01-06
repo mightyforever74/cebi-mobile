@@ -103,17 +103,17 @@ export const authAPI = {
 
 export const userAPI = {
   getProfile: async () => {
-    const response = await api.get("/api/users/profile");
+    const response = await api.get("/api/user/profile");
     return response.data;
   },
 
   updateProfile: async (data) => {
-    const response = await api.put("/api/users/profile", data);
+    const response = await api.put("/api/user/profile", data);
     return response.data;
   },
 
   changePassword: async (data) => {
-    const response = await api.put("/api/users/password", data);
+    const response = await api.put("/api/user/change-password", data);
     return response.data;
   },
 };
@@ -337,12 +337,9 @@ export const driverAPI = {
 
   // 🆕 Araç km güncelle (06 Ocak 2026)
   updateVehicleKm: async (vehicleId, odometer) => {
-    const response = await api.put(
-      `/api/driver/vehicle/${vehicleId}/odometer`,
-      {
-        odometer: odometer,
-      }
-    );
+    const response = await api.put(`/api/driver/vehicle/${vehicleId}/odometer`, {
+      odometer: odometer,
+    });
     return response.data;
   },
 };
