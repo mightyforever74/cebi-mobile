@@ -153,7 +153,7 @@ const DriverDashboard = () => {
   // 🆕 Görev kartına tıklanınca Görevlerim'e git
   const handleTaskPress = (task) => {
     console.log("Task pressed:", task.id);
-    navigation.navigate("DriverTasks");
+    navigation.navigate("MyTasks");
   };
 
   // 🆕 Aracım kartına tıklanınca detaya git
@@ -273,7 +273,7 @@ const DriverDashboard = () => {
       {/* Task Offers Card */}
       <TouchableOpacity
         style={styles.offersCard}
-        onPress={() => navigation.navigate("DriverTasks", { screen: "TaskOffers" })}
+        onPress={() => navigation.navigate("MyTasks", { screen: "TaskOffers" })}
       >
         <View style={styles.offersContent}>
           <Text style={styles.offersIcon}>📬</Text>
@@ -366,7 +366,7 @@ const DriverDashboard = () => {
       <View style={styles.card}>
         <TouchableOpacity 
           style={styles.cardTitleRow}
-          onPress={() => navigation.navigate("DriverTasks")}
+          onPress={() => navigation.navigate("MyTasks")}
         >
           <Text style={styles.cardTitle}>📋 Aktif Görevler ({tasks.length})</Text>
           <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
@@ -424,7 +424,7 @@ const DriverDashboard = () => {
         {tasks.length > 3 && (
           <TouchableOpacity 
             style={styles.seeAllButton}
-            onPress={() => navigation.navigate("DriverTasks")}
+            onPress={() => navigation.navigate("MyTasks")}
           >
             <Text style={styles.seeAllText}>Tümünü Gör ({tasks.length})</Text>
           </TouchableOpacity>
@@ -435,7 +435,7 @@ const DriverDashboard = () => {
       {stats && (
         <TouchableOpacity 
           style={styles.card}
-          onPress={() => navigation.navigate("DriverTasks")}
+          onPress={() => navigation.navigate("MyTasks")}
           activeOpacity={0.8}
         >
           <View style={styles.cardTitleRow}>

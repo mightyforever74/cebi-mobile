@@ -179,7 +179,7 @@ const AdminDashboard = () => {
   // 🆕 Araç kartına tıklanınca Araç Yönetimi'ne git
   const handleVehiclePress = (vehicle) => {
     console.log("Vehicle pressed:", vehicle.id);
-    navigation.navigate("AdminVehicles");
+    navigation.navigate("Vehicles");
   };
 
   // ============================================
@@ -364,7 +364,7 @@ const AdminDashboard = () => {
       {/* 🆕 Canlı Harita Bölümü */}
       <TouchableOpacity
         style={styles.liveMapCard}
-        onPress={() => navigation.navigate("AdminMap")}
+        onPress={() => navigation.navigate("FleetMap")}
         activeOpacity={0.8}
       >
         <View style={styles.liveMapContent}>
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
       <View style={styles.card}>
         <TouchableOpacity
           style={styles.cardTitleRow}
-          onPress={() => navigation.navigate("AdminVehicles")}
+          onPress={() => navigation.navigate("Vehicles")}
         >
           <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
           <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
@@ -527,7 +527,7 @@ const AdminDashboard = () => {
         {vehicles.length > 3 && (
           <TouchableOpacity
             style={styles.seeAllButton}
-            onPress={() => navigation.navigate("AdminVehicles")}
+            onPress={() => navigation.navigate("Vehicles")}
           >
             <Text style={styles.seeAllText}>
               Tümünü Gör ({vehicles.length})

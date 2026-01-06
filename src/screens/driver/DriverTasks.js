@@ -184,7 +184,7 @@ const DriverTasks = ({ navigation }) => {
                   {
                     text: "Haritaya Git",
                     onPress: () =>
-                      navigation.navigate("DriverMap", {
+                      navigation.navigate("Navigation", {
                         task: { ...task, status: "accepted" },
                       }),
                   },
@@ -510,7 +510,7 @@ const DriverTasks = ({ navigation }) => {
         {status === "accepted" && (
           <TouchableOpacity
             style={styles.goToNavButton}
-            onPress={() => navigation.navigate("DriverMap", { task: item })}
+            onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.goToNavButtonText}>
@@ -523,7 +523,7 @@ const DriverTasks = ({ navigation }) => {
         {status === "in_progress" && (
           <TouchableOpacity
             style={styles.continueNavButton}
-            onPress={() => navigation.navigate("DriverMap", { task: item })}
+            onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.continueNavButtonText}>
