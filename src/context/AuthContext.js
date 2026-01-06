@@ -80,18 +80,21 @@ export const AuthProvider = ({ children }) => {
       if (accessToken && userData) {
         console.log("✅ Login successful:", userData.role);
 
-        // Token'ları kaydet (refreshToken yoksa token'ı kullan - backward compatibility)
-        console.log("💾 Saving tokens to storage...");
-        await storeTokens(accessToken, refreshToken || accessToken);
-        setToken(accessToken); // State'e de kaydet
-
-        console.log("💾 Saving user data to storage...");
-        await storeUserData(userData);
-
-        console.log("✅ Storage complete!");
-
+        // ÖNCELİK: State'i hemen güncelle (navigate için)
+        setToken(accessToken);
         setUser(userData);
         setIsAuthenticated(true);
+
+        console.log("✅ Auth state updated, saving to storage...");
+
+        // Storage arka planda yapsın
+        try {
+          await storeTokens(accessToken, refreshToken || accessToken);
+          await storeUserData(userData);
+          console.log("✅ Storage complete!");
+        } catch (storageError) {
+          console.warn("⚠️ Storage error (non-critical):", storageError);
+        }
 
         return { success: true, user: userData };
       } else {
