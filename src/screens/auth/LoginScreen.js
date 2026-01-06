@@ -76,13 +76,9 @@ const LoginScreen = ({ navigation }) => {
       console.log("Login result:", result);
 
       if (result.success) {
-        console.log("✅ Login successful, navigating...");
-        // Navigation otomatik olarak AuthContext tarafından yapılacak
-        // veya manuel olarak:
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "App" }],
-        });
+        console.log("✅ Login successful");
+        // Navigation otomatik olarak RootNavigator tarafından yapılacak
+        // isAuthenticated state değişince AppNavigator'a geçecek
       } else {
         setError(result.error || "Giriş başarısız");
       }
