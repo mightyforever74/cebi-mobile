@@ -532,13 +532,20 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {/* ════════════════════════════════════════════════════════ */}
       {!task && location && (
         <View style={styles.noTaskBanner}>
-          <Ionicons name="information-circle" size={22} color="#3B82F6" />
+          <Ionicons name="map-outline" size={24} color="#3B82F6" />
           <View style={styles.noTaskTextContainer}>
-            <Text style={styles.noTaskTitle}>Aktif Görev Yok</Text>
+            <Text style={styles.noTaskTitle}>Harita Hazır</Text>
             <Text style={styles.noTaskSubtitle}>
-              Görevlerim sayfasından bekleyen görevleri kabul edebilirsiniz.
+              Güzergah navigasyonu için önce bir görev başlatın.
             </Text>
           </View>
+          <TouchableOpacity
+            style={styles.goToTasksBtn}
+            onPress={() => navigation.navigate("DriverTasks")}
+          >
+            <Text style={styles.goToTasksBtnText}>Görevlerim</Text>
+            <Ionicons name="chevron-forward" size={16} color="#3B82F6" />
+          </TouchableOpacity>
         </View>
       )}
 
@@ -814,6 +821,20 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontSize: 13,
     marginTop: 4,
+  },
+  goToTasksBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  goToTasksBtnText: {
+    color: "#3B82F6",
+    fontSize: 13,
+    fontWeight: "600",
   },
 
   // Task Card (sadece accepted)
