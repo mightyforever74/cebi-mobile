@@ -246,29 +246,42 @@ export default function DeviceSetupScreen({ navigation }) {
 
   const checkSmartGate = async () => {
     try {
-      console.log("[SmartGate] Checking backend truth (assigned-device)...");
+      console.log("[SmartGate] Checking backend truth (driver/vehicle)...");
       try {
-        const response = await driverAPI.getAssignedDevice();
-        console.log("[SmartGate] assigned-device:", JSON.stringify(response));
+        // FIX: /api/driver/vehicle kullan (bu endpoint setup_required dönüyor)
+        const response = await driverAPI.getVehicle();
+        console.log("[SmartGate] driver/vehicle:", JSON.stringify(response));
+
+        // Response yapısı: { setup_required: boolean, vehicle: {...} }
+        // Normalize: root'ta veya vehicle içinde olabilir
+        const setupRequired =
+          response?.setup_required ?? response?.vehicle?.setup_required;
 
         // If backend says setup not required, exit screen
-        if (response && response.setup_required === false) {
+        if (setupRequired === false) {
           setGateChecking(false);
+
+          // Gösterim için deviceId kullanılabilir, ama serial tercih edilir
+          const deviceSerial =
+            response.vehicle?.esp32Status?.serial ||
+            response.vehicle?.esp32Status?.deviceId ||
+            "-";
+
           Alert.alert(
             "Kurulum Gerekli Değil ✅",
-            `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${
-              response.device?.serial || response.device?.device_code || "-"
+            `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${deviceSerial}\nPlaka: ${
+              response.vehicle?.plate || "-"
             }`,
             [{ text: "Tamam", onPress: () => navigation.goBack() }]
           );
           return;
         }
 
-        // If setup required, we continue setup flow.
-        // If backend already knows a device serial/code (reprovision scenario), we can skip QR and jump to BLE scan.
-        if (response && response.setup_required === true) {
-          const inferredSerial =
-            response?.device?.serial || response?.device?.device_code || null;
+        // If setup required, continue setup flow
+        if (setupRequired === true) {
+          // SADECE gerçek serial kullan (deviceId fallback KALDIRILDI)
+          // deviceId (ESP32-002 gibi) QR regex'iyle çakışabilir
+          const inferredSerial = response.vehicle?.esp32Status?.serial || null;
 
           if (inferredSerial) {
             console.log(
@@ -293,7 +306,7 @@ export default function DeviceSetupScreen({ navigation }) {
         setGateChecking(false);
       } catch (e) {
         console.log(
-          "[SmartGate] assigned-device API error (continue normal):",
+          "[SmartGate] driver/vehicle API error (continue normal):",
           e.message
         );
         setGateChecking(false);
@@ -303,7 +316,6 @@ export default function DeviceSetupScreen({ navigation }) {
       setGateChecking(false);
     }
   };
-
   // ────────────────────────────────────────────────────────────
   // Save provision data
   // ────────────────────────────────────────────────────────────
