@@ -1,10 +1,4 @@
-import {
-  API_URL as ENV_API_URL,
-  MQTT_HOST,
-  MQTT_PASSWORD,
-  MQTT_PORT,
-  MQTT_USERNAME,
-} from "@env";
+import { MQTT_HOST, MQTT_PASSWORD, MQTT_PORT, MQTT_USERNAME } from "@env";
 
 // ═══════════════════════════════════════════════════════════════════
 // API URL CONFIGURATION
@@ -18,17 +12,8 @@ const DEV_API_URL = "http://46.224.1.192:3000";
 
 // Determine API URL based on environment
 const getApiUrl = () => {
-  // 1. Environment variable has highest priority
-  if (ENV_API_URL) {
-    return ENV_API_URL;
-  }
-
-  // 2. Use production in release builds, dev in debug
-  if (__DEV__) {
-    return DEV_API_URL;
-  }
-
-  return PRODUCTION_API_URL;
+  // TEMPORARY FIX: Hardcoded production URL
+  return "https://api.tulipfleet.com";
 };
 
 export const API_URL = getApiUrl();
