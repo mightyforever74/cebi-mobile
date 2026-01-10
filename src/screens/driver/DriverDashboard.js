@@ -170,7 +170,7 @@ const DriverDashboard = () => {
   // 🆕 Yakıt/KM düzenleme
   const openEditModal = (type) => {
     if (!vehicle) return;
-    
+
     if (type === "fuel") {
       setEditValue(vehicle.fuelLevel?.toString() || "0");
     } else if (type === "km") {
@@ -181,7 +181,7 @@ const DriverDashboard = () => {
 
   const handleSaveEdit = async () => {
     if (!vehicle || !editModal.type) return;
-    
+
     const numValue = parseFloat(editValue);
     if (isNaN(numValue) || numValue < 0) {
       Alert.alert("Hata", "Geçerli bir değer girin");
@@ -289,14 +289,18 @@ const DriverDashboard = () => {
 
       {/* Vehicle Card - Tıklanabilir */}
       {vehicle ? (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.card}
           onPress={handleVehiclePress}
           activeOpacity={0.8}
         >
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>🚙 Aracım</Text>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={COLORS.textSecondary}
+            />
           </View>
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
@@ -306,7 +310,7 @@ const DriverDashboard = () => {
           </View>
           <View style={styles.row}>
             {/* Yakıt - Düzenlenebilir */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.statBox}
               onPress={() => openEditModal("fuel")}
             >
@@ -322,7 +326,7 @@ const DriverDashboard = () => {
             </TouchableOpacity>
 
             {/* Kilometre - Düzenlenebilir */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.statBox}
               onPress={() => openEditModal("km")}
             >
@@ -364,14 +368,20 @@ const DriverDashboard = () => {
 
       {/* Active Tasks - Tıklanabilir */}
       <View style={styles.card}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.cardTitleRow}
           onPress={() => navigation.navigate("MyTasks")}
         >
-          <Text style={styles.cardTitle}>📋 Aktif Görevler ({tasks.length})</Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          <Text style={styles.cardTitle}>
+            📋 Aktif Görevler ({tasks.length})
+          </Text>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={COLORS.textSecondary}
+          />
         </TouchableOpacity>
-        
+
         {tasks.length > 0 ? (
           tasks.slice(0, 3).map((task) => (
             <TouchableOpacity
@@ -411,9 +421,7 @@ const DriverDashboard = () => {
                 </Text>
               )}
               {task.vehicle_plate && (
-                <Text style={styles.taskTime}>
-                  Araç: {task.vehicle_plate}
-                </Text>
+                <Text style={styles.taskTime}>Araç: {task.vehicle_plate}</Text>
               )}
             </TouchableOpacity>
           ))
@@ -422,7 +430,7 @@ const DriverDashboard = () => {
         )}
 
         {tasks.length > 3 && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.seeAllButton}
             onPress={() => navigation.navigate("MyTasks")}
           >
@@ -433,14 +441,18 @@ const DriverDashboard = () => {
 
       {/* Statistics - Tıklanabilir */}
       {stats && (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.card}
           onPress={() => navigation.navigate("MyTasks")}
           activeOpacity={0.8}
         >
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>📊 Performans</Text>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={COLORS.textSecondary}
+            />
           </View>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
@@ -486,11 +498,13 @@ const DriverDashboard = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {editModal.type === "fuel" ? "Yakıt Güncelle" : "Kilometre Güncelle"}
+              {editModal.type === "fuel"
+                ? "Yakıt Güncelle"
+                : "Kilometre Güncelle"}
             </Text>
             <Text style={styles.modalSubtitle}>
-              {editModal.type === "fuel" 
-                ? "Litre cinsinden girin (max 9999)" 
+              {editModal.type === "fuel"
+                ? "Litre cinsinden girin (max 9999)"
                 : "Kilometre girin (max 9999999)"}
             </Text>
             <TextInput
@@ -498,7 +512,9 @@ const DriverDashboard = () => {
               value={editValue}
               onChangeText={setEditValue}
               keyboardType="numeric"
-              placeholder={editModal.type === "fuel" ? "Örn: 45" : "Örn: 125000"}
+              placeholder={
+                editModal.type === "fuel" ? "Örn: 45" : "Örn: 125000"
+              }
               maxLength={editModal.type === "fuel" ? 4 : 7}
             />
             <View style={styles.modalButtons}>

@@ -62,21 +62,7 @@ const RootNavigator = () => {
         }
       }}
     >
-      {isAuthenticated && user ? (
-        <View style={{ flex: 1 }}>
-          <Text style={{ padding: 50, fontSize: 20, textAlign: "center" }}>
-            ✅ LOGIN BAŞARILI!{"\n"}
-            User: {user?.email}
-            {"\n"}
-            Role: {user?.role}
-            {"\n"}
-            {"\n"}AppNavigator yükleniyor...
-          </Text>
-          <AppNavigator />
-        </View>
-      ) : (
-        <AuthNavigator />
-      )}
+      {isAuthenticated && user ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };
