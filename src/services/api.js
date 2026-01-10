@@ -19,7 +19,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem("token");
+      const token = await AsyncStorage.getItem("accessToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -76,8 +76,9 @@ export const authAPI = {
     } catch (error) {
       // Ignore logout errors
     }
-    await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("user");
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
+    await AsyncStorage.removeItem("userData");
     return { success: true };
   },
 
@@ -337,9 +338,12 @@ export const driverAPI = {
 
   // 🆕 Araç km güncelle (06 Ocak 2026)
   updateVehicleKm: async (vehicleId, odometer) => {
-    const response = await api.put(`/api/driver/vehicle/${vehicleId}/odometer`, {
-      odometer: odometer,
-    });
+    const response = await api.put(
+      `/api/driver/vehicle/${vehicleId}/odometer`,
+      {
+        odometer: odometer,
+      }
+    );
     return response.data;
   },
 };
