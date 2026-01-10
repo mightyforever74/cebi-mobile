@@ -8,8 +8,8 @@
  * - Follow mode with drag-to-disable
  * - Stats bar tıklanabilir
  *
- * @version 1.2.0
- * @date 28 Aralık 2025
+ * @version 1.3.0
+ * @date 11 Ocak 2026 - Location endpoint fix
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -31,7 +31,6 @@ import {
   createFollowRegion,
   FOLLOW_CONFIG,
   normalizeVehicle,
-  shouldUpdateVehicle,
   toFloat,
 } from "../../utils/mapMath";
 
@@ -66,7 +65,7 @@ const FleetMapScreen = ({ navigation }) => {
   const [followMode, setFollowMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [showVehicleList, setShowVehicleList] = useState(false); // YENİ
+  const [showVehicleList, setShowVehicleList] = useState(false);
 
   // ============================================================================
   // DERIVED STATE
@@ -117,30 +116,55 @@ const FleetMapScreen = ({ navigation }) => {
 
   const fetchVehicles = useCallback(async () => {
     try {
-      const res = await vehicleAPI.getAll();
-      const list = res.vehicles || [];
+      // FIX: Önce araçları, sonra konumları al ve birleştir
+      const [vehiclesRes, locationsRes] = await Promise.all([
+        vehicleAPI.getAll(),
+        vehicleAPI.getAllWithLocations().catch(() => ({ locations: [] })),
+      ]);
 
-      // A.4 Performance: Sadece değişen araçları logla
+      const vehicleList = vehiclesRes.vehicles || [];
+      const locationList = locationsRes.locations || [];
+
+      // Konum verilerini araçlarla birleştir
+      const locationMap = new Map();
+      locationList.forEach((loc) => {
+        if (loc.vehicle_id) {
+          locationMap.set(loc.vehicle_id, loc);
+        }
+      });
+
+      // Araçlara konum ekle
+      const mergedList = vehicleList.map((vehicle) => {
+        const location = locationMap.get(vehicle.id);
+        if (location) {
+          return {
+            ...vehicle,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            speed: location.speed,
+            heading: location.heading,
+            last_location_time: location.time,
+          };
+        }
+        return vehicle;
+      });
+
+      // Debug log
       if (DEBUG) {
-        const previousMap = new Map(
-          previousVehiclesRef.current.map((v) => [v.id, v])
-        );
-        const updatedCount = list.filter((v) =>
-          shouldUpdateVehicle(previousMap.get(v.id), v)
-        ).length;
+        const withLoc = mergedList.filter((v) => v.latitude && v.longitude);
         console.log(
-          `[FleetMap] Fetched: ${list.length} total, ${updatedCount} updated`
+          `[FleetMap] Fetched: ${mergedList.length} vehicles, ${withLoc.length} with location`
         );
       }
 
       // State güncelle
-      setVehicles(list);
+      setVehicles(mergedList);
       setLastUpdate(new Date());
-      previousVehiclesRef.current = list;
+      previousVehiclesRef.current = mergedList;
 
       // İlk yüklemede fit to coordinates
-      if (loading && list.length > 0) {
-        const located = list.filter((v) => v.latitude && v.longitude);
+      if (loading && mergedList.length > 0) {
+        const located = mergedList.filter((v) => v.latitude && v.longitude);
         if (mapRef.current && located.length > 0) {
           setTimeout(() => {
             mapRef.current?.fitToCoordinates(
@@ -215,7 +239,7 @@ const FleetMapScreen = ({ navigation }) => {
     [selectedVehicleId]
   );
 
-  // Araç seçimi (modal'dan) - YENİ
+  // Araç seçimi (modal'dan)
   const handleSelectFromModal = useCallback((vehicle) => {
     setSelectedVehicleId(vehicle.id);
     setFollowMode(true);
@@ -280,21 +304,22 @@ const FleetMapScreen = ({ navigation }) => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={INITIAL_REGION}
+        onPanDrag={handleMapPanDrag}
         showsUserLocation={false}
         showsMyLocationButton={false}
-        onPanDrag={handleMapPanDrag}
+        showsCompass={true}
+        toolbarEnabled={false}
       >
-        {/* Native Markers */}
         {normalizedVehicles.map((vehicle) => (
           <Marker
             key={vehicle.id}
+            identifier={vehicle.id}
             coordinate={{
-              latitude: vehicle.latitude,
-              longitude: vehicle.longitude,
+              latitude: toFloat(vehicle.latitude),
+              longitude: toFloat(vehicle.longitude),
             }}
             title={vehicle.plate_no}
-            description={`${vehicle.brand || ""} ${vehicle.model || ""}`}
-            pinColor={vehicle.status === "in_use" ? "#10B981" : "#3B82F6"}
+            description={`${vehicle.speed || 0} km/h`}
             onPress={() => handleVehiclePress(vehicle)}
           />
         ))}
@@ -308,7 +333,7 @@ const FleetMapScreen = ({ navigation }) => {
         <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
       </TouchableOpacity>
 
-      {/* Vehicle List Button - YENİ */}
+      {/* Vehicle List Button */}
       <TouchableOpacity
         style={styles.listButton}
         onPress={() => setShowVehicleList(true)}
@@ -386,7 +411,7 @@ const FleetMapScreen = ({ navigation }) => {
         />
       )}
 
-      {/* Vehicle List Modal - YENİ */}
+      {/* Vehicle List Modal */}
       <VehicleListModal
         visible={showVehicleList}
         vehicles={allVehicles}

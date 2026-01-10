@@ -1,6 +1,6 @@
 // src/services/api.js
 // TulipFleet API Service
-// Updated: 06 Ocak 2026 - getCompletedTasks, updateVehicleFuel, updateVehicleKm eklendi
+// Updated: 11 Ocak 2026 - Token key fix, userAPI endpoint fix, alertAPI eklendi
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -19,6 +19,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
+      // FIX: "token" → "accessToken" (storage.js ile uyumlu)
       const token = await AsyncStorage.getItem("accessToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -40,9 +41,10 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       console.log("🔒 Token expired or invalid");
-      // Clear stored token
-      await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("user");
+      // FIX: Doğru key'ler kullan
+      await AsyncStorage.removeItem("accessToken");
+      await AsyncStorage.removeItem("refreshToken");
+      await AsyncStorage.removeItem("userData");
     }
 
     // Log error details
@@ -100,21 +102,59 @@ export const authAPI = {
 
 // ============================================
 // USER ENDPOINTS
+// FIX: /api/user/ → /api/users/ (backend ile uyumlu)
 // ============================================
 
 export const userAPI = {
   getProfile: async () => {
-    const response = await api.get("/api/user/profile");
+    const response = await api.get("/api/users/profile");
     return response.data;
   },
 
   updateProfile: async (data) => {
-    const response = await api.put("/api/user/profile", data);
+    const response = await api.put("/api/users/profile", data);
     return response.data;
   },
 
   changePassword: async (data) => {
-    const response = await api.put("/api/user/change-password", data);
+    const response = await api.put("/api/users/password", data);
+    return response.data;
+  },
+};
+
+// ============================================
+// ALERT ENDPOINTS (AdminAlerts için)
+// ============================================
+
+export const alertAPI = {
+  // Get all alerts
+  getAll: async (status) => {
+    const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  // Get alert by ID
+  getById: async (id) => {
+    const response = await api.get(`/api/alerts/${id}`);
+    return response.data;
+  },
+
+  // Resolve alert
+  resolve: async (id, resolution) => {
+    const response = await api.put(`/api/alerts/${id}/resolve`, { resolution });
+    return response.data;
+  },
+
+  // Delete alert
+  delete: async (id) => {
+    const response = await api.delete(`/api/alerts/${id}`);
+    return response.data;
+  },
+
+  // Delete all alerts
+  deleteAll: async () => {
+    const response = await api.delete("/api/alerts");
     return response.data;
   },
 };
@@ -148,7 +188,7 @@ export const adminAPI = {
     return response.data;
   },
 
-  // Alerts
+  // Alerts (backward compatibility)
   getAlerts: async (status) => {
     const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
     const response = await api.get(url);
@@ -406,6 +446,12 @@ export const vehicleAPI = {
   // Get latest location
   getLatestLocation: async (vehicleId) => {
     const response = await api.get(`/api/vehicles/${vehicleId}/location`);
+    return response.data;
+  },
+
+  // 🆕 Get all vehicles with latest locations (harita için)
+  getAllWithLocations: async () => {
+    const response = await api.get("/api/locations/latest");
     return response.data;
   },
 };
