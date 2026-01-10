@@ -117,7 +117,17 @@ export const userAPI = {
   },
 
   changePassword: async (data) => {
-    const response = await api.put("/api/users/password", data);
+    // Backend camelCase bekliyor; her iki input formatını da destekle
+    const payload = {
+      currentPassword:
+        data?.currentPassword !== undefined
+          ? data.currentPassword
+          : data?.current_password,
+      newPassword:
+        data?.newPassword !== undefined ? data.newPassword : data?.new_password,
+    };
+
+    const response = await api.put("/api/users/password", payload);
     return response.data;
   },
 };
