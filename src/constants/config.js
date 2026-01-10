@@ -17,6 +17,7 @@ const getApiUrl = () => {
 };
 
 export const API_URL = getApiUrl();
+export const API_BASE_URL = API_URL;
 
 // Log current API URL for debugging
 console.log("🌐 API URL:", API_URL, __DEV__ ? "(DEV)" : "(PROD)");
