@@ -473,15 +473,15 @@ const driverMenuItems = [
   { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
 ];
 
-// Tasks Stack - Görev listesi ve detay
+// Tasks Stack - Görev teklifleri (liste) ve detay + aktif görevler
 const TasksStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="TasksList" component={DriverTasks} />
+    <Stack.Screen name="TasksList" component={TaskOffers} />
     <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
     <Stack.Screen
-      name="TaskOffers"
-      component={TaskOffers}
-      options={{ title: "Görev Teklifleri" }}
+      name="DriverTasksScreen"
+      component={DriverTasks}
+      options={{ title: "Aktif Görevler" }}
     />
     <Stack.Screen
       name="TaskOfferDetail"

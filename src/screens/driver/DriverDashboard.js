@@ -273,7 +273,9 @@ const DriverDashboard = () => {
       {/* Task Offers Card */}
       <TouchableOpacity
         style={styles.offersCard}
-        onPress={() => navigation.navigate("MyTasks", { screen: "TaskOffers" })}
+        onPress={() =>
+          navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
+        }
       >
         <View style={styles.offersContent}>
           <Text style={styles.offersIcon}>📬</Text>
@@ -370,7 +372,9 @@ const DriverDashboard = () => {
       <View style={styles.card}>
         <TouchableOpacity
           style={styles.cardTitleRow}
-          onPress={() => navigation.navigate("MyTasks")}
+          onPress={() =>
+            navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
+          }
         >
           <Text style={styles.cardTitle}>
             📋 Aktif Görevler ({tasks.length})
@@ -432,7 +436,9 @@ const DriverDashboard = () => {
         {tasks.length > 3 && (
           <TouchableOpacity
             style={styles.seeAllButton}
-            onPress={() => navigation.navigate("MyTasks")}
+            onPress={() =>
+              navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
+            }
           >
             <Text style={styles.seeAllText}>Tümünü Gör ({tasks.length})</Text>
           </TouchableOpacity>
@@ -443,7 +449,9 @@ const DriverDashboard = () => {
       {stats && (
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate("MyTasks")}
+          onPress={() =>
+            navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
+          }
           activeOpacity={0.8}
         >
           <View style={styles.cardTitleRow}>
