@@ -238,7 +238,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     setActionLoading(true);
     try {
-      await driverTaskAPI.updateTaskStatus(task.id, "in_progress");
+      await driverTaskAPI.startTask(task.id);
       setTask({ ...task, status: "in_progress" });
 
       // Rota ve navigasyonu başlat
@@ -265,7 +265,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           onPress: async () => {
             setActionLoading(true);
             try {
-              await driverTaskAPI.updateTaskStatus(task.id, "completed");
+              await driverTaskAPI.completeTask(task.id);
               stopLocationTracking();
               setTask(null);
               setRouteCoords([]);

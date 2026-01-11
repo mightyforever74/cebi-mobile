@@ -568,7 +568,7 @@ export const driverTaskAPI = {
     return response.data;
   },
 
-  // 🆕 Tamamlanan görevleri getir (son 7 gün)
+  // Tamamlanan görevleri getir
   getCompletedTasks: async () => {
     const response = await api.get("/api/driver/tasks?status=completed");
     return response.data;
@@ -580,42 +580,35 @@ export const driverTaskAPI = {
     return response.data;
   },
 
-  // Eski status güncelleme (geriye uyumluluk)
-  updateStatus: async (id, status) => {
-    const response = await api.put(`/api/driver/task/${id}/status`, { status });
-    return response.data;
-  },
-
-  // ============================================
-  // YENİ GÖREV AKSİYONLARI - 27 Aralık 2025
-  // ============================================
-
-  // Görevi kabul et
+  // 🆕 Görevi kabul et
   acceptTask: async (taskId) => {
     const response = await api.put(`/api/driver/tasks/${taskId}/accept`);
     return response.data;
   },
 
-  // Görevi reddet
-  rejectTask: async (taskId, reason) => {
-    const response = await api.put(`/api/driver/tasks/${taskId}/reject`, {
-      reason,
-    });
+  // 🆕 Görevi reddet
+  rejectTask: async (taskId) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/reject`);
     return response.data;
   },
 
-  // Göreve başla
+  // 🆕 Görevi başlat
   startTask: async (taskId) => {
     const response = await api.put(`/api/driver/tasks/${taskId}/start`);
     return response.data;
   },
 
-  // Görevi tamamla
-  completeTask: async (taskId, data = {}) => {
-    const response = await api.put(
-      `/api/driver/tasks/${taskId}/complete`,
-      data
-    );
+  // 🆕 Görevi tamamla
+  completeTask: async (taskId) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/complete`);
+    return response.data;
+  },
+
+  // Eski genel status güncelleme (geriye uyumluluk)
+  updateTaskStatus: async (taskId, status) => {
+    const response = await api.put(`/api/driver/task/${taskId}/status`, {
+      status,
+    });
     return response.data;
   },
 };
