@@ -28,6 +28,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
   // Countdown state
   const [countdown, setCountdown] = useState(5);
   const [videoError, setVideoError] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const hasNavigated = useRef(false);
 
   // Animations
@@ -144,7 +145,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
         barStyle="light-content"
       />
 
-      {/* Video Background with Gradient Fallback */}
+      {/* Video Background */}
       {!videoError ? (
         <Video
           source={require("../../assets/videos/welcome-loop-v2.mp4")}
@@ -157,29 +158,33 @@ const DriverWelcomeScreen = ({ navigation }) => {
           // Poster optional for Android black frame polish:
           // posterSource={require("../../assets/images/welcome-poster.png")}
           // usePoster
+          onLoad={() => setVideoLoaded(true)}
           onError={(e) => {
             console.log("[WELCOME_VIDEO_ERROR]", e?.nativeEvent || e);
             setVideoError(true);
           }}
         />
-      ) : (
+      ) : null}
+
+      {/* Loading placeholder - video yüklenene kadar */}
+      {!videoLoaded && (
         <LinearGradient
-          colors={["#1a1a2e", "#16213e", "#0f3460", "#1a1a2e"]}
+          colors={["#0f3460", "#16213e", "#1a1a2e"]}
           style={styles.backgroundVideo}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
       )}
 
-      {/* Gradient Overlay - Daha şeffaf */}
+      {/* Gradient Overlay - Sadece alt kısımda */}
       <LinearGradient
         colors={[
+          "transparent",
           "rgba(0,0,0,0.1)",
-          "rgba(0,0,0,0.2)",
-          "rgba(0,0,0,0.4)",
-          "rgba(0,0,0,0.6)",
+          "rgba(0,0,0,0.3)",
+          "rgba(0,0,0,0.5)",
         ]}
-        locations={[0, 0.3, 0.6, 1]}
+        locations={[0, 0.4, 0.7, 1]}
         style={styles.overlay}
       />
 
