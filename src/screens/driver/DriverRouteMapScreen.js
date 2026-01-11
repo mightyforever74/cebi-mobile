@@ -44,6 +44,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [navigationInfo, setNavigationInfo] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [heading, setHeading] = useState(0); // Araç yönü (derece)
+  const [followMode, setFollowMode] = useState(true); // Kamera araç takibi
 
   // Route fetch'in tek sefer çalışmasını garantilemek için
   const routeFetchedRef = useRef(false);
@@ -392,6 +393,22 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             setHeading(newLocation.coords.heading);
           }
           updateNavigationInfo(newLocation.coords);
+
+          // Follow mode aktifse kamerayı takip et
+          if (followMode && mapRef.current) {
+            mapRef.current.animateCamera(
+              {
+                center: {
+                  latitude: newLocation.coords.latitude,
+                  longitude: newLocation.coords.longitude,
+                },
+                heading: newLocation.coords.heading || 0,
+                pitch: 45, // 3D görünüm
+                zoom: 17,
+              },
+              { duration: 500 }
+            );
+          }
         }
       );
       // FIX #2: Ref'e ata
@@ -690,17 +707,29 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             )}
           </Marker>
 
-          {/* Rota Çizgisi (in_progress) - Gerçek Yol */}
+          {/* Rota Çizgisi (in_progress) - Modern gradient efektli */}
           {isNavigating && routeCoords.length > 1 && (
-            <Polyline
-              coordinates={routeCoords}
-              strokeColor="#3B82F6"
-              strokeWidth={5}
-              lineDashPattern={[0]}
-            />
+            <>
+              {/* Gölge çizgisi */}
+              <Polyline
+                coordinates={routeCoords}
+                strokeColor="rgba(59, 130, 246, 0.3)"
+                strokeWidth={10}
+                lineCap="round"
+                lineJoin="round"
+              />
+              {/* Ana çizgi */}
+              <Polyline
+                coordinates={routeCoords}
+                strokeColor="#3B82F6"
+                strokeWidth={5}
+                lineCap="round"
+                lineJoin="round"
+              />
+            </>
           )}
 
-          {/* Waypoint Marker'ları (in_progress) */}
+          {/* Waypoint Marker'ları (in_progress) - Modern numaralı */}
           {isNavigating &&
             task?.waypoints?.map((wp, index) => (
               <Marker
@@ -712,21 +741,32 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 title={wp.name || `Durak ${index + 1}`}
                 anchor={{ x: 0.5, y: 0.5 }}
               >
-                <View style={styles.waypointMarker}>
-                  <Text style={styles.waypointText}>{index + 1}</Text>
+                <View style={styles.waypointMarkerContainer}>
+                  <View style={styles.waypointMarkerOuter}>
+                    <View style={styles.waypointMarkerInner}>
+                      <Text style={styles.waypointText}>{index + 1}</Text>
+                    </View>
+                  </View>
                 </View>
               </Marker>
             ))}
 
-          {/* Varış Noktası Marker (in_progress) */}
+          {/* Varış Noktası Marker (in_progress) - Google Maps tarzı */}
           {isNavigating && getEndLocationCoords() && (
             <Marker
               coordinate={getEndLocationCoords()}
               title="Varış Noktası"
               anchor={{ x: 0.5, y: 1 }}
             >
-              <View style={styles.destinationMarker}>
-                <Ionicons name="flag" size={24} color="#fff" />
+              <View style={styles.destinationMarkerContainer}>
+                {/* Pin başı */}
+                <View style={styles.destinationPin}>
+                  <View style={styles.destinationPinInner}>
+                    <Ionicons name="flag" size={16} color="#fff" />
+                  </View>
+                </View>
+                {/* Pin gölgesi */}
+                <View style={styles.destinationPinShadow} />
               </View>
             </Marker>
           )}
@@ -773,6 +813,24 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           onPress={fitToRoute}
         >
           <Ionicons name="expand" size={22} color="#8B5CF6" />
+        </TouchableOpacity>
+      )}
+
+      {/* Follow Mode Toggle (in_progress) */}
+      {isNavigating && (
+        <TouchableOpacity
+          style={[
+            styles.headerBtn,
+            styles.followBtn,
+            followMode && styles.followBtnActive,
+          ]}
+          onPress={() => setFollowMode(!followMode)}
+        >
+          <Ionicons
+            name={followMode ? "navigate" : "navigate-outline"}
+            size={22}
+            color={followMode ? "#fff" : "#10B981"}
+          />
         </TouchableOpacity>
       )}
 
@@ -1012,6 +1070,14 @@ const styles = StyleSheet.create({
     left: "auto",
     right: 70,
   },
+  followBtn: {
+    left: "auto",
+    right: 124,
+    backgroundColor: "#fff",
+  },
+  followBtnActive: {
+    backgroundColor: "#10B981",
+  },
 
   // Markers
   currentMarker: {
@@ -1085,10 +1151,70 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     elevation: 3,
   },
+  // Modern Waypoint Marker
+  waypointMarkerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  waypointMarkerOuter: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F59E0B",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 6,
+    shadowColor: "#F59E0B",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+  },
+  waypointMarkerInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   waypointText: {
-    color: "#fff",
+    color: "#F59E0B",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  // Modern Destination Marker (Google Maps pin tarzı)
+  destinationMarkerContainer: {
+    alignItems: "center",
+  },
+  destinationPin: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
+    shadowColor: "#EF4444",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  destinationPinInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  destinationPinShadow: {
+    width: 20,
+    height: 6,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    marginTop: 4,
   },
   destinationMarker: {
     backgroundColor: "#EF4444",
