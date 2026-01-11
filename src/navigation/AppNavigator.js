@@ -518,6 +518,15 @@ const DriverNavigator = () => {
         drawerStyle: { width: 280 },
       }}
     >
+      {/* Welcome Screen - Giriş sonrası ilk gösterilen */}
+      <Drawer.Screen
+        name="DriverWelcome"
+        component={DriverWelcomeScreen}
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
       <Drawer.Screen
         name="DriverDashboard"
         component={DriverDashboard}
