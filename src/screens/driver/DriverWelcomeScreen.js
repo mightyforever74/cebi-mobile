@@ -45,10 +45,10 @@ const DriverWelcomeScreen = ({ navigation }) => {
   // Time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 6) return "İyi geceler";
-    if (hour < 12) return "Günaydın";
-    if (hour < 18) return "İyi günler";
-    return "İyi akşamlar";
+    if (hour >= 5 && hour < 12) return "Günaydın";
+    if (hour >= 12 && hour < 18) return "İyi günler";
+    if (hour >= 18 && hour < 22) return "İyi akşamlar";
+    return "İyi geceler";
   };
 
   useEffect(() => {
@@ -171,13 +171,13 @@ const DriverWelcomeScreen = ({ navigation }) => {
         />
       )}
 
-      {/* Gradient Overlay */}
+      {/* Gradient Overlay - Daha şeffaf */}
       <LinearGradient
         colors={[
-          "rgba(0,0,0,0.3)",
-          "rgba(0,0,0,0.5)",
-          "rgba(0,0,0,0.7)",
-          "rgba(0,0,0,0.85)",
+          "rgba(0,0,0,0.1)",
+          "rgba(0,0,0,0.2)",
+          "rgba(0,0,0,0.4)",
+          "rgba(0,0,0,0.6)",
         ]}
         locations={[0, 0.3, 0.6, 1]}
         style={styles.overlay}
