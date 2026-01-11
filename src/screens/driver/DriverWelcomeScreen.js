@@ -4,7 +4,6 @@
 // Version: 2.1 FINAL - Tüm düzeltmeler uygulandı
 
 import { Ionicons } from "@expo/vector-icons";
-import { ResizeMode, Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,6 +19,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
 const { width, height } = Dimensions.get("window");
+
+// import { ResizeMode, Video } from "expo-av";  // Bu satırı sil veya yorum yap
 
 const DriverWelcomeScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -140,14 +141,12 @@ const DriverWelcomeScreen = ({ navigation }) => {
         barStyle="light-content"
       />
 
-      {/* Video Background - Dosya adı: welcome-loop-v2.mp4 */}
-      <Video
-        source={require("../../assets/videos/welcome-loop-v2.mp4")}
+      {/* Gradient Background (Video yerine) */}
+      <LinearGradient
+        colors={["#1a1a2e", "#16213e", "#0f3460", "#1a1a2e"]}
         style={styles.backgroundVideo}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay
-        isLooping
-        isMuted
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       />
 
       {/* Gradient Overlay */}
