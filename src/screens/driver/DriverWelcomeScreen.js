@@ -1,7 +1,7 @@
 // src/screens/driver/DriverWelcomeScreen.js
 // TulipFleet - Premium Welcome Screen with Video Background
 // Created: 11 Ocak 2026
-// Version: 2.1 FINAL - Tüm düzeltmeler uygulandı
+// Version: 2.1 FINAL+ - Double navigation guard + countdown clamp
 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,6 +29,9 @@ const DriverWelcomeScreen = ({ navigation }) => {
   // Countdown state
   const [countdown, setCountdown] = useState(5);
 
+  // Prevent double navigation (button + timeout race)
+  const hasNavigated = useRef(false);
+
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -46,6 +49,13 @@ const DriverWelcomeScreen = ({ navigation }) => {
     if (hour < 12) return "Günaydın";
     if (hour < 18) return "İyi günler";
     return "İyi akşamlar";
+  };
+
+  // Route: AppNavigator.js'de "DriverDashboard" olarak tanımlı ✅
+  const navigateToDashboard = () => {
+    if (hasNavigated.current) return;
+    hasNavigated.current = true;
+    navigation.replace("DriverDashboard");
   };
 
   useEffect(() => {
@@ -91,15 +101,9 @@ const DriverWelcomeScreen = ({ navigation }) => {
       navigateToDashboard();
     }, 5000);
 
-    // Countdown timer
+    // Countdown timer (clamp to 0)
     const countdownInterval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => Math.max(prev - 1, 0));
     }, 1000);
 
     // Cleanup
@@ -109,11 +113,6 @@ const DriverWelcomeScreen = ({ navigation }) => {
       pulseAnimRef.current?.stop();
     };
   }, []);
-
-  // Route: AppNavigator.js'de "DriverDashboard" olarak tanımlı ✅
-  const navigateToDashboard = () => {
-    navigation.replace("DriverDashboard");
-  };
 
   const handleContinue = () => {
     // Button press animation
