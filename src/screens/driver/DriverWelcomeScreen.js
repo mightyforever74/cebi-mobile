@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(0,0,0,0.2)", // Daha şeffaf, koyu ton
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: "rgba(255,255,255,0.1)",
   },
   logoEmoji: {
     fontSize: 28,
@@ -362,12 +362,12 @@ const styles = StyleSheet.create({
   statsCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(0,0,0,0.25)", // Daha şeffaf
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.15)",
     marginBottom: 24,
   },
   statItem: {
