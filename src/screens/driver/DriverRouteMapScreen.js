@@ -669,24 +669,25 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             }}
             title="Konumunuz"
             anchor={{ x: 0.5, y: 0.5 }}
-            flat={isNavigating} // Harita ile birlikte döner
-            rotation={isNavigating ? heading : 0} // Heading'e göre döndür
+            flat={isNavigating}
+            rotation={isNavigating ? heading : 0}
           >
-            <View
-              style={[
-                styles.currentMarker,
-                isNavigating && styles.navigatingMarker,
-              ]}
-            >
-              {isNavigating ? (
-                // Navigasyon modunda araç ikonu (yukarı bakan ok)
-                <View style={styles.vehicleIconContainer}>
-                  <Ionicons name="navigate" size={24} color="#fff" />
+            {isNavigating ? (
+              // Navigasyon modu - Modern ok marker
+              <View style={styles.navMarkerContainer}>
+                <View style={styles.navMarkerOuter}>
+                  <View style={styles.navMarkerInner}>
+                    <View style={styles.navArrow} />
+                  </View>
                 </View>
-              ) : (
+                <View style={styles.navMarkerPulse} />
+              </View>
+            ) : (
+              // Normal mod - Konum noktası
+              <View style={styles.currentMarker}>
                 <Ionicons name="location" size={22} color="#fff" />
-              )}
-            </View>
+              </View>
+            )}
           </Marker>
 
           {/* Rota Çizgisi (in_progress) - Gerçek Yol */}
@@ -1025,16 +1026,53 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  navigatingMarker: {
-    backgroundColor: "#10B981",
-    padding: 12,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  vehicleIconContainer: {
+
+  // Modern Navigation Marker (Google Maps tarzı)
+  navMarkerContainer: {
     alignItems: "center",
     justifyContent: "center",
+    width: 60,
+    height: 60,
+  },
+  navMarkerOuter: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#3B82F6",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
+    shadowColor: "#3B82F6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  navMarkerInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navArrow: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderBottomWidth: 16,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#3B82F6",
+    marginTop: -2,
+  },
+  navMarkerPulse: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(59, 130, 246, 0.2)",
+    zIndex: -1,
   },
   waypointMarker: {
     backgroundColor: "#F59E0B",
