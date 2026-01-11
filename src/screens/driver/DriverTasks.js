@@ -4,7 +4,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -102,12 +102,13 @@ const DriverTasks = ({ navigation }) => {
   );
 
   // API'den görevleri çek
-  const fetchTasks = async () => {
+  const fetchTasks = async (tabOverride) => {
     try {
       setError(null);
-      console.log("📋 Fetching driver tasks...", { activeTab });
+      const tabToUse = tabOverride ?? activeTab;
+      console.log("📋 Fetching driver tasks...", { tab: tabToUse });
 
-      if (activeTab === "completed") {
+      if (tabToUse === "completed") {
         // Tamamlanan görevleri çek
         const data = await driverTaskAPI.getCompletedTasks();
         console.log("✅ Completed tasks loaded:", data);
@@ -147,9 +148,15 @@ const DriverTasks = ({ navigation }) => {
   }, [activeTab]);
 
   // Tab değiştiğinde veri çek
+  useEffect(() => {
+    fetchTasks();
+  }, [activeTab]);
+
+  // Tab değiştiğinde veri çek
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setLoading(true);
+    fetchTasks(tab); // tab'ı parametre olarak geç
   };
 
   // ═══════════════════════════════════════════════════════════════
@@ -159,7 +166,9 @@ const DriverTasks = ({ navigation }) => {
   const handleAcceptTask = async (task) => {
     Alert.alert(
       "Görevi Kabul Et",
-      `"${task.title || task.task_no}" görevini kabul etmek istediğinize emin misiniz?`,
+      `"${
+        task.title || task.task_no
+      }" görevini kabul etmek istediğinize emin misiniz?`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -206,7 +215,9 @@ const DriverTasks = ({ navigation }) => {
   const handleRejectTask = async (task) => {
     Alert.alert(
       "Görevi Reddet",
-      `"${task.title || task.task_no}" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
+      `"${
+        task.title || task.task_no
+      }" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -242,16 +253,19 @@ const DriverTasks = ({ navigation }) => {
   // ═══════════════════════════════════════════════════════════════
 
   // Görevleri filtrele
-  const filteredTasks = activeTab === "completed" ? completedTasks : tasks.filter((task) => {
-    const status = task.status || "pending";
-    return [
-      "pending_review",
-      "accepted",
-      "in_progress",
-      "pending",
-      "assigned",
-    ].includes(status);
-  });
+  const filteredTasks =
+    activeTab === "completed"
+      ? completedTasks
+      : tasks.filter((task) => {
+          const status = task.status || "pending";
+          return [
+            "pending_review",
+            "accepted",
+            "in_progress",
+            "pending",
+            "assigned",
+          ].includes(status);
+        });
 
   // İstatistikler
   const activeCount = tasks.filter((t) =>
@@ -513,9 +527,7 @@ const DriverTasks = ({ navigation }) => {
             onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
-            <Text style={styles.goToNavButtonText}>
-              Haritaya Git - Başlat
-            </Text>
+            <Text style={styles.goToNavButtonText}>Haritaya Git - Başlat</Text>
           </TouchableOpacity>
         )}
 
@@ -526,9 +538,7 @@ const DriverTasks = ({ navigation }) => {
             onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
-            <Text style={styles.continueNavButtonText}>
-              Haritaya Devam Et
-            </Text>
+            <Text style={styles.continueNavButtonText}>Haritaya Devam Et</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -539,7 +549,11 @@ const DriverTasks = ({ navigation }) => {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons
-        name={activeTab === "active" ? "clipboard-outline" : "checkmark-done-outline"}
+        name={
+          activeTab === "active"
+            ? "clipboard-outline"
+            : "checkmark-done-outline"
+        }
         size={64}
         color={COLORS.muted}
       />
