@@ -43,6 +43,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [watchSubscription, setWatchSubscription] = useState(null);
   const [navigationInfo, setNavigationInfo] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  const [heading, setHeading] = useState(0); // Araç yönü (derece)
 
   // Route fetch'in tek sefer çalışmasını garantilemek için
   const routeFetchedRef = useRef(false);
@@ -383,6 +384,13 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         },
         (newLocation) => {
           setLocation(newLocation.coords);
+          // Heading (yön) bilgisini al
+          if (
+            newLocation.coords.heading !== null &&
+            newLocation.coords.heading >= 0
+          ) {
+            setHeading(newLocation.coords.heading);
+          }
           updateNavigationInfo(newLocation.coords);
         }
       );
@@ -416,9 +424,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       endCoords.longitude
     );
 
+    // ETA dinamik hesaplama (ortalama 25 km/h şehir içi trafik)
+    const avgSpeedKmh = 25;
+    const etaMinutes = Math.ceil((distance / avgSpeedKmh) * 60);
+
     setNavigationInfo((prev) => ({
       ...prev,
       distance: distance.toFixed(1),
+      eta: etaMinutes, // Dinamik ETA
     }));
   };
 
@@ -648,7 +661,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           rotateEnabled={true}
           pitchEnabled={isNavigating}
         >
-          {/* Mevcut Konum Marker */}
+          {/* Mevcut Konum / Araç Marker */}
           <Marker
             coordinate={{
               latitude: location.latitude,
@@ -656,6 +669,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             }}
             title="Konumunuz"
             anchor={{ x: 0.5, y: 0.5 }}
+            flat={isNavigating} // Harita ile birlikte döner
+            rotation={isNavigating ? heading : 0} // Heading'e göre döndür
           >
             <View
               style={[
@@ -663,11 +678,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 isNavigating && styles.navigatingMarker,
               ]}
             >
-              <Ionicons
-                name={isNavigating ? "car-sport" : "location"}
-                size={22}
-                color="#fff"
-              />
+              {isNavigating ? (
+                // Navigasyon modunda araç ikonu (yukarı bakan ok)
+                <View style={styles.vehicleIconContainer}>
+                  <Ionicons name="navigate" size={24} color="#fff" />
+                </View>
+              ) : (
+                <Ionicons name="location" size={22} color="#fff" />
+              )}
             </View>
           </Marker>
 
@@ -1010,6 +1028,13 @@ const styles = StyleSheet.create({
   navigatingMarker: {
     backgroundColor: "#10B981",
     padding: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  vehicleIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   waypointMarker: {
     backgroundColor: "#F59E0B",
