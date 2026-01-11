@@ -21,11 +21,9 @@ import { driverTaskAPI } from "../../services/api";
 
 const { width } = Dimensions.get("window");
 
-// Google Maps API Key
-// NOT: Bu key Android/iOS app restriction ile kısıtlanmış olmalı
-// Package: com.tulipfleet.app, SHA-1 fingerprint eklenmiş olmalı
-// Sadece Directions API + Maps SDK açık, quota limit konulmuş olmalı
-const GOOGLE_MAPS_API_KEY = "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk";
+// Google Maps API Key - Senin hesabın (Billing aktif, restriction: None)
+// NOT: Production'da platform bazlı restriction eklenecek
+const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
 
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
