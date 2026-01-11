@@ -102,13 +102,12 @@ const DriverTasks = ({ navigation }) => {
   );
 
   // API'den görevleri çek
-  const fetchTasks = async (tabOverride) => {
+  const fetchTasks = async () => {
     try {
       setError(null);
-      const tabToUse = tabOverride ?? activeTab;
-      console.log("📋 Fetching driver tasks...", { tab: tabToUse });
+      console.log("📋 Fetching driver tasks...", { activeTab });
 
-      if (tabToUse === "completed") {
+      if (activeTab === "completed") {
         // Tamamlanan görevleri çek
         const data = await driverTaskAPI.getCompletedTasks();
         console.log("✅ Completed tasks loaded:", data);
@@ -153,10 +152,27 @@ const DriverTasks = ({ navigation }) => {
   }, [activeTab]);
 
   // Tab değiştiğinde veri çek
-  const handleTabChange = (tab) => {
+  const handleTabChange = async (tab) => {
+    if (tab === activeTab) return;
     setActiveTab(tab);
     setLoading(true);
-    fetchTasks(tab); // tab'ı parametre olarak geç
+
+    // Doğrudan tab parametresiyle fetch yap
+    try {
+      if (tab === "completed") {
+        const data = await driverTaskAPI.getCompletedTasks();
+        const taskList = data.tasks || data || [];
+        setCompletedTasks(Array.isArray(taskList) ? taskList : []);
+      } else {
+        const data = await driverTaskAPI.getMyTasks();
+        const taskList = data.tasks || data || [];
+        setTasks(Array.isArray(taskList) ? taskList : []);
+      }
+    } catch (err) {
+      console.error("Tab change fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ═══════════════════════════════════════════════════════════════
