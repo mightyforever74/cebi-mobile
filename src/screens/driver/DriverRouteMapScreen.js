@@ -70,6 +70,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const activeTask =
         res.tasks?.find((t) => t.status === "in_progress") ||
         res.tasks?.find((t) => t.status === "accepted") ||
+        res.tasks?.find((t) => t.status === "pending_review") ||
         null;
       setTask(activeTask);
     } catch (e) {
@@ -273,6 +274,52 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               loadActiveTask();
             } catch (e) {
               Alert.alert("Hata", e.message || "Görev tamamlanamadı");
+            } finally {
+              setActionLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAcceptTask = async () => {
+    if (!task) return;
+
+    setActionLoading(true);
+    try {
+      await driverTaskAPI.updateTaskStatus(task.id, "accepted");
+      setTask({ ...task, status: "accepted" });
+      Alert.alert("✅ Görev Kabul Edildi", "Görevi başlatmak için hazırsınız.");
+    } catch (e) {
+      Alert.alert("Hata", e.message || "Görev kabul edilemedi");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectTask = async () => {
+    if (!task) return;
+    Alert.alert(
+      "Görevi Reddet",
+      "Bu görevi reddetmek istediğinize emin misiniz?",
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Reddet",
+          style: "destructive",
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              await driverTaskAPI.updateTaskStatus(task.id, "rejected");
+              setTask(null);
+              Alert.alert(
+                "Görev Reddedildi",
+                "Başka görevler için bekleyebilirsiniz."
+              );
+              loadActiveTask();
+            } catch (e) {
+              Alert.alert("Hata", e.message || "Görev reddedilemedi");
             } finally {
               setActionLoading(false);
             }
@@ -523,6 +570,44 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.navInfoItem}>
             <Text style={styles.navInfoTaskNo}>{getShortTaskNo()}</Text>
             <Text style={styles.navInfoLabel}>Görev</Text>
+          </View>
+        </View>
+      )}
+
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* PENDING REVIEW BANNER - Bekleyen görev varsa */}
+      {/* ════════════════════════════════════════════════════════ */}
+      {task?.status === "pending_review" && location && (
+        <View style={styles.pendingBanner}>
+          <View style={styles.pendingIconContainer}>
+            <Ionicons name="time" size={24} color="#F59E0B" />
+          </View>
+          <View style={styles.pendingTextContainer}>
+            <Text style={styles.pendingTitle}>Bekleyen Görev Var</Text>
+            <Text style={styles.pendingSubtitle}>
+              {task.title || "Yeni görev teklifi"}
+              {getDistance() ? ` • ${getDistance()} km` : ""}
+            </Text>
+          </View>
+          <View style={styles.pendingActions}>
+            <TouchableOpacity
+              style={styles.rejectBtn}
+              onPress={handleRejectTask}
+              disabled={actionLoading}
+            >
+              <Ionicons name="close" size={20} color="#EF4444" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.acceptBtn}
+              onPress={handleAcceptTask}
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Ionicons name="checkmark" size={20} color="#fff" />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -835,6 +920,68 @@ const styles = StyleSheet.create({
     color: "#3B82F6",
     fontSize: 13,
     fontWeight: "600",
+  },
+
+  // Pending Review Banner
+  pendingBanner: {
+    position: "absolute",
+    bottom: 30,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 16,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: "#F59E0B",
+  },
+  pendingIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FEF3C7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pendingTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  pendingTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  pendingSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  pendingActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  rejectBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  acceptBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   // Task Card (sadece accepted)
