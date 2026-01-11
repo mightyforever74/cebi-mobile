@@ -1,8 +1,7 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 05 Ocak 2026 v4 - Final Akış:
-// - accepted: Kart + Başla butonu
-// - in_progress: Kart YOK, Floating Tamamla + Dahili Navigasyon
+// Updated: 11 Ocak 2026 v5 - Google Directions API ile gerçek yol güzergahı
+// Fixes: API key restriction, URL encode, routeLoading stuck, double-start, performans
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -22,6 +21,18 @@ import { driverTaskAPI } from "../../services/api";
 
 const { width } = Dimensions.get("window");
 
+// Google Maps API Key
+// NOT: Bu key Android/iOS app restriction ile kısıtlanmış olmalı
+// Package: com.tulipfleet.app, SHA-1 fingerprint eklenmiş olmalı
+// Sadece Directions API + Maps SDK açık, quota limit konulmuş olmalı
+const GOOGLE_MAPS_API_KEY = "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk";
+
+// Waypoint limiti (Google Directions API limiti 25)
+const MAX_WAYPOINTS = 10;
+
+// Route noktası limiti (performans için)
+const MAX_ROUTE_POINTS = 500;
+
 const DriverRouteMapScreen = ({ navigation, route }) => {
   const initialTask = route?.params?.task || null;
 
@@ -33,6 +44,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [routeCoords, setRouteCoords] = useState([]);
   const [watchSubscription, setWatchSubscription] = useState(null);
   const [navigationInfo, setNavigationInfo] = useState(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+
+  // Route fetch'in tek sefer çalışmasını garantilemek için
+  const routeFetchedRef = useRef(false);
+  const lastRouteTaskIdRef = useRef(null); // FIX #1: Task ID değişimini takip et
+
+  // FIX #2: watchSubscription için ref kullan (state closure riski önleme)
+  const watchSubscriptionRef = useRef(null);
 
   const mapRef = useRef(null);
 
@@ -45,18 +64,36 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     getLocation();
 
     return () => {
-      if (watchSubscription) {
-        watchSubscription.remove();
+      // FIX #2: Ref üzerinden temizle
+      if (watchSubscriptionRef.current) {
+        watchSubscriptionRef.current.remove();
+        watchSubscriptionRef.current = null;
       }
     };
   }, []);
 
-  // Görev durumu değiştiğinde
+  // Görev durumu veya konum değiştiğinde route başlat
+  // FIX #1: Hem task.status hem task.id hem location dependency'de olmalı
   useEffect(() => {
+    // Sadece in_progress durumunda ve location varsa
     if (task?.status === "in_progress" && location) {
-      fetchRouteAndStartNav();
+      // FIX #1: Task ID değiştiyse yeniden fetch yap
+      const shouldFetch =
+        !routeFetchedRef.current || lastRouteTaskIdRef.current !== task.id;
+
+      if (shouldFetch) {
+        routeFetchedRef.current = true;
+        lastRouteTaskIdRef.current = task.id;
+        fetchRouteAndStartNav();
+      }
     }
-  }, [task?.status]);
+
+    // Task null olursa veya in_progress değilse reset
+    if (!task || task.status !== "in_progress") {
+      routeFetchedRef.current = false;
+      lastRouteTaskIdRef.current = null;
+    }
+  }, [task?.status, task?.id, location]);
 
   // ══════════════════════════════════════════════════════════════
   // DATA LOADING
@@ -65,8 +102,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const loadActiveTask = async () => {
     try {
       const res = await driverTaskAPI.getMyTasks();
-      // Sadece accepted veya in_progress görevleri al
-      // pending_review NAVİGASYONDA GÖSTERİLMEZ (Görevlerim'de kabul edilir)
       const activeTask =
         res.tasks?.find((t) => t.status === "in_progress") ||
         res.tasks?.find((t) => t.status === "accepted") ||
@@ -100,70 +135,252 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   // ══════════════════════════════════════════════════════════════
+  // GOOGLE DIRECTIONS API - Gerçek Yol Güzergahı
+  // ══════════════════════════════════════════════════════════════
+
+  // Polyline decode fonksiyonu (null-safe)
+  const decodePolyline = (encoded) => {
+    // FIX: null/undefined check
+    if (!encoded || typeof encoded !== "string") return [];
+
+    const points = [];
+    let index = 0,
+      lat = 0,
+      lng = 0;
+
+    while (index < encoded.length) {
+      let b,
+        shift = 0,
+        result = 0;
+      do {
+        b = encoded.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
+      lng += dlng;
+
+      points.push({
+        latitude: lat / 1e5,
+        longitude: lng / 1e5,
+      });
+    }
+    return points;
+  };
+
+  // Route noktalarını downsample et (performans için)
+  const downsampleRoute = (points, maxPoints = MAX_ROUTE_POINTS) => {
+    if (!points || points.length <= maxPoints) return points;
+
+    const step = Math.ceil(points.length / maxPoints);
+    const sampled = [];
+
+    for (let i = 0; i < points.length; i += step) {
+      sampled.push(points[i]);
+    }
+
+    // Son noktayı mutlaka ekle
+    if (sampled[sampled.length - 1] !== points[points.length - 1]) {
+      sampled.push(points[points.length - 1]);
+    }
+
+    console.log(
+      `[Nav] Downsampled ${points.length} -> ${sampled.length} points`
+    );
+    return sampled;
+  };
+
+  // Google Directions API ile rota al
+  const fetchRouteFromGoogle = async (origin, destination, waypoints = []) => {
+    try {
+      // FIX: Waypoint limiti kontrolü
+      const limitedWaypoints = waypoints.slice(0, MAX_WAYPOINTS);
+      if (waypoints.length > MAX_WAYPOINTS) {
+        console.log(
+          `[Nav] Waypoints limited: ${waypoints.length} -> ${MAX_WAYPOINTS}`
+        );
+      }
+
+      // Base URL
+      let url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=${GOOGLE_MAPS_API_KEY}`;
+
+      // FIX: Waypoint'leri URL encode ile ekle
+      if (limitedWaypoints.length > 0) {
+        const waypointStr = limitedWaypoints
+          .map((wp) => `${wp.latitude},${wp.longitude}`)
+          .join("|");
+        url += `&waypoints=${encodeURIComponent(waypointStr)}`;
+      }
+
+      console.log("[Nav] Fetching route from Google Directions API...");
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        const points = route.overview_polyline?.points;
+        let decodedPoints = decodePolyline(points);
+
+        // FIX: Performans için downsample
+        decodedPoints = downsampleRoute(decodedPoints);
+
+        // Mesafe ve süre bilgisi
+        let totalDistance = 0;
+        let totalDuration = 0;
+        (route.legs || []).forEach((leg) => {
+          totalDistance += leg.distance?.value || 0;
+          totalDuration += leg.duration?.value || 0;
+        });
+
+        console.log(
+          "[Nav] Route fetched:",
+          decodedPoints.length,
+          "points,",
+          (totalDistance / 1000).toFixed(1),
+          "km,",
+          Math.ceil(totalDuration / 60),
+          "dk"
+        );
+
+        return {
+          coordinates: decodedPoints,
+          distance: totalDistance / 1000, // km
+          duration: Math.ceil(totalDuration / 60), // dakika
+        };
+      } else {
+        console.log(
+          "[Nav] Directions API error:",
+          data.status,
+          data.error_message || ""
+        );
+        return null;
+      }
+    } catch (error) {
+      console.log("[Nav] Directions API fetch error:", error.message || error);
+      return null;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
   // NAVIGATION & ROUTE (in_progress için)
   // ══════════════════════════════════════════════════════════════
 
   const fetchRouteAndStartNav = async () => {
-    if (!location) return;
+    // FIX: Early return'lerde routeLoading stuck kalmaz
+    if (!location) {
+      console.log("[Nav] No location, skipping route fetch");
+      return;
+    }
 
     const endCoords = getEndLocationCoords();
-    const waypoints = task?.waypoints || [];
-
-    // Rota koordinatlarını oluştur
-    const coords = [
-      { latitude: location.latitude, longitude: location.longitude },
-    ];
-
-    // Waypoint'leri ekle
-    waypoints.forEach((wp) => {
-      if (wp.lat && wp.lng) {
-        coords.push({ latitude: wp.lat, longitude: wp.lng });
-      } else if (wp.latitude && wp.longitude) {
-        coords.push({ latitude: wp.latitude, longitude: wp.longitude });
-      }
-    });
-
-    // Varış noktasını ekle
-    if (endCoords) {
-      coords.push(endCoords);
+    if (!endCoords) {
+      console.log("[Nav] No destination coordinates, skipping route fetch");
+      return;
     }
 
-    setRouteCoords(coords);
+    setRouteLoading(true);
 
-    // Haritayı rotaya sığdır
-    if (mapRef.current && coords.length > 1) {
-      setTimeout(() => {
-        mapRef.current.fitToCoordinates(coords, {
-          edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
-          animated: true,
-        });
-      }, 500);
-    }
+    try {
+      // FIX: Önce mevcut tracking'i durdur (double-start önleme)
+      stopLocationTracking();
 
-    // Navigasyon bilgisini hesapla
-    if (endCoords) {
-      const distance = calculateDistance(
-        location.latitude,
-        location.longitude,
-        endCoords.latitude,
-        endCoords.longitude
+      // Waypoint'leri hazırla
+      const waypoints = (task?.waypoints || [])
+        .map((wp) => {
+          if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
+          if (wp.latitude && wp.longitude)
+            return { latitude: wp.latitude, longitude: wp.longitude };
+          return null;
+        })
+        .filter(Boolean);
+
+      // Google Directions API'den rota al
+      const routeResult = await fetchRouteFromGoogle(
+        { latitude: location.latitude, longitude: location.longitude },
+        endCoords,
+        waypoints
       );
-      setNavigationInfo({
-        distance: distance.toFixed(1),
-        eta: Math.ceil(distance * 2), // Yaklaşık süre (dakika)
-      });
-    }
 
-    // Konum takibini başlat
-    startLocationTracking();
+      if (routeResult && routeResult.coordinates.length > 0) {
+        // Google'dan gelen gerçek rota
+        setRouteCoords(routeResult.coordinates);
+        setNavigationInfo({
+          distance: routeResult.distance.toFixed(1),
+          eta: routeResult.duration,
+        });
+
+        // Haritayı rotaya sığdır
+        if (mapRef.current) {
+          setTimeout(() => {
+            mapRef.current?.fitToCoordinates(routeResult.coordinates, {
+              edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
+              animated: true,
+            });
+          }, 500);
+        }
+      } else {
+        // Fallback: Düz çizgi
+        console.log("[Nav] Using fallback straight line");
+        const coords = [
+          { latitude: location.latitude, longitude: location.longitude },
+          ...waypoints,
+          endCoords,
+        ];
+        setRouteCoords(coords);
+
+        const distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          endCoords.latitude,
+          endCoords.longitude
+        );
+        setNavigationInfo({
+          distance: distance.toFixed(1),
+          eta: Math.ceil(distance * 2),
+        });
+
+        if (mapRef.current && coords.length > 1) {
+          setTimeout(() => {
+            mapRef.current?.fitToCoordinates(coords, {
+              edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
+              animated: true,
+            });
+          }, 500);
+        }
+      }
+
+      // Konum takibini başlat
+      startLocationTracking();
+    } catch (error) {
+      console.log("[Nav] fetchRouteAndStartNav error:", error);
+    } finally {
+      // FIX: Her durumda routeLoading false olmalı
+      setRouteLoading(false);
+    }
   };
 
   const startLocationTracking = async () => {
     try {
+      // FIX #2: Ref üzerinden önce mevcut subscription'ı temizle (double-start kesin önleme)
+      if (watchSubscriptionRef.current) {
+        watchSubscriptionRef.current.remove();
+        watchSubscriptionRef.current = null;
+      }
+
       const subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 3000, // 3 saniyede bir
+          timeInterval: 3000,
           distanceInterval: 10,
         },
         (newLocation) => {
@@ -171,7 +388,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           updateNavigationInfo(newLocation.coords);
         }
       );
-      setWatchSubscription(subscription);
+      // FIX #2: Ref'e ata
+      watchSubscriptionRef.current = subscription;
+      setWatchSubscription(subscription); // UI için state de tut
       console.log("[Nav] Location tracking started");
     } catch (e) {
       console.log("[Nav] Watch error:", e);
@@ -179,8 +398,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   const stopLocationTracking = () => {
-    if (watchSubscription) {
-      watchSubscription.remove();
+    // FIX #2: Ref üzerinden temizle
+    if (watchSubscriptionRef.current) {
+      watchSubscriptionRef.current.remove();
+      watchSubscriptionRef.current = null;
       setWatchSubscription(null);
       console.log("[Nav] Location tracking stopped");
     }
@@ -197,21 +418,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       endCoords.longitude
     );
 
-    setNavigationInfo({
+    setNavigationInfo((prev) => ({
+      ...prev,
       distance: distance.toFixed(1),
-      eta: Math.ceil(distance * 2),
-    });
-
-    // Rota güncelle (ilk nokta = mevcut konum)
-    setRouteCoords((prev) => {
-      if (prev.length > 0) {
-        return [
-          { latitude: coords.latitude, longitude: coords.longitude },
-          ...prev.slice(1),
-        ];
-      }
-      return prev;
-    });
+    }));
   };
 
   // Haversine formülü ile mesafe hesapla (km)
@@ -239,11 +449,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     setActionLoading(true);
     try {
       await driverTaskAPI.startTask(task.id);
+      // FIX: Sadece status güncelle, route useEffect'te başlayacak
       setTask({ ...task, status: "in_progress" });
-
-      // Rota ve navigasyonu başlat
-      fetchRouteAndStartNav();
-
       Alert.alert("🚀 Görev Başladı", "Navigasyon aktif. İyi yolculuklar!");
     } catch (e) {
       Alert.alert("Hata", e.message || "Görev başlatılamadı");
@@ -270,6 +477,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               setTask(null);
               setRouteCoords([]);
               setNavigationInfo(null);
+              routeFetchedRef.current = false;
               Alert.alert("🎉 Tebrikler!", "Görev başarıyla tamamlandı!");
               loadActiveTask();
             } catch (e) {
@@ -288,7 +496,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     setActionLoading(true);
     try {
-      await driverTaskAPI.updateTaskStatus(task.id, "accepted");
+      await driverTaskAPI.acceptTask(task.id);
       setTask({ ...task, status: "accepted" });
       Alert.alert("✅ Görev Kabul Edildi", "Görevi başlatmak için hazırsınız.");
     } catch (e) {
@@ -311,7 +519,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           onPress: async () => {
             setActionLoading(true);
             try {
-              await driverTaskAPI.updateTaskStatus(task.id, "rejected");
+              await driverTaskAPI.rejectTask(task.id);
               setTask(null);
               Alert.alert(
                 "Görev Reddedildi",
@@ -351,15 +559,18 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
     if (task?.route_json?.dest_lat && task?.route_json?.dest_lng) {
       return {
-        latitude: task.route_json.dest_lat,
-        longitude: task.route_json.dest_lng,
+        latitude: parseFloat(task.route_json.dest_lat),
+        longitude: parseFloat(task.route_json.dest_lng),
       };
     }
     // Waypoint'lerin sonuncusu
     if (task?.waypoints?.length > 0) {
       const last = task.waypoints[task.waypoints.length - 1];
       if (last.lat && last.lng) {
-        return { latitude: last.lat, longitude: last.lng };
+        return {
+          latitude: parseFloat(last.lat),
+          longitude: parseFloat(last.lng),
+        };
       }
     }
     return null;
@@ -413,14 +624,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const isNavigating = task?.status === "in_progress";
   const isAccepted = task?.status === "accepted";
-  // KART SADECE accepted DURUMUNDA GÖSTERİLİR
+  const isPendingReview = task?.status === "pending_review";
   const showTaskCard = task && isAccepted;
 
   return (
     <View style={{ flex: 1 }}>
-      {/* ════════════════════════════════════════════════════════ */}
-      {/* MAP - Her zaman göster */}
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* MAP */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {location ? (
         <MapView
           ref={mapRef}
@@ -462,7 +673,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             </View>
           </Marker>
 
-          {/* Rota Çizgisi (in_progress) */}
+          {/* Rota Çizgisi (in_progress) - Gerçek Yol */}
           {isNavigating && routeCoords.length > 1 && (
             <Polyline
               coordinates={routeCoords}
@@ -478,8 +689,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               <Marker
                 key={`wp-${index}`}
                 coordinate={{
-                  latitude: wp.lat || wp.latitude,
-                  longitude: wp.lng || wp.longitude,
+                  latitude: parseFloat(wp.lat || wp.latitude),
+                  longitude: parseFloat(wp.lng || wp.longitude),
                 }}
                 title={wp.name || `Durak ${index + 1}`}
                 anchor={{ x: 0.5, y: 0.5 }}
@@ -516,9 +727,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {/* HEADER BUTTONS */}
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
 
       {/* Back Button */}
       <TouchableOpacity
@@ -548,9 +759,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       )}
 
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {/* NAVIGATION INFO BAR (in_progress) */}
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {isNavigating && navigationInfo && (
         <View style={styles.navInfoBar}>
           <View style={styles.navInfoItem}>
@@ -574,10 +785,22 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ════════════════════════════════════════════════════════ */}
-      {/* PENDING REVIEW BANNER - Bekleyen görev varsa */}
-      {/* ════════════════════════════════════════════════════════ */}
-      {task?.status === "pending_review" && location && (
+      {/* Route Loading Indicator */}
+      {routeLoading && (
+        <View style={styles.routeLoadingBar}>
+          <ActivityIndicator size="small" color="#fff" />
+          <Text style={styles.routeLoadingText}>Güzergah hesaplanıyor...</Text>
+        </View>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* NO TASK - Banner gösterme (ürün kararı: görev yoksa sessiz kal) */}
+      {/* ═══════════════════════════════════════════════════════ */}
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* PENDING REVIEW BANNER */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {isPendingReview && location && (
         <View style={styles.pendingBanner}>
           <View style={styles.pendingIconContainer}>
             <Ionicons name="time" size={24} color="#F59E0B" />
@@ -585,8 +808,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.pendingTextContainer}>
             <Text style={styles.pendingTitle}>Bekleyen Görev Var</Text>
             <Text style={styles.pendingSubtitle}>
-              {task.title || "Yeni görev teklifi"}
-              {getDistance() ? ` • ${getDistance()} km` : ""}
+              {task.title || "Yeni görev teklifi"} •{" "}
+              {getDistance() ? `${getDistance()} km` : ""}
             </Text>
           </View>
           <View style={styles.pendingActions}>
@@ -612,31 +835,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ════════════════════════════════════════════════════════ */}
-      {/* NO TASK INFO (Görev yok veya pending_review) */}
-      {/* ════════════════════════════════════════════════════════ */}
-      {!task && location && (
-        <View style={styles.noTaskBanner}>
-          <Ionicons name="map-outline" size={24} color="#3B82F6" />
-          <View style={styles.noTaskTextContainer}>
-            <Text style={styles.noTaskTitle}>Harita Hazır</Text>
-            <Text style={styles.noTaskSubtitle}>
-              Güzergah navigasyonu için önce bir görev başlatın.
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.goToTasksBtn}
-            onPress={() => navigation.navigate("DriverTasks")}
-          >
-            <Text style={styles.goToTasksBtnText}>Görevlerim</Text>
-            <Ionicons name="chevron-forward" size={16} color="#3B82F6" />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {/* TASK CARD - SADECE accepted DURUMUNDA */}
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {showTaskCard && (
         <View style={styles.taskCard}>
           {/* Header */}
@@ -710,9 +911,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {/* FLOATING TAMAMLA BUTONU - SADECE in_progress DURUMUNDA */}
-      {/* ════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {isNavigating && (
         <TouchableOpacity
           style={styles.floatingCompleteBtn}
@@ -874,6 +1075,26 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: "#334155",
+  },
+
+  // Route Loading
+  routeLoadingBar: {
+    position: "absolute",
+    top: 180,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3B82F6",
+    padding: 10,
+    borderRadius: 10,
+    gap: 8,
+  },
+  routeLoadingText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "500",
   },
 
   // No Task Banner
