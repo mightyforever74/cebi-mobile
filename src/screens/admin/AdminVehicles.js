@@ -179,11 +179,20 @@ const AdminVehicles = ({ navigation }) => {
           <View style={styles.metricDivider} />
 
           <View style={styles.metric}>
-            <Ionicons
-              name={vehicle.esp32_connected ? "wifi" : "wifi-outline"}
-              size={20}
-              color={vehicle.esp32_connected ? COLORS.success : COLORS.muted}
-            />
+            {(() => {
+              const now = Date.now();
+              const lastTime = vehicle.last_location_time
+                ? new Date(vehicle.last_location_time).getTime()
+                : 0;
+              const isOnline = now - lastTime < 5 * 60 * 1000;
+              return (
+                <Ionicons
+                  name={isOnline ? "wifi" : "wifi-outline"}
+                  size={20}
+                  color={isOnline ? COLORS.success : COLORS.muted}
+                />
+              );
+            })()}
             <Text style={styles.metricLabel}>ESP32</Text>
           </View>
         </View>

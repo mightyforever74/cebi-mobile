@@ -117,16 +117,24 @@ const VehicleListModal = ({
   // STATS
   // ============================================================================
 
-  const stats = useMemo(
-    () => ({
+  // Stats - Online = son 5 dakikada konum gönderen
+  const stats = useMemo(() => {
+    const now = Date.now();
+    const ONLINE_THRESHOLD = 5 * 60 * 1000; // 5 dakika
+
+    const isOnline = (v) => {
+      if (!v.last_location_time) return false;
+      return now - new Date(v.last_location_time).getTime() < ONLINE_THRESHOLD;
+    };
+
+    return {
       total: vehicles.length,
       in_use: vehicles.filter((v) => v.status === "in_use").length,
       available: vehicles.filter((v) => v.status === "available").length,
-      offline: vehicles.filter((v) => v.status === "offline" || !v.latitude)
-        .length,
-    }),
-    [vehicles]
-  );
+      offline: vehicles.filter((v) => !isOnline(v)).length,
+      online: vehicles.filter((v) => isOnline(v)).length,
+    };
+  }, [vehicles]);
 
   // ============================================================================
   // HANDLERS
@@ -530,6 +538,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   speedText: {
+    fontSize: 11,
+    color: "#10B981",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  espActiveText: {
     fontSize: 11,
     color: "#10B981",
     fontWeight: "600",
