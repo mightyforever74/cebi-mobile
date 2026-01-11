@@ -90,3 +90,32 @@ Gerekli değişiklikler:
 Mesajlarında canlı JWT token’lar açıkça görünüyor. Bunları artık kopyalayıp paylaşmamanı öneririm; mümkünse bu token’ları da yenile/expire et (logout / token rotate).
 
 İstersen sıradaki adım: DeviceSetupScreen.js içinde Gate’i nereye koyduğunu söyle, ben bu endpoint response’una göre en kısa entegrasyon kodunu (React Native) yazayım.
+
+XH-028 voltmetre modülü eklemeyi tavsiye eder miyim?
+Ne kazandırır?
+
+Araç beslemesi düştü mü? (akü zayıf / marş anı / regülatör problemi)
+
+Cihaz reset atıyor mu? Reset sebebini yakalamanı kolaylaştırır.
+
+“GPS gitti / MQTT gitti” gibi sorunlarda: neden elektrik mi, kapsama mı? ayrımı hızlanır.
+
+LED’ler
+
+GPIO4 (Mavi) = WiFi
+
+WiFi yok/bağlanıyor: 500ms blink
+
+WiFi bağlı: sabit ON
+
+GPIO5 (Kırmızı) = GPS fix
+
+Fix yok: 300ms blink
+
+Fix var: sabit ON
+
+Durum Şoför ne görür Sen ne anlarsın
+WiFi kapalı Mavi blink Veri gelmez
+GPS fix yok Kırmızı blink Kapalı alan / anten
+İkisi ON Her şey OK Backend de OK
+GPS gidip geliyor Kırmızı yanıp söner Urban canyon

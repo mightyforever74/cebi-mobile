@@ -99,16 +99,28 @@ const FleetMapScreen = ({ navigation }) => {
     return normalizedVehicles.find((v) => v.id === selectedVehicleId) || null;
   }, [normalizedVehicles, selectedVehicleId]);
 
-  // İstatistikler
-  const stats = useMemo(
-    () => ({
+  // İstatistikler - Online = son 5 dakikada konum gönderen
+  const stats = useMemo(() => {
+    const now = Date.now();
+    const ONLINE_THRESHOLD = 5 * 60 * 1000; // 5 dakika
+
+    const withOnlineStatus = allVehicles.map((v) => {
+      const lastTime = v.last_location_time
+        ? new Date(v.last_location_time).getTime()
+        : 0;
+      const isOnline = now - lastTime < ONLINE_THRESHOLD;
+      return { ...v, isOnline };
+    });
+
+    return {
       total: allVehicles.length,
-      active: allVehicles.filter((v) => v.status === "in_use").length,
+      online: withOnlineStatus.filter((v) => v.isOnline).length,
+      offline: withOnlineStatus.filter((v) => !v.isOnline).length,
       available: allVehicles.filter((v) => v.status === "available").length,
       withLocation: normalizedVehicles.length,
-    }),
-    [allVehicles, normalizedVehicles]
-  );
+      active: allVehicles.filter((v) => v.status === "in_use").length,
+    };
+  }, [allVehicles, normalizedVehicles]);
 
   // ============================================================================
   // DATA FETCHING
@@ -373,13 +385,13 @@ const FleetMapScreen = ({ navigation }) => {
           activeOpacity={0.8}
         >
           <Text style={styles.statsText}>
-            {"🚗"} {stats.withLocation} Araç{" | "}
+            {"🚗"} {stats.total} Araç{" | "}
             <Text style={styles.activeText}>
-              {"●"} {stats.active} Aktif
+              {"●"} {stats.online} Online
             </Text>
             {" | "}
-            <Text style={styles.availableText}>
-              {"●"} {stats.available} Müsait
+            <Text style={styles.offlineText}>
+              {"●"} {stats.offline} Offline
             </Text>
           </Text>
           {lastUpdate && (
@@ -574,6 +586,9 @@ const styles = StyleSheet.create({
   },
   availableText: {
     color: "#3B82F6",
+  },
+  offlineText: {
+    color: COLORS.danger,
   },
   updateText: {
     textAlign: "center",
