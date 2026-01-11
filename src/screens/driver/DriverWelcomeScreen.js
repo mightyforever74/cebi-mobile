@@ -1,9 +1,10 @@
 // src/screens/driver/DriverWelcomeScreen.js
 // TulipFleet - Premium Welcome Screen with Video Background
-// Created: 11 Ocak 2026
-// Version: 2.1 FINAL+ - Double navigation guard + countdown clamp
+// Version: 3.0 - Video + Navigation Fix
 
 import { Ionicons } from "@expo/vector-icons";
+import { CommonActions } from "@react-navigation/native";
+import { ResizeMode, Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,16 +21,13 @@ import { useAuth } from "../../context/AuthContext";
 
 const { width, height } = Dimensions.get("window");
 
-// import { ResizeMode, Video } from "expo-av";  // Bu satırı sil veya yorum yap
-
 const DriverWelcomeScreen = ({ navigation }) => {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
   // Countdown state
   const [countdown, setCountdown] = useState(5);
-
-  // Prevent double navigation (button + timeout race)
+  const [videoError, setVideoError] = useState(false);
   const hasNavigated = useRef(false);
 
   // Animations
@@ -38,6 +36,8 @@ const DriverWelcomeScreen = ({ navigation }) => {
   const buttonScale = useRef(new Animated.Value(0.9)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseAnimRef = useRef(null);
+  const autoTimerRef = useRef(null);
+  const countdownRef = useRef(null);
 
   // Get first name or fallback
   const firstName = user?.first_name || user?.email?.split("@")[0] || "Sürücü";
@@ -49,13 +49,6 @@ const DriverWelcomeScreen = ({ navigation }) => {
     if (hour < 12) return "Günaydın";
     if (hour < 18) return "İyi günler";
     return "İyi akşamlar";
-  };
-
-  // Route: AppNavigator.js'de "DriverDashboard" olarak tanımlı ✅
-  const navigateToDashboard = () => {
-    if (hasNavigated.current) return;
-    hasNavigated.current = true;
-    navigation.replace("DriverDashboard");
   };
 
   useEffect(() => {
@@ -79,7 +72,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
       }),
     ]).start();
 
-    // Pulse animation for button (with cleanup reference)
+    // Pulse animation for button
     pulseAnimRef.current = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -97,22 +90,33 @@ const DriverWelcomeScreen = ({ navigation }) => {
     pulseAnimRef.current.start();
 
     // Auto-navigate timer (5 seconds)
-    const autoNavigateTimer = setTimeout(() => {
-      navigateToDashboard();
-    }, 5000);
+    autoTimerRef.current = setTimeout(navigateToDashboard, 5000);
 
-    // Countdown timer (clamp to 0)
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => Math.max(prev - 1, 0));
+    // Countdown timer
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
 
     // Cleanup
     return () => {
-      clearTimeout(autoNavigateTimer);
-      clearInterval(countdownInterval);
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
       pulseAnimRef.current?.stop();
     };
   }, []);
+
+  // Navigation with reset (fixes drawer crash)
+  const navigateToDashboard = () => {
+    if (hasNavigated.current) return;
+    hasNavigated.current = true;
+
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: "DriverDashboard" }] })
+    );
+  };
 
   const handleContinue = () => {
     // Button press animation
@@ -140,13 +144,32 @@ const DriverWelcomeScreen = ({ navigation }) => {
         barStyle="light-content"
       />
 
-      {/* Gradient Background (Video yerine) */}
-      <LinearGradient
-        colors={["#1a1a2e", "#16213e", "#0f3460", "#1a1a2e"]}
-        style={styles.backgroundVideo}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+      {/* Video Background with Gradient Fallback */}
+      {!videoError ? (
+        <Video
+          source={require("../../assets/videos/welcome-loop-v2.mp4")}
+          style={styles.backgroundVideo}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+          useNativeControls={false}
+          // Poster optional for Android black frame polish:
+          // posterSource={require("../../assets/images/welcome-poster.png")}
+          // usePoster
+          onError={(e) => {
+            console.log("[WELCOME_VIDEO_ERROR]", e?.nativeEvent || e);
+            setVideoError(true);
+          }}
+        />
+      ) : (
+        <LinearGradient
+          colors={["#1a1a2e", "#16213e", "#0f3460", "#1a1a2e"]}
+          style={styles.backgroundVideo}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+      )}
 
       {/* Gradient Overlay */}
       <LinearGradient
@@ -274,8 +297,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 24,
   },
-
-  // Top Section
   topSection: {
     alignItems: "center",
   },
@@ -299,8 +320,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     letterSpacing: 1,
   },
-
-  // Middle Section
   middleSection: {
     alignItems: "center",
   },
@@ -332,8 +351,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
-
-  // Bottom Section
   bottomSection: {
     alignItems: "center",
   },
