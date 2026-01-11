@@ -118,8 +118,15 @@ const DriverVehicle = ({ navigation }) => {
     );
   }
 
-  const fuelLevel = vehicle.fuel_level || 0;
-  const fuelColor = getFuelColor(fuelLevel);
+  // Fuel percent calculation: handle liters + capacity → percent
+  const fuelLevel = vehicle.fuel_level ?? vehicle.fuelLevel ?? 0; // liters or percent depending on backend
+  const fuelCapacity = vehicle.fuel_capacity ?? vehicle.fuelCapacity ?? 100; // fallback capacity
+  const safeCapacity = fuelCapacity > 0 ? fuelCapacity : 100;
+  const fuelPercent = Math.min(
+    100,
+    Math.max(0, (fuelLevel / safeCapacity) * 100)
+  );
+  const fuelColor = getFuelColor(fuelPercent);
 
   return (
     <ScrollView
@@ -174,12 +181,15 @@ const DriverVehicle = ({ navigation }) => {
           <View
             style={[
               styles.fuelBar,
-              { width: `${fuelLevel}%`, backgroundColor: fuelColor },
+              {
+                width: `${Math.round(fuelPercent)}%`,
+                backgroundColor: fuelColor,
+              },
             ]}
           />
         </View>
         <Text style={[styles.fuelPercentage, { color: fuelColor }]}>
-          {fuelLevel}%
+          {Math.round(fuelLevel)} L
         </Text>
       </View>
 
