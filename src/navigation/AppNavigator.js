@@ -56,6 +56,7 @@ import DriverSettings from "../screens/driver/DriverSettings";
 import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
+import DriverWelcomeScreen from "../screens/driver/DriverWelcomeScreen"; // ← BU SATIRI EKLE
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
 import TaskOffers from "../screens/driver/TaskOffers";
 
