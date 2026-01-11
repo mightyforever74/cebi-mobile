@@ -176,7 +176,7 @@ export const alertAPI = {
 export const adminAPI = {
   // Fleet Stats
   getFleetStats: async () => {
-    const response = await api.get("/api/admin/stats");
+    const response = await api.get("/api/admin/fleet-stats");
     return response.data;
   },
 
