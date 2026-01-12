@@ -1,8 +1,9 @@
 // src/screens/driver/TaskOffers.js
 // TulipFleet - Driver Task Offers Inbox
+// v2.0 - Retry + Error Handling + User Feedback
 
 import { useNavigation } from "@react-navigation/native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,32 +16,133 @@ import {
 import { COLORS } from "../../constants/config";
 import { taskOffersAPI } from "../../services/api";
 
+// 🆕 Retry configuration
+const RETRY_CONFIG = {
+  maxAttempts: 3,
+  baseDelay: 1000, // 1 saniye
+  maxDelay: 10000, // 10 saniye
+};
+
 const TaskOffers = () => {
   const navigation = useNavigation();
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState("pending"); // pending, accepted, rejected, all
+  const [filter, setFilter] = useState("pending");
 
-  const fetchOffers = useCallback(async () => {
-    try {
-      const status = filter === "all" ? null : filter;
-      const response = await taskOffersAPI.getOffers(status);
-      setOffers(response.offers || []);
-    } catch (error) {
-      console.error("Failed to fetch offers:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // 🆕 Error state
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const retryTimeoutRef = useRef(null);
+
+  // 🆕 Exponential backoff delay calculator
+  const getRetryDelay = (attempt) => {
+    const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt);
+    return Math.min(delay, RETRY_CONFIG.maxDelay);
+  };
+
+  // 🆕 Enhanced fetch with retry
+  const fetchOffers = useCallback(
+    async (isRetry = false) => {
+      try {
+        if (!isRetry) {
+          setError(null);
+          setRetryCount(0);
+        }
+
+        const status = filter === "all" ? null : filter;
+        const response = await taskOffersAPI.getOffers(status);
+
+        // ✅ Başarılı - state'leri temizle
+        setOffers(response.offers || []);
+        setError(null);
+        setRetryCount(0);
+      } catch (err) {
+        console.error("[TaskOffers] Fetch error:", err);
+
+        const statusCode = err.response?.status;
+        const isServerError = statusCode >= 500;
+        const isNetworkError =
+          !err.response && err.message?.includes("Network");
+
+        // 🔄 Retry logic for server/network errors
+        if (
+          (isServerError || isNetworkError) &&
+          retryCount < RETRY_CONFIG.maxAttempts
+        ) {
+          const nextRetry = retryCount + 1;
+          const delay = getRetryDelay(retryCount);
+
+          console.log(
+            `[TaskOffers] Retry ${nextRetry}/${RETRY_CONFIG.maxAttempts} in ${delay}ms`
+          );
+          setRetryCount(nextRetry);
+          setError(
+            `Bağlantı sorunu, tekrar deneniyor... (${nextRetry}/${RETRY_CONFIG.maxAttempts})`
+          );
+
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchOffers(true);
+          }, delay);
+        } else {
+          // ❌ Max retry reached or client error
+          setError(getErrorMessage(err));
+          setOffers([]); // Fallback to empty
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [filter, retryCount]
+  );
+
+  // 🆕 User-friendly error messages
+  const getErrorMessage = (err) => {
+    const statusCode = err.response?.status;
+
+    switch (statusCode) {
+      case 401:
+        return "Oturum süresi doldu. Lütfen tekrar giriş yapın.";
+      case 403:
+        return "Bu işlem için yetkiniz bulunmuyor.";
+      case 404:
+        return "Teklifler bulunamadı.";
+      case 500:
+      case 502:
+      case 503:
+        return "Sunucu hatası. Lütfen daha sonra tekrar deneyin.";
+      default:
+        if (!err.response) {
+          return "İnternet bağlantınızı kontrol edin.";
+        }
+        return "Bir hata oluştu. Lütfen tekrar deneyin.";
     }
-  }, [filter]);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchOffers();
-  }, [fetchOffers]);
+  }, [filter]); // filter değişince yeniden fetch (retryCount'u dependency'den çıkardık)
 
   const onRefresh = () => {
     setRefreshing(true);
+    setRetryCount(0); // Manuel refresh'te retry sayacını sıfırla
+    fetchOffers();
+  };
+
+  // 🆕 Manuel retry button handler
+  const handleManualRetry = () => {
+    setLoading(true);
+    setRetryCount(0);
     fetchOffers();
   };
 
@@ -193,7 +295,31 @@ const TaskOffers = () => {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  // 🆕 Error Banner Component
+  const ErrorBanner = () => {
+    if (!error) return null;
+
+    const isRetrying = retryCount > 0 && retryCount < RETRY_CONFIG.maxAttempts;
+
+    return (
+      <View
+        style={[styles.errorBanner, isRetrying && styles.errorBannerRetrying]}
+      >
+        <Text style={styles.errorIcon}>{isRetrying ? "🔄" : "⚠️"}</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        {!isRetrying && (
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={handleManualRetry}
+          >
+            <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -204,6 +330,9 @@ const TaskOffers = () => {
 
   return (
     <View style={styles.container}>
+      {/* 🆕 Error Banner */}
+      <ErrorBanner />
+
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
         <FilterButton value="pending" label="Bekleyen" />
@@ -223,12 +352,22 @@ const TaskOffers = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📭</Text>
+            <Text style={styles.emptyIcon}>{error ? "😔" : "📭"}</Text>
             <Text style={styles.emptyText}>
-              {filter === "pending"
+              {error
+                ? "Teklifler yüklenemedi"
+                : filter === "pending"
                 ? "Bekleyen teklif yok"
                 : "Görev teklifi bulunamadı"}
             </Text>
+            {error && (
+              <TouchableOpacity
+                style={styles.emptyRetryButton}
+                onPress={handleManualRetry}
+              >
+                <Text style={styles.emptyRetryText}>🔄 Tekrar Dene</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -251,6 +390,52 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: COLORS.textSecondary,
+  },
+  // 🆕 Error styles
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEF2F2",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#FECACA",
+  },
+  errorBannerRetrying: {
+    backgroundColor: "#FEF9C3",
+    borderBottomColor: "#FDE68A",
+  },
+  errorIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#991B1B",
+  },
+  retryButton: {
+    backgroundColor: "#DC2626",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  emptyRetryButton: {
+    marginTop: 16,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  emptyRetryText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   filterContainer: {
     flexDirection: "row",
