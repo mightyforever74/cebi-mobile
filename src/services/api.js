@@ -632,8 +632,8 @@ export const driverTaskAPI = {
 // ============================================
 
 export const pushAPI = {
-  register: async (expo_push_token) => {
-    const response = await api.post("/api/push/register", { expo_push_token });
+  register: async (pushToken) => {
+    const response = await api.post("/api/push/register", { pushToken });
     return response.data;
   },
 
