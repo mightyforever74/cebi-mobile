@@ -1,7 +1,7 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 11 Ocak 2026 v5 - Google Directions API ile gerçek yol güzergahı
-// Fixes: API key restriction, URL encode, routeLoading stuck, double-start, performans
+// Updated: 12 Ocak 2026 v12 - Compact bottom bar, integrated complete button
+// Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -19,10 +19,7 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { COLORS } from "../../constants/config";
 import { driverTaskAPI } from "../../services/api";
 
-// Responsive width (rotation, split-screen safe)
-
-// Google Maps API Key - Senin hesabın (Billing aktif, restriction: None)
-// NOT: Production'da platform bazlı restriction eklenecek
+// Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
 
 // Waypoint limiti (Google Directions API limiti 25)
@@ -44,16 +41,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [watchSubscription, setWatchSubscription] = useState(null);
   const [navigationInfo, setNavigationInfo] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
-  const [heading, setHeading] = useState(0); // Araç yönü (derece)
-  const [followMode, setFollowMode] = useState(true); // Kamera araç takibi
+  const [heading, setHeading] = useState(0);
+  const [followMode, setFollowMode] = useState(true);
 
-  // Route fetch'in tek sefer çalışmasını garantilemek için
   const routeFetchedRef = useRef(false);
-  const lastRouteTaskIdRef = useRef(null); // FIX #1: Task ID değişimini takip et
-
-  // FIX #2: watchSubscription için ref kullan (state closure riski önleme)
+  const lastRouteTaskIdRef = useRef(null);
   const watchSubscriptionRef = useRef(null);
-
   const mapRef = useRef(null);
 
   // ══════════════════════════════════════════════════════════════
@@ -65,7 +58,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     getLocation();
 
     return () => {
-      // FIX #2: Ref üzerinden temizle
       if (watchSubscriptionRef.current) {
         watchSubscriptionRef.current.remove();
         watchSubscriptionRef.current = null;
@@ -73,12 +65,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     };
   }, []);
 
-  // Görev durumu veya konum değiştiğinde route başlat
-  // FIX #1: Hem task.status hem task.id hem location dependency'de olmalı
   useEffect(() => {
-    // Sadece in_progress durumunda ve location varsa
     if (task?.status === "in_progress" && location) {
-      // FIX #1: Task ID değiştiyse yeniden fetch yap
       const shouldFetch =
         !routeFetchedRef.current || lastRouteTaskIdRef.current !== task.id;
 
@@ -89,7 +77,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       }
     }
 
-    // Task null olursa veya in_progress değilse reset
     if (!task || task.status !== "in_progress") {
       routeFetchedRef.current = false;
       lastRouteTaskIdRef.current = null;
@@ -136,12 +123,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   // ══════════════════════════════════════════════════════════════
-  // GOOGLE DIRECTIONS API - Gerçek Yol Güzergahı
+  // GOOGLE DIRECTIONS API
   // ══════════════════════════════════════════════════════════════
 
-  // Polyline decode fonksiyonu (null-safe)
   const decodePolyline = (encoded) => {
-    // FIX: null/undefined check
     if (!encoded || typeof encoded !== "string") return [];
 
     const points = [];
@@ -179,7 +164,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return points;
   };
 
-  // Route noktalarını downsample et (performans için)
   const downsampleRoute = (points, maxPoints = MAX_ROUTE_POINTS) => {
     if (!points || points.length <= maxPoints) return points;
 
@@ -190,7 +174,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       sampled.push(points[i]);
     }
 
-    // Son noktayı mutlaka ekle
     if (sampled[sampled.length - 1] !== points[points.length - 1]) {
       sampled.push(points[points.length - 1]);
     }
@@ -201,10 +184,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return sampled;
   };
 
-  // Google Directions API ile rota al
   const fetchRouteFromGoogle = async (origin, destination, waypoints = []) => {
     try {
-      // FIX: Waypoint limiti kontrolü
       const limitedWaypoints = waypoints.slice(0, MAX_WAYPOINTS);
       if (waypoints.length > MAX_WAYPOINTS) {
         console.log(
@@ -212,10 +193,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         );
       }
 
-      // Base URL
       let url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=${GOOGLE_MAPS_API_KEY}`;
 
-      // FIX: Waypoint'leri URL encode ile ekle
       if (limitedWaypoints.length > 0) {
         const waypointStr = limitedWaypoints
           .map((wp) => `${wp.latitude},${wp.longitude}`)
@@ -232,10 +211,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         const points = route.overview_polyline?.points;
         let decodedPoints = decodePolyline(points);
 
-        // FIX: Performans için downsample
         decodedPoints = downsampleRoute(decodedPoints);
 
-        // Mesafe ve süre bilgisi
         let totalDistance = 0;
         let totalDuration = 0;
         (route.legs || []).forEach((leg) => {
@@ -255,8 +232,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
         return {
           coordinates: decodedPoints,
-          distance: totalDistance / 1000, // km
-          duration: Math.ceil(totalDuration / 60), // dakika
+          distance: totalDistance / 1000,
+          duration: Math.ceil(totalDuration / 60),
         };
       } else {
         console.log(
@@ -273,11 +250,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   // ══════════════════════════════════════════════════════════════
-  // NAVIGATION & ROUTE (in_progress için)
+  // NAVIGATION & ROUTE
   // ══════════════════════════════════════════════════════════════
 
   const fetchRouteAndStartNav = async () => {
-    // FIX: Early return'lerde routeLoading stuck kalmaz
     if (!location) {
       console.log("[Nav] No location, skipping route fetch");
       return;
@@ -292,10 +268,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     setRouteLoading(true);
 
     try {
-      // FIX: Önce mevcut tracking'i durdur (double-start önleme)
       stopLocationTracking();
 
-      // Waypoint'leri hazırla
       const waypoints = (task?.waypoints || [])
         .map((wp) => {
           if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
@@ -305,76 +279,47 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         })
         .filter(Boolean);
 
-      // Google Directions API'den rota al
-      const routeResult = await fetchRouteFromGoogle(
+      const routeData = await fetchRouteFromGoogle(
         { latitude: location.latitude, longitude: location.longitude },
         endCoords,
         waypoints
       );
 
-      if (routeResult && routeResult.coordinates.length > 0) {
-        // Google'dan gelen gerçek rota
-        setRouteCoords(routeResult.coordinates);
+      if (routeData?.coordinates?.length > 0) {
+        setRouteCoords(routeData.coordinates);
         setNavigationInfo({
-          distance: routeResult.distance.toFixed(1),
-          eta: routeResult.duration,
+          distance: routeData.distance.toFixed(1),
+          eta: routeData.duration,
         });
 
-        // Haritayı rotaya sığdır
-        if (mapRef.current) {
-          setTimeout(() => {
-            mapRef.current?.fitToCoordinates(routeResult.coordinates, {
-              edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
+        setTimeout(() => {
+          if (mapRef.current && routeData.coordinates.length > 1) {
+            mapRef.current.fitToCoordinates(routeData.coordinates, {
+              edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
               animated: true,
             });
-          }, 500);
-        }
+          }
+        }, 500);
       } else {
-        // Fallback: Düz çizgi
-        console.log("[Nav] Using fallback straight line");
-        const coords = [
-          { latitude: location.latitude, longitude: location.longitude },
-          ...waypoints,
-          endCoords,
-        ];
-        setRouteCoords(coords);
-
-        const distance = calculateDistance(
-          location.latitude,
-          location.longitude,
-          endCoords.latitude,
-          endCoords.longitude
-        );
+        console.log("[Nav] No valid route coordinates received");
         setNavigationInfo({
-          distance: distance.toFixed(1),
-          eta: Math.ceil(distance * 2),
+          distance: getDistance() || "?",
+          eta: "?",
         });
-
-        if (mapRef.current && coords.length > 1) {
-          setTimeout(() => {
-            mapRef.current?.fitToCoordinates(coords, {
-              edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
-              animated: true,
-            });
-          }, 500);
-        }
       }
 
-      // Konum takibini başlat
       startLocationTracking();
     } catch (error) {
-      console.log("[Nav] fetchRouteAndStartNav error:", error);
+      console.log("[Nav] Route fetch error:", error);
     } finally {
-      // FIX: Her durumda routeLoading false olmalı
       setRouteLoading(false);
     }
   };
 
   const startLocationTracking = async () => {
     try {
-      // FIX #2: Ref üzerinden önce mevcut subscription'ı temizle (double-start kesin önleme)
       if (watchSubscriptionRef.current) {
-        watchSubscriptionRef.current.remove();
+        await watchSubscriptionRef.current.remove();
         watchSubscriptionRef.current = null;
       }
 
@@ -382,90 +327,43 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         {
           accuracy: Location.Accuracy.High,
           timeInterval: 3000,
-          distanceInterval: 10,
+          distanceInterval: 5,
         },
-        (newLocation) => {
-          setLocation(newLocation.coords);
-          // Heading (yön) bilgisini al
-          if (
-            newLocation.coords.heading !== null &&
-            newLocation.coords.heading >= 0
-          ) {
-            setHeading(newLocation.coords.heading);
+        (loc) => {
+          setLocation(loc.coords);
+          if (loc.coords.heading !== undefined && loc.coords.heading !== null) {
+            setHeading(loc.coords.heading);
           }
-          updateNavigationInfo(newLocation.coords);
 
-          // Follow mode aktifse kamerayı takip et
           if (followMode && mapRef.current) {
-            mapRef.current.animateCamera(
-              {
-                center: {
-                  latitude: newLocation.coords.latitude,
-                  longitude: newLocation.coords.longitude,
-                },
-                heading: newLocation.coords.heading || 0,
-                pitch: 45, // 3D görünüm
-                zoom: 17,
+            mapRef.current.animateCamera({
+              center: {
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
               },
-              { duration: 500 }
-            );
+              pitch: 45,
+              heading: loc.coords.heading || 0,
+              zoom: 17,
+            });
           }
         }
       );
-      // FIX #2: Ref'e ata
+
       watchSubscriptionRef.current = subscription;
-      setWatchSubscription(subscription); // UI için state de tut
+      setWatchSubscription(subscription);
       console.log("[Nav] Location tracking started");
     } catch (e) {
-      console.log("[Nav] Watch error:", e);
+      console.log("[Nav] Location tracking error:", e);
     }
   };
 
-  const stopLocationTracking = () => {
-    // FIX #2: Ref üzerinden temizle
+  const stopLocationTracking = async () => {
     if (watchSubscriptionRef.current) {
-      watchSubscriptionRef.current.remove();
+      await watchSubscriptionRef.current.remove();
       watchSubscriptionRef.current = null;
       setWatchSubscription(null);
       console.log("[Nav] Location tracking stopped");
     }
-  };
-
-  const updateNavigationInfo = (coords) => {
-    const endCoords = getEndLocationCoords();
-    if (!endCoords) return;
-
-    const distance = calculateDistance(
-      coords.latitude,
-      coords.longitude,
-      endCoords.latitude,
-      endCoords.longitude
-    );
-
-    // ETA dinamik hesaplama (ortalama 25 km/h şehir içi trafik)
-    const avgSpeedKmh = 25;
-    const etaMinutes = Math.ceil((distance / avgSpeedKmh) * 60);
-
-    setNavigationInfo((prev) => ({
-      ...prev,
-      distance: distance.toFixed(1),
-      eta: etaMinutes, // Dinamik ETA
-    }));
-  };
-
-  // Haversine formülü ile mesafe hesapla (km)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   };
 
   // ══════════════════════════════════════════════════════════════
@@ -474,13 +372,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const handleStartTask = async () => {
     if (!task) return;
-
     setActionLoading(true);
     try {
-      await driverTaskAPI.startTask(task.id);
-      // FIX: Sadece status güncelle, route useEffect'te başlayacak
-      setTask({ ...task, status: "in_progress" });
-      Alert.alert("🚀 Görev Başladı", "Navigasyon aktif. İyi yolculuklar!");
+      await driverTaskAPI.updateTaskStatus(task.id, "in_progress");
+      const updated = { ...task, status: "in_progress" };
+      setTask(updated);
+      console.log("[Nav] Task started, status: in_progress");
     } catch (e) {
       Alert.alert("Hata", e.message || "Görev başlatılamadı");
     } finally {
@@ -493,22 +390,27 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     Alert.alert(
       "Görevi Tamamla",
-      "Görevi tamamlamak istediğinize emin misiniz?",
+      "Bu görevi tamamlamak istediğinize emin misiniz?",
       [
         { text: "İptal", style: "cancel" },
         {
           text: "Tamamla",
+          style: "default",
           onPress: async () => {
             setActionLoading(true);
             try {
-              await driverTaskAPI.completeTask(task.id);
+              await driverTaskAPI.updateTaskStatus(task.id, "completed");
               stopLocationTracking();
               setTask(null);
               setRouteCoords([]);
               setNavigationInfo(null);
               routeFetchedRef.current = false;
-              Alert.alert("🎉 Tebrikler!", "Görev başarıyla tamamlandı!");
-              loadActiveTask();
+              Alert.alert("Başarılı", "Görev tamamlandı!", [
+                {
+                  text: "Tamam",
+                  onPress: () => navigation.navigate("DriverDashboard"),
+                },
+              ]);
             } catch (e) {
               Alert.alert("Hata", e.message || "Görev tamamlanamadı");
             } finally {
@@ -522,12 +424,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const handleAcceptTask = async () => {
     if (!task) return;
-
     setActionLoading(true);
     try {
       await driverTaskAPI.acceptTask(task.id);
-      setTask({ ...task, status: "accepted" });
-      Alert.alert("✅ Görev Kabul Edildi", "Görevi başlatmak için hazırsınız.");
+      const updated = { ...task, status: "accepted" };
+      setTask(updated);
     } catch (e) {
       Alert.alert("Hata", e.message || "Görev kabul edilemedi");
     } finally {
@@ -537,6 +438,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const handleRejectTask = async () => {
     if (!task) return;
+
     Alert.alert(
       "Görevi Reddet",
       "Bu görevi reddetmek istediğinize emin misiniz?",
@@ -592,7 +494,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         longitude: parseFloat(task.route_json.dest_lng),
       };
     }
-    // Waypoint'lerin sonuncusu
     if (task?.waypoints?.length > 0) {
       const last = task.waypoints[task.waypoints.length - 1];
       if (last.lat && last.lng) {
@@ -632,7 +533,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const fitToRoute = useCallback(() => {
     if (mapRef.current && routeCoords.length > 1) {
       mapRef.current.fitToCoordinates(routeCoords, {
-        edgePadding: { top: 100, right: 50, bottom: 150, left: 50 },
+        edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
         animated: true,
       });
     }
@@ -658,9 +559,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* ═══════════════════════════════════════════════════════ */}
       {/* MAP */}
-      {/* ═══════════════════════════════════════════════════════ */}
       {location ? (
         <MapView
           ref={mapRef}
@@ -679,7 +578,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           rotateEnabled={true}
           pitchEnabled={isNavigating}
         >
-          {/* Mevcut Konum / Araç Marker */}
+          {/* Current Location Marker */}
           <Marker
             coordinate={{
               latitude: location.latitude,
@@ -691,90 +590,48 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             rotation={isNavigating ? heading : 0}
           >
             {isNavigating ? (
-              // Navigasyon modu - Modern ok marker
               <View style={styles.navMarkerContainer}>
                 <View style={styles.navMarkerOuter}>
                   <View style={styles.navMarkerInner}>
                     <View style={styles.navArrow} />
                   </View>
                 </View>
-                <View style={styles.navMarkerPulse} />
               </View>
             ) : (
-              // Normal mod - Konum noktası
-              <View style={styles.currentMarker}>
-                <Ionicons name="location" size={22} color="#fff" />
+              <View style={styles.locationMarker}>
+                <Ionicons name="navigate" size={20} color="#fff" />
               </View>
             )}
           </Marker>
 
-          {/* Rota Çizgisi (in_progress) - Modern gradient efektli */}
-          {isNavigating && routeCoords.length > 1 && (
-            <>
-              {/* Gölge çizgisi */}
-              <Polyline
-                coordinates={routeCoords}
-                strokeColor="rgba(59, 130, 246, 0.3)"
-                strokeWidth={10}
-                lineCap="round"
-                lineJoin="round"
-              />
-              {/* Ana çizgi */}
-              <Polyline
-                coordinates={routeCoords}
-                strokeColor="#3B82F6"
-                strokeWidth={5}
-                lineCap="round"
-                lineJoin="round"
-              />
-            </>
-          )}
-
-          {/* Waypoint Marker'ları (in_progress) - Modern numaralı */}
-          {isNavigating &&
-            task?.waypoints?.map((wp, index) => (
-              <Marker
-                key={`wp-${index}`}
-                coordinate={{
-                  latitude: parseFloat(wp.lat || wp.latitude),
-                  longitude: parseFloat(wp.lng || wp.longitude),
-                }}
-                title={wp.name || `Durak ${index + 1}`}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={styles.waypointMarkerContainer}>
-                  <View style={styles.waypointMarkerOuter}>
-                    <View style={styles.waypointMarkerInner}>
-                      <Text style={styles.waypointText}>{index + 1}</Text>
-                    </View>
-                  </View>
-                </View>
-              </Marker>
-            ))}
-
-          {/* Varış Noktası Marker (in_progress) - Google Maps tarzı */}
+          {/* Destination Marker */}
           {isNavigating && getEndLocationCoords() && (
-            <Marker
-              coordinate={getEndLocationCoords()}
-              title="Varış Noktası"
-              anchor={{ x: 0.5, y: 1 }}
-            >
-              <View style={styles.destinationMarkerContainer}>
-                {/* Pin başı */}
-                <View style={styles.destinationPin}>
-                  <View style={styles.destinationPinInner}>
-                    <Ionicons name="flag" size={16} color="#fff" />
-                  </View>
-                </View>
-                {/* Pin gölgesi */}
-                <View style={styles.destinationPinShadow} />
+            <Marker coordinate={getEndLocationCoords()} title="Hedef">
+              <View style={styles.destinationMarker}>
+                <Ionicons name="flag" size={20} color="#fff" />
               </View>
             </Marker>
           )}
+
+          {/* Route Polyline with shadow effect */}
+          {isNavigating && routeCoords.length > 1 && (
+            <>
+              <Polyline
+                coordinates={routeCoords}
+                strokeWidth={8}
+                strokeColor="rgba(59, 130, 246, 0.3)"
+              />
+              <Polyline
+                coordinates={routeCoords}
+                strokeWidth={5}
+                strokeColor="#3B82F6"
+              />
+            </>
+          )}
         </MapView>
       ) : (
-        <View style={[styles.center, { flex: 1 }]}>
-          <Ionicons name="location-outline" size={64} color={COLORS.gray} />
+        <View style={styles.center}>
+          <Ionicons name="location-outline" size={48} color="#CBD5E1" />
           <Text style={styles.errorText}>
             {locationError || "Konum alınamadı"}
           </Text>
@@ -785,16 +642,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
-      {/* HEADER BUTTONS */}
-      {/* ═══════════════════════════════════════════════════════ */}
-
       {/* Back Button */}
       <TouchableOpacity
-        style={styles.headerBtn}
+        style={styles.backBtn}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={22} color="#333" />
+        <Ionicons name="arrow-back" size={24} color="#1E293B" />
       </TouchableOpacity>
 
       {/* Center on Location */}
@@ -807,7 +660,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       )}
 
-      {/* Fit to Route (in_progress) */}
+      {/* Fit to Route */}
       {isNavigating && routeCoords.length > 1 && (
         <TouchableOpacity
           style={[styles.headerBtn, styles.fitBtn]}
@@ -817,7 +670,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       )}
 
-      {/* Follow Mode Toggle (in_progress) */}
+      {/* Follow Mode Toggle */}
       {isNavigating && (
         <TouchableOpacity
           style={[
@@ -835,32 +688,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
-      {/* NAVIGATION INFO BAR (in_progress) */}
-      {/* ═══════════════════════════════════════════════════════ */}
-      {isNavigating && navigationInfo && (
-        <View style={styles.navInfoBar}>
-          <View style={styles.navInfoItem}>
-            <Ionicons name="speedometer" size={20} color="#fff" />
-            <Text style={styles.navInfoValue}>
-              {navigationInfo.distance} km
-            </Text>
-            <Text style={styles.navInfoLabel}>Kalan</Text>
-          </View>
-          <View style={styles.navInfoDivider} />
-          <View style={styles.navInfoItem}>
-            <Ionicons name="time" size={20} color="#fff" />
-            <Text style={styles.navInfoValue}>{navigationInfo.eta} dk</Text>
-            <Text style={styles.navInfoLabel}>Tahmini</Text>
-          </View>
-          <View style={styles.navInfoDivider} />
-          <View style={styles.navInfoItem}>
-            <Text style={styles.navInfoTaskNo}>{getShortTaskNo()}</Text>
-            <Text style={styles.navInfoLabel}>Görev</Text>
-          </View>
-        </View>
-      )}
-
       {/* Route Loading Indicator */}
       {routeLoading && (
         <View style={styles.routeLoadingBar}>
@@ -870,8 +697,47 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* ═══════════════════════════════════════════════════════ */}
-      {/* NO TASK - Banner gösterme (ürün kararı: görev yoksa sessiz kal) */}
+      {/* COMPACT BOTTOM BAR - in_progress (navInfo + Tamamla) */}
       {/* ═══════════════════════════════════════════════════════ */}
+      {isNavigating && navigationInfo && (
+        <View style={styles.compactBottomBar}>
+          {/* Distance */}
+          <View style={styles.compactItem}>
+            <Ionicons name="speedometer" size={18} color="#94A3B8" />
+            <Text style={styles.compactValue}>
+              {navigationInfo.distance} km
+            </Text>
+          </View>
+
+          <View style={styles.compactDivider} />
+
+          {/* ETA */}
+          <View style={styles.compactItem}>
+            <Ionicons name="time" size={18} color="#94A3B8" />
+            <Text style={styles.compactValue}>{navigationInfo.eta} dk</Text>
+          </View>
+
+          <View style={styles.compactDivider} />
+
+          {/* Task No */}
+          <View style={styles.compactItem}>
+            <Text style={styles.compactTaskNo}>{getShortTaskNo()}</Text>
+          </View>
+
+          {/* Complete Button */}
+          <TouchableOpacity
+            style={styles.compactCompleteBtn}
+            onPress={handleCompleteTask}
+            disabled={actionLoading}
+          >
+            {actionLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="checkmark" size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* PENDING REVIEW BANNER */}
@@ -916,7 +782,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {/* ═══════════════════════════════════════════════════════ */}
       {showTaskCard && (
         <View style={styles.taskCard}>
-          {/* Header */}
           <View style={styles.taskHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
@@ -930,7 +795,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* Locations */}
           <View style={styles.locationsContainer}>
             <View style={styles.locationRow}>
               <View
@@ -951,25 +815,23 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 style={[styles.locationDot, { backgroundColor: "#EF4444" }]}
               />
               <View style={styles.locationInfo}>
-                <Text style={styles.locationLabel}>Varış</Text>
+                <Text style={styles.locationLabel}>Hedef</Text>
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {getEndLocation() || "Belirtilmemiş"}
+                  {getEndLocation() || "Belirlenmedi"}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Distance */}
           {getDistance() && (
             <View style={styles.distanceContainer}>
-              <Ionicons name="analytics" size={16} color="#64748B" />
+              <Ionicons name="navigate-circle" size={18} color="#64748B" />
               <Text style={styles.distanceText}>
                 Toplam: {getDistance()} km
               </Text>
             </View>
           )}
 
-          {/* BAŞLA BUTONU */}
           <TouchableOpacity
             style={styles.startBtn}
             onPress={handleStartTask}
@@ -985,26 +847,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
         </View>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════ */}
-      {/* FLOATING TAMAMLA BUTONU - SADECE in_progress DURUMUNDA */}
-      {/* ═══════════════════════════════════════════════════════ */}
-      {isNavigating && (
-        <TouchableOpacity
-          style={styles.floatingCompleteBtn}
-          onPress={handleCompleteTask}
-          disabled={actionLoading}
-        >
-          {actionLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="checkmark-circle" size={24} color="#fff" />
-              <Text style={styles.floatingCompleteBtnText}>Tamamla</Text>
-            </>
-          )}
-        </TouchableOpacity>
       )}
     </View>
   );
@@ -1049,14 +891,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  // Header Buttons
-  headerBtn: {
+  // Back Button
+  backBtn: {
     position: "absolute",
     top: 50,
     left: 16,
     backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+
+  // Header Buttons
+  headerBtn: {
+    position: "absolute",
+    top: 50,
+    backgroundColor: "#fff",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -1064,158 +926,64 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   centerBtn: {
-    left: "auto",
     right: 16,
   },
   fitBtn: {
-    left: "auto",
     right: 70,
   },
   followBtn: {
-    left: "auto",
     right: 124,
     backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#10B981",
   },
   followBtnActive: {
     backgroundColor: "#10B981",
+    borderColor: "#10B981",
   },
 
   // Markers
-  currentMarker: {
+  locationMarker: {
     backgroundColor: "#3B82F6",
-    padding: 10,
-    borderRadius: 25,
+    padding: 8,
+    borderRadius: 20,
     borderWidth: 3,
     borderColor: "#fff",
     elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
   },
-
-  // Modern Navigation Marker (Google Maps tarzı)
   navMarkerContainer: {
     alignItems: "center",
     justifyContent: "center",
-    width: 60,
-    height: 60,
   },
   navMarkerOuter: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#3B82F6",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(59, 130, 246, 0.2)",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 8,
-    shadowColor: "#3B82F6",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
   },
   navMarkerInner: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#fff",
+    backgroundColor: "#3B82F6",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    borderColor: "#fff",
+    elevation: 4,
   },
   navArrow: {
     width: 0,
     height: 0,
     borderLeftWidth: 8,
     borderRightWidth: 8,
-    borderBottomWidth: 16,
+    borderBottomWidth: 14,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderBottomColor: "#3B82F6",
+    borderBottomColor: "#fff",
     marginTop: -2,
-  },
-  navMarkerPulse: {
-    position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(59, 130, 246, 0.2)",
-    zIndex: -1,
-  },
-  waypointMarker: {
-    backgroundColor: "#F59E0B",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "#fff",
-    elevation: 3,
-  },
-  // Modern Waypoint Marker
-  waypointMarkerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  waypointMarkerOuter: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#F59E0B",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 6,
-    shadowColor: "#F59E0B",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-  },
-  waypointMarkerInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  waypointText: {
-    color: "#F59E0B",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  // Modern Destination Marker (Google Maps pin tarzı)
-  destinationMarkerContainer: {
-    alignItems: "center",
-  },
-  destinationPin: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EF4444",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 8,
-    shadowColor: "#EF4444",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  destinationPinInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#DC2626",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  destinationPinShadow: {
-    width: 20,
-    height: 6,
-    borderRadius: 10,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    marginTop: 4,
   },
   destinationMarker: {
     backgroundColor: "#EF4444",
@@ -1226,49 +994,62 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  // Navigation Info Bar
-  navInfoBar: {
+  // ═══════════════════════════════════════════════════════════════
+  // COMPACT BOTTOM BAR (NEW) - replaces navInfoBar + floatingCompleteBtn
+  // ═══════════════════════════════════════════════════════════════
+  compactBottomBar: {
     position: "absolute",
-    top: 110,
+    bottom: 30,
     left: 16,
     right: 16,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1E293B",
-    padding: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 16,
-    elevation: 6,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  navInfoItem: {
-    flex: 1,
+  compactItem: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 6,
   },
-  navInfoValue: {
+  compactValue: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 4,
+    fontSize: 15,
+    fontWeight: "600",
   },
-  navInfoTaskNo: {
+  compactTaskNo: {
     color: "#3B82F6",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
   },
-  navInfoLabel: {
-    color: "#94A3B8",
-    fontSize: 11,
-    marginTop: 2,
-  },
-  navInfoDivider: {
+  compactDivider: {
     width: 1,
-    height: 40,
+    height: 20,
     backgroundColor: "#334155",
+    marginHorizontal: 12,
+  },
+  compactCompleteBtn: {
+    marginLeft: "auto",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
   },
 
   // Route Loading
   routeLoadingBar: {
     position: "absolute",
-    top: 180,
+    top: 110,
     left: 16,
     right: 16,
     flexDirection: "row",
@@ -1283,52 +1064,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 13,
     fontWeight: "500",
-  },
-
-  // No Task Banner
-  noTaskBanner: {
-    position: "absolute",
-    bottom: 30,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    gap: 12,
-  },
-  noTaskTextContainer: {
-    flex: 1,
-  },
-  noTaskTitle: {
-    color: "#1E293B",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  noTaskSubtitle: {
-    color: "#64748B",
-    fontSize: 13,
-    marginTop: 4,
-  },
-  goToTasksBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 4,
-  },
-  goToTasksBtnText: {
-    color: "#3B82F6",
-    fontSize: 13,
-    fontWeight: "600",
   },
 
   // Pending Review Banner
@@ -1393,7 +1128,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Task Card (sadece accepted)
+  // Task Card (accepted)
   taskCard: {
     position: "absolute",
     left: 16,
@@ -1439,8 +1174,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#3B82F6",
   },
-
-  // Locations
   locationsContainer: {
     backgroundColor: "#F8FAFC",
     borderRadius: 12,
@@ -1479,8 +1212,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: "500",
   },
-
-  // Distance
   distanceContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -1492,8 +1223,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontWeight: "500",
   },
-
-  // Start Button (accepted kartında)
   startBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -1507,31 +1236,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
-  },
-
-  // Floating Complete Button (in_progress)
-  floatingCompleteBtn: {
-    position: "absolute",
-    bottom: 30,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#10B981",
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 10,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  floatingCompleteBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 18,
   },
 });
 
