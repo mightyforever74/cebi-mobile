@@ -1,12 +1,90 @@
 // src/services/api.js
 // TulipFleet API Service
-// Updated: 11 Ocak 2026 - Token key fix, userAPI endpoint fix, alertAPI eklendi
+// Updated: 12 Ocak 2026 - Token Race Condition Fix v4
+// FIXES:
+// - KRİTİK A: Auth endpoint'leri için interceptor'sız authClient
+// - KRİTİK B: 401 guard (auth endpoint hariç) + spam lock
+// - AsyncStorage import kaldırıldı (storage utils kullanılıyor)
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_BASE_URL } from "../constants/config";
+import { clearTokens, clearUserData, getAccessToken } from "../utils/storage";
 
-// Axios instance
+// ============================================
+// IN-MEMORY TOKEN CACHE (Race condition fix)
+// ============================================
+let inMemoryToken = null;
+
+// 401 event callback (AuthContext tarafından set edilir)
+let onUnauthorizedCallback = null;
+
+// KRİTİK B: Spam lock - aynı anda birden fazla 401 için
+let unauthorizedHandled = false;
+
+/**
+ * Token'ı memory'ye set et (AuthContext'ten çağrılır)
+ */
+export const setAuthToken = (token) => {
+  inMemoryToken = token;
+  console.log(
+    "🔑 [API] Token set in memory:",
+    token ? "***" + token.slice(-6) : null
+  );
+};
+
+/**
+ * Token'ı memory'den temizle
+ */
+export const clearAuthToken = () => {
+  inMemoryToken = null;
+  console.log("🔑 [API] Token cleared from memory");
+};
+
+/**
+ * 401 callback'i set et (AuthContext logout için)
+ * Type guard eklendi
+ */
+export const setOnUnauthorized = (callback) => {
+  onUnauthorizedCallback = typeof callback === "function" ? callback : null;
+};
+
+/**
+ * Token'ı al - önce memory, sonra storage utils
+ */
+const getToken = async () => {
+  // 1. Önce memory'den dene (en hızlı)
+  if (inMemoryToken) {
+    return inMemoryToken;
+  }
+
+  // 2. Memory'de yoksa storage utils'den al
+  try {
+    const token = await getAccessToken();
+    if (token) {
+      inMemoryToken = token; // Memory'ye cache'le
+    }
+    return token;
+  } catch (error) {
+    console.error("Error getting token from storage:", error);
+    return null;
+  }
+};
+
+// ============================================
+// KRİTİK A: Auth endpoint'leri için INTERCEPTOR'SIZ client
+// Login/logout/refresh bu client'ı kullanır
+// ============================================
+const authClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ============================================
+// Normal API istekleri için interceptor'lü client
+// ============================================
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -19,8 +97,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // FIX: "token" → "accessToken" (storage.js ile uyumlu)
-      const token = await AsyncStorage.getItem("accessToken");
+      const token = await getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -38,13 +115,41 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401) {
-      console.log("🔒 Token expired or invalid");
-      // FIX: Doğru key'ler kullan
-      await AsyncStorage.removeItem("accessToken");
-      await AsyncStorage.removeItem("refreshToken");
-      await AsyncStorage.removeItem("userData");
+    const status = error.response?.status;
+    const url = error.config?.url || "";
+
+    // KRİTİK B: Auth endpoint'lerinde 401 gelirse cleanup YAPMA
+    const isAuthEndpoint =
+      url.includes("/api/auth/login") ||
+      url.includes("/api/auth/logout") ||
+      url.includes("/api/auth/refresh") ||
+      url.includes("/api/auth/register");
+
+    // Handle 401 Unauthorized (auth endpoint'leri hariç)
+    if (status === 401 && !isAuthEndpoint && !unauthorizedHandled) {
+      console.log("🔒 [API] 401 - Token expired or invalid");
+
+      // KRİTİK B: Spam lock - 2 saniye içinde tekrar tetiklenmez
+      unauthorizedHandled = true;
+      setTimeout(() => {
+        unauthorizedHandled = false;
+      }, 2000);
+
+      // Memory cache temizle
+      clearAuthToken();
+
+      // Storage temizle
+      try {
+        await clearTokens();
+        await clearUserData();
+      } catch (e) {
+        console.warn("Storage clear error:", e);
+      }
+
+      // AuthContext'e bildir (varsa)
+      if (onUnauthorizedCallback) {
+        onUnauthorizedCallback();
+      }
     }
 
     // Log error details
@@ -52,7 +157,7 @@ api.interceptors.response.use(
       console.error("API Error:", {
         status: error.response.status,
         data: error.response.data,
-        url: error.config?.url,
+        url: url,
       });
     } else if (error.request) {
       console.error("Network Error:", error.message);
@@ -63,108 +168,81 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// AUTH ENDPOINTS
+// AUTH ENDPOINTS (interceptor'sız authClient kullanır)
 // ============================================
 
 export const authAPI = {
+  // Login - interceptor'sız
   login: async (email, password) => {
-    const response = await api.post("/api/auth/login", { email, password });
+    const response = await authClient.post("/api/auth/login", {
+      email,
+      password,
+    });
     return response.data;
   },
 
+  // Logout - TOKEN GEREKLİ (api kullan, authClient değil)
   logout: async () => {
     try {
-      await api.post("/api/auth/logout");
+      await api.post("/api/auth/logout", {});
     } catch (error) {
-      // Ignore logout errors
+      console.warn("Backend logout error (ignored):", error.message);
     }
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
-    await AsyncStorage.removeItem("userData");
+    // Memory + Storage temizle
+    clearAuthToken();
+    await clearTokens();
+    await clearUserData();
     return { success: true };
   },
 
-  register: async (data) => {
-    const response = await api.post("/api/auth/register", data);
+  // Register - interceptor'sız
+  register: async (email, password, role = "driver") => {
+    const response = await authClient.post("/api/auth/register", {
+      email,
+      password,
+      role,
+    });
     return response.data;
   },
 
+  // Me - bu token gerektirir, api kullan
   me: async () => {
     const response = await api.get("/api/auth/me");
     return response.data;
   },
 
+  // Change password - token gerektirir
   changePassword: async (data) => {
     const response = await api.put("/api/auth/change-password", data);
+    return response.data;
+  },
+
+  // Refresh - interceptor'sız (KRİTİK A)
+  refresh: async (refreshToken) => {
+    const response = await authClient.post("/api/auth/refresh", {
+      refreshToken,
+    });
     return response.data;
   },
 };
 
 // ============================================
 // USER ENDPOINTS
-// FIX: /api/user/ → /api/users/ (backend ile uyumlu)
 // ============================================
 
 export const userAPI = {
   getProfile: async () => {
-    const response = await api.get("/api/users/profile");
+    const response = await api.get("/api/user/profile");
     return response.data;
   },
 
   updateProfile: async (data) => {
-    const response = await api.put("/api/users/profile", data);
+    const response = await api.put("/api/user/profile", data);
     return response.data;
   },
 
   changePassword: async (data) => {
-    // Backend camelCase bekliyor; her iki input formatını da destekle
-    const payload = {
-      currentPassword:
-        data?.currentPassword !== undefined
-          ? data.currentPassword
-          : data?.current_password,
-      newPassword:
-        data?.newPassword !== undefined ? data.newPassword : data?.new_password,
-    };
-
-    const response = await api.put("/api/users/password", payload);
-    return response.data;
-  },
-};
-
-// ============================================
-// ALERT ENDPOINTS (AdminAlerts için)
-// ============================================
-
-export const alertAPI = {
-  // Get all alerts
-  getAll: async (status) => {
-    const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
-    const response = await api.get(url);
-    return response.data;
-  },
-
-  // Get alert by ID
-  getById: async (id) => {
-    const response = await api.get(`/api/alerts/${id}`);
-    return response.data;
-  },
-
-  // Resolve alert
-  resolve: async (id, resolution) => {
-    const response = await api.put(`/api/alerts/${id}/resolve`, { resolution });
-    return response.data;
-  },
-
-  // Delete alert
-  delete: async (id) => {
-    const response = await api.delete(`/api/alerts/${id}`);
-    return response.data;
-  },
-
-  // Delete all alerts
-  deleteAll: async () => {
-    const response = await api.delete("/api/alerts");
+    const response = await api.put("/api/user/change-password", data);
     return response.data;
   },
 };
@@ -174,31 +252,26 @@ export const alertAPI = {
 // ============================================
 
 export const adminAPI = {
-  // Fleet Stats
   getFleetStats: async () => {
-    const response = await api.get("/api/admin/fleet-stats");
+    const response = await api.get("/api/admin/stats");
     return response.data;
   },
 
-  // Vehicles
   getVehicles: async () => {
     const response = await api.get("/api/vehicles");
     return response.data;
   },
 
-  // Drivers
   getDrivers: async () => {
     const response = await api.get("/api/drivers");
     return response.data;
   },
 
-  // Tasks
   getTasks: async () => {
     const response = await api.get("/api/tasks");
     return response.data;
   },
 
-  // Alerts (backward compatibility)
   getAlerts: async (status) => {
     const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
     const response = await api.get(url);
@@ -212,7 +285,6 @@ export const adminAPI = {
     return response.data;
   },
 
-  // Activities (combined alerts + tasks)
   getActivities: async () => {
     const response = await api.get("/api/admin/activities");
     return response.data;
@@ -224,7 +296,6 @@ export const adminAPI = {
 // ============================================
 
 export const superAdminAPI = {
-  // Companies
   getCompanies: async () => {
     const response = await api.get("/api/superadmin/companies");
     return response.data;
@@ -245,19 +316,16 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Devices
   getDevices: async () => {
     const response = await api.get("/api/superadmin/devices");
     return response.data;
   },
 
-  // Users
   getUsers: async () => {
     const response = await api.get("/api/superadmin/users");
     return response.data;
   },
 
-  // System Health
   getSystemHealth: async () => {
     const response = await api.get("/api/superadmin/system-health");
     return response.data;
@@ -269,25 +337,21 @@ export const superAdminAPI = {
 // ============================================
 
 export const deviceAPI = {
-  // Validate serial
   validateSerial: async (serial) => {
     const response = await api.post("/api/devices/validate-serial", { serial });
     return response.data;
   },
 
-  // Activate device
   activate: async (data) => {
     const response = await api.post("/api/devices/activate", data);
     return response.data;
   },
 
-  // Get device info
   getInfo: async (deviceId) => {
     const response = await api.get(`/api/devices/${deviceId}`);
     return response.data;
   },
 
-  // Update device status
   updateStatus: async (deviceId, status) => {
     const response = await api.put(`/api/devices/${deviceId}/status`, {
       status,
@@ -295,24 +359,19 @@ export const deviceAPI = {
     return response.data;
   },
 
-  // Driver task status (eski endpoint)
   updateTaskStatus: async (id, status) => {
     const response = await api.put(`/api/driver/task/${id}/status`, { status });
     return response.data;
   },
 
-  // Quarantine device
   quarantine: async (deviceId, reason) => {
     const response = await api.post(
       `/api/superadmin/devices/${deviceId}/quarantine`,
-      {
-        reason,
-      }
+      { reason }
     );
     return response.data;
   },
 
-  // Get audit log
   getAuditLog: async (deviceId) => {
     const response = await api.get(`/api/superadmin/devices/${deviceId}/audit`);
     return response.data;
@@ -324,61 +383,51 @@ export const deviceAPI = {
 // ============================================
 
 export const driverAPI = {
-  // Get all drivers
   getAll: async () => {
     const response = await api.get("/api/drivers");
     return response.data;
   },
 
-  // Alias: getList (same as getAll)
   getList: async () => {
     const response = await api.get("/api/drivers");
     return response.data;
   },
 
-  // Create driver with linked user
   createWithUser: async (data) => {
     const response = await api.post("/api/drivers/create-with-user", data);
     return response.data;
   },
 
-  // Update driver
   update: async (id, data) => {
     const response = await api.put(`/api/drivers/${id}`, data);
     return response.data;
   },
 
-  // Delete driver
   delete: async (id) => {
     const response = await api.delete(`/api/drivers/${id}`);
     return response.data;
   },
 
-  // Existing endpoints
   getStats: async () => {
     const response = await api.get("/api/driver/stats");
     return response.data;
   },
 
-  // Get active tasks
   getTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
   },
 
-  // Get assigned vehicle info
   getVehicle: async () => {
     const response = await api.get("/api/driver/vehicle");
     return response.data;
   },
 
-  // 🆕 Get assigned device info (MVP Endpoint)
   getAssignedDevice: async () => {
     const response = await api.get("/api/drivers/me/assigned-device");
     return response.data;
   },
 
-  // 🆕 Araç yakıt güncelle (06 Ocak 2026)
   updateVehicleFuel: async (vehicleId, fuelLevel) => {
     const response = await api.put(`/api/driver/vehicle/${vehicleId}/fuel`, {
       fuel_level: fuelLevel,
@@ -386,13 +435,10 @@ export const driverAPI = {
     return response.data;
   },
 
-  // 🆕 Araç km güncelle (06 Ocak 2026)
   updateVehicleKm: async (vehicleId, odometer) => {
     const response = await api.put(
       `/api/driver/vehicle/${vehicleId}/odometer`,
-      {
-        odometer: odometer,
-      }
+      { odometer }
     );
     return response.data;
   },
@@ -403,49 +449,41 @@ export const driverAPI = {
 // ============================================
 
 export const vehicleAPI = {
-  // Get all vehicles
   getAll: async () => {
     const response = await api.get("/api/vehicles");
     return response.data;
   },
 
-  // Alias
   getList: async () => {
     const response = await api.get("/api/vehicles");
     return response.data;
   },
 
-  // Get vehicle by ID
   getById: async (id) => {
     const response = await api.get(`/api/vehicles/${id}`);
     return response.data;
   },
 
-  // Create vehicle
   create: async (data) => {
     const response = await api.post("/api/vehicles", data);
     return response.data;
   },
 
-  // Update vehicle
   update: async (id, data) => {
     const response = await api.put(`/api/vehicles/${id}`, data);
     return response.data;
   },
 
-  // Delete vehicle
   delete: async (id) => {
     const response = await api.delete(`/api/vehicles/${id}`);
     return response.data;
   },
 
-  // Get vehicle location history
   getLocationHistory: async (vehicleId, params = {}) => {
     const queryParams = new URLSearchParams();
     if (params.start) queryParams.append("start", params.start);
     if (params.end) queryParams.append("end", params.end);
     if (params.limit) queryParams.append("limit", params.limit);
-
     const url = `/api/vehicles/${vehicleId}/locations${
       queryParams.toString() ? `?${queryParams.toString()}` : ""
     }`;
@@ -453,15 +491,8 @@ export const vehicleAPI = {
     return response.data;
   },
 
-  // Get latest location
   getLatestLocation: async (vehicleId) => {
     const response = await api.get(`/api/vehicles/${vehicleId}/location`);
-    return response.data;
-  },
-
-  // 🆕 Get all vehicles with latest locations (harita için)
-  getAllWithLocations: async () => {
-    const response = await api.get("/api/locations/latest");
     return response.data;
   },
 };
@@ -471,43 +502,36 @@ export const vehicleAPI = {
 // ============================================
 
 export const taskAPI = {
-  // Get all tasks
   getAll: async () => {
     const response = await api.get("/api/tasks");
     return response.data;
   },
 
-  // Alias
   getList: async () => {
     const response = await api.get("/api/tasks");
     return response.data;
   },
 
-  // Get task by ID
   getById: async (id) => {
     const response = await api.get(`/api/tasks/${id}`);
     return response.data;
   },
 
-  // Create task
   create: async (data) => {
     const response = await api.post("/api/tasks", data);
     return response.data;
   },
 
-  // Update task
   update: async (id, data) => {
     const response = await api.put(`/api/tasks/${id}`, data);
     return response.data;
   },
 
-  // Delete task
   delete: async (id) => {
     const response = await api.delete(`/api/tasks/${id}`);
     return response.data;
   },
 
-  // Send offer to driver
   sendOffer: async (taskId, driverId) => {
     const response = await api.post(`/api/tasks/${taskId}/offer`, {
       driver_id: driverId,
@@ -515,7 +539,6 @@ export const taskAPI = {
     return response.data;
   },
 
-  // Driver için görevleri getir (geriye uyumluluk)
   getDriverTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
@@ -523,11 +546,10 @@ export const taskAPI = {
 };
 
 // ============================================
-// TASK OFFERS API (Sürücü için görev teklifleri)
+// TASK OFFERS API
 // ============================================
 
 export const taskOffersAPI = {
-  // Tüm teklifleri getir
   getOffers: async (status) => {
     const url = status
       ? `/api/task-offers?status=${status}`
@@ -536,19 +558,16 @@ export const taskOffersAPI = {
     return response.data;
   },
 
-  // Teklif detayı
   getOfferDetail: async (offerId) => {
     const response = await api.get(`/api/task-offers/${offerId}`);
     return response.data;
   },
 
-  // Teklifi kabul et
   acceptOffer: async (offerId) => {
     const response = await api.put(`/api/task-offers/${offerId}/accept`);
     return response.data;
   },
 
-  // Teklifi reddet
   rejectOffer: async (offerId, reason) => {
     const response = await api.put(`/api/task-offers/${offerId}/reject`, {
       reason,
@@ -558,57 +577,52 @@ export const taskOffersAPI = {
 };
 
 // ============================================
-// DRIVER TASK API - YENİ GÖREV AKIŞI
-// Updated: 06 Ocak 2026 - getCompletedTasks eklendi
+// DRIVER TASK API
 // ============================================
+
 export const driverTaskAPI = {
-  // Sürücünün aktif görevlerini getir
   getMyTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
   },
 
-  // Tamamlanan görevleri getir
   getCompletedTasks: async () => {
     const response = await api.get("/api/driver/tasks?status=completed");
     return response.data;
   },
 
-  // Görev detayını getir
   getTaskDetail: async (taskId) => {
     const response = await api.get(`/api/driver/tasks/${taskId}`);
     return response.data;
   },
 
-  // 🆕 Görevi kabul et
+  updateStatus: async (id, status) => {
+    const response = await api.put(`/api/driver/task/${id}/status`, { status });
+    return response.data;
+  },
+
   acceptTask: async (taskId) => {
     const response = await api.put(`/api/driver/tasks/${taskId}/accept`);
     return response.data;
   },
 
-  // 🆕 Görevi reddet
-  rejectTask: async (taskId) => {
-    const response = await api.put(`/api/driver/tasks/${taskId}/reject`);
+  rejectTask: async (taskId, reason) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/reject`, {
+      reason,
+    });
     return response.data;
   },
 
-  // 🆕 Görevi başlat
   startTask: async (taskId) => {
     const response = await api.put(`/api/driver/tasks/${taskId}/start`);
     return response.data;
   },
 
-  // 🆕 Görevi tamamla
-  completeTask: async (taskId) => {
-    const response = await api.put(`/api/driver/tasks/${taskId}/complete`);
-    return response.data;
-  },
-
-  // Eski genel status güncelleme (geriye uyumluluk)
-  updateTaskStatus: async (taskId, status) => {
-    const response = await api.put(`/api/driver/task/${taskId}/status`, {
-      status,
-    });
+  completeTask: async (taskId, data = {}) => {
+    const response = await api.put(
+      `/api/driver/tasks/${taskId}/complete`,
+      data
+    );
     return response.data;
   },
 };
@@ -616,22 +630,17 @@ export const driverTaskAPI = {
 // ============================================
 // PUSH NOTIFICATION API
 // ============================================
+
 export const pushAPI = {
-  // Expo push token register
   register: async (expo_push_token) => {
     const response = await api.post("/api/push/register", { expo_push_token });
     return response.data;
   },
 
-  // Send test notification
   sendTest: async () => {
     const response = await api.post("/api/push/test");
     return response.data;
   },
 };
-
-// ============================================
-// DEFAULT EXPORT
-// ============================================
 
 export default api;

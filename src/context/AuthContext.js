@@ -1,13 +1,22 @@
 // src/context/AuthContext.js
-// TulipFleet - Authentication Context with Refresh Token Support
-// Updated: 26 Aralık 2025
+// TulipFleet - Authentication Context
+// Updated: 12 Ocak 2026 - Token Race Condition Fix v3
+// FIXES:
+// - KRİTİK 1: logout parametresiz çağır
+// - KRİTİK 2: forceRefreshToken düzeltildi
+// - KRİTİK 3: Storage key'leri tutarlı (storage utils kullan)
+// - ORTA 4: 401 callback ile state sync
+// - ORTA 5: State'i öncelikli kullan, storage sadece persist
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { authAPI } from "../services/api";
+import {
+  authAPI,
+  clearAuthToken,
+  setAuthToken,
+  setOnUnauthorized,
+} from "../services/api";
 import { getErrorMessage } from "../utils/helpers";
 import {
-  clearTokens,
-  clearUserData,
   getAccessToken,
   getRefreshToken,
   getUserData,
@@ -19,13 +28,27 @@ const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null); // Token state eklendi
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Uygulama açılışında token kontrolü
   useEffect(() => {
     checkAuthStatus();
+
+    // ORTA 4 FIX: 401 callback'i set et
+    setOnUnauthorized(() => {
+      console.log("🔒 [AuthContext] 401 received - clearing state");
+      clearAuthToken();
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+    });
+
+    // Cleanup
+    return () => {
+      setOnUnauthorized(null);
+    };
   }, []);
 
   /**
@@ -33,22 +56,28 @@ export const AuthProvider = ({ children }) => {
    */
   const checkAuthStatus = async () => {
     try {
+      // KRİTİK 3 FIX: Storage utils kullan (doğru key'ler)
       const storedToken = await getAccessToken();
       const userData = await getUserData();
 
       if (storedToken && userData) {
         console.log("✅ User found in storage:", userData.email);
-        setToken(storedToken); // Token'ı state'e kaydet
+
+        // Memory cache + state güncelle
+        setAuthToken(storedToken);
+        setToken(storedToken);
         setUser(userData);
         setIsAuthenticated(true);
       } else {
         console.log("ℹ️ No user in storage");
+        clearAuthToken();
         setToken(null);
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
       console.error("❌ Auth check error:", error);
+      clearAuthToken();
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);
@@ -58,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Login - Real API with Refresh Token
+   * Login - Real API with Token Race Condition Fix
    */
   const login = async (email, password) => {
     try {
@@ -69,7 +98,6 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login(email, password);
       console.log("📦 Login response received");
 
-      // Backend artık hem token hem refreshToken dönüyor
       const {
         token: accessToken,
         refreshToken,
@@ -80,21 +108,25 @@ export const AuthProvider = ({ children }) => {
       if (accessToken && userData) {
         console.log("✅ Login successful:", userData.role);
 
-        // ÖNCELİK: State'i hemen güncelle (navigate için)
+        // 1. ÖNCE memory cache'e kaydet (race condition fix)
+        setAuthToken(accessToken);
+
+        // 2. State'i güncelle (UI için)
         setToken(accessToken);
         setUser(userData);
         setIsAuthenticated(true);
 
-        console.log("✅ Auth state updated, saving to storage...");
+        console.log("✅ Auth state + memory cache updated");
 
-        // Storage arka planda yapsın
-        try {
-          await storeTokens(accessToken, refreshToken || accessToken);
-          await storeUserData(userData);
-          console.log("✅ Storage complete!");
-        } catch (storageError) {
-          console.warn("⚠️ Storage error (non-critical):", storageError);
-        }
+        // 3. Storage'a arka planda yaz (fire and forget)
+        // ORTA 5: State zaten güncellendi, storage sadece persist için
+        storeTokens(accessToken, refreshToken || accessToken)
+          .then(() => console.log("✅ Tokens stored"))
+          .catch((e) => console.warn("⚠️ Token storage error:", e));
+
+        storeUserData(userData)
+          .then(() => console.log("✅ User stored"))
+          .catch((e) => console.warn("⚠️ User storage error:", e));
 
         return { success: true, user: userData };
       } else {
@@ -117,7 +149,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Register - Real API with Refresh Token
+   * Register - Real API
    */
   const register = async (data) => {
     try {
@@ -137,12 +169,14 @@ export const AuthProvider = ({ children }) => {
       if (accessToken && userData) {
         console.log("✅ Registration successful");
 
-        await storeTokens(accessToken, refreshToken || accessToken);
-        setToken(accessToken); // State'e de kaydet
-        await storeUserData(userData);
-
+        // Memory cache + state + storage
+        setAuthToken(accessToken);
+        setToken(accessToken);
         setUser(userData);
         setIsAuthenticated(true);
+
+        await storeTokens(accessToken, refreshToken || accessToken);
+        await storeUserData(userData);
 
         return {
           success: true,
@@ -176,22 +210,16 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       console.log("👋 Logging out user:", user?.email);
 
-      // Backend'e logout bildirimi gönder (refresh token'ı iptal et)
+      // KRİTİK 1 FIX: Parametresiz logout çağır
+      // Backend'e bildirim (authAPI.logout storage'ı da temizler)
       try {
-        const refreshToken = await getRefreshToken();
-        await authAPI.logout(refreshToken);
+        await authAPI.logout();
       } catch (err) {
-        console.warn(
-          "Backend logout failed, continuing with local logout:",
-          err
-        );
+        console.warn("Backend logout error (ignored):", err.message);
       }
 
-      // Storage'ı temizle
-      await clearTokens();
-      await clearUserData();
-
-      setToken(null); // Token state'ini de temizle
+      // State temizle (authAPI.logout zaten memory + storage temizledi)
+      setToken(null);
       setUser(null);
       setIsAuthenticated(false);
 
@@ -200,6 +228,12 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error("❌ Logout error:", error);
+      // Hata olsa bile state'i temizle
+      clearAuthToken();
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+
       return {
         success: false,
         error: getErrorMessage(error),
@@ -216,10 +250,13 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🔄 Updating profile:", updatedData);
 
-      // Update local storage
       const updatedUser = { ...user, ...updatedData };
-      await storeUserData(updatedUser);
+
+      // State önce (UI için)
       setUser(updatedUser);
+
+      // Storage persist
+      await storeUserData(updatedUser);
 
       console.log("✅ Profile updated");
 
@@ -234,16 +271,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Force refresh token (API interceptor tarafından çağrılabilir)
+   * Force refresh token
+   * KRİTİK 2 FIX: authAPI.refresh artık tanımlı
    */
   const forceRefreshToken = async () => {
     try {
       const refreshToken = await getRefreshToken();
-      if (!refreshToken) return false;
+      if (!refreshToken) {
+        console.log("⚠️ No refresh token available");
+        return false;
+      }
 
+      console.log("🔄 Attempting token refresh...");
       const response = await authAPI.refresh(refreshToken);
+
       if (response.token) {
+        // Memory cache + state + storage güncelle
+        setAuthToken(response.token);
+        setToken(response.token);
         await storeTokens(response.token, refreshToken);
+        console.log("✅ Token refreshed successfully");
         return true;
       }
       return false;
@@ -255,7 +302,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    token, // Ekranlar için token
+    token,
     loading,
     isAuthenticated,
     login,
