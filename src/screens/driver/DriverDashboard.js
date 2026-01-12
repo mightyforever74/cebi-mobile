@@ -56,22 +56,25 @@ const DriverDashboard = () => {
       setCheckingDevice(true);
       console.log("[Gate] Checking device status...");
 
-      const response = await driverAPI.getAssignedDevice();
+      const response = await driverAPI.getVehicle();
       console.log("[Gate] Response:", JSON.stringify(response));
 
-      if (!response.has_vehicle) {
+      const veh = response?.vehicle || null;
+      if (!veh) {
         console.log("[Gate] No vehicle assigned");
         setCheckingDevice(false);
         setDeviceCheckDone(true);
         return;
       }
 
-      if (response.setup_required) {
+      const setupRequired =
+        response?.setup_required ?? response?.vehicle?.setup_required;
+
+      if (setupRequired) {
         console.log("[Gate] Setup required, redirecting to DeviceSetup...");
         setCheckingDevice(false);
-        navigation.replace("DeviceSetup", {
-          device: response.device,
-          vehicle: response.vehicle,
+        navigation.navigate("DeviceSetup", {
+          vehicle: veh,
         });
         return;
       }

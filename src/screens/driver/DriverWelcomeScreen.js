@@ -148,7 +148,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
       {/* Video Background */}
       {!videoError ? (
         <Video
-          source={require("../../assets/videos/welcome-loop-v2.mp4")}
+          source={require("../../assets/videos/welcomeloopv2.mp4")}
           style={styles.backgroundVideo}
           resizeMode={ResizeMode.COVER}
           shouldPlay
