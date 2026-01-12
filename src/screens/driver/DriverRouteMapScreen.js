@@ -9,7 +9,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,7 +18,7 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { COLORS } from "../../constants/config";
 import { driverTaskAPI } from "../../services/api";
 
-const { width } = Dimensions.get("window");
+// Responsive width (rotation, split-screen safe)
 
 // Google Maps API Key - Senin hesabın (Billing aktif, restriction: None)
 // NOT: Production'da platform bazlı restriction eklenecek
@@ -32,6 +31,7 @@ const MAX_WAYPOINTS = 10;
 const MAX_ROUTE_POINTS = 500;
 
 const DriverRouteMapScreen = ({ navigation, route }) => {
+  const { width } = useWindowDimensions();
   const initialTask = route?.params?.task || null;
 
   const [task, setTask] = useState(initialTask);

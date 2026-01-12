@@ -5,17 +5,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { reportAPI } from "../../services/api";
 
-const { width } = Dimensions.get("window");
+// Responsive width (rotation & split-screen safe) will be read inside component
 
 // Theme colors
 const COLORS = {
@@ -58,6 +58,7 @@ const TASK_STATUS_LABELS = {
 };
 
 const AdminReportsScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRange, setSelectedRange] = useState(30);
@@ -123,7 +124,12 @@ const AdminReportsScreen = ({ navigation }) => {
 
   // Özet kartı
   const renderSummaryCard = (icon, title, value, subtitle, color) => (
-    <View style={[styles.summaryCard, { borderLeftColor: color }]}>
+    <View
+      style={[
+        styles.summaryCard,
+        { borderLeftColor: color, minWidth: (width - 44) / 2 },
+      ]}
+    >
       <View style={[styles.summaryIcon, { backgroundColor: `${color}20` }]}>
         <Ionicons name={icon} size={24} color={color} />
       </View>
@@ -630,7 +636,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    minWidth: (width - 44) / 2,
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 14,
