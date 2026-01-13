@@ -495,6 +495,11 @@ export const vehicleAPI = {
     const response = await api.get(`/api/vehicles/${vehicleId}/location`);
     return response.data;
   },
+  // Tüm araçların son konumları - FleetMap için
+  getAllWithLocations: async () => {
+    const response = await api.get("/api/locations/latest");
+    return response.data;
+  },
 };
 
 // ============================================
