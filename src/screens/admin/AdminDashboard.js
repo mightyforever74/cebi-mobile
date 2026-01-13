@@ -113,17 +113,22 @@ const AdminDashboard = () => {
       setError(null);
 
       const [statsData, vehiclesData, activitiesData] = await Promise.all([
-        adminAPI.getFleetStats().catch((err) => ({ stats: getDefaultStats() })),
+        adminAPI.getFleetStats(), // ❗ hata olursa 0'a sessiz düşme; catch aşağıda
         adminAPI.getVehicles().catch((err) => ({ vehicles: [] })),
         adminAPI.getActivities().catch((err) => ({ activities: [] })),
       ]);
 
-      setFleetStats(statsData.stats);
+      // Şema guard (yeni backend: totals/breakdown/health)
+      if (!statsData?.totals || !statsData?.breakdown) {
+        throw new Error("Bad fleet-stats schema");
+      }
+
+      setFleetStats(statsData);
       setVehicles(vehiclesData.vehicles || []);
       setActivities(activitiesData.activities || []);
 
       console.log("✅ Admin data loaded:", {
-        stats: statsData.stats,
+        stats: statsData,
         vehicleCount: vehiclesData.vehicles?.length,
         activityCount: activitiesData.activities?.length,
       });
@@ -140,27 +145,22 @@ const AdminDashboard = () => {
   };
 
   const getDefaultStats = () => ({
-    vehicles: {
-      total_vehicles: 0,
-      active_vehicles: 0,
-      maintenance_vehicles: 0,
-      available_vehicles: 0,
-    },
-    drivers: {
-      total_drivers: 0,
-      on_duty_drivers: 0,
-      idle_drivers: 0,
-      off_duty_drivers: 0,
-    },
-    tasks: {
-      total_tasks: 0,
+    totals: {
+      vehicles: 0,
+      drivers: 0,
+      active_tasks: 0,
       pending_tasks: 0,
-      in_progress_tasks: 0,
-      completed_today: 0,
+      alerts: 0,
     },
-    alerts: {
-      unresolved_alerts: 0,
-      critical_alerts: 0,
+    breakdown: {
+      vehicles: { available: 0, in_use: 0, maintenance: 0 },
+      drivers: { on_duty: 0, available: 0, on_leave: 0, offline: 0 },
+      tasks: { total: 0, completed_today: 0 },
+      alerts: { unresolved: 0, critical: 0 },
+    },
+    health: {
+      online_vehicles: 0,
+      offline_vehicles: 0,
     },
   });
 
@@ -331,31 +331,37 @@ const AdminDashboard = () => {
           <Text style={styles.commandCenterTitle}>🎯 Komuta Merkezi</Text>
           <View style={styles.commandCenterGrid}>
             <View style={styles.commandItem}>
-              <View style={[styles.commandIcon, { backgroundColor: "#EEF2FF" }]}>
+              <View
+                style={[styles.commandIcon, { backgroundColor: "#EEF2FF" }]}
+              >
                 <Ionicons name="car" size={24} color="#5E72E4" />
               </View>
               <Text style={styles.commandNumber}>
-                {fleetStats.vehicles?.total_vehicles || 0}
+                {fleetStats.totals?.vehicles ?? 0}
               </Text>
               <Text style={styles.commandLabel}>Araç</Text>
             </View>
             <View style={styles.commandItem}>
-              <View style={[styles.commandIcon, { backgroundColor: "#F0FDF4" }]}>
+              <View
+                style={[styles.commandIcon, { backgroundColor: "#F0FDF4" }]}
+              >
                 <Ionicons name="people" size={24} color="#10B981" />
               </View>
               <Text style={styles.commandNumber}>
-                {fleetStats.drivers?.total_drivers || 0}
+                {fleetStats.totals?.drivers ?? 0}
               </Text>
               <Text style={styles.commandLabel}>Sürücü</Text>
             </View>
             <View style={styles.commandItem}>
-              <View style={[styles.commandIcon, { backgroundColor: "#FEF3C7" }]}>
+              <View
+                style={[styles.commandIcon, { backgroundColor: "#FEF3C7" }]}
+              >
                 <Ionicons name="hardware-chip" size={24} color="#F59E0B" />
               </View>
               <Text style={styles.commandNumber}>
-                {fleetStats.vehicles?.active_vehicles || 0}
+                {fleetStats.health?.online_vehicles ?? 0}
               </Text>
-              <Text style={styles.commandLabel}>Aktif Cihaz</Text>
+              <Text style={styles.commandLabel}>Online Araç</Text>
             </View>
           </View>
         </View>
@@ -389,34 +395,34 @@ const AdminDashboard = () => {
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
-                {fleetStats.vehicles?.total_vehicles || 0}
+                {fleetStats.totals?.vehicles ?? 0}
               </Text>
               <Text style={styles.statText}>Toplam Araç</Text>
               <Text style={styles.statDetail}>
-                {fleetStats.vehicles?.active_vehicles || 0} aktif
+                {fleetStats.breakdown?.vehicles?.in_use ?? 0} kullanımda
               </Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
-                {fleetStats.drivers?.total_drivers || 0}
+                {fleetStats.totals?.drivers ?? 0}
               </Text>
               <Text style={styles.statText}>Toplam Sürücü</Text>
               <Text style={styles.statDetail}>
-                {fleetStats.drivers?.on_duty_drivers || 0} görevde
+                {fleetStats.breakdown?.drivers?.on_duty ?? 0} görevde
               </Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statNumber, { color: COLORS.info }]}>
-                {fleetStats.tasks?.in_progress_tasks || 0}
+                {fleetStats.totals?.active_tasks ?? 0}
               </Text>
               <Text style={styles.statText}>Aktif Görev</Text>
               <Text style={styles.statDetail}>
-                {fleetStats.tasks?.pending_tasks || 0} beklemede
+                {fleetStats.totals?.pending_tasks ?? 0} beklemede
               </Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statNumber, { color: COLORS.success }]}>
-                {fleetStats.tasks?.completed_today || 0}
+                {fleetStats.breakdown?.tasks?.completed_today ?? 0}
               </Text>
               <Text style={styles.statText}>Bugün Tamamlanan</Text>
               <Text style={styles.statDetail}>görev</Text>
@@ -426,12 +432,14 @@ const AdminDashboard = () => {
       )}
 
       {/* Alert Stats */}
-      {fleetStats?.alerts && (
+      {fleetStats?.breakdown?.alerts && (
         <View style={styles.alertStatsCard}>
           <View style={styles.alertStatItem}>
             <Text style={styles.alertStatIcon}>⚠️</Text>
             <Text style={styles.alertStatNumber}>
-              {fleetStats.alerts?.unresolved_alerts || 0}
+              {fleetStats.breakdown?.alerts?.unresolved ??
+                fleetStats.totals?.alerts ??
+                0}
             </Text>
             <Text style={styles.alertStatLabel}>Çözülmemiş Uyarı</Text>
           </View>
@@ -439,7 +447,7 @@ const AdminDashboard = () => {
           <View style={styles.alertStatItem}>
             <Text style={styles.alertStatIcon}>🚨</Text>
             <Text style={[styles.alertStatNumber, { color: "#DC2626" }]}>
-              {fleetStats.alerts?.critical_alerts || 0}
+              {fleetStats.breakdown?.alerts?.critical ?? 0}
             </Text>
             <Text style={styles.alertStatLabel}>Kritik Uyarı</Text>
           </View>
@@ -453,9 +461,13 @@ const AdminDashboard = () => {
           onPress={() => navigation.navigate("Vehicles")}
         >
           <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={COLORS.textSecondary}
+          />
         </TouchableOpacity>
-        
+
         {vehicles.length > 0 ? (
           vehicles.slice(0, 3).map((vehicle) => (
             <TouchableOpacity
@@ -540,9 +552,9 @@ const AdminDashboard = () => {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>📝 Son Aktiviteler</Text>
         {activities.length > 0 ? (
-          activities.slice(0, 5).map((activity, index) => 
-            renderActivityItem(activity, index)
-          )
+          activities
+            .slice(0, 5)
+            .map((activity, index) => renderActivityItem(activity, index))
         ) : (
           <Text style={styles.noDataText}>Henüz aktivite yok</Text>
         )}
