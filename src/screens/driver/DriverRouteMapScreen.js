@@ -127,7 +127,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           longitude: parseFloat(loc.longitude),
         });
         if (loc.heading !== undefined && loc.heading !== null)
-          setHeading(loc.heading);
+          setHeading(parseFloat(loc.heading) || 0);
       } else {
         setLocationError("Konum alınamadı");
       }
