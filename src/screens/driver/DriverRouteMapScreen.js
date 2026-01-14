@@ -624,22 +624,21 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           pitchEnabled={isNavigating}
         >
           {/* Current Location Marker */}
+          {/* Current Location Marker */}
           <Marker
             coordinate={{
               latitude: location.latitude,
               longitude: location.longitude,
             }}
-            title="Konumunuz"
-            description={`${location.latitude.toFixed(
-              6
-            )}, ${location.longitude.toFixed(6)}`}
             anchor={{ x: 0.5, y: 0.5 }}
             flat={isNavigating}
             rotation={isNavigating ? heading : 0}
-            onCalloutPress={() => {
-              const coords = `${location.latitude}, ${location.longitude}`;
+            onPress={() => {
+              const coords = `${location.latitude.toFixed(
+                6
+              )}, ${location.longitude.toFixed(6)}`;
               Clipboard.setStringAsync(coords);
-              Alert.alert("Kopyalandı", coords);
+              Alert.alert("Koordinat Kopyalandı", coords);
             }}
           >
             {isNavigating ? (
