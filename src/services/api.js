@@ -673,4 +673,5 @@ export const alertsAPI = {
     return response.data;
   },
 };
+export const alertAPI = alertsAPI;
 export default api;
