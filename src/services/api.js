@@ -490,6 +490,16 @@ export const vehicleAPI = {
     const response = await api.get(url);
     return response.data;
   },
+  getTrack: async (vehicleId, from, to) => {
+    const params = new URLSearchParams();
+    if (from) params.append("start", from);
+    if (to) params.append("end", to);
+    const url = `/api/vehicles/${vehicleId}/locations${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+    const response = await api.get(url);
+    return response.data;
+  },
 
   getLatestLocation: async (vehicleId) => {
     const response = await api.get(`/api/vehicles/${vehicleId}/location`);
