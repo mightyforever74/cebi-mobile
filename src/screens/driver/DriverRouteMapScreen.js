@@ -4,6 +4,8 @@
 // Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -628,9 +630,17 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               longitude: location.longitude,
             }}
             title="Konumunuz"
+            description={`${location.latitude.toFixed(
+              6
+            )}, ${location.longitude.toFixed(6)}`}
             anchor={{ x: 0.5, y: 0.5 }}
             flat={isNavigating}
             rotation={isNavigating ? heading : 0}
+            onCalloutPress={() => {
+              const coords = `${location.latitude}, ${location.longitude}`;
+              Clipboard.setStringAsync(coords);
+              Alert.alert("Kopyalandı", coords);
+            }}
           >
             {isNavigating ? (
               <View style={styles.navMarkerContainer}>
