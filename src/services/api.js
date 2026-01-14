@@ -682,6 +682,16 @@ export const alertsAPI = {
     const response = await api.put(`/api/alerts/${id}/resolve`, { resolution });
     return response.data;
   },
+
+  delete: async (id) => {
+    const response = await api.delete(`/api/alerts/${id}`);
+    return response.data;
+  },
+
+  deleteAll: async () => {
+    const response = await api.delete("/api/alerts");
+    return response.data;
+  },
 };
 export const alertAPI = alertsAPI;
 export default api;
