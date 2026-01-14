@@ -4,7 +4,6 @@
 // Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
-import * as Location from "expo-location";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,7 +16,7 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { COLORS } from "../../constants/config";
-import { driverTaskAPI } from "../../services/api";
+import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
@@ -58,10 +57,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     getLocation();
 
     return () => {
-      if (watchSubscriptionRef.current) {
-        watchSubscriptionRef.current.remove();
-        watchSubscriptionRef.current = null;
-      }
+      stopLocationTracking();
     };
   }, []);
 
@@ -103,17 +99,38 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const getLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setLocationError("Konum izni verilmedi");
+      // Resolve vehicle id: prefer task.vehicle_id, fallback to driver's assigned vehicle
+      const resolveVehicleId = async () => {
+        if (task?.vehicle_id) return task.vehicle_id;
+        try {
+          const resp = await driverAPI.getVehicle();
+          const vehicle = resp?.vehicle || resp;
+          return vehicle?.id || null;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const vehicleId = await resolveVehicleId();
+      if (!vehicleId) {
+        setLocationError("Araç bulunamadı");
         setLoading(false);
         return;
       }
 
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-      setLocation(loc.coords);
+      const res = await vehicleAPI.getLatestLocation(vehicleId);
+      // Normalize response: backend may return { location: {...} } or raw coords
+      const loc = res?.location || res?.data || res;
+      if (loc && loc.latitude && loc.longitude) {
+        setLocation({
+          latitude: parseFloat(loc.latitude),
+          longitude: parseFloat(loc.longitude),
+        });
+        if (loc.heading !== undefined && loc.heading !== null)
+          setHeading(loc.heading);
+      } else {
+        setLocationError("Konum alınamadı");
+      }
     } catch (e) {
       console.log("[Nav] Location error:", e);
       setLocationError("Konum alınamadı");
@@ -318,48 +335,74 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const startLocationTracking = async () => {
     try {
+      // stop previous tracker if any
       if (watchSubscriptionRef.current) {
-        await watchSubscriptionRef.current.remove();
+        if (typeof watchSubscriptionRef.current.remove === "function") {
+          await watchSubscriptionRef.current.remove();
+        } else {
+          clearInterval(watchSubscriptionRef.current);
+        }
         watchSubscriptionRef.current = null;
       }
 
-      const subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 3000,
-          distanceInterval: 5,
-        },
-        (loc) => {
-          setLocation(loc.coords);
-          if (loc.coords.heading !== undefined && loc.coords.heading !== null) {
-            setHeading(loc.coords.heading);
-          }
+      // Polling function that fetches latest location from backend
+      const pollLocation = async () => {
+        try {
+          const vehicleId =
+            task?.vehicle_id ||
+            (await driverAPI.getVehicle())?.vehicle?.id ||
+            (await driverAPI.getVehicle())?.id;
+          if (!vehicleId) return;
+          const res = await vehicleAPI.getLatestLocation(vehicleId);
+          const loc = res?.location || res?.data || res;
+          if (loc && loc.latitude && loc.longitude) {
+            const coords = {
+              latitude: parseFloat(loc.latitude),
+              longitude: parseFloat(loc.longitude),
+            };
+            setLocation(coords);
+            if (loc.heading !== undefined && loc.heading !== null)
+              setHeading(loc.heading);
 
-          if (followMode && mapRef.current) {
-            mapRef.current.animateCamera({
-              center: {
-                latitude: loc.coords.latitude,
-                longitude: loc.coords.longitude,
-              },
-              pitch: 45,
-              heading: loc.coords.heading || 0,
-              zoom: 17,
-            });
+            if (followMode && mapRef.current) {
+              mapRef.current.animateCamera({
+                center: {
+                  latitude: coords.latitude,
+                  longitude: coords.longitude,
+                },
+                pitch: 45,
+                heading: loc.heading || 0,
+                zoom: 17,
+              });
+            }
           }
+        } catch (e) {
+          console.log("[Nav] Polling error:", e);
         }
-      );
+      };
 
-      watchSubscriptionRef.current = subscription;
-      setWatchSubscription(subscription);
-      console.log("[Nav] Location tracking started");
+      // Initial poll then interval (7s default — within 5-10s requested)
+      await pollLocation();
+      const intervalId = setInterval(pollLocation, 7000);
+      watchSubscriptionRef.current = intervalId;
+      setWatchSubscription(intervalId);
+      console.log("[Nav] Location polling started");
     } catch (e) {
-      console.log("[Nav] Location tracking error:", e);
+      console.log("[Nav] Location polling error:", e);
     }
   };
 
   const stopLocationTracking = async () => {
     if (watchSubscriptionRef.current) {
-      await watchSubscriptionRef.current.remove();
+      try {
+        if (typeof watchSubscriptionRef.current.remove === "function") {
+          await watchSubscriptionRef.current.remove();
+        } else {
+          clearInterval(watchSubscriptionRef.current);
+        }
+      } catch (e) {
+        console.log("[Nav] Error stopping tracker:", e);
+      }
       watchSubscriptionRef.current = null;
       setWatchSubscription(null);
       console.log("[Nav] Location tracking stopped");

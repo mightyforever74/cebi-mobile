@@ -253,7 +253,7 @@ export const userAPI = {
 
 export const adminAPI = {
   getFleetStats: async () => {
-    const response = await api.get("/api/admin/stats");
+    const response = await api.get("/api/admin/fleet-stats"); // ✅ DOĞRU
     return response.data;
   },
 
@@ -647,5 +647,30 @@ export const pushAPI = {
     return response.data;
   },
 };
+// ============================================
+// ALERTS API
+// ============================================
 
+export const alertsAPI = {
+  getAll: async (params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append("status", params.status);
+    if (params.severity) queryParams.append("severity", params.severity);
+    const url = `/api/alerts${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  getById: async (id) => {
+    const response = await api.get(`/api/alerts/${id}`);
+    return response.data;
+  },
+
+  resolve: async (id, resolution) => {
+    const response = await api.put(`/api/alerts/${id}/resolve`, { resolution });
+    return response.data;
+  },
+};
 export default api;
