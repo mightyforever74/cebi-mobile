@@ -362,7 +362,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             };
             setLocation(coords);
             if (loc.heading !== undefined && loc.heading !== null)
-              setHeading(loc.heading);
+              setHeading(parseFloat(loc.heading) || 0);
 
             if (followMode && mapRef.current) {
               mapRef.current.animateCamera({
@@ -371,7 +371,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                   longitude: coords.longitude,
                 },
                 pitch: 45,
-                heading: loc.heading || 0,
+                heading: parseFloat(loc.heading) || 0,
                 zoom: 17,
               });
             }
