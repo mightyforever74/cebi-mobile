@@ -694,4 +694,63 @@ export const alertsAPI = {
   },
 };
 export const alertAPI = alertsAPI;
+
+// ============================================
+// REPORTS API
+// ============================================
+
+export const reportAPI = {
+  getSummary: async (from, to) => {
+    // fleet-stats endpoint'ini kullan
+    const response = await api.get("/api/admin/fleet-stats");
+    return response.data;
+  },
+
+  getVehicles: async () => {
+    const response = await api.get("/api/vehicles");
+    return response.data;
+  },
+
+  getDrivers: async () => {
+    const response = await api.get("/api/drivers");
+    return response.data;
+  },
+
+  getAlerts: async (from, to) => {
+    const response = await api.get("/api/alerts");
+    const alerts = response.data.alerts || [];
+
+    // Tip bazlı grupla
+    const byType = {};
+    alerts.forEach((a) => {
+      const type = a.alert_type || "OTHER";
+      byType[type] = (byType[type] || 0) + 1;
+    });
+
+    return {
+      total: alerts.length,
+      byType,
+      alerts,
+    };
+  },
+
+  getTasks: async (from, to) => {
+    const response = await api.get("/api/tasks");
+    const tasks = response.data.tasks || response.data || [];
+
+    // Durum bazlı grupla
+    const byStatus = {};
+    tasks.forEach((t) => {
+      const status = t.status || "unknown";
+      byStatus[status] = (byStatus[status] || 0) + 1;
+    });
+
+    return {
+      total: tasks.length,
+      byStatus,
+      tasks,
+    };
+  },
+};
+
 export default api;
