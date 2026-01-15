@@ -266,6 +266,12 @@ const AdminAlerts = ({ navigation }) => {
                   </Text>
                 </View>
               )}
+              {item.driver_name && (
+                <View style={styles.metaItem}>
+                  <Ionicons name="person" size={12} color={COLORS.secondary} />
+                  <Text style={styles.metaText}>{item.driver_name}</Text>
+                </View>
+              )}
               <View style={styles.metaItem}>
                 <Ionicons
                   name="time-outline"
