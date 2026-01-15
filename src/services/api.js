@@ -694,25 +694,23 @@ export const alertsAPI = {
   },
 };
 export const alertAPI = alertsAPI;
-
 // ============================================
 // REPORTS API
 // ============================================
 
 export const reportAPI = {
   getSummary: async (from, to) => {
-    // fleet-stats endpoint'ini kullan
     const response = await api.get("/api/admin/fleet-stats");
     return response.data;
   },
 
   getVehicles: async () => {
-    const response = await api.get("/api/vehicles");
+    const response = await api.get("/api/reports/vehicles");
     return response.data;
   },
 
   getDrivers: async () => {
-    const response = await api.get("/api/drivers");
+    const response = await api.get("/api/reports/drivers");
     return response.data;
   },
 
