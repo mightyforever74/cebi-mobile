@@ -26,7 +26,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-
+  const [commandLoading, setCommandLoading] = useState(null);
   // Atama modal
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [companies, setCompanies] = useState([]);
@@ -230,6 +230,48 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         },
       ]
     );
+  };
+  // Uzaktan komut gönder
+  const handleSendCommand = (command, commandName, isDanger = false) => {
+    const message = isDanger
+      ? `${commandName} komutu göndermek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+      : `${commandName} komutu göndermek istiyor musunuz?`;
+
+    Alert.alert("Uzaktan Komut", message, [
+      { text: "İptal", style: "cancel" },
+      {
+        text: "Gönder",
+        style: isDanger ? "destructive" : "default",
+        onPress: async () => {
+          setCommandLoading(command);
+          try {
+            const response = await fetch(
+              `${API_URL}/api/devices/${device.id}/command`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ command }),
+              }
+            );
+
+            const data = await response.json();
+            if (response.ok) {
+              Alert.alert("Başarılı", data.message || "Komut gönderildi");
+            } else {
+              Alert.alert("Hata", data.error || "Komut gönderilemedi");
+            }
+          } catch (error) {
+            console.error("Command error:", error);
+            Alert.alert("Hata", "Bağlantı hatası");
+          } finally {
+            setCommandLoading(null);
+          }
+        },
+      },
+    ]);
   };
 
   // Zaman farkı
@@ -471,6 +513,80 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+
+        {/* Uzaktan Komutlar */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📡 Uzaktan Komutlar</Text>
+          <View style={styles.card}>
+            <View style={styles.commandButtons}>
+              <TouchableOpacity
+                style={[styles.commandButton, styles.commandButtonSafe]}
+                onPress={() => handleSendCommand("STATUS", "Durum Sorgula")}
+                disabled={commandLoading !== null}
+              >
+                {commandLoading === "STATUS" ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="pulse-outline" size={18} color="#FFF" />
+                    <Text style={styles.commandButtonText}>Durum</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.commandButton, styles.commandButtonSafe]}
+                onPress={() =>
+                  handleSendCommand("RECALIBRATE", "Yeniden Kalibre")
+                }
+                disabled={commandLoading !== null}
+              >
+                {commandLoading === "RECALIBRATE" ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="compass-outline" size={18} color="#FFF" />
+                    <Text style={styles.commandButtonText}>Kalibre</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.commandButton, styles.commandButtonWarning]}
+                onPress={() =>
+                  handleSendCommand("RESET", "Yeniden Başlat", true)
+                }
+                disabled={commandLoading !== null}
+              >
+                {commandLoading === "RESET" ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="refresh-outline" size={18} color="#FFF" />
+                    <Text style={styles.commandButtonText}>Reset</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.commandButton, styles.commandButtonDanger]}
+                onPress={() =>
+                  handleSendCommand("CLEAR_WIFI", "WiFi Sıfırla", true)
+                }
+                disabled={commandLoading !== null}
+              >
+                {commandLoading === "CLEAR_WIFI" ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="wifi-outline" size={18} color="#FFF" />
+                    <Text style={styles.commandButtonText}>WiFi Sil</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -940,6 +1056,38 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  // Command buttons
+  commandButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  commandButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    minWidth: "48%",
+    marginBottom: 8,
+  },
+  commandButtonSafe: {
+    backgroundColor: "#5E72E4",
+  },
+  commandButtonWarning: {
+    backgroundColor: "#FB6340",
+  },
+  commandButtonDanger: {
+    backgroundColor: "#F5365C",
+  },
+  commandButtonText: {
+    color: "#FFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });
 
