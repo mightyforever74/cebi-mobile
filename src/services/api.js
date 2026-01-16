@@ -256,6 +256,29 @@ export const adminAPI = {
     const response = await api.get("/api/admin/fleet-stats"); // ✅ DOĞRU
     return response.data;
   },
+  // Admin Devices inventory
+  getDevices: async (assigned) => {
+    const params = {};
+    if (assigned !== undefined) params.assigned = assigned;
+    const response = await api.get("/api/admin/devices", { params });
+    return response.data;
+  },
+
+  searchDevices: async (serial) => {
+    const response = await api.get("/api/admin/devices/search", {
+      params: { serial },
+    });
+    return response.data;
+  },
+
+  claimDevice: async (data) => {
+    // FIX: Backend uyumlu - action parametresi kaldırıldı, company_id eklendi
+    // data = string (deviceId) veya object { deviceId, company_id }
+    const body = typeof data === "string" ? { deviceId: data } : data;
+
+    const response = await api.post("/api/admin/devices/claim", body);
+    return response.data;
+  },
 
   getVehicles: async () => {
     const response = await api.get("/api/vehicles");
@@ -321,6 +344,17 @@ export const superAdminAPI = {
     return response.data;
   },
 
+  // Device QR management
+  getDeviceQR: async (deviceId) => {
+    const response = await api.get(`/api/superadmin/devices/${deviceId}/qr`);
+    return response.data;
+  },
+
+  generateDeviceQR: async (deviceId) => {
+    const response = await api.post(`/api/superadmin/devices/${deviceId}/qr`);
+    return response.data;
+  },
+
   getUsers: async () => {
     const response = await api.get("/api/superadmin/users");
     return response.data;
@@ -337,6 +371,24 @@ export const superAdminAPI = {
 // ============================================
 
 export const deviceAPI = {
+  // Claim via QR token
+  validateClaimToken: async (token) => {
+    const response = await api.get("/api/device/claim/validate", {
+      params: { token },
+    });
+    return response.data;
+  },
+
+  claimByToken: async (token, actionOrBody = "add_to_stock") => {
+    // FIX: Hem string hem object kabul eder (geriye uyumlu)
+    const body =
+      typeof actionOrBody === "string"
+        ? { token, action: actionOrBody }
+        : { token, ...(actionOrBody || {}) };
+
+    const response = await api.post("/api/device/claim", body);
+    return response.data;
+  },
   validateSerial: async (serial) => {
     const response = await api.post("/api/devices/validate-serial", { serial });
     return response.data;
@@ -440,6 +492,41 @@ export const driverAPI = {
       `/api/driver/vehicle/${vehicleId}/odometer`,
       { odometer }
     );
+    return response.data;
+  },
+
+  // YENİ: Cihaz envanter fonksiyonları
+  getAssignableDevices: async () => {
+    const response = await api.get("/api/driver/devices/assignable");
+    return response.data;
+  },
+
+  searchDevices: async (serial) => {
+    const response = await api.get("/api/driver/devices/search", {
+      params: { serial },
+    });
+    return response.data;
+  },
+
+  assignDevice: async (arg1, arg2) => {
+    // OVERLOAD: Hem object hem (deviceId, vehicleId) kabul eder
+    // Kullanım 1: assignDevice({ deviceId, serial, vehicleId })
+    // Kullanım 2: assignDevice(deviceId, vehicleId)
+    const data =
+      typeof arg1 === "object" && arg1 !== null
+        ? arg1
+        : { deviceId: arg1, vehicleId: arg2 };
+
+    const response = await api.post("/api/driver/devices/assign", data);
+    return response.data;
+  },
+
+  // Alternatif basit versiyon
+  assignDeviceSimple: async (deviceId, vehicleId) => {
+    const response = await api.post("/api/driver/devices/assign", {
+      deviceId,
+      vehicleId,
+    });
     return response.data;
   },
 };
