@@ -12,10 +12,8 @@ import {
   View,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { theme } from "../../constants";
+import { COLORS, SIZES } from "../../constants/config";
 import { superAdminAPI } from "../../services/api";
-
-const { COLORS, SIZES } = theme;
 
 const DeviceQRManagement = () => {
   const navigation = useNavigation();
