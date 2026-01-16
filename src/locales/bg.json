@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Зареждане...",
+    "save": "Запази",
+    "cancel": "Отказ",
+    "delete": "Изтрий",
+    "edit": "Редактирай",
+    "close": "Затвори",
+    "confirm": "Потвърди",
+    "yes": "Да",
+    "no": "Не",
+    "ok": "ОК",
+    "error": "Грешка",
+    "success": "Успешно",
+    "warning": "Предупреждение",
+    "search": "Търси",
+    "refresh": "Обнови",
+    "back": "Назад",
+    "next": "Напред",
+    "retry": "Опитай отново",
+    "all": "Всички",
+    "none": "Няма"
+  },
+  "auth": {
+    "login": "Вход",
+    "logout": "Изход",
+    "email": "Имейл",
+    "password": "Парола",
+    "forgotPassword": "Забравена парола",
+    "loginError": "Неуспешен вход",
+    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
+  },
+  "roles": {
+    "superAdmin": "Супер Админ",
+    "companyAdmin": "Мениджър",
+    "driver": "Шофьор"
+  },
+  "navigation": {
+    "dashboard": "Табло",
+    "vehicles": "Превозни средства",
+    "drivers": "Шофьори",
+    "tasks": "Задачи",
+    "alerts": "Сигнали",
+    "reports": "Отчети",
+    "settings": "Настройки",
+    "profile": "Профил",
+    "companies": "Компании",
+    "devices": "Устройства",
+    "deviceSetup": "Настройка на устройство",
+    "qrManagement": "QR Управление",
+    "fleetMap": "Карта на живо",
+    "myTasks": "Моите задачи",
+    "myVehicle": "Моето превозно средство",
+    "taskHistory": "История на задачите"
+  },
+  "device": {
+    "title": "Управление на устройства",
+    "serial": "Сериен номер",
+    "status": "Статус",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "assigned": "Присвоено",
+    "unassigned": "Неприсвоено",
+    "generateQR": "Генерирай QR",
+    "showQR": "Покажи QR",
+    "refreshQR": "Обнови QR",
+    "qrGenerated": "QR кодът е генериран",
+    "qrExpires": "Изтича след",
+    "scanQR": "Сканирай QR",
+    "searchBySerial": "Търси по сериен номер",
+    "addToStock": "Добави в склада",
+    "assignToVehicle": "Присвои към превозно средство",
+    "assignDevice": "Присвои устройство",
+    "deviceAssigned": "Устройството е присвоено",
+    "noDevices": "Няма намерени устройства",
+    "claimDevice": "Заяви устройство",
+    "activating": "Активиране...",
+    "activated": "Активирано",
+    "statuses": {
+      "CREATED": "Създадено",
+      "PRINTED": "Отпечатано",
+      "IN_STOCK": "На склад",
+      "ASSIGNED": "Присвоено",
+      "ACTIVATED": "Активно",
+      "SUSPENDED": "Спряно",
+      "RETIRED": "Изведено",
+      "LOST": "Загубено"
+    }
+  },
+  "vehicle": {
+    "title": "Управление на превозни средства",
+    "plate": "Регистрационен номер",
+    "brand": "Марка",
+    "model": "Модел",
+    "year": "Година",
+    "fuel": "Гориво",
+    "odometer": "Километраж",
+    "status": "Статус",
+    "driver": "Шофьор",
+    "noVehicle": "Няма намерено превозно средство",
+    "addVehicle": "Добави превозно средство",
+    "editVehicle": "Редактирай превозно средство"
+  },
+  "task": {
+    "title": "Управление на задачи",
+    "newTask": "Нова задача",
+    "taskDetail": "Детайли на задачата",
+    "pickup": "Точка на вземане",
+    "delivery": "Точка на доставка",
+    "status": "Статус",
+    "priority": "Приоритет",
+    "notes": "Бележки",
+    "accept": "Приеми",
+    "reject": "Отхвърли",
+    "start": "Започни",
+    "complete": "Завърши",
+    "noTasks": "Няма намерени задачи",
+    "statuses": {
+      "pending": "Изчакващо",
+      "assigned": "Присвоено",
+      "in_progress": "В процес",
+      "completed": "Завършено",
+      "cancelled": "Отменено"
+    }
+  },
+  "alert": {
+    "title": "Сигнали",
+    "resolve": "Разреши",
+    "resolved": "Разрешено",
+    "active": "Активен",
+    "noAlerts": "Няма намерени сигнали",
+    "types": {
+      "HARD_BRAKE": "Рязко спиране",
+      "HARD_ACCEL": "Рязко ускорение",
+      "HARD_TURN": "Рязък завой",
+      "IMPACT": "Удар",
+      "speeding": "Превишена скорост",
+      "idle_too_long": "Твърде дълъг престой"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Език",
+    "selectLanguage": "Избери език",
+    "notifications": "Известия",
+    "darkMode": "Тъмен режим",
+    "about": "Относно",
+    "version": "Версия",
+    "changePassword": "Промени парола",
+    "privacy": "Поверителност",
+    "terms": "Условия за ползване"
+  },
+  "wifi": {
+    "ssid": "WiFi мрежа",
+    "password": "WiFi парола",
+    "connect": "Свържи",
+    "connecting": "Свързване...",
+    "connected": "Свързано",
+    "errors": {
+      "authFailed": "Грешна WiFi парола",
+      "timeout": "Времето за връзка изтече",
+      "notFound": "WiFi мрежата не е намерена"
+    }
+  },
+  "ble": {
+    "scanning": "Търсене на устройства...",
+    "connecting": "Свързване...",
+    "connected": "Свързано",
+    "disconnected": "Прекъсната връзка",
+    "noDevices": "Няма намерени устройства",
+    "permissionRequired": "Изисква се Bluetooth разрешение"
+  }
+}

@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { argonTheme } from "./constants";
 import PushNotificationService from "./services/pushNotificationService";
+import "./src/locales/i18n";
 
 // AuthProvider import
 import { AuthProvider } from "./src/context/AuthContext";

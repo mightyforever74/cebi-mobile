@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "close": "Sluiten",
+    "confirm": "Bevestigen",
+    "yes": "Ja",
+    "no": "Nee",
+    "ok": "OK",
+    "error": "Fout",
+    "success": "Gelukt",
+    "warning": "Waarschuwing",
+    "search": "Zoeken",
+    "refresh": "Vernieuwen",
+    "back": "Terug",
+    "next": "Volgende",
+    "retry": "Opnieuw proberen",
+    "all": "Alle",
+    "none": "Geen"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "logout": "Uitloggen",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "forgotPassword": "Wachtwoord vergeten",
+    "loginError": "Inloggen mislukt",
+    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Beheerder",
+    "driver": "Chauffeur"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "vehicles": "Voertuigen",
+    "drivers": "Chauffeurs",
+    "tasks": "Taken",
+    "alerts": "Meldingen",
+    "reports": "Rapporten",
+    "settings": "Instellingen",
+    "profile": "Profiel",
+    "companies": "Bedrijven",
+    "devices": "Apparaten",
+    "deviceSetup": "Apparaat Instellen",
+    "qrManagement": "QR Beheer",
+    "fleetMap": "Live Kaart",
+    "myTasks": "Mijn Taken",
+    "myVehicle": "Mijn Voertuig",
+    "taskHistory": "Taakgeschiedenis"
+  },
+  "device": {
+    "title": "Apparaatbeheer",
+    "serial": "Serienummer",
+    "status": "Status",
+    "online": "Online",
+    "offline": "Offline",
+    "assigned": "Toegewezen",
+    "unassigned": "Niet toegewezen",
+    "generateQR": "QR Genereren",
+    "showQR": "QR Tonen",
+    "refreshQR": "QR Vernieuwen",
+    "qrGenerated": "QR-code gegenereerd",
+    "qrExpires": "Verloopt over",
+    "scanQR": "QR Scannen",
+    "searchBySerial": "Zoeken op serienummer",
+    "addToStock": "Toevoegen aan voorraad",
+    "assignToVehicle": "Toewijzen aan voertuig",
+    "assignDevice": "Apparaat toewijzen",
+    "deviceAssigned": "Apparaat toegewezen",
+    "noDevices": "Geen apparaten gevonden",
+    "claimDevice": "Apparaat claimen",
+    "activating": "Activeren...",
+    "activated": "Geactiveerd",
+    "statuses": {
+      "CREATED": "Aangemaakt",
+      "PRINTED": "Geprint",
+      "IN_STOCK": "Op voorraad",
+      "ASSIGNED": "Toegewezen",
+      "ACTIVATED": "Actief",
+      "SUSPENDED": "Opgeschort",
+      "RETIRED": "Buiten dienst",
+      "LOST": "Verloren"
+    }
+  },
+  "vehicle": {
+    "title": "Voertuigbeheer",
+    "plate": "Kenteken",
+    "brand": "Merk",
+    "model": "Model",
+    "year": "Jaar",
+    "fuel": "Brandstof",
+    "odometer": "Kilometerstand",
+    "status": "Status",
+    "driver": "Chauffeur",
+    "noVehicle": "Geen voertuig gevonden",
+    "addVehicle": "Voertuig toevoegen",
+    "editVehicle": "Voertuig bewerken"
+  },
+  "task": {
+    "title": "Taakbeheer",
+    "newTask": "Nieuwe taak",
+    "taskDetail": "Taakdetails",
+    "pickup": "Ophaallocatie",
+    "delivery": "Afleverlocatie",
+    "status": "Status",
+    "priority": "Prioriteit",
+    "notes": "Notities",
+    "accept": "Accepteren",
+    "reject": "Weigeren",
+    "start": "Starten",
+    "complete": "Voltooien",
+    "noTasks": "Geen taken gevonden",
+    "statuses": {
+      "pending": "In afwachting",
+      "assigned": "Toegewezen",
+      "in_progress": "Bezig",
+      "completed": "Voltooid",
+      "cancelled": "Geannuleerd"
+    }
+  },
+  "alert": {
+    "title": "Meldingen",
+    "resolve": "Oplossen",
+    "resolved": "Opgelost",
+    "active": "Actief",
+    "noAlerts": "Geen meldingen gevonden",
+    "types": {
+      "HARD_BRAKE": "Hard remmen",
+      "HARD_ACCEL": "Hard accelereren",
+      "HARD_TURN": "Scherpe bocht",
+      "IMPACT": "Botsing",
+      "speeding": "Te hard rijden",
+      "idle_too_long": "Te lang stationair"
+    }
+  },
+  "settings": {
+    "title": "Instellingen",
+    "language": "Taal",
+    "selectLanguage": "Selecteer taal",
+    "notifications": "Meldingen",
+    "darkMode": "Donkere modus",
+    "about": "Over",
+    "version": "Versie",
+    "changePassword": "Wachtwoord wijzigen",
+    "privacy": "Privacy",
+    "terms": "Gebruiksvoorwaarden"
+  },
+  "wifi": {
+    "ssid": "WiFi-netwerk",
+    "password": "WiFi-wachtwoord",
+    "connect": "Verbinden",
+    "connecting": "Verbinden...",
+    "connected": "Verbonden",
+    "errors": {
+      "authFailed": "Onjuist WiFi-wachtwoord",
+      "timeout": "Verbinding time-out",
+      "notFound": "WiFi-netwerk niet gevonden"
+    }
+  },
+  "ble": {
+    "scanning": "Apparaten zoeken...",
+    "connecting": "Verbinden...",
+    "connected": "Verbonden",
+    "disconnected": "Verbinding verbroken",
+    "noDevices": "Geen apparaten gevonden",
+    "permissionRequired": "Bluetooth-toestemming vereist"
+  }
+}

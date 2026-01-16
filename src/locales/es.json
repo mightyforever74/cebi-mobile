@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "search": "Buscar",
+    "refresh": "Actualizar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "retry": "Reintentar",
+    "all": "Todos",
+    "none": "Ninguno"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "Olvidé mi contraseña",
+    "loginError": "Error de inicio de sesión",
+    "logoutConfirm": "¿Está seguro de que desea cerrar sesión?"
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Administrador",
+    "driver": "Conductor"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "vehicles": "Vehículos",
+    "drivers": "Conductores",
+    "tasks": "Tareas",
+    "alerts": "Alertas",
+    "reports": "Informes",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "companies": "Empresas",
+    "devices": "Dispositivos",
+    "deviceSetup": "Configurar Dispositivo",
+    "qrManagement": "Gestión QR",
+    "fleetMap": "Mapa en Vivo",
+    "myTasks": "Mis Tareas",
+    "myVehicle": "Mi Vehículo",
+    "taskHistory": "Historial de Tareas"
+  },
+  "device": {
+    "title": "Gestión de Dispositivos",
+    "serial": "Número de Serie",
+    "status": "Estado",
+    "online": "En línea",
+    "offline": "Fuera de línea",
+    "assigned": "Asignado",
+    "unassigned": "Sin asignar",
+    "generateQR": "Generar QR",
+    "showQR": "Mostrar QR",
+    "refreshQR": "Actualizar QR",
+    "qrGenerated": "Código QR generado",
+    "qrExpires": "Expira en",
+    "scanQR": "Escanear QR",
+    "searchBySerial": "Buscar por serie",
+    "addToStock": "Agregar al inventario",
+    "assignToVehicle": "Asignar a vehículo",
+    "assignDevice": "Asignar dispositivo",
+    "deviceAssigned": "Dispositivo asignado",
+    "noDevices": "No se encontraron dispositivos",
+    "claimDevice": "Reclamar dispositivo",
+    "activating": "Activando...",
+    "activated": "Activado",
+    "statuses": {
+      "CREATED": "Creado",
+      "PRINTED": "Impreso",
+      "IN_STOCK": "En inventario",
+      "ASSIGNED": "Asignado",
+      "ACTIVATED": "Activo",
+      "SUSPENDED": "Suspendido",
+      "RETIRED": "Retirado",
+      "LOST": "Perdido"
+    }
+  },
+  "vehicle": {
+    "title": "Gestión de Vehículos",
+    "plate": "Matrícula",
+    "brand": "Marca",
+    "model": "Modelo",
+    "year": "Año",
+    "fuel": "Combustible",
+    "odometer": "Kilometraje",
+    "status": "Estado",
+    "driver": "Conductor",
+    "noVehicle": "No se encontró vehículo",
+    "addVehicle": "Agregar vehículo",
+    "editVehicle": "Editar vehículo"
+  },
+  "task": {
+    "title": "Gestión de Tareas",
+    "newTask": "Nueva tarea",
+    "taskDetail": "Detalle de tarea",
+    "pickup": "Punto de recogida",
+    "delivery": "Punto de entrega",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "notes": "Notas",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "start": "Iniciar",
+    "complete": "Completar",
+    "noTasks": "No se encontraron tareas",
+    "statuses": {
+      "pending": "Pendiente",
+      "assigned": "Asignado",
+      "in_progress": "En progreso",
+      "completed": "Completado",
+      "cancelled": "Cancelado"
+    }
+  },
+  "alert": {
+    "title": "Alertas",
+    "resolve": "Resolver",
+    "resolved": "Resuelto",
+    "active": "Activo",
+    "noAlerts": "No se encontraron alertas",
+    "types": {
+      "HARD_BRAKE": "Frenado brusco",
+      "HARD_ACCEL": "Aceleración brusca",
+      "HARD_TURN": "Giro brusco",
+      "IMPACT": "Impacto",
+      "speeding": "Exceso de velocidad",
+      "idle_too_long": "Ralentí prolongado"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "notifications": "Notificaciones",
+    "darkMode": "Modo oscuro",
+    "about": "Acerca de",
+    "version": "Versión",
+    "changePassword": "Cambiar contraseña",
+    "privacy": "Privacidad",
+    "terms": "Términos de servicio"
+  },
+  "wifi": {
+    "ssid": "Red WiFi",
+    "password": "Contraseña WiFi",
+    "connect": "Conectar",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "errors": {
+      "authFailed": "Contraseña WiFi incorrecta",
+      "timeout": "Tiempo de conexión agotado",
+      "notFound": "Red WiFi no encontrada"
+    }
+  },
+  "ble": {
+    "scanning": "Buscando dispositivos...",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "noDevices": "No se encontraron dispositivos",
+    "permissionRequired": "Se requiere permiso Bluetooth"
+  }
+}

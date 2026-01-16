@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "search": "Search",
+    "refresh": "Refresh",
+    "back": "Back",
+    "next": "Next",
+    "retry": "Retry",
+    "all": "All",
+    "none": "None"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "loginError": "Login failed",
+    "logoutConfirm": "Are you sure you want to logout?"
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Manager",
+    "driver": "Driver"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "vehicles": "Vehicles",
+    "drivers": "Drivers",
+    "tasks": "Tasks",
+    "alerts": "Alerts",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profile": "Profile",
+    "companies": "Companies",
+    "devices": "Devices",
+    "deviceSetup": "Device Setup",
+    "qrManagement": "QR Management",
+    "fleetMap": "Live Map",
+    "myTasks": "My Tasks",
+    "myVehicle": "My Vehicle",
+    "taskHistory": "Task History"
+  },
+  "device": {
+    "title": "Device Management",
+    "serial": "Serial No",
+    "status": "Status",
+    "online": "Online",
+    "offline": "Offline",
+    "assigned": "Assigned",
+    "unassigned": "Unassigned",
+    "generateQR": "Generate QR",
+    "showQR": "Show QR",
+    "refreshQR": "Refresh QR",
+    "qrGenerated": "QR code generated",
+    "qrExpires": "Expires in",
+    "scanQR": "Scan QR",
+    "searchBySerial": "Search by Serial",
+    "addToStock": "Add to Stock",
+    "assignToVehicle": "Assign to Vehicle",
+    "assignDevice": "Assign Device",
+    "deviceAssigned": "Device assigned",
+    "noDevices": "No devices found",
+    "claimDevice": "Claim Device",
+    "activating": "Activating...",
+    "activated": "Activated",
+    "statuses": {
+      "CREATED": "Created",
+      "PRINTED": "Printed",
+      "IN_STOCK": "In Stock",
+      "ASSIGNED": "Assigned",
+      "ACTIVATED": "Active",
+      "SUSPENDED": "Suspended",
+      "RETIRED": "Retired",
+      "LOST": "Lost"
+    }
+  },
+  "vehicle": {
+    "title": "Vehicle Management",
+    "plate": "Plate",
+    "brand": "Brand",
+    "model": "Model",
+    "year": "Year",
+    "fuel": "Fuel",
+    "odometer": "Odometer",
+    "status": "Status",
+    "driver": "Driver",
+    "noVehicle": "No vehicle found",
+    "addVehicle": "Add Vehicle",
+    "editVehicle": "Edit Vehicle"
+  },
+  "task": {
+    "title": "Task Management",
+    "newTask": "New Task",
+    "taskDetail": "Task Detail",
+    "pickup": "Pickup Point",
+    "delivery": "Delivery Point",
+    "status": "Status",
+    "priority": "Priority",
+    "notes": "Notes",
+    "accept": "Accept",
+    "reject": "Reject",
+    "start": "Start",
+    "complete": "Complete",
+    "noTasks": "No tasks found",
+    "statuses": {
+      "pending": "Pending",
+      "assigned": "Assigned",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "alert": {
+    "title": "Alerts",
+    "resolve": "Resolve",
+    "resolved": "Resolved",
+    "active": "Active",
+    "noAlerts": "No alerts found",
+    "types": {
+      "HARD_BRAKE": "Hard Brake",
+      "HARD_ACCEL": "Hard Acceleration",
+      "HARD_TURN": "Hard Turn",
+      "IMPACT": "Impact",
+      "speeding": "Speeding",
+      "idle_too_long": "Idle Too Long"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "about": "About",
+    "version": "Version",
+    "changePassword": "Change Password",
+    "privacy": "Privacy",
+    "terms": "Terms of Service"
+  },
+  "wifi": {
+    "ssid": "WiFi Network",
+    "password": "WiFi Password",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "errors": {
+      "authFailed": "Wrong WiFi password",
+      "timeout": "Connection timeout",
+      "notFound": "WiFi network not found"
+    }
+  },
+  "ble": {
+    "scanning": "Scanning devices...",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "noDevices": "No devices found",
+    "permissionRequired": "Bluetooth permission required"
+  }
+}

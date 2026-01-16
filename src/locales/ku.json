@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Tê barkirin...",
+    "save": "Tomar bike",
+    "cancel": "Betal bike",
+    "delete": "Jê bibe",
+    "edit": "Biguherîne",
+    "close": "Bigire",
+    "confirm": "Bipejirîne",
+    "yes": "Erê",
+    "no": "Na",
+    "ok": "Baş e",
+    "error": "Çewtî",
+    "success": "Serkeftî",
+    "warning": "Hişyarî",
+    "search": "Bigere",
+    "refresh": "Nû bike",
+    "back": "Paşve",
+    "next": "Pêşve",
+    "retry": "Dîsa biceribîne",
+    "all": "Hemû",
+    "none": "Tu yek"
+  },
+  "auth": {
+    "login": "Têkeve",
+    "logout": "Derkeve",
+    "email": "E-peyam",
+    "password": "Şîfre",
+    "forgotPassword": "Min şîfre ji bîr kir",
+    "loginError": "Têketin têk çû",
+    "logoutConfirm": "Tu dixwazî derkevî?"
+  },
+  "roles": {
+    "superAdmin": "Rêveberê Giştî",
+    "companyAdmin": "Rêveber",
+    "driver": "Ajokar"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "vehicles": "Wesayît",
+    "drivers": "Ajokar",
+    "tasks": "Peywir",
+    "alerts": "Hişyarî",
+    "reports": "Rapor",
+    "settings": "Mîheng",
+    "profile": "Profîl",
+    "companies": "Pargîdanî",
+    "devices": "Amûr",
+    "deviceSetup": "Sazkirina Amûrê",
+    "qrManagement": "Rêveberiya QR",
+    "fleetMap": "Nexşeya Zindî",
+    "myTasks": "Peywirên Min",
+    "myVehicle": "Wesayîta Min",
+    "taskHistory": "Dîroka Peywiran"
+  },
+  "device": {
+    "title": "Rêveberiya Amûran",
+    "serial": "Hejmara Rêzê",
+    "status": "Rewş",
+    "online": "Serhêl",
+    "offline": "Negirêdayî",
+    "assigned": "Hatiye tayînkirin",
+    "unassigned": "Nehatiye tayînkirin",
+    "generateQR": "QR çêke",
+    "showQR": "QR nîşan bide",
+    "refreshQR": "QR nû bike",
+    "qrGenerated": "QR kod hate çêkirin",
+    "qrExpires": "Dema bidawîbûnê",
+    "scanQR": "QR bişkîne",
+    "searchBySerial": "Bi hejmara rêzê bigere",
+    "addToStock": "Li stokê zêde bike",
+    "assignToVehicle": "Li wesayîtê tayîn bike",
+    "assignDevice": "Amûrê tayîn bike",
+    "deviceAssigned": "Amûr hate tayînkirin",
+    "noDevices": "Amûr nehat dîtin",
+    "claimDevice": "Amûrê bistîne",
+    "activating": "Tê çalakkirin...",
+    "activated": "Hat çalakkirin",
+    "statuses": {
+      "CREATED": "Hatiye afirandin",
+      "PRINTED": "Hatiye çapkirin",
+      "IN_STOCK": "Di stokê de",
+      "ASSIGNED": "Hatiye tayînkirin",
+      "ACTIVATED": "Çalak",
+      "SUSPENDED": "Rawestayî",
+      "RETIRED": "Teqawît",
+      "LOST": "Winda"
+    }
+  },
+  "vehicle": {
+    "title": "Rêveberiya Wesayîtan",
+    "plate": "Plaka",
+    "brand": "Marka",
+    "model": "Model",
+    "year": "Sal",
+    "fuel": "Sotemenî",
+    "odometer": "Kîlometre",
+    "status": "Rewş",
+    "driver": "Ajokar",
+    "noVehicle": "Wesayît nehat dîtin",
+    "addVehicle": "Wesayît zêde bike",
+    "editVehicle": "Wesayîtê biguherîne"
+  },
+  "task": {
+    "title": "Rêveberiya Peywiran",
+    "newTask": "Peywira Nû",
+    "taskDetail": "Hûrguliyên Peywirê",
+    "pickup": "Cihê Wergirtinê",
+    "delivery": "Cihê Radestkirinê",
+    "status": "Rewş",
+    "priority": "Pêşînî",
+    "notes": "Têbînî",
+    "accept": "Qebûl bike",
+    "reject": "Red bike",
+    "start": "Dest pê bike",
+    "complete": "Temam bike",
+    "noTasks": "Peywir nehat dîtin",
+    "statuses": {
+      "pending": "Li bendê",
+      "assigned": "Hatiye tayînkirin",
+      "in_progress": "Derdikeve",
+      "completed": "Qediya",
+      "cancelled": "Hatiye betalkirin"
+    }
+  },
+  "alert": {
+    "title": "Hişyarî",
+    "resolve": "Çareser bike",
+    "resolved": "Çareserkirî",
+    "active": "Çalak",
+    "noAlerts": "Hişyarî nehat dîtin",
+    "types": {
+      "HARD_BRAKE": "Frena Tûj",
+      "HARD_ACCEL": "Bilezkirina Tûj",
+      "HARD_TURN": "Zivirîna Tûj",
+      "IMPACT": "Lêdan",
+      "speeding": "Lezgînî",
+      "idle_too_long": "Rawestana Dirêj"
+    }
+  },
+  "settings": {
+    "title": "Mîheng",
+    "language": "Ziman",
+    "selectLanguage": "Ziman hilbijêre",
+    "notifications": "Agahdarî",
+    "darkMode": "Moda Tarî",
+    "about": "Derbarê",
+    "version": "Guherto",
+    "changePassword": "Şîfreyê biguherîne",
+    "privacy": "Nepenî",
+    "terms": "Mercên Bikaranînê"
+  },
+  "wifi": {
+    "ssid": "Tora WiFi",
+    "password": "Şîfreya WiFi",
+    "connect": "Girêbide",
+    "connecting": "Tê girêdan...",
+    "connected": "Girêdayî",
+    "errors": {
+      "authFailed": "Şîfreya WiFi şaş e",
+      "timeout": "Dema girêdanê derbas bû",
+      "notFound": "Tora WiFi nehat dîtin"
+    }
+  },
+  "ble": {
+    "scanning": "Amûr tên şopandin...",
+    "connecting": "Tê girêdan...",
+    "connected": "Girêdayî",
+    "disconnected": "Girêdan qut bû",
+    "noDevices": "Amûr nehat dîtin",
+    "permissionRequired": "Destûra Bluetooth pêwîst e"
+  }
+}

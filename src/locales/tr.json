@@ -1,0 +1,173 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "close": "Kapat",
+    "confirm": "Onayla",
+    "yes": "Evet",
+    "no": "Hayır",
+    "ok": "Tamam",
+    "error": "Hata",
+    "success": "Başarılı",
+    "warning": "Uyarı",
+    "search": "Ara",
+    "refresh": "Yenile",
+    "back": "Geri",
+    "next": "İleri",
+    "retry": "Tekrar Dene",
+    "all": "Tümü",
+    "none": "Hiçbiri"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "logout": "Çıkış Yap",
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi Unuttum",
+    "loginError": "Giriş başarısız",
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Yönetici",
+    "driver": "Sürücü"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "vehicles": "Araçlar",
+    "drivers": "Sürücüler",
+    "tasks": "Görevler",
+    "alerts": "Uyarılar",
+    "reports": "Raporlar",
+    "settings": "Ayarlar",
+    "profile": "Profil",
+    "companies": "Şirketler",
+    "devices": "Cihazlar",
+    "deviceSetup": "Cihaz Kurulumu",
+    "qrManagement": "QR Yönetimi",
+    "fleetMap": "Canlı Harita",
+    "myTasks": "Görevlerim",
+    "myVehicle": "Aracım",
+    "taskHistory": "Görev Geçmişi"
+  },
+  "device": {
+    "title": "Cihaz Yönetimi",
+    "serial": "Seri No",
+    "status": "Durum",
+    "online": "Çevrimiçi",
+    "offline": "Çevrimdışı",
+    "assigned": "Atanmış",
+    "unassigned": "Atanmamış",
+    "generateQR": "QR Üret",
+    "showQR": "QR Göster",
+    "refreshQR": "QR Yenile",
+    "qrGenerated": "QR kod oluşturuldu",
+    "qrExpires": "Geçerlilik süresi",
+    "scanQR": "QR Tara",
+    "searchBySerial": "Seri No ile Ara",
+    "addToStock": "Stoğa Ekle",
+    "assignToVehicle": "Araca Ata",
+    "assignDevice": "Cihaz Ata",
+    "deviceAssigned": "Cihaz atandı",
+    "noDevices": "Cihaz bulunamadı",
+    "claimDevice": "Cihazı Al",
+    "activating": "Aktive ediliyor...",
+    "activated": "Aktive edildi",
+    "statuses": {
+      "CREATED": "Oluşturuldu",
+      "PRINTED": "Basıldı",
+      "IN_STOCK": "Stokta",
+      "ASSIGNED": "Atandı",
+      "ACTIVATED": "Aktif",
+      "SUSPENDED": "Askıda",
+      "RETIRED": "Emekli",
+      "LOST": "Kayıp"
+    }
+  },
+  "vehicle": {
+    "title": "Araç Yönetimi",
+    "plate": "Plaka",
+    "brand": "Marka",
+    "model": "Model",
+    "year": "Yıl",
+    "fuel": "Yakıt",
+    "odometer": "Kilometre",
+    "status": "Durum",
+    "driver": "Sürücü",
+    "noVehicle": "Araç bulunamadı",
+    "addVehicle": "Araç Ekle",
+    "editVehicle": "Araç Düzenle"
+  },
+  "task": {
+    "title": "Görev Yönetimi",
+    "newTask": "Yeni Görev",
+    "taskDetail": "Görev Detayı",
+    "pickup": "Alış Noktası",
+    "delivery": "Teslimat Noktası",
+    "status": "Durum",
+    "priority": "Öncelik",
+    "notes": "Notlar",
+    "accept": "Kabul Et",
+    "reject": "Reddet",
+    "start": "Başlat",
+    "complete": "Tamamla",
+    "noTasks": "Görev bulunamadı",
+    "statuses": {
+      "pending": "Bekliyor",
+      "assigned": "Atandı",
+      "in_progress": "Devam Ediyor",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal Edildi"
+    }
+  },
+  "alert": {
+    "title": "Uyarılar",
+    "resolve": "Çözümle",
+    "resolved": "Çözümlendi",
+    "active": "Aktif",
+    "noAlerts": "Uyarı bulunamadı",
+    "types": {
+      "HARD_BRAKE": "Sert Fren",
+      "HARD_ACCEL": "Sert Hızlanma",
+      "HARD_TURN": "Sert Dönüş",
+      "IMPACT": "Çarpma",
+      "speeding": "Hız Aşımı",
+      "idle_too_long": "Uzun Rölanti"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "selectLanguage": "Dil Seçin",
+    "notifications": "Bildirimler",
+    "darkMode": "Karanlık Mod",
+    "about": "Hakkında",
+    "version": "Versiyon",
+    "changePassword": "Şifre Değiştir",
+    "privacy": "Gizlilik",
+    "terms": "Kullanım Şartları"
+  },
+  "wifi": {
+    "ssid": "WiFi Ağı",
+    "password": "WiFi Şifresi",
+    "connect": "Bağlan",
+    "connecting": "Bağlanıyor...",
+    "connected": "Bağlandı",
+    "errors": {
+      "authFailed": "WiFi şifresi yanlış",
+      "timeout": "Bağlantı zaman aşımı",
+      "notFound": "WiFi ağı bulunamadı"
+    }
+  },
+  "ble": {
+    "scanning": "Cihazlar taranıyor...",
+    "connecting": "Bağlanıyor...",
+    "connected": "Bağlandı",
+    "disconnected": "Bağlantı kesildi",
+    "noDevices": "Cihaz bulunamadı",
+    "permissionRequired": "Bluetooth izni gerekli"
+  }
+}
