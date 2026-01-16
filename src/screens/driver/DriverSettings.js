@@ -4,6 +4,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
@@ -75,14 +76,15 @@ const SectionHeader = ({ title }) => (
 
 const DriverSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
-  
+  const { t } = useTranslation();
+
   // Bildirim ayarları
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [taskNotifications, setTaskNotifications] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  
+
   // 🆕 Karanlık mod
   const [darkMode, setDarkMode] = useState(false);
 
@@ -120,8 +122,8 @@ const DriverSettings = ({ navigation }) => {
     // TODO: ThemeContext entegrasyonu
     Alert.alert(
       "Karanlık Mod",
-      value 
-        ? "Karanlık mod etkinleştirildi. Tam destek yakında eklenecek!" 
+      value
+        ? "Karanlık mod etkinleştirildi. Tam destek yakında eklenecek!"
         : "Karanlık mod kapatıldı."
     );
   };
@@ -184,7 +186,7 @@ const DriverSettings = ({ navigation }) => {
             />
           }
         />
-        
+
         {/* Push açıkken alt seçenekleri göster */}
         {notificationsEnabled && (
           <>
@@ -273,15 +275,8 @@ const DriverSettings = ({ navigation }) => {
       {/* Uygulama Ayarları */}
       <SectionHeader title="UYGULAMA" />
       <View style={styles.settingGroup}>
-        <SettingItem
-          icon="language-outline"
-          iconColor={COLORS.info}
-          title="Dil"
-          subtitle="Türkçe"
-          onPress={() =>
-            Alert.alert("Dil", "Şu anda sadece Türkçe desteklenmektedir")
-          }
-        />
+        {/* Language Selector */}
+        <LanguageSelector />
         <View style={styles.divider} />
         {/* 🆕 Karanlık Mod - Çalışan Switch */}
         <SettingItem
