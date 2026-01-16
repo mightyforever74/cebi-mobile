@@ -212,6 +212,8 @@ const DeviceQRManagement = () => {
                 minutes
               </Text>
 
+              
+
               {qrData?.used_at && (
                 <Text style={styles.usedLabel}>
                   ✅ Used at {new Date(qrData.used_at).toLocaleString()}

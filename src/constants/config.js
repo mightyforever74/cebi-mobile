@@ -197,6 +197,8 @@ export const COLORS = {
   gray: "#8898AA",
   muted: "#8898AA",
   border: "#E7E7E7",
+  // Argon common light grey
+  grey: "#E9ECEF",
 
   // Büyük harfli aliaslar (Argon uyumu)
   WHITE: "#FFFFFF",
@@ -210,8 +212,22 @@ export const COLORS = {
   MUTED: "#8898AA",
   TEXT: "#32325D",
   GRAY: "#8898AA",
+  GREY: "#E9ECEF",
   BORDER: "#E7E7E7",
   BACKGROUND: "#F7FAFC",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// Theme Sizes (Argon theme)
+// ═══════════════════════════════════════════════════════════════════
+
+export const SIZES = {
+  BASE: 16,
+  FONT: 14,
+  RADIUS: 8,
+  PADDING: 16,
+  MARGIN: 16,
+  OPACITY: 0.8,
 };
 
 // ═══════════════════════════════════════════════════════════════════
