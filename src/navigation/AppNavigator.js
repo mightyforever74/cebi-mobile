@@ -22,6 +22,7 @@ import CompaniesScreen from "../screens/superadmin/CompaniesScreen";
 import CompanyEditScreen from "../screens/superadmin/CompanyEditScreen";
 import CreateCompanyScreen from "../screens/superadmin/CreateCompanyScreen";
 import DeviceDetailScreen from "../screens/superadmin/DeviceDetailScreen";
+import DeviceQRManagement from "../screens/superadmin/DeviceQRManagement";
 import DevicesScreen from "../screens/superadmin/DevicesScreen";
 import PlatformUsersScreen from "../screens/superadmin/PlatformUsersScreen";
 import SuperAdminDashboard from "../screens/superadmin/SuperAdminDashboard";
@@ -254,6 +255,7 @@ const superAdminMenuItems = [
   },
   { name: "Companies", label: "Şirket Yönetimi", icon: "business-outline" },
   { name: "Devices", label: "Cihaz Yönetimi", icon: "hardware-chip-outline" },
+  { name: "DeviceQRManagement", label: "QR Yönetimi", icon: "qr-code-outline" },
   { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
   { name: "PlatformUsers", label: "Tüm Kullanıcılar", icon: "people-outline" },
   { name: "SystemHealth", label: "Sistem Health", icon: "pulse-outline" },
@@ -303,6 +305,11 @@ const SuperAdminNavigator = () => {
         name="DeviceDetail"
         component={DeviceDetailScreen}
         options={{ title: "Cihaz Detay" }}
+      />
+      <Drawer.Screen
+        name="DeviceQRManagement"
+        component={DeviceQRManagement}
+        options={{ title: "QR Yönetimi" }}
       />
       {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
       <Drawer.Screen
