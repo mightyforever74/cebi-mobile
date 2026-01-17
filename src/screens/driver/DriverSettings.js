@@ -1,7 +1,6 @@
 // src/screens/driver/DriverSettings.js
 // TulipFleet - Sürücü Ayarlar Ekranı
 // Updated: 06 Ocak 2026 - Karanlık mod switch düzeltildi
-
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import LanguageSelector from "../../components/LanguageSelector";
 import { useAuth } from "../../context/AuthContext";
 
 // Theme colors
