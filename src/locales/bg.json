@@ -163,5 +163,9 @@
       "completed": "Завършена",
       "cancelled": "Отменена"
     }
+  },
+  "drawer": {
+    "fleetManagement": "Fleet Management System",
+    "user": "User"
   }
 }

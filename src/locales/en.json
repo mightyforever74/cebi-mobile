@@ -246,5 +246,9 @@
     "totalDistance": "Total Distance",
     "avgScore": "Avg Score",
     "activeTasksCount": "Active"
+  },
+  "drawer": {
+    "fleetManagement": "Fleet Management System",
+    "user": "User"
   }
 }

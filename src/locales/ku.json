@@ -246,5 +246,9 @@
     "totalDistance": "Mesafeya Tevahî",
     "avgScore": "Pûana Navîn",
     "activeTasksCount": "Çalak"
+  },
+  "drawer": {
+    "fleetManagement": "Fleet Management System",
+    "user": "User"
   }
 }
