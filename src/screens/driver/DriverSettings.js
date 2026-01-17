@@ -1,6 +1,8 @@
 // src/screens/driver/DriverSettings.js
 // TulipFleet - Sürücü Ayarlar Ekranı
-// Updated: 06 Ocak 2026 - Karanlık mod switch düzeltildi
+// Updated: 17 Ocak 2026 - i18n çoklu dil desteği eklendi
+import LanguageSelector from "../../components/LanguageSelector";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import LanguageSelector from "../../components/LanguageSelector";
 import { useAuth } from "../../context/AuthContext";
 
 // Theme colors
@@ -85,18 +86,18 @@ const DriverSettings = ({ navigation }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
 
-  // 🆕 Karanlık mod
+  // Karanlık mod
   const [darkMode, setDarkMode] = useState(false);
 
   // Çıkış yap
   const handleLogout = () => {
     Alert.alert(
-      "Çıkış Yap",
-      "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
+      t("settings.logoutConfirmTitle"),
+      t("settings.logoutConfirmMessage"),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("settings.cancel"), style: "cancel" },
         {
-          text: "Çıkış Yap",
+          text: t("settings.logout"),
           style: "destructive",
           onPress: async () => {
             await logout();
@@ -106,7 +107,7 @@ const DriverSettings = ({ navigation }) => {
     );
   };
 
-  // 🆕 Push bildirimleri toggle
+  // Push bildirimleri toggle
   const handleNotificationsToggle = (value) => {
     setNotificationsEnabled(value);
     if (!value) {
@@ -116,24 +117,21 @@ const DriverSettings = ({ navigation }) => {
     }
   };
 
-  // 🆕 Karanlık mod toggle
+  // Karanlık mod toggle
   const handleDarkModeToggle = (value) => {
     setDarkMode(value);
-    // TODO: ThemeContext entegrasyonu
     Alert.alert(
-      "Karanlık Mod",
-      value
-        ? "Karanlık mod etkinleştirildi. Tam destek yakında eklenecek!"
-        : "Karanlık mod kapatıldı."
+      t("settings.darkMode"),
+      value ? t("settings.darkModeEnabled") : t("settings.darkModeDisabled")
     );
   };
 
   // Destek
   const handleSupport = () => {
-    Alert.alert("Destek", "Yardıma mı ihtiyacınız var?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t("settings.supportTitle"), t("settings.supportMessage"), [
+      { text: t("settings.cancel"), style: "cancel" },
       {
-        text: "E-posta Gönder",
+        text: t("settings.sendEmail"),
         onPress: () => Linking.openURL("mailto:support@tulipfleet.com"),
       },
     ]);
@@ -141,26 +139,22 @@ const DriverSettings = ({ navigation }) => {
 
   // Hakkında
   const handleAbout = () => {
-    Alert.alert(
-      "TulipFleet Hakkında",
-      "TulipFleet v1.0.0\n\n" +
-        "Filo Yönetim Sistemi\n" +
-        "© 2025 TulipFleet\n\n" +
-        "Tüm hakları saklıdır.",
-      [{ text: "Tamam" }]
-    );
+    Alert.alert(t("settings.aboutTitle"), t("settings.aboutMessage"), [
+      { text: t("common.ok") },
+    ]);
   };
 
   // Önbellek temizle
   const handleClearCache = () => {
     Alert.alert(
-      "Önbellek Temizle",
-      "Uygulama önbelleğini temizlemek istiyor musunuz?",
+      t("settings.clearCacheTitle"),
+      t("settings.clearCacheMessage"),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("settings.cancel"), style: "cancel" },
         {
-          text: "Temizle",
-          onPress: () => Alert.alert("Başarılı", "Önbellek temizlendi"),
+          text: t("settings.clear"),
+          onPress: () =>
+            Alert.alert(t("common.success"), t("settings.cacheCleared")),
         },
       ]
     );
@@ -169,13 +163,13 @@ const DriverSettings = ({ navigation }) => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Bildirim Ayarları */}
-      <SectionHeader title="BİLDİRİMLER" />
+      <SectionHeader title={t("settings.sections.notifications")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
           iconColor={COLORS.info}
-          title="Push Bildirimleri"
-          subtitle="Tüm bildirimler"
+          title={t("settings.pushNotifications")}
+          subtitle={t("settings.allNotifications")}
           showArrow={false}
           rightElement={
             <Switch
@@ -194,8 +188,8 @@ const DriverSettings = ({ navigation }) => {
             <SettingItem
               icon="clipboard-outline"
               iconColor={COLORS.warning}
-              title="Görev Bildirimleri"
-              subtitle="Yeni görev atamaları"
+              title={t("settings.taskNotifications")}
+              subtitle={t("settings.newTaskAssignments")}
               showArrow={false}
               rightElement={
                 <Switch
@@ -210,8 +204,8 @@ const DriverSettings = ({ navigation }) => {
             <SettingItem
               icon="volume-high-outline"
               iconColor={COLORS.success}
-              title="Ses"
-              subtitle="Bildirim sesleri"
+              title={t("settings.sound")}
+              subtitle={t("settings.notificationSounds")}
               showArrow={false}
               rightElement={
                 <Switch
@@ -226,8 +220,8 @@ const DriverSettings = ({ navigation }) => {
             <SettingItem
               icon="phone-portrait-outline"
               iconColor={COLORS.secondary}
-              title="Titreşim"
-              subtitle="Bildirim titreşimi"
+              title={t("settings.vibration")}
+              subtitle={t("settings.notificationVibration")}
               showArrow={false}
               rightElement={
                 <Switch
@@ -243,13 +237,13 @@ const DriverSettings = ({ navigation }) => {
       </View>
 
       {/* Konum Ayarları */}
-      <SectionHeader title="KONUM" />
+      <SectionHeader title={t("settings.sections.location")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="location-outline"
           iconColor={COLORS.success}
-          title="Konum Servisi"
-          subtitle="Araç takibi için gerekli"
+          title={t("settings.locationService")}
+          subtitle={t("settings.requiredForTracking")}
           showArrow={false}
           rightElement={
             <Switch
@@ -264,26 +258,28 @@ const DriverSettings = ({ navigation }) => {
         <SettingItem
           icon="navigate-outline"
           iconColor={COLORS.info}
-          title="GPS Doğruluğu"
-          subtitle="Yüksek doğruluk"
+          title={t("settings.gpsAccuracy")}
+          subtitle={t("settings.highAccuracy")}
           onPress={() =>
-            Alert.alert("GPS", "GPS doğruluk ayarları yakında eklenecek")
+            Alert.alert(t("settings.gpsAccuracy"), t("settings.gpsComingSoon"))
           }
         />
       </View>
 
       {/* Uygulama Ayarları */}
-      <SectionHeader title="UYGULAMA" />
+      <SectionHeader title={t("settings.sections.app")} />
       <View style={styles.settingGroup}>
         {/* Language Selector */}
         <LanguageSelector />
         <View style={styles.divider} />
-        {/* 🆕 Karanlık Mod - Çalışan Switch */}
+        {/* Karanlık Mod */}
         <SettingItem
           icon="moon-outline"
           iconColor={COLORS.dark}
-          title="Karanlık Mod"
-          subtitle={darkMode ? "Açık" : "Kapalı"}
+          title={t("settings.darkMode")}
+          subtitle={
+            darkMode ? t("settings.darkModeOn") : t("settings.darkModeOff")
+          }
           showArrow={false}
           rightElement={
             <Switch
@@ -298,27 +294,27 @@ const DriverSettings = ({ navigation }) => {
         <SettingItem
           icon="trash-outline"
           iconColor={COLORS.danger}
-          title="Önbellek Temizle"
-          subtitle="Geçici dosyaları sil"
+          title={t("settings.clearCache")}
+          subtitle={t("settings.clearCacheSubtitle")}
           onPress={handleClearCache}
         />
       </View>
 
       {/* Destek */}
-      <SectionHeader title="DESTEK" />
+      <SectionHeader title={t("settings.sections.support")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="help-circle-outline"
           iconColor={COLORS.info}
-          title="Yardım Merkezi"
-          subtitle="SSS ve kullanım kılavuzu"
+          title={t("settings.helpCenter")}
+          subtitle={t("settings.helpCenterSubtitle")}
           onPress={handleSupport}
         />
         <View style={styles.divider} />
         <SettingItem
           icon="chatbubble-outline"
           iconColor={COLORS.success}
-          title="Bize Ulaşın"
+          title={t("settings.contactUs")}
           subtitle="support@tulipfleet.com"
           onPress={handleSupport}
         />
@@ -326,18 +322,21 @@ const DriverSettings = ({ navigation }) => {
         <SettingItem
           icon="document-text-outline"
           iconColor={COLORS.secondary}
-          title="Gizlilik Politikası"
-          subtitle="Kullanım şartları"
+          title={t("settings.privacyPolicy")}
+          subtitle={t("settings.usageTerms")}
           onPress={() =>
-            Alert.alert("Gizlilik", "Gizlilik politikası yakında eklenecek")
+            Alert.alert(
+              t("settings.privacyPolicy"),
+              t("settings.privacyComingSoon")
+            )
           }
         />
         <View style={styles.divider} />
         <SettingItem
           icon="information-circle-outline"
           iconColor={COLORS.secondary}
-          title="Hakkında"
-          subtitle="Versiyon 1.0.0"
+          title={t("settings.aboutApp")}
+          subtitle={t("settings.version") + " 1.0.0"}
           onPress={handleAbout}
         />
       </View>
@@ -347,8 +346,8 @@ const DriverSettings = ({ navigation }) => {
         <SettingItem
           icon="log-out-outline"
           iconColor={COLORS.danger}
-          title="Çıkış Yap"
-          subtitle="Hesabından çıkış yap"
+          title={t("settings.logout")}
+          subtitle={t("settings.logoutSubtitle")}
           onPress={handleLogout}
         />
       </View>
@@ -356,9 +355,7 @@ const DriverSettings = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>
-          © 2025 TulipFleet. Tüm hakları saklıdır.
-        </Text>
+        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
       </View>
     </ScrollView>
   );
