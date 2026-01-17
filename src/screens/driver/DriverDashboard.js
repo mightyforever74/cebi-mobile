@@ -1,13 +1,15 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 06 Ocak 2026 - Tıklanabilir kartlar + Yakıt/KM düzenleme
+// Updated: 17 Ocak 2026 - Header'a dil seçici eklendi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   Modal,
   RefreshControl,
   ScrollView,
@@ -20,11 +22,13 @@ import {
 import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
+import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI } from "../../services/api";
 
 const DriverDashboard = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const { expoPushToken, error: pushError } = usePushNotifications();
 
   // State
@@ -39,10 +43,13 @@ const DriverDashboard = () => {
   const [deviceCheckDone, setDeviceCheckDone] = useState(false);
   const [checkingDevice, setCheckingDevice] = useState(true);
 
-  // 🆕 Edit Modal State (Yakıt/KM)
+  // Edit Modal State (Yakıt/KM)
   const [editModal, setEditModal] = useState({ visible: false, type: null });
   const [editValue, setEditValue] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // 🆕 Language Modal State
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
   // Gate Logic - Her ekran açılışında cihaz durumu kontrol
   useFocusEffect(
@@ -123,7 +130,7 @@ const DriverDashboard = () => {
       });
     } catch (error) {
       console.error("❌ Error fetching driver data:", error);
-      setError("Veri yüklenirken hata oluştu");
+      setError(t("dashboard.loadError"));
       setStats(getDefaultStats());
       setTasks([]);
       setVehicle(null);
@@ -153,24 +160,25 @@ const DriverDashboard = () => {
     }
   };
 
-  // 🆕 Görev kartına tıklanınca Görevlerim'e git
+  // Görev kartına tıklanınca Görevlerim'e git
   const handleTaskPress = (task) => {
     console.log("Task pressed:", task.id);
     navigation.navigate("MyTasks");
   };
 
-  // 🆕 Aracım kartına tıklanınca detaya git
+  // Aracım kartına tıklanınca detaya git
   const handleVehiclePress = () => {
     if (vehicle) {
-      // VehicleStatus ekranı varsa oraya git, yoksa alert göster
       Alert.alert(
-        "Araç Detayı",
-        `${vehicle.plate}\n${vehicle.brand} ${vehicle.model}\n\nYakıt veya kilometre güncellemek için ilgili alana dokunun.`
+        t("dashboard.vehicleDetail"),
+        `${vehicle.plate}\n${vehicle.brand} ${vehicle.model}\n\n${t(
+          "dashboard.vehicleEditHint"
+        )}`
       );
     }
   };
 
-  // 🆕 Yakıt/KM düzenleme
+  // Yakıt/KM düzenleme
   const openEditModal = (type) => {
     if (!vehicle) return;
 
@@ -187,48 +195,58 @@ const DriverDashboard = () => {
 
     const numValue = parseFloat(editValue);
     if (isNaN(numValue) || numValue < 0) {
-      Alert.alert("Hata", "Geçerli bir değer girin");
+      Alert.alert(t("common.error"), t("dashboard.invalidValue"));
       return;
     }
 
     setSaving(true);
     try {
       if (editModal.type === "fuel") {
-        // Yakıt max 4 haneli (9999 litre)
         if (numValue > 9999) {
-          Alert.alert("Hata", "Yakıt değeri en fazla 9999 litre olabilir");
+          Alert.alert(t("common.error"), t("dashboard.fuelMaxError"));
           setSaving(false);
           return;
         }
         await driverAPI.updateVehicleFuel(vehicle.id, numValue);
         setVehicle({ ...vehicle, fuelLevel: numValue });
-        Alert.alert("Başarılı", "Yakıt bilgisi güncellendi");
+        Alert.alert(t("common.success"), t("dashboard.fuelUpdated"));
       } else if (editModal.type === "km") {
-        // KM max 7 haneli (9999999 km)
         if (numValue > 9999999) {
-          Alert.alert("Hata", "Kilometre değeri en fazla 9999999 olabilir");
+          Alert.alert(t("common.error"), t("dashboard.kmMaxError"));
           setSaving(false);
           return;
         }
         await driverAPI.updateVehicleKm(vehicle.id, numValue);
         setVehicle({ ...vehicle, odometer: numValue });
-        Alert.alert("Başarılı", "Kilometre bilgisi güncellendi");
+        Alert.alert(t("common.success"), t("dashboard.kmUpdated"));
       }
       setEditModal({ visible: false, type: null });
     } catch (err) {
       console.error("Update error:", err);
-      Alert.alert("Hata", err.message || "Güncelleme başarısız");
+      Alert.alert(
+        t("common.error"),
+        err.message || t("dashboard.updateFailed")
+      );
     } finally {
       setSaving(false);
     }
   };
+
+  // 🆕 Dil değiştir
+  const changeLanguage = (langCode) => {
+    i18n.changeLanguage(langCode);
+    setLangModalVisible(false);
+  };
+
+  const currentLang =
+    LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
 
   // Device Check Loading
   if (checkingDevice) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Cihaz durumu kontrol ediliyor...</Text>
+        <Text style={styles.loadingText}>{t("dashboard.checkingDevice")}</Text>
       </View>
     );
   }
@@ -238,7 +256,7 @@ const DriverDashboard = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -250,20 +268,32 @@ const DriverDashboard = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Header with Greeting Animation */}
+      {/* Header with Greeting + Language + Logout */}
       <View style={styles.header}>
         <View style={styles.greetingContainer}>
           <Text style={styles.greetingEmoji}>👋</Text>
           <View>
-            <Text style={styles.greeting}>Merhaba,</Text>
+            <Text style={styles.greeting}>{t("dashboard.hello")}</Text>
             <Text style={styles.userName}>
-              {user?.first_name || user?.email?.split("@")[0] || "Sürücü"}
+              {user?.first_name ||
+                user?.email?.split("@")[0] ||
+                t("roles.driver")}
             </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          {/* 🆕 Language Button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setLangModalVisible(true)}
+          >
+            <Text style={styles.langFlag}>{currentLang.flag}</Text>
+          </TouchableOpacity>
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.headerButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Error Message */}
@@ -283,9 +313,9 @@ const DriverDashboard = () => {
         <View style={styles.offersContent}>
           <Text style={styles.offersIcon}>📬</Text>
           <View style={styles.offersText}>
-            <Text style={styles.offersTitle}>Görev Teklifleri</Text>
+            <Text style={styles.offersTitle}>{t("dashboard.taskOffers")}</Text>
             <Text style={styles.offersSubtitle}>
-              Bekleyen teklifleri görüntüle
+              {t("dashboard.viewPendingOffers")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
@@ -300,7 +330,7 @@ const DriverDashboard = () => {
           activeOpacity={0.8}
         >
           <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>🚙 Aracım</Text>
+            <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
             <Ionicons
               name="chevron-forward"
               size={20}
@@ -310,84 +340,66 @@ const DriverDashboard = () => {
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
             <Text style={styles.vehicleModel}>
-              {vehicle.brand} {vehicle.model} ({vehicle.year})
+              {vehicle.brand} {vehicle.model}
             </Text>
           </View>
           <View style={styles.row}>
-            {/* Yakıt - Düzenlenebilir */}
+            {/* Yakıt - Tıklanabilir */}
             <TouchableOpacity
               style={styles.statBox}
               onPress={() => openEditModal("fuel")}
+              activeOpacity={0.7}
             >
               <View style={styles.editableStatRow}>
-                <Text style={styles.statValue}>
-                  {vehicle.fuelLevel !== undefined
-                    ? `${Math.round(vehicle.fuelLevel)} L`
-                    : "- L"}
-                </Text>
-                <Ionicons name="pencil" size={14} color={COLORS.primary} />
+                <Ionicons name="water" size={20} color={COLORS.info} />
+                <Text style={styles.statValue}>{vehicle.fuelLevel || 0}%</Text>
+                <Ionicons
+                  name="pencil"
+                  size={14}
+                  color={COLORS.textSecondary}
+                />
               </View>
-              <Text style={styles.statLabel}>Yakıt</Text>
+              <Text style={styles.statLabel}>{t("dashboard.fuel")}</Text>
             </TouchableOpacity>
 
-            {/* Kilometre - Düzenlenebilir */}
+            {/* Kilometre - Tıklanabilir */}
             <TouchableOpacity
               style={styles.statBox}
               onPress={() => openEditModal("km")}
+              activeOpacity={0.7}
             >
               <View style={styles.editableStatRow}>
+                <Ionicons name="speedometer" size={20} color={COLORS.success} />
                 <Text style={styles.statValue}>
-                  {vehicle.odometer
-                    ? `${Math.round(vehicle.odometer).toLocaleString()}`
-                    : "0"}
+                  {(vehicle.odometer || 0).toLocaleString()}
                 </Text>
-                <Ionicons name="pencil" size={14} color={COLORS.primary} />
+                <Ionicons
+                  name="pencil"
+                  size={14}
+                  color={COLORS.textSecondary}
+                />
               </View>
-              <Text style={styles.statLabel}>Kilometre</Text>
+              <Text style={styles.statLabel}>{t("dashboard.km")}</Text>
             </TouchableOpacity>
-
-            {/* ESP32 Status */}
-            <View style={styles.statBox}>
-              <Text
-                style={[
-                  styles.statValue,
-                  {
-                    color: vehicle.esp32Status?.connected
-                      ? COLORS.success
-                      : COLORS.danger,
-                  },
-                ]}
-              >
-                {vehicle.esp32Status?.connected ? "●" : "○"}
-              </Text>
-              <Text style={styles.statLabel}>ESP32</Text>
-            </View>
           </View>
         </TouchableOpacity>
       ) : (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🚙 Aracım</Text>
-          <Text style={styles.noDataText}>Atanmış araç bulunamadı</Text>
+          <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
+          <Text style={styles.noDataText}>
+            {t("dashboard.noVehicleAssigned")}
+          </Text>
         </View>
       )}
 
-      {/* Active Tasks - Tıklanabilir */}
+      {/* Active Tasks Card */}
       <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.cardTitleRow}
-          onPress={() =>
-            navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
-          }
-        >
-          <Text style={styles.cardTitle}>
-            📋 Aktif Görevler ({tasks.length})
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={COLORS.textSecondary}
-          />
-        </TouchableOpacity>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>📋 {t("dashboard.activeTasks")}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("MyTasks")}>
+            <Text style={styles.seeAllText}>{t("dashboard.seeAll")}</Text>
+          </TouchableOpacity>
+        </View>
 
         {tasks.length > 0 ? (
           tasks.slice(0, 3).map((task) => (
@@ -397,8 +409,8 @@ const DriverDashboard = () => {
               onPress={() => handleTaskPress(task)}
             >
               <View style={styles.taskHeader}>
-                <Text style={styles.taskTitle}>
-                  {task.task_no || `Görev #${task.id?.slice(0, 6)}`}
+                <Text style={styles.taskTitle} numberOfLines={1}>
+                  {task.title || `${t("task.title")} #${task.id?.slice(-4)}`}
                 </Text>
                 <View
                   style={[
@@ -406,100 +418,113 @@ const DriverDashboard = () => {
                     {
                       backgroundColor:
                         task.status === "in_progress"
-                          ? COLORS.info
-                          : task.status === "pending_review"
                           ? COLORS.warning
-                          : COLORS.primary,
+                          : task.status === "completed"
+                          ? COLORS.success
+                          : COLORS.info,
                     },
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {task.status === "in_progress"
-                      ? "Devam Ediyor"
-                      : task.status === "pending_review"
-                      ? "Onay Bekliyor"
-                      : "Bekliyor"}
+                    {t(`task.statuses.${task.status}`) || task.status}
                   </Text>
                 </View>
               </View>
-              {task.title && (
+              {task.pickup_address && (
                 <Text style={styles.taskDescription} numberOfLines={1}>
-                  {task.title}
+                  📍 {task.pickup_address}
                 </Text>
               )}
-              {task.vehicle_plate && (
-                <Text style={styles.taskTime}>Araç: {task.vehicle_plate}</Text>
+              {task.scheduled_date && (
+                <Text style={styles.taskTime}>
+                  🕐 {new Date(task.scheduled_date).toLocaleDateString()}
+                </Text>
               )}
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.noDataText}>Aktif görev bulunmuyor</Text>
-        )}
-
-        {tasks.length > 3 && (
-          <TouchableOpacity
-            style={styles.seeAllButton}
-            onPress={() =>
-              navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
-            }
-          >
-            <Text style={styles.seeAllText}>Tümünü Gör ({tasks.length})</Text>
-          </TouchableOpacity>
+          <Text style={styles.noDataText}>{t("dashboard.noActiveTasks")}</Text>
         )}
       </View>
 
-      {/* Statistics - Tıklanabilir */}
-      {stats && (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() =>
-            navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
-          }
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>📊 Performans</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={COLORS.textSecondary}
+      {/* Stats Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>📊 {t("dashboard.myStats")}</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats?.completed_tasks || 0}</Text>
+            <Text style={styles.statText}>{t("dashboard.completedTasks")}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {stats?.total_distance || 0} km
+            </Text>
+            <Text style={styles.statText}>{t("dashboard.totalDistance")}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats?.average_score || 0}</Text>
+            <Text style={styles.statText}>{t("dashboard.avgScore")}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats?.active_tasks || 0}</Text>
+            <Text style={styles.statText}>
+              {t("dashboard.activeTasksCount")}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 🆕 Language Selection Modal */}
+      <Modal
+        visible={langModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.langModalOverlay}>
+          <View style={styles.langModalContent}>
+            <Text style={styles.langModalTitle}>
+              {t("settings.selectLanguage")}
+            </Text>
+
+            <FlatList
+              data={LANGUAGES}
+              keyExtractor={(item) => item.code}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.langItem,
+                    item.code === i18n.language && styles.langItemActive,
+                  ]}
+                  onPress={() => changeLanguage(item.code)}
+                >
+                  <Text style={styles.langItemFlag}>{item.flag}</Text>
+                  <Text
+                    style={[
+                      styles.langItemName,
+                      item.code === i18n.language && styles.langItemNameActive,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                  {item.code === i18n.language && (
+                    <Ionicons name="checkmark" size={20} color="#FFF" />
+                  )}
+                </TouchableOpacity>
+              )}
             />
-          </View>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
-                {stats.total_distance
-                  ? Math.round(stats.total_distance).toLocaleString()
-                  : "0"}
-              </Text>
-              <Text style={styles.statText}>Toplam KM</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
-                {stats.completed_tasks || 0}
-              </Text>
-              <Text style={styles.statText}>Tamamlanan</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: COLORS.success }]}>
-                {stats.average_score || 0}
-              </Text>
-              <Text style={styles.statText}>Skor</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
-                {stats.fuel_efficiency || 0}
-              </Text>
-              <Text style={styles.statText}>L/100km</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      )}
 
-      {/* Bottom Spacing */}
-      <View style={{ height: 20 }} />
+            <TouchableOpacity
+              style={styles.langCloseBtn}
+              onPress={() => setLangModalVisible(false)}
+            >
+              <Text style={styles.langCloseBtnText}>{t("common.close")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
-      {/* Edit Modal */}
+      {/* Edit Modal (Fuel/KM) */}
       <Modal
         visible={editModal.visible}
         transparent
@@ -510,30 +535,32 @@ const DriverDashboard = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
               {editModal.type === "fuel"
-                ? "Yakıt Güncelle"
-                : "Kilometre Güncelle"}
+                ? t("dashboard.editFuel")
+                : t("dashboard.editKm")}
             </Text>
             <Text style={styles.modalSubtitle}>
               {editModal.type === "fuel"
-                ? "Litre cinsinden girin (max 9999)"
-                : "Kilometre girin (max 9999999)"}
+                ? t("dashboard.enterFuelLevel")
+                : t("dashboard.enterKm")}
             </Text>
+
             <TextInput
               style={styles.modalInput}
               value={editValue}
               onChangeText={setEditValue}
               keyboardType="numeric"
-              placeholder={
-                editModal.type === "fuel" ? "Örn: 45" : "Örn: 125000"
-              }
               maxLength={editModal.type === "fuel" ? 4 : 7}
+              selectTextOnFocus
             />
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonCancel]}
                 onPress={() => setEditModal({ visible: false, type: null })}
               >
-                <Text style={styles.modalButtonCancelText}>İptal</Text>
+                <Text style={styles.modalButtonCancelText}>
+                  {t("common.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonSave]}
@@ -543,7 +570,9 @@ const DriverDashboard = () => {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.modalButtonSaveText}>Kaydet</Text>
+                  <Text style={styles.modalButtonSaveText}>
+                    {t("common.save")}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -596,6 +625,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: COLORS.white,
     marginTop: 2,
+  },
+  // 🆕 Header Buttons
+  headerButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  headerButton: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    padding: 10,
+    borderRadius: 12,
+  },
+  langFlag: {
+    fontSize: 20,
   },
   logoutButton: {
     backgroundColor: "rgba(255,255,255,0.2)",
@@ -843,6 +886,62 @@ const styles = StyleSheet.create({
   },
   modalButtonSaveText: {
     color: COLORS.white,
+    fontWeight: "600",
+  },
+  // 🆕 Language Modal Styles
+  langModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  langModalContent: {
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "70%",
+  },
+  langModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#32325D",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  langItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: "#F7FAFC",
+  },
+  langItemActive: {
+    backgroundColor: COLORS.primary,
+  },
+  langItemFlag: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  langItemName: {
+    fontSize: 16,
+    color: "#32325D",
+    flex: 1,
+  },
+  langItemNameActive: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
+  langCloseBtn: {
+    backgroundColor: "#8898AA",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  langCloseBtnText: {
+    color: "#FFF",
+    fontSize: 16,
     fontWeight: "600",
   },
 });
