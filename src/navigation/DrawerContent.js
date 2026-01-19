@@ -2,7 +2,7 @@
 // TulipFleet - Custom Drawer Content
 // Updated: 17 Ocak 2026 - i18n + Language selector in header
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -17,11 +17,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/config";
 import { useAuth } from "../context/AuthContext";
 import { LANGUAGES } from "../locales/i18n";
+import { taskOffersAPI } from "../services/api";
 
 // ============================================
 // MENU ITEM COMPONENT
 // ============================================
-const DrawerMenuItem = ({ title, icon, focused, onPress }) => {
+const DrawerMenuItem = ({ title, icon, focused, onPress, badgeCount }) => {
   return (
     <TouchableOpacity
       style={[styles.menuItem, focused && styles.menuItemFocused]}
@@ -32,6 +33,11 @@ const DrawerMenuItem = ({ title, icon, focused, onPress }) => {
       <Text style={[styles.menuText, focused && styles.menuTextFocused]}>
         {title}
       </Text>
+      {badgeCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeCount}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -43,6 +49,7 @@ const DrawerContent = ({ navigation, state }) => {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
+  const [offersCount, setOffersCount] = useState(0);
 
   // Language Modal State
   const [langModalVisible, setLangModalVisible] = useState(false);
@@ -70,6 +77,39 @@ const DrawerContent = ({ navigation, state }) => {
     setLangModalVisible(false);
   };
 
+  // Fetch pending task offers count
+  const fetchOffersCount = async () => {
+    try {
+      const res = await taskOffersAPI.getOffers("pending");
+      let count = 0;
+      if (Array.isArray(res)) {
+        count = res.length;
+      } else if (res) {
+        const list = Array.isArray(res.offers)
+          ? res.offers
+          : Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.items)
+          ? res.items
+          : [];
+        count = list.length || (typeof res.total === "number" ? res.total : 0);
+      }
+      setOffersCount(count);
+    } catch (e) {
+      // Silent fail; keep badge hidden
+      setOffersCount(0);
+    }
+  };
+
+  // Refresh offers count on mount and focus
+  useEffect(() => {
+    fetchOffersCount();
+    const unsubscribe = navigation.addListener?.("focus", fetchOffersCount);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   // ============================================
   // CRITICAL FIX: Nested Navigation Handler
   // ============================================
@@ -82,13 +122,8 @@ const DrawerContent = ({ navigation, state }) => {
         navigation.navigate("AdminHome", { screen: item.screen });
       }
     } else {
-      // DRIVER NAVIGATION - Direkt screen adları kullan
-      if (item.nestedScreen) {
-        // MyTasks gibi nested stack navigator için
-        navigation.navigate(item.screen, { screen: item.nestedScreen });
-      } else {
-        navigation.navigate(item.screen);
-      }
+      // DRIVER NAVIGATION - Direkt navigate
+      navigation.navigate(item.screen);
     }
   };
 
@@ -140,7 +175,7 @@ const DrawerContent = ({ navigation, state }) => {
         title: t("navigation.myTasks"),
         icon: "📋",
         screen: "MyTasks",
-        nestedScreen: "DriverTasksScreen",
+        badgeCount: offersCount,
       },
       { title: t("navigation.myVehicle"), icon: "🚗", screen: "MyVehicle" },
       { title: t("navigation.profile"), icon: "👤", screen: "Profile" },
@@ -234,6 +269,7 @@ const DrawerContent = ({ navigation, state }) => {
             icon={item.icon}
             focused={isItemFocused(item)}
             onPress={() => handleMenuPress(item)}
+            badgeCount={item.badgeCount || 0}
           />
         ))}
       </ScrollView>
@@ -409,6 +445,20 @@ const styles = StyleSheet.create({
   menuTextFocused: {
     color: COLORS.primary,
     fontWeight: "600",
+  },
+  badge: {
+    marginLeft: "auto",
+    backgroundColor: COLORS.danger,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 24,
+    alignItems: "center",
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: "700",
   },
   footer: {
     paddingHorizontal: 20,

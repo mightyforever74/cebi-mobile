@@ -570,7 +570,11 @@ const driverMenuItems = [
 // Tasks Stack - Görev teklifleri (liste) ve detay + aktif görevler
 const TasksStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="TasksList" component={TaskOffers} />
+    {/* Ana ekran: Aktif Görevler */}
+    <Stack.Screen name="TasksList" component={DriverTasks} />
+    {/* Görev teklifleri listesi */}
+    <Stack.Screen name="TaskOffers" component={TaskOffers} />
+    {/* Detay ekranları */}
     <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
     <Stack.Screen
       name="DriverTasksScreen"

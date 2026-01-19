@@ -267,6 +267,44 @@ const DriverTasks = ({ navigation }) => {
     );
   };
 
+  const handleWithdrawTask = async (task) => {
+    Alert.alert(
+      t("tasks.withdrawTask"),
+      t("tasks.withdrawTaskConfirm", { title: task.title || task.task_no }),
+      [
+        { text: t("tasks.cancel"), style: "cancel" },
+        {
+          text: t("tasks.withdrawConfirm"),
+          onPress: async () => {
+            setActionLoading(task.id);
+            try {
+              await driverTaskAPI.withdrawTask(task.id);
+              setTasks((prev) =>
+                prev.map((t) =>
+                  t.id === task.id ? { ...t, status: "withdrawn" } : t
+                )
+              );
+              Alert.alert(t("tasks.info"), t("tasks.taskWithdrawn"), [
+                {
+                  text: t("tasks.viewHistory"),
+                  onPress: () => navigation.navigate("TaskHistory"),
+                },
+                { text: t("tasks.ok"), style: "cancel" },
+              ]);
+            } catch (err) {
+              Alert.alert(
+                t("tasks.error"),
+                err.message || t("tasks.couldNotWithdrawTask")
+              );
+            } finally {
+              setActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const filteredTasks =
     activeTab === "completed"
       ? completedTasks
@@ -1401,6 +1439,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   continueNavButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  acceptedButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 12,
+    marginBottom: 12,
+    gap: 10,
+  },
+  acceptedButton: {
+    flex: 0.4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  withdrawButton: { backgroundColor: COLORS.danger },
+  acceptedButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
