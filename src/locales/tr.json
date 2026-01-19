@@ -793,5 +793,36 @@
   },
   "root": {
     "loading": "Yükleniyor..."
+  },
+  "nav": {
+    "route_waypoints": "Rota Noktaları",
+    "direct_route": "Direkt rota",
+    "start_point": "Başlangıç",
+    "destination": "Varış",
+    "waypoint": "Ara Nokta",
+    "stop": "Durak",
+    "completed": "tamamlandı",
+    "pending": "beklemede",
+    "current": "şu an",
+    "eta": "Tahmini Varış",
+    "distance_remaining": "Kalan Mesafe",
+    "time_remaining": "Kalan Süre",
+    "arrive_at": "Varış Saati",
+    "stop_duration": "Durak Süresi",
+    "notes": "Notlar",
+    "show_on_map": "Haritada Göster",
+    "navigate": "Navigasyon Başlat",
+    "skip_waypoint": "Bu Noktayı Atla",
+    "complete_waypoint": "Noktayı Tamamla",
+    "all_waypoints_completed": "Tüm noktalar tamamlandı",
+    "next_stop": "Sonraki Durak",
+    "final_destination": "Son Hedef"
+  },
+  "units": {
+    "km": "km",
+    "m": "m",
+    "h": "sa",
+    "min": "dk",
+    "sec": "sn"
   }
 }

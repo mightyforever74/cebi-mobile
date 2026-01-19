@@ -795,6 +795,37 @@
     "availableDevices": "Amûrên Berdest",
     "noDevicesAvailable": "Amûrên berdest tune"
   },
+  "nav": {
+    "route_waypoints": "Xalên rêyê",
+    "direct_route": "Rêya rasterast",
+    "start_point": "Destpêk",
+    "destination": "Armanc",
+    "waypoint": "Xala navîn",
+    "stop": "Rawestan",
+    "completed": "qediya",
+    "pending": "li benda",
+    "current": "niha",
+    "eta": "Dema gihîştinê",
+    "distance_remaining": "Dûrahiya mayî",
+    "time_remaining": "Dema mayî",
+    "arrive_at": "Gihîştin di",
+    "stop_duration": "Dirêjahiya rawestandinê",
+    "notes": "Têbînî",
+    "show_on_map": "Li ser nexşeyê nîşan bide",
+    "navigate": "Navîgasyonê dest pê bike",
+    "skip_waypoint": "Vê rawestandinê derbas bike",
+    "complete_waypoint": "Rawestandinê temam bike",
+    "all_waypoints_completed": "Hemû rawestan qediyan",
+    "next_stop": "Rawestandina pêş",
+    "final_destination": "Armanca dawîn"
+  },
+  "units": {
+    "km": "km",
+    "m": "m",
+    "h": "st",
+    "min": "dq",
+    "sec": "çrk"
+  },
   "root": {
     "loading": "دەرهێنانی زانیاری..."
   }

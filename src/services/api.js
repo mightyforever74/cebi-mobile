@@ -494,6 +494,14 @@ export const driverAPI = {
     const response = await api.post("/api/driver/devices/assign", data);
     return response.data;
   },
+
+  // Waypoint tamamla
+  completeWaypoint: async (taskId, waypointId) => {
+    const response = await api.put(
+      `/api/driver/tasks/${taskId}/waypoints/${waypointId}/complete`
+    );
+    return response.data;
+  },
 };
 
 // ============================================

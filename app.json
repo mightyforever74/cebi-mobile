@@ -2,7 +2,10 @@
   "expo": {
     "name": "TulipFleet",
     "slug": "tulipfleet",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +18,9 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/7c0ea9e5-7cc1-4723-ad38-3fbe23256d50"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tulipfleet.app",
@@ -29,7 +34,10 @@
         "NSCameraUsageDescription": "QR kod okumak için kamera izni gerekli",
         "NSLocationWhenInUseUsageDescription": "Bluetooth cihazlarını bulmak için konum izni gerekli",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
       },
       "runtimeVersion": {
         "policy": "appVersion"
@@ -103,7 +111,8 @@
             "googleServicesFile": "./GoogleService-Info.plist"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "owner": "mightyforever",
     "extra": {

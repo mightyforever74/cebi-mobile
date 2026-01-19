@@ -720,6 +720,37 @@
     "availableDevices": "Налични Устройства",
     "noDevicesAvailable": "Няма налични устройства"
   },
+  "nav": {
+    "route_waypoints": "Точки по маршрута",
+    "direct_route": "Директен маршрут",
+    "start_point": "Начало",
+    "destination": "Дестинация",
+    "waypoint": "Междинна точка",
+    "stop": "Спирка",
+    "completed": "завършено",
+    "pending": "изчакващо",
+    "current": "текущо",
+    "eta": "Очаквано пристигане",
+    "distance_remaining": "Оставащо разстояние",
+    "time_remaining": "Оставащо време",
+    "arrive_at": "Пристигане в",
+    "stop_duration": "Продължителност на спирката",
+    "notes": "Бележки",
+    "show_on_map": "Покажи на картата",
+    "navigate": "Започни навигация",
+    "skip_waypoint": "Пропусни тази спирка",
+    "complete_waypoint": "Завърши спирката",
+    "all_waypoints_completed": "Всички спирки са завършени",
+    "next_stop": "Следваща спирка",
+    "final_destination": "Крайна дестинация"
+  },
+  "units": {
+    "km": "км",
+    "m": "м",
+    "h": "ч",
+    "min": "мин",
+    "sec": "сек"
+  },
   "root": {
     "loading": "Зареждане..."
   }

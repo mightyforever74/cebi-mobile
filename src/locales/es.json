@@ -720,6 +720,37 @@
     "availableDevices": "Dispositivos Disponibles",
     "noDevicesAvailable": "No hay dispositivos disponibles"
   },
+  "nav": {
+    "route_waypoints": "Puntos de ruta",
+    "direct_route": "Ruta directa",
+    "start_point": "Inicio",
+    "destination": "Destino",
+    "waypoint": "Punto intermedio",
+    "stop": "Parada",
+    "completed": "completado",
+    "pending": "pendiente",
+    "current": "actual",
+    "eta": "Hora estimada",
+    "distance_remaining": "Distancia restante",
+    "time_remaining": "Tiempo restante",
+    "arrive_at": "Llegada a las",
+    "stop_duration": "Duración de parada",
+    "notes": "Notas",
+    "show_on_map": "Mostrar en mapa",
+    "navigate": "Iniciar navegación",
+    "skip_waypoint": "Saltar esta parada",
+    "complete_waypoint": "Completar parada",
+    "all_waypoints_completed": "Todas las paradas completadas",
+    "next_stop": "Próxima parada",
+    "final_destination": "Destino final"
+  },
+  "units": {
+    "km": "km",
+    "m": "m",
+    "h": "h",
+    "min": "min",
+    "sec": "seg"
+  },
   "root": {
     "loading": "Cargando..."
   }

@@ -92,6 +92,23 @@ const DriverTaskDetail = ({ route, navigation }) => {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
 
+  // Vehicle guard helper
+  const navigateToMap = (taskData) => {
+    if (!taskData?.vehicle_id && !task?.vehicle_id) {
+      Alert.alert(
+        "Araç Atanmamış",
+        "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+        [{ text: "Tamam" }]
+      );
+      return;
+    }
+    navigation.navigate("Navigation", {
+      task: taskData,
+      origin: getOrigin(),
+      destination: getDestination(),
+    });
+  };
+
   // Get status label from translations
   const getStatusLabel = (statusKey) => {
     return t(`taskDetail.statuses.${statusKey}`) || statusKey;
@@ -249,13 +266,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 [
                   {
                     text: t("tasks.yes"),
-                    onPress: () => {
-                      navigation.navigate("Navigation", {
-                        task: task,
-                        origin: getOrigin(),
-                        destination: getDestination(),
-                      });
-                    },
+                    onPress: () => navigateToMap(task),
                   },
                   {
                     text: t("tasks.no"),
@@ -299,11 +310,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
                   {
                     text: t("tasks.yes"),
                     onPress: () =>
-                      navigation.navigate("Navigation", {
-                        task: { ...task, status: "completed" },
-                        origin: getOrigin(),
-                        destination: getDestination(),
-                      }),
+                      navigateToMap({ ...task, status: "completed" }),
                   },
                   {
                     text: t("tasks.no"),

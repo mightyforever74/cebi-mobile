@@ -118,6 +118,19 @@ const DriverTasks = ({ navigation }) => {
   const [actionLoading, setActionLoading] = useState(null);
   const [expandedAnalytics, setExpandedAnalytics] = useState(false);
 
+  // Vehicle guard helper
+  const navigateToMap = (task) => {
+    if (!task?.vehicle_id) {
+      Alert.alert(
+        "Araç Atanmamış",
+        "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+        [{ text: "Tamam" }]
+      );
+      return;
+    }
+    navigation.navigate("Navigation", { task });
+  };
+
   const getStatusLabel = (statusKey) =>
     t(`tasks.statuses.${statusKey}`, statusKey);
 
@@ -217,9 +230,7 @@ const DriverTasks = ({ navigation }) => {
                   {
                     text: t("tasks.yes"),
                     onPress: () =>
-                      navigation.navigate("Navigation", {
-                        task: { ...task, status: "accepted" },
-                      }),
+                      navigateToMap({ ...task, status: "accepted" }),
                   },
                   {
                     text: t("tasks.no"),
@@ -963,7 +974,7 @@ const DriverTasks = ({ navigation }) => {
         {status === "accepted" && (
           <TouchableOpacity
             style={styles.goToNavButton}
-            onPress={() => navigation.navigate("Navigation", { task: item })}
+            onPress={() => navigateToMap(item)}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.goToNavButtonText}>

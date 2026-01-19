@@ -51,7 +51,60 @@ const TaskOfferDetail = () => {
       "Bu görev teklifini kabul etmek istediğinize emin misiniz?",
       [
         { text: "İptal", style: "cancel" },
-        { text: "Kabul Et", onPress: confirmAccept },
+        {
+          text: "Kabul Et",
+          onPress: async () => {
+            setSubmitting(true);
+            try {
+              await taskOffersAPI.acceptOffer(offerId);
+
+              // State'i hemen güncelle - buton anında görünsün
+              setOffer((prev) => ({ ...prev, status: "accepted" }));
+
+              // Refetch ile vehicle bilgisini al
+              try {
+                const response = await taskOffersAPI.getOfferDetail(offerId);
+                setOffer(response.offer);
+              } catch (e) {
+                console.log("Refetch skipped:", e.message);
+              }
+
+              // Vehicle guard ile seçenek sun
+              const hasVehicle = offer?.vehicle_id || offer?.vehicle_plate;
+
+              Alert.alert(
+                "✅ Görev Kabul Edildi",
+                hasVehicle
+                  ? "Görevi haritada takip etmek ister misiniz?"
+                  : "Görev kabul edildi. Araç atanmamış, admin bilgilendirilecek.",
+                hasVehicle
+                  ? [
+                      {
+                        text: "Haritaya Git",
+                        onPress: () => openNavigation(),
+                      },
+                      {
+                        text: "Görevlerime Dön",
+                        style: "cancel",
+                        onPress: () => navigation.navigate("MyTasks"),
+                      },
+                    ]
+                  : [
+                      {
+                        text: "Tamam",
+                        onPress: () => navigation.navigate("MyTasks"),
+                      },
+                    ]
+              );
+            } catch (error) {
+              console.error("Accept error:", error);
+              const message = error.response?.data?.error || "İşlem başarısız";
+              Alert.alert("Hata", message);
+            } finally {
+              setSubmitting(false);
+            }
+          },
+        },
       ]
     );
   };
@@ -136,20 +189,34 @@ const TaskOfferDetail = () => {
   };
 
   const openNavigation = () => {
+    // Vehicle guard
+    if (!offer?.vehicle_id && !offer?.vehicle_plate) {
+      Alert.alert(
+        "Araç Atanmamış",
+        "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+        [{ text: "Tamam" }]
+      );
+      return;
+    }
+
     if (!offer?.end_location) {
       Alert.alert("Hata", "Varış noktası bilgisi yok");
       return;
     }
 
-    // Google Maps ile aç (koordinatlar varsa)
-    if (offer.route_json?.end_coords) {
-      const { lat, lng } = offer.route_json.end_coords;
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-      // Linking.openURL(url);
-      Alert.alert("Navigasyon", `Varış: ${offer.end_location}`);
-    } else {
-      Alert.alert("Navigasyon", `Varış: ${offer.end_location}`);
-    }
+    // Navigation'a git
+    navigation.navigate("Navigation", {
+      task: {
+        id: offer.task_id || offer.id,
+        title: offer.task_title || offer.title,
+        status: offer.status,
+        vehicle_id: offer.vehicle_id,
+        vehicle_plate: offer.vehicle_plate,
+        start_location: offer.start_location,
+        end_location: offer.end_location,
+        route_json: offer.route_json,
+      },
+    });
   };
 
   if (loading) {

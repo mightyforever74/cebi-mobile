@@ -1,12 +1,12 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 18 Ocak 2026 v13 - Full i18n Support
+// Updated: 20 Ocak 2026 v14 - Full i18n Support
 // Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { COLORS } from "../../constants/config";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 
@@ -30,10 +31,59 @@ const MAX_WAYPOINTS = 10;
 // Route noktası limiti (performans için)
 const MAX_ROUTE_POINTS = 500;
 
+// Geocoding cache - aynı adres için tekrar API çağrısını önle
+const geocodeCache = new Map();
+const GEOCODE_CACHE_MAX = 200;
+
+const setGeocodeCacheItem = (key, coords) => {
+  if (geocodeCache.size >= GEOCODE_CACHE_MAX && !geocodeCache.has(key)) {
+    // En eski entry'yi sil (FIFO)
+    const firstKey = geocodeCache.keys().next().value;
+    geocodeCache.delete(firstKey);
+  }
+  geocodeCache.set(key, coords);
+};
+
 const DriverRouteMapScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const initialTask = route?.params?.task || null;
+
+  // Koordinat formatını normalize et (lat/lng → latitude/longitude)
+  const normalizeCoords = useCallback((c) => {
+    if (!c) return null;
+    if (typeof c.latitude === "number" && typeof c.longitude === "number")
+      return c;
+    const lat = c.lat ?? c.latitude;
+    const lng = c.lng ?? c.longitude;
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    return { latitude, longitude };
+  }, []);
+
+  // Initial coords hesapla (ilk render'da null olmasın)
+  const getInitialDestinationCoords = () => {
+    if (!initialTask) return null;
+
+    const c1 = initialTask?.route_json?.destination_coords;
+    const n1 = normalizeCoords(c1);
+    if (n1) return n1;
+
+    const { dest_lat, dest_lng } = initialTask?.route_json || {};
+    if (dest_lat && dest_lng) {
+      const n2 = normalizeCoords({ lat: dest_lat, lng: dest_lng });
+      if (n2) return n2;
+    }
+
+    const wps = initialTask?.waypoints;
+    if (Array.isArray(wps) && wps.length > 0) {
+      const n3 = normalizeCoords(wps[wps.length - 1]);
+      if (n3) return n3;
+    }
+
+    return null;
+  };
 
   const [task, setTask] = useState(initialTask);
   const [location, setLocation] = useState(null);
@@ -46,6 +96,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const [routeLoading, setRouteLoading] = useState(false);
   const [heading, setHeading] = useState(0);
   const [followMode, setFollowMode] = useState(true);
+  const [geocodedDestination, setGeocodedDestination] = useState(
+    getInitialDestinationCoords
+  );
+  const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
 
   const routeFetchedRef = useRef(false);
   const lastRouteTaskIdRef = useRef(null);
@@ -83,6 +137,148 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   }, [task?.status, task?.id, location]);
 
+  // ══════════════════════════════════════════════════════════════
+  // GEOCODING - Text adres → Koordinat (cache + abort + normalize)
+  // ══════════════════════════════════════════════════════════════
+
+  // Stabil dependency key (JSON.stringify yerine)
+  const destCoordsKey = useMemo(() => {
+    const c = task?.route_json?.destination_coords;
+    if (!c) return "";
+    const n = normalizeCoords(c);
+    return n ? `${n.latitude},${n.longitude}` : "";
+  }, [task?.route_json?.destination_coords, normalizeCoords]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const geocodeDestination = async () => {
+      // 1. route_json'dan koordinat (normalize edilmiş)
+      if (task?.route_json?.destination_coords) {
+        const normalized = normalizeCoords(task.route_json.destination_coords);
+        if (normalized) {
+          setGeocodedDestination(normalized);
+          return;
+        }
+      }
+
+      // 2. dest_lat/dest_lng
+      if (task?.route_json?.dest_lat && task?.route_json?.dest_lng) {
+        const normalized = normalizeCoords({
+          lat: task.route_json.dest_lat,
+          lng: task.route_json.dest_lng,
+        });
+        if (normalized) {
+          setGeocodedDestination(normalized);
+          return;
+        }
+      }
+
+      // 3. waypoints'ten son nokta
+      if (task?.waypoints?.length > 0) {
+        const last = task.waypoints[task.waypoints.length - 1];
+        const normalized = normalizeCoords(last);
+        if (normalized) {
+          setGeocodedDestination(normalized);
+          return;
+        }
+      }
+
+      // 4. Text adres varsa Geocoding API ile koordinat al
+      const textAddress = task?.end_location;
+      if (
+        !textAddress ||
+        typeof textAddress !== "string" ||
+        textAddress.trim() === ""
+      ) {
+        setGeocodedDestination(null);
+        return;
+      }
+
+      // Cache kontrol
+      const cacheKey = textAddress.trim().toLowerCase();
+      if (geocodeCache.has(cacheKey)) {
+        console.log("[Nav] Geocode cache hit:", cacheKey);
+        setGeocodedDestination(geocodeCache.get(cacheKey));
+        return;
+      }
+
+      try {
+        console.log("[Nav] Geocoding destination:", textAddress);
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          textAddress
+        )}&key=${GOOGLE_MAPS_API_KEY}&language=tr&region=tr`;
+
+        const response = await fetch(url, { signal: controller.signal });
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (data.status === "OK" && data.results?.length > 0) {
+          const { lat, lng } = data.results[0].geometry.location;
+          const coords = { latitude: lat, longitude: lng };
+          console.log("[Nav] Geocoded:", textAddress, "→", lat, lng);
+
+          // Cache'e kaydet (limit kontrollü)
+          setGeocodeCacheItem(cacheKey, coords);
+          setGeocodedDestination(coords);
+        } else {
+          // Detaylı hata logları
+          switch (data.status) {
+            case "ZERO_RESULTS":
+              console.log("[Nav] Geocoding: adres bulunamadı:", textAddress);
+              break;
+            case "OVER_QUERY_LIMIT":
+              console.log("[Nav] Geocoding: API limit doldu!");
+              break;
+            case "REQUEST_DENIED":
+              console.log(
+                "[Nav] Geocoding: API key/izin sorunu:",
+                data.error_message
+              );
+              break;
+            case "INVALID_REQUEST":
+              console.log("[Nav] Geocoding: geçersiz istek:", textAddress);
+              break;
+            default:
+              console.log(
+                "[Nav] Geocoding failed:",
+                data.status,
+                data.error_message || ""
+              );
+          }
+          setGeocodedDestination(null);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        // AbortError ise sessizce geç
+        if (error.name !== "AbortError") {
+          console.log("[Nav] Geocoding error:", error.message);
+        }
+        setGeocodedDestination(null);
+      }
+    };
+
+    if (task) {
+      geocodeDestination();
+    } else {
+      setGeocodedDestination(null);
+    }
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [
+    task?.id,
+    task?.end_location,
+    task?.route_json?.dest_lat,
+    task?.route_json?.dest_lng,
+    destCoordsKey,
+    task?.waypoints?.length,
+    normalizeCoords,
+  ]);
   // ══════════════════════════════════════════════════════════════
   // DATA LOADING
   // ══════════════════════════════════════════════════════════════
@@ -523,6 +719,50 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   // HELPERS
   // ══════════════════════════════════════════════════════════════
 
+  // Task'tan gelen waypoints'i panel formatına çevir
+  const prepareWaypoints = (task) => {
+    if (!task) return { origin: null, destination: null, waypoints: [] };
+
+    // Origin - başlangıç noktası
+    const origin = task.start_location
+      ? {
+          id: "origin",
+          name: "Başlangıç",
+          address: task.start_location,
+          latitude: task.route_json?.origin?.lat,
+          longitude: task.route_json?.origin?.lng,
+        }
+      : null;
+
+    // Destination - varış noktası
+    const destination = task.end_location
+      ? {
+          id: "destination",
+          name: "Varış",
+          address: task.end_location,
+          latitude: task.route_json?.destination?.lat,
+          longitude: task.route_json?.destination?.lng,
+        }
+      : null;
+
+    const waypoints = (task.waypoints || []).map((wp, idx) => ({
+      id: wp.id || `wp-${idx}`,
+      name: wp.name || `Durak ${idx + 1}`,
+      address: wp.address,
+      latitude: wp.latitude || wp.lat,
+      longitude: wp.longitude || wp.lng,
+      stop_duration_min: wp.stop_duration_min || wp.stopDuration,
+      notes: wp.notes,
+      distance_km: wp.distance_km,
+      duration_min: wp.duration_min,
+      eta: wp.eta,
+      status: wp.status || "pending",
+      completed_at: wp.completed_at,
+    }));
+
+    return { origin, destination, waypoints };
+  };
+
   const getStartLocation = () => {
     if (task?.route_json?.origin) return task.route_json.origin;
     if (task?.start_location) return task.start_location;
@@ -536,25 +776,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   const getEndLocationCoords = () => {
-    if (task?.route_json?.destination_coords) {
-      return task.route_json.destination_coords;
-    }
-    if (task?.route_json?.dest_lat && task?.route_json?.dest_lng) {
-      return {
-        latitude: parseFloat(task.route_json.dest_lat),
-        longitude: parseFloat(task.route_json.dest_lng),
-      };
-    }
-    if (task?.waypoints?.length > 0) {
-      const last = task.waypoints[task.waypoints.length - 1];
-      if (last.lat && last.lng) {
-        return {
-          latitude: parseFloat(last.lat),
-          longitude: parseFloat(last.lng),
-        };
-      }
-    }
-    return null;
+    // Geocoding useEffect tüm kaynakları kontrol edip
+    // normalize edilmiş koordinat döndürüyor
+    return geocodedDestination;
   };
 
   const getDistance = () => {
@@ -590,6 +814,42 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   }, [routeCoords]);
 
+  // ============================================
+  // 4) WAYPOINT PRESS HANDLER
+  // Waypoint'e tıklandığında haritada göster
+  // ============================================
+  const handleWaypointPress = (waypoint, index) => {
+    if (waypoint?.latitude && waypoint?.longitude && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: waypoint.latitude,
+          longitude: waypoint.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        500
+      );
+    }
+  };
+
+  // ============================================
+  // 5) WAYPOINT COMPLETE HANDLER
+  // Waypoint tamamlandığında (opsiyonel)
+  // ============================================
+  const handleWaypointComplete = async (waypointId) => {
+    try {
+      if (task?.id && waypointId) {
+        await driverAPI.completeWaypoint(task.id, waypointId);
+      }
+      // Başarılıysa local ilerleme yap
+      setCurrentWaypointIndex((prev) => prev + 1);
+      // Görevi tazele (backend güncellemesi yansısın)
+      await loadActiveTask();
+    } catch (error) {
+      console.error("Waypoint tamamlanamadı:", error);
+    }
+  };
+
   // ══════════════════════════════════════════════════════════════
   // RENDER
   // ══════════════════════════════════════════════════════════════
@@ -607,6 +867,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const isAccepted = task?.status === "accepted";
   const isPendingReview = task?.status === "pending_review";
   const showTaskCard = task && isAccepted;
+
+  // Waypoints verisini hazırla
+  const { origin, destination, waypoints } = prepareWaypoints(task);
 
   return (
     <View style={{ flex: 1 }}>
@@ -688,6 +951,38 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               />
             </>
           )}
+
+          {/* Waypoint Markers (opsiyonel - haritada göster) */}
+          {Array.isArray(waypoints) &&
+            waypoints.length > 0 &&
+            waypoints
+              .filter(
+                (wp) =>
+                  typeof wp.latitude === "number" &&
+                  typeof wp.longitude === "number"
+              )
+              .map((wp, idx) => (
+                <Marker
+                  key={wp.id || `wp-${idx}`}
+                  coordinate={{
+                    latitude: wp.latitude,
+                    longitude: wp.longitude,
+                  }}
+                  title={wp.name}
+                  description={wp.address}
+                  onPress={() => handleWaypointPress(wp, idx)}
+                >
+                  <View
+                    style={[
+                      styles.waypointMarker,
+                      wp.status === "completed" && styles.waypointCompleted,
+                      idx === currentWaypointIndex && styles.waypointCurrent,
+                    ]}
+                  >
+                    <Text style={styles.waypointMarkerText}>{idx + 1}</Text>
+                  </View>
+                </Marker>
+              ))}
         </MapView>
       ) : (
         <View style={styles.center}>
@@ -700,6 +995,23 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <Text style={styles.retryBtnText}>{t("routeMap.retry")}</Text>
           </TouchableOpacity>
         </View>
+      )}
+
+      {/* Waypoints Panel - Collapsible */}
+      {Array.isArray(waypoints) && waypoints.length > 0 && (
+        <WaypointsPanel
+          waypoints={waypoints}
+          currentWaypointIndex={currentWaypointIndex}
+          origin={origin}
+          destination={destination}
+          onWaypointPress={handleWaypointPress}
+          onOriginPress={() => origin && handleWaypointPress(origin, -1)}
+          onDestinationPress={() =>
+            destination && handleWaypointPress(destination, -1)
+          }
+          onWaypointComplete={handleWaypointComplete}
+          style={styles.waypointsPanel}
+        />
       )}
 
       {/* Back Button */}
@@ -1300,6 +1612,43 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
+  },
+
+  // Waypoints Panel placement
+  waypointsPanel: {
+    position: "absolute",
+    bottom: 100,
+    left: 0,
+    right: 0,
+  },
+
+  // Harita üzerindeki waypoint marker'ları
+  waypointMarker: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#94A3B8",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  waypointCompleted: {
+    backgroundColor: "#10B981",
+  },
+  waypointCurrent: {
+    backgroundColor: "#3B82F6",
+    transform: [{ scale: 1.2 }],
+  },
+  waypointMarkerText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
 
