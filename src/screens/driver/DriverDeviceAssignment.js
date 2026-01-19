@@ -1,7 +1,12 @@
+// src/screens/driver/DriverDeviceAssignment.js
+// TulipFleet - Device Assignment Screen
+// Version: 2.0 - Full i18n Support
+
 import { useRoute } from "@react-navigation/native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import * as Linking from "expo-linking";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -19,6 +24,7 @@ import { deviceAPI, driverAPI } from "../../services/api";
 const { COLORS, SIZES } = theme;
 
 const DriverDeviceAssignment = () => {
+  const { t } = useTranslation();
   const route = useRoute();
   const { vehicleId } = route.params || {};
 
@@ -95,8 +101,8 @@ const DriverDeviceAssignment = () => {
       setAssignableDevices(normalize(res));
     } catch (err) {
       Alert.alert(
-        "Error",
-        err?.response?.data?.error || "Failed to load devices"
+        t("deviceAssignment.error"),
+        err?.response?.data?.error || t("deviceAssignment.loadFailed")
       );
       setAssignableDevices([]);
     } finally {
@@ -111,7 +117,7 @@ const DriverDeviceAssignment = () => {
 
   const handleBarCodeScanned = async ({ data }) => {
     if (!hasVehicle) {
-      Alert.alert("Error", "No vehicle selected");
+      Alert.alert(t("deviceAssignment.error"), t("deviceAssignment.noVehicle"));
       return;
     }
     if (scanLock.current) return;
@@ -125,23 +131,28 @@ const DriverDeviceAssignment = () => {
 
       if (qrData?.valid) {
         Alert.alert(
-          "QR Valid",
-          `Device: ${qrData?.device?.serial}\nExpires in: ${qrData?.expires_in_hours} hours`,
+          t("deviceAssignment.qrValid"),
+          `${t("deviceAssignment.device")}: ${qrData?.device?.serial}\n${t(
+            "deviceAssignment.expiresIn"
+          )}: ${qrData?.expires_in_hours} ${t("deviceAssignment.hours")}`,
           [
-            { text: "Cancel", style: "cancel" },
+            { text: t("deviceAssignment.cancel"), style: "cancel" },
             {
-              text: "Assign to Vehicle",
+              text: t("deviceAssignment.assignToVehicle"),
               onPress: () => handleClaimByToken(token),
             },
           ]
         );
       } else {
-        Alert.alert("Invalid QR", "QR code is invalid or expired");
+        Alert.alert(
+          t("deviceAssignment.invalidQR"),
+          t("deviceAssignment.qrExpired")
+        );
       }
     } catch (err) {
       Alert.alert(
-        "Invalid QR",
-        err?.response?.data?.error || "QR code is invalid or expired"
+        t("deviceAssignment.invalidQR"),
+        err?.response?.data?.error || t("deviceAssignment.qrExpired")
       );
     } finally {
       setTimeout(() => {
@@ -152,7 +163,7 @@ const DriverDeviceAssignment = () => {
 
   const handleClaimByToken = async (token) => {
     if (!hasVehicle) {
-      Alert.alert("Error", "No vehicle selected");
+      Alert.alert(t("deviceAssignment.error"), t("deviceAssignment.noVehicle"));
       return;
     }
 
@@ -163,13 +174,16 @@ const DriverDeviceAssignment = () => {
         vehicleId,
       });
 
-      Alert.alert("Success", "Device assigned to your vehicle!");
+      Alert.alert(
+        t("deviceAssignment.success"),
+        t("deviceAssignment.deviceAssigned")
+      );
       await handleFetchAssignableDevices();
       setScannerModal(false);
     } catch (err) {
       Alert.alert(
-        "Error",
-        err?.response?.data?.error || "Failed to assign device"
+        t("deviceAssignment.error"),
+        err?.response?.data?.error || t("deviceAssignment.assignFailed")
       );
       throw err;
     } finally {
@@ -179,7 +193,10 @@ const DriverDeviceAssignment = () => {
 
   const handleSearchSerial = async () => {
     if (!searchSerial.trim()) {
-      Alert.alert("Error", "Enter a serial number");
+      Alert.alert(
+        t("deviceAssignment.error"),
+        t("deviceAssignment.enterSerial")
+      );
       return;
     }
 
@@ -189,8 +206,8 @@ const DriverDeviceAssignment = () => {
       setSearchResults(normalize(res));
     } catch (err) {
       Alert.alert(
-        "Not Found",
-        err?.response?.data?.error || "Device not found"
+        t("deviceAssignment.notFound"),
+        err?.response?.data?.error || t("deviceAssignment.deviceNotFound")
       );
       setSearchResults([]);
     } finally {
@@ -200,7 +217,7 @@ const DriverDeviceAssignment = () => {
 
   const handleAssignByDeviceId = async (deviceId) => {
     if (!hasVehicle) {
-      Alert.alert("Error", "No vehicle selected");
+      Alert.alert(t("deviceAssignment.error"), t("deviceAssignment.noVehicle"));
       return;
     }
 
@@ -208,7 +225,10 @@ const DriverDeviceAssignment = () => {
       setLoadingActionDeviceId(deviceId);
       await driverAPI.assignDevice(deviceId, vehicleId);
 
-      Alert.alert("Success", "Device assigned to your vehicle!");
+      Alert.alert(
+        t("deviceAssignment.success"),
+        t("deviceAssignment.deviceAssigned")
+      );
       await handleFetchAssignableDevices();
 
       setSearchModal(false);
@@ -217,8 +237,8 @@ const DriverDeviceAssignment = () => {
       setSearchResults([]);
     } catch (err) {
       Alert.alert(
-        "Error",
-        err?.response?.data?.error || "Failed to assign device"
+        t("deviceAssignment.error"),
+        err?.response?.data?.error || t("deviceAssignment.assignFailed")
       );
       throw err;
     } finally {
@@ -249,7 +269,7 @@ const DriverDeviceAssignment = () => {
         {loadingActionDeviceId === item.id ? (
           <ActivityIndicator size="small" color={COLORS.WHITE} />
         ) : (
-          <Text style={styles.btnText}>📱 Assign</Text>
+          <Text style={styles.btnText}>📱 {t("deviceAssignment.assign")}</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -258,7 +278,9 @@ const DriverDeviceAssignment = () => {
   const renderSearchResultItem = ({ item }) => (
     <View style={styles.searchItem}>
       <Text style={styles.serial}>{item.serial}</Text>
-      <Text style={styles.value}>Status: {item.status}</Text>
+      <Text style={styles.value}>
+        {t("deviceAssignment.status")}: {item.status}
+      </Text>
 
       {item.can_assign ? (
         <TouchableOpacity
@@ -274,11 +296,13 @@ const DriverDeviceAssignment = () => {
           {loadingActionDeviceId === item.id ? (
             <ActivityIndicator size="small" color={COLORS.WHITE} />
           ) : (
-            <Text style={styles.btnText}>Assign</Text>
+            <Text style={styles.btnText}>{t("deviceAssignment.assign")}</Text>
           )}
         </TouchableOpacity>
       ) : (
-        <Text style={styles.disabledText}>Cannot assign (not available)</Text>
+        <Text style={styles.disabledText}>
+          {t("deviceAssignment.cannotAssign")}
+        </Text>
       )}
     </View>
   );
@@ -295,7 +319,7 @@ const DriverDeviceAssignment = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Assign Device</Text>
+        <Text style={styles.title}>{t("deviceAssignment.title")}</Text>
         <TouchableOpacity onPress={handleFetchAssignableDevices}>
           <Text style={styles.headerBtn}>🔄</Text>
         </TouchableOpacity>
@@ -303,11 +327,13 @@ const DriverDeviceAssignment = () => {
 
       {/* Vehicle Info */}
       <View style={[styles.infoCard, !hasVehicle && styles.infoCardWarning]}>
-        <Text style={styles.infoLabel}>Vehicle ID:</Text>
-        <Text style={styles.infoValue}>{vehicleId || "Not selected"}</Text>
+        <Text style={styles.infoLabel}>{t("deviceAssignment.vehicleId")}:</Text>
+        <Text style={styles.infoValue}>
+          {vehicleId || t("deviceAssignment.notSelected")}
+        </Text>
         {!hasVehicle && (
           <Text style={styles.warningText}>
-            You must have a vehicle selected to assign a device.
+            {t("deviceAssignment.vehicleRequired")}
           </Text>
         )}
       </View>
@@ -324,7 +350,9 @@ const DriverDeviceAssignment = () => {
           onPress={() => setScannerModal(true)}
           disabled={!hasVehicle || loadingActionDeviceId === "qr"}
         >
-          <Text style={styles.actionBtnText}>📷 QR Scan</Text>
+          <Text style={styles.actionBtnText}>
+            📷 {t("deviceAssignment.qrScan")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -336,7 +364,9 @@ const DriverDeviceAssignment = () => {
           onPress={() => setSearchModal(true)}
           disabled={!hasVehicle || loadingAction}
         >
-          <Text style={styles.actionBtnText}>🔍 Serial</Text>
+          <Text style={styles.actionBtnText}>
+            🔍 {t("deviceAssignment.serial")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -348,16 +378,16 @@ const DriverDeviceAssignment = () => {
           onPress={() => setDeviceListModal(true)}
           disabled={!hasVehicle}
         >
-          <Text style={styles.actionBtnText}>📋 List</Text>
+          <Text style={styles.actionBtnText}>
+            📋 {t("deviceAssignment.list")}
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Optional hint */}
       {!hasVehicle && (
         <View style={styles.hintCard}>
-          <Text style={styles.hintText}>
-            Tip: Go back and select a vehicle, then return to assign a device.
-          </Text>
+          <Text style={styles.hintText}>{t("deviceAssignment.hint")}</Text>
         </View>
       )}
 
@@ -371,27 +401,35 @@ const DriverDeviceAssignment = () => {
           {hasPermission === null ? (
             <View style={styles.permissionContainer}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-              <Text style={styles.permissionText}>Requesting camera...</Text>
+              <Text style={styles.permissionText}>
+                {t("deviceAssignment.requestingCamera")}
+              </Text>
             </View>
           ) : hasPermission === false ? (
             <View style={styles.permissionContainer}>
-              <Text style={styles.errorText}>❌ Camera permission denied</Text>
+              <Text style={styles.errorText}>
+                ❌ {t("deviceAssignment.cameraPermissionDenied")}
+              </Text>
               <Text style={styles.permissionText}>
-                Enable camera permission in settings.
+                {t("deviceAssignment.enableCameraPermission")}
               </Text>
 
               <TouchableOpacity
                 style={[styles.btn, styles.btnPrimary]}
                 onPress={() => Linking.openSettings()}
               >
-                <Text style={styles.btnText}>Open Settings</Text>
+                <Text style={styles.btnText}>
+                  {t("deviceAssignment.openSettings")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.btn, styles.btnDanger]}
                 onPress={() => setScannerModal(false)}
               >
-                <Text style={styles.btnText}>Close</Text>
+                <Text style={styles.btnText}>
+                  {t("deviceAssignment.close")}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -406,7 +444,9 @@ const DriverDeviceAssignment = () => {
                 style={[styles.btn, styles.btnDanger]}
                 onPress={() => setScannerModal(false)}
               >
-                <Text style={styles.btnText}>Cancel</Text>
+                <Text style={styles.btnText}>
+                  {t("deviceAssignment.cancel")}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -422,11 +462,13 @@ const DriverDeviceAssignment = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Search by Serial</Text>
+            <Text style={styles.modalTitle}>
+              {t("deviceAssignment.searchBySerial")}
+            </Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Serial (e.g. TFL-2025-001)"
+              placeholder={t("deviceAssignment.serialPlaceholder")}
               value={searchSerial}
               onChangeText={setSearchSerial}
               autoCapitalize="characters"
@@ -445,7 +487,9 @@ const DriverDeviceAssignment = () => {
               {loadingAction ? (
                 <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
-                <Text style={styles.btnText}>Search</Text>
+                <Text style={styles.btnText}>
+                  {t("deviceAssignment.search")}
+                </Text>
               )}
             </TouchableOpacity>
 
@@ -460,7 +504,9 @@ const DriverDeviceAssignment = () => {
                 onRefresh={handleFetchAssignableDevices}
               />
             ) : (
-              <Text style={styles.emptyText}>No results yet</Text>
+              <Text style={styles.emptyText}>
+                {t("deviceAssignment.noResultsYet")}
+              </Text>
             )}
 
             <TouchableOpacity
@@ -471,7 +517,7 @@ const DriverDeviceAssignment = () => {
                 setSearchResults([]);
               }}
             >
-              <Text style={styles.btnText}>Close</Text>
+              <Text style={styles.btnText}>{t("deviceAssignment.close")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -486,7 +532,9 @@ const DriverDeviceAssignment = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Available Devices</Text>
+            <Text style={styles.modalTitle}>
+              {t("deviceAssignment.availableDevices")}
+            </Text>
 
             {assignableDevices.length > 0 ? (
               <FlatList
@@ -499,14 +547,16 @@ const DriverDeviceAssignment = () => {
                 onRefresh={handleFetchAssignableDevices}
               />
             ) : (
-              <Text style={styles.emptyText}>No devices available</Text>
+              <Text style={styles.emptyText}>
+                {t("deviceAssignment.noDevicesAvailable")}
+              </Text>
             )}
 
             <TouchableOpacity
               style={[styles.btn, styles.btnDanger, { marginTop: SIZES.BASE }]}
               onPress={() => setDeviceListModal(false)}
             >
-              <Text style={styles.btnText}>Close</Text>
+              <Text style={styles.btnText}>{t("deviceAssignment.close")}</Text>
             </TouchableOpacity>
           </View>
         </View>

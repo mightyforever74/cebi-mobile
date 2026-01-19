@@ -1,8 +1,10 @@
 // src/screens/driver/DriverVehicle.js
 // TulipFleet - Sürücü Aracım Ekranı
+// Updated: 17 Ocak 2026 - Full i18n Support
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -14,7 +16,6 @@ import {
 } from "react-native";
 import { driverAPI } from "../../services/api";
 
-// Theme colors
 const COLORS = {
   primary: "#5E72E4",
   success: "#2DCE89",
@@ -29,24 +30,22 @@ const COLORS = {
 };
 
 const DriverVehicle = ({ navigation }) => {
+  const { t } = useTranslation();
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // API'den araç bilgisini çek
   const fetchVehicle = async () => {
     try {
       setError(null);
       console.log("🚗 Fetching driver vehicle...");
-
       const data = await driverAPI.getVehicle();
       console.log("✅ Driver vehicle loaded:", data);
-
       setVehicle(data.vehicle || data);
     } catch (err) {
       console.error("❌ Fetch vehicle error:", err);
-      setError(err.message || "Araç bilgisi yüklenemedi");
+      setError(err.message || t("vehicle.couldNotLoad"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -62,14 +61,12 @@ const DriverVehicle = ({ navigation }) => {
     fetchVehicle();
   }, []);
 
-  // Yakıt seviyesi rengi
   const getFuelColor = (level) => {
     if (level >= 50) return COLORS.success;
     if (level >= 25) return COLORS.warning;
     return COLORS.danger;
   };
 
-  // Info Card Component
   const InfoCard = ({ icon, iconColor, title, value, subtitle }) => (
     <View style={styles.infoCard}>
       <View style={[styles.infoIcon, { backgroundColor: `${iconColor}15` }]}>
@@ -81,46 +78,45 @@ const DriverVehicle = ({ navigation }) => {
     </View>
   );
 
-  // Hata durumu
+  // Error state
   if (error && !loading) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
-        <Text style={styles.errorTitle}>Hata Oluştu</Text>
+        <Text style={styles.errorTitle}>{t("vehicle.errorOccurred")}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchVehicle}>
-          <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+          <Text style={styles.retryButtonText}>{t("vehicle.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // Yükleniyor
+  // Loading state
   if (loading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Araç bilgisi yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("vehicle.loading")}</Text>
       </View>
     );
   }
 
-  // Araç atanmamış
+  // No vehicle assigned
   if (!vehicle) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="car-outline" size={64} color={COLORS.muted} />
-        <Text style={styles.emptyTitle}>Araç Atanmamış</Text>
+        <Text style={styles.emptyTitle}>{t("vehicle.notAssigned")}</Text>
         <Text style={styles.emptySubtitle}>
-          Size henüz bir araç atanmamış. Yöneticinizle iletişime geçin.
+          {t("vehicle.notAssignedMessage")}
         </Text>
       </View>
     );
   }
 
-  // Fuel percent calculation: handle liters + capacity → percent
-  const fuelLevel = vehicle.fuel_level ?? vehicle.fuelLevel ?? 0; // liters or percent depending on backend
-  const fuelCapacity = vehicle.fuel_capacity ?? vehicle.fuelCapacity ?? 100; // fallback capacity
+  const fuelLevel = vehicle.fuel_level ?? vehicle.fuelLevel ?? 0;
+  const fuelCapacity = vehicle.fuel_capacity ?? vehicle.fuelCapacity ?? 100;
   const safeCapacity = fuelCapacity > 0 ? fuelCapacity : 100;
   const fuelPercent = Math.min(
     100,
@@ -140,7 +136,7 @@ const DriverVehicle = ({ navigation }) => {
       }
       showsVerticalScrollIndicator={false}
     >
-      {/* Araç Kartı */}
+      {/* Vehicle Card */}
       <View style={styles.vehicleCard}>
         <View style={styles.vehicleIconContainer}>
           <Ionicons name="car-sport" size={48} color={COLORS.primary} />
@@ -150,8 +146,6 @@ const DriverVehicle = ({ navigation }) => {
           {vehicle.brand} {vehicle.model}
         </Text>
         <Text style={styles.vehicleYear}>{vehicle.year}</Text>
-
-        {/* ESP32 Durumu */}
         <View style={styles.connectionStatus}>
           <Ionicons
             name={vehicle.esp32_connected ? "wifi" : "wifi-outline"}
@@ -166,16 +160,18 @@ const DriverVehicle = ({ navigation }) => {
               },
             ]}
           >
-            {vehicle.esp32_connected ? "Bağlı" : "Bağlantı Yok"}
+            {vehicle.esp32_connected
+              ? t("vehicle.connected")
+              : t("vehicle.noConnection")}
           </Text>
         </View>
       </View>
 
-      {/* Yakıt Göstergesi */}
+      {/* Fuel Card */}
       <View style={styles.fuelCard}>
         <View style={styles.fuelHeader}>
           <Ionicons name="water" size={24} color={fuelColor} />
-          <Text style={styles.fuelTitle}>Yakıt Seviyesi</Text>
+          <Text style={styles.fuelTitle}>{t("vehicle.fuelLevel")}</Text>
         </View>
         <View style={styles.fuelBarContainer}>
           <View
@@ -193,12 +189,12 @@ const DriverVehicle = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Bilgi Kartları */}
+      {/* Info Cards */}
       <View style={styles.infoGrid}>
         <InfoCard
           icon="speedometer"
           iconColor={COLORS.info}
-          title="Kilometre"
+          title={t("vehicle.mileage")}
           value={`${(
             vehicle.current_km ||
             vehicle.total_km ||
@@ -209,7 +205,7 @@ const DriverVehicle = ({ navigation }) => {
         <InfoCard
           icon="calendar"
           iconColor={COLORS.primary}
-          title="Model Yılı"
+          title={t("vehicle.modelYear")}
           value={vehicle.year || "-"}
         />
       </View>
@@ -218,48 +214,52 @@ const DriverVehicle = ({ navigation }) => {
         <InfoCard
           icon="color-palette"
           iconColor={COLORS.warning}
-          title="Renk"
+          title={t("vehicle.color")}
           value={vehicle.color || "-"}
         />
         <InfoCard
           icon="hardware-chip"
           iconColor={COLORS.success}
-          title="ESP32"
-          value={vehicle.esp32_device_id ? "Bağlı" : "Yok"}
+          title={t("vehicle.esp32")}
+          value={
+            vehicle.esp32_device_id ? t("vehicle.connected") : t("vehicle.none")
+          }
           subtitle={vehicle.esp32_device_id?.substring(0, 8) || ""}
         />
       </View>
 
-      {/* Detaylar */}
+      {/* Details Card */}
       <View style={styles.detailsCard}>
-        <Text style={styles.detailsTitle}>Araç Detayları</Text>
+        <Text style={styles.detailsTitle}>{t("vehicle.vehicleDetails")}</Text>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Plaka</Text>
+          <Text style={styles.detailLabel}>{t("vehicle.plate")}</Text>
           <Text style={styles.detailValue}>{vehicle.plate_no}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Marka</Text>
+          <Text style={styles.detailLabel}>{t("vehicle.brand")}</Text>
           <Text style={styles.detailValue}>{vehicle.brand || "-"}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Model</Text>
+          <Text style={styles.detailLabel}>{t("vehicle.model")}</Text>
           <Text style={styles.detailValue}>{vehicle.model || "-"}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Yıl</Text>
+          <Text style={styles.detailLabel}>{t("vehicle.year")}</Text>
           <Text style={styles.detailValue}>{vehicle.year || "-"}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Durum</Text>
+          <Text style={styles.detailLabel}>{t("vehicle.status")}</Text>
           <View
             style={[styles.statusBadge, { backgroundColor: COLORS.success }]}
           >
-            <Text style={styles.statusText}>{vehicle.status || "Aktif"}</Text>
+            <Text style={styles.statusText}>
+              {vehicle.status || t("vehicle.active")}
+            </Text>
           </View>
         </View>
 
@@ -271,17 +271,13 @@ const DriverVehicle = ({ navigation }) => {
         )}
       </View>
 
-      {/* Spacer */}
       <View style={{ height: 30 }} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
@@ -289,8 +285,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     padding: 20,
   },
-
-  // Vehicle Card
   vehicleCard: {
     backgroundColor: COLORS.primary,
     alignItems: "center",
@@ -312,16 +306,8 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     letterSpacing: 2,
   },
-  vehicleModel: {
-    fontSize: 18,
-    color: "rgba(255,255,255,0.9)",
-    marginTop: 8,
-  },
-  vehicleYear: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 4,
-  },
+  vehicleModel: { fontSize: 18, color: "rgba(255,255,255,0.9)", marginTop: 8 },
+  vehicleYear: { fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 },
   connectionStatus: {
     flexDirection: "row",
     alignItems: "center",
@@ -331,13 +317,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
   },
-  connectionText: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-
-  // Fuel Card
+  connectionText: { fontSize: 12, fontWeight: "600", marginLeft: 6 },
   fuelCard: {
     backgroundColor: COLORS.white,
     margin: 12,
@@ -349,11 +329,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  fuelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
+  fuelHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   fuelTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -366,23 +342,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     overflow: "hidden",
   },
-  fuelBar: {
-    height: "100%",
-    borderRadius: 6,
-  },
+  fuelBar: { height: "100%", borderRadius: 6 },
   fuelPercentage: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 12,
   },
-
-  // Info Grid
-  infoGrid: {
-    flexDirection: "row",
-    paddingHorizontal: 12,
-    marginBottom: 12,
-  },
+  infoGrid: { flexDirection: "row", paddingHorizontal: 12, marginBottom: 12 },
   infoCard: {
     flex: 1,
     backgroundColor: COLORS.white,
@@ -404,23 +371,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  infoTitle: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.dark,
-  },
-  infoSubtitle: {
-    fontSize: 11,
-    color: COLORS.muted,
-    marginTop: 2,
-  },
-
-  // Details Card
+  infoTitle: { fontSize: 12, color: COLORS.secondary, marginBottom: 4 },
+  infoValue: { fontSize: 18, fontWeight: "bold", color: COLORS.dark },
+  infoSubtitle: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
   detailsCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 12,
@@ -446,27 +399,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.background,
   },
-  detailLabel: {
-    fontSize: 14,
-    color: COLORS.secondary,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.dark,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  // Empty & Error States
+  detailLabel: { fontSize: 14, color: COLORS.secondary },
+  detailValue: { fontSize: 14, fontWeight: "500", color: COLORS.dark },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  statusText: { color: COLORS.white, fontSize: 12, fontWeight: "600" },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "bold",
@@ -486,11 +422,7 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     marginTop: 16,
   },
-  errorText: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    marginTop: 8,
-  },
+  errorText: { fontSize: 14, color: COLORS.secondary, marginTop: 8 },
   retryButton: {
     marginTop: 20,
     backgroundColor: COLORS.primary,
@@ -498,14 +430,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  retryButtonText: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  loadingText: {
-    marginTop: 12,
-    color: COLORS.secondary,
-  },
+  retryButtonText: { color: COLORS.white, fontWeight: "600" },
+  loadingText: { marginTop: 12, color: COLORS.secondary },
 });
 
 export default DriverVehicle;

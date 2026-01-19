@@ -1,12 +1,13 @@
 // src/screens/driver/DriverWelcomeScreen.js
 // TulipFleet - Premium Welcome Screen with Video Background
-// Version: 4.0 - Tap anywhere to continue
+// Version: 4.1 - Full i18n Support
 
 import { Ionicons } from "@expo/vector-icons";
 import { CommonActions } from "@react-navigation/native";
 import { ResizeMode, Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   Dimensions,
@@ -22,6 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 const { width, height } = Dimensions.get("window");
 
 const DriverWelcomeScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
@@ -37,15 +39,16 @@ const DriverWelcomeScreen = ({ navigation }) => {
   const autoTimerRef = useRef(null);
 
   // Get first name or fallback
-  const firstName = user?.first_name || user?.email?.split("@")[0] || "Sürücü";
+  const firstName =
+    user?.first_name || user?.email?.split("@")[0] || t("welcome.driver");
 
   // Time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Günaydın";
-    if (hour >= 12 && hour < 18) return "İyi günler";
-    if (hour >= 18 && hour < 22) return "İyi akşamlar";
-    return "İyi geceler";
+    if (hour >= 5 && hour < 12) return t("welcome.goodMorning");
+    if (hour >= 12 && hour < 18) return t("welcome.goodAfternoon");
+    if (hour >= 18 && hour < 22) return t("welcome.goodEvening");
+    return t("welcome.goodNight");
   };
 
   useEffect(() => {
@@ -175,7 +178,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
             {/* Decorative line */}
             <View style={styles.decorativeLine} />
 
-            <Text style={styles.subtitle}>Sürücü paneline hoş geldin</Text>
+            <Text style={styles.subtitle}>{t("welcome.subtitle")}</Text>
           </Animated.View>
 
           {/* Bottom Section - Stats Only */}
@@ -191,17 +194,19 @@ const DriverWelcomeScreen = ({ navigation }) => {
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
                 <Ionicons name="checkmark-circle" size={20} color="#2DCE89" />
-                <Text style={styles.statText}>Görevler hazır</Text>
+                <Text style={styles.statText}>{t("welcome.tasksReady")}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Ionicons name="car" size={20} color="#11CDEF" />
-                <Text style={styles.statText}>Araç aktif</Text>
+                <Text style={styles.statText}>
+                  {t("welcome.vehicleActive")}
+                </Text>
               </View>
             </View>
 
             {/* Tap hint */}
-            <Text style={styles.tapHint}>Devam etmek için dokun</Text>
+            <Text style={styles.tapHint}>{t("welcome.tapToContinue")}</Text>
           </Animated.View>
         </View>
       </View>

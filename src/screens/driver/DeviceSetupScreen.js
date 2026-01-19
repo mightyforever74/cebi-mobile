@@ -7,6 +7,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -52,6 +53,7 @@ const STEPS = {
 
 export default function DeviceSetupScreen({ navigation }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   // WiFi Form State
   const [wifiSsid, setWifiSsid] = useState("");
@@ -140,7 +142,10 @@ export default function DeviceSetupScreen({ navigation }) {
             currentStep === STEPS.WIFI_FORM ||
             currentStep === STEPS.WIFI_PROVISIONING)
         ) {
-          setError("Bağlantı koptu: " + (err?.message || "Bilinmeyen hata"));
+          setError(
+            t("deviceSetup.connection.disconnected") +
+              (err?.message || t("deviceSetup.connection.unknownError"))
+          );
           setStep(STEPS.ERROR);
         }
       });
@@ -149,11 +154,14 @@ export default function DeviceSetupScreen({ navigation }) {
         console.log("[Setup] BLE State:", state);
         if (state === "PoweredOff") {
           Alert.alert(
-            "Bluetooth Kapalı",
-            "Cihaz kurulumu için Bluetooth'u açın",
+            t("deviceSetup.bluetooth.off"),
+            t("deviceSetup.bluetooth.offMessage"),
             [
-              { text: "Ayarlar", onPress: openSettings },
-              { text: "İptal", style: "cancel" },
+              {
+                text: t("deviceSetup.buttons.settings"),
+                onPress: openSettings,
+              },
+              { text: t("deviceSetup.buttons.cancel"), style: "cancel" },
             ]
           );
         }
@@ -167,34 +175,34 @@ export default function DeviceSetupScreen({ navigation }) {
   const handleBLEError = (e) => {
     const errorMessages = {
       BLUETOOTH_OFF: {
-        title: "Bluetooth Kapalı",
-        message: "Cihaz kurulumu için Bluetooth'u açın",
+        title: t("deviceSetup.bluetooth.off"),
+        message: t("deviceSetup.bluetooth.offMessage"),
         showSettings: true,
       },
       BLUETOOTH_UNAUTHORIZED: {
-        title: "Bluetooth İzni Gerekli",
-        message: "Ayarlardan Bluetooth iznini verin",
+        title: t("deviceSetup.bluetooth.unauthorized"),
+        message: t("deviceSetup.bluetooth.unauthorizedMessage"),
         showSettings: true,
       },
       BLUETOOTH_UNSUPPORTED: {
-        title: "Bluetooth Desteklenmiyor",
-        message: "Bu cihaz Bluetooth Low Energy desteklemiyor",
+        title: t("deviceSetup.bluetooth.unsupported"),
+        message: t("deviceSetup.bluetooth.unsupportedMessage"),
         showSettings: false,
       },
       PERMISSIONS_DENIED: {
-        title: "İzin Gerekli",
-        message: "Bluetooth ve konum izinlerini verin",
+        title: t("deviceSetup.bluetooth.permissionsDenied"),
+        message: t("deviceSetup.bluetooth.permissionsDeniedMessage"),
         showSettings: true,
       },
       LOCATION_PERMISSION_DENIED: {
-        title: "Konum İzni Gerekli",
-        message: "Bluetooth taraması için konum izni gerekli",
+        title: t("deviceSetup.bluetooth.locationDenied"),
+        message: t("deviceSetup.bluetooth.locationDeniedMessage"),
         showSettings: true,
       },
     };
 
     const info = errorMessages[e.message] || {
-      title: "Bluetooth Hatası",
+      title: t("deviceSetup.bluetooth.error"),
       message: e.message,
       showSettings: false,
     };
@@ -204,10 +212,10 @@ export default function DeviceSetupScreen({ navigation }) {
       info.message,
       info.showSettings
         ? [
-            { text: "Ayarlar", onPress: openSettings },
-            { text: "İptal", style: "cancel" },
+            { text: t("deviceSetup.buttons.settings"), onPress: openSettings },
+            { text: t("deviceSetup.buttons.cancel"), style: "cancel" },
           ]
-        : [{ text: "Tamam" }]
+        : [{ text: t("deviceSetup.buttons.ok") }]
     );
   };
 
@@ -268,11 +276,17 @@ export default function DeviceSetupScreen({ navigation }) {
             "-";
 
           Alert.alert(
-            "Kurulum Gerekli Değil ✅",
-            `Aracınıza bağlı cihaz aktif durumda.\n\nCihaz: ${deviceSerial}\nPlaka: ${
-              response.vehicle?.plate || "-"
-            }`,
-            [{ text: "Tamam", onPress: () => navigation.goBack() }]
+            t("deviceSetup.setupNotRequired"),
+            t("deviceSetup.deviceActiveMessage", {
+              serial: deviceSerial,
+              plate: response.vehicle?.plate || "-",
+            }),
+            [
+              {
+                text: t("deviceSetup.buttons.ok"),
+                onPress: () => navigation.goBack(),
+              },
+            ]
           );
           return;
         }
@@ -353,9 +367,14 @@ export default function DeviceSetupScreen({ navigation }) {
 
       if (!serialRegex.test(data)) {
         Alert.alert(
-          "Geçersiz QR Kod",
-          "QR kod formatı tanınmadı. Lütfen cihaz üzerindeki QR kodu okutun.",
-          [{ text: "Tamam", onPress: () => setScanned(false) }]
+          t("deviceSetup.qr.invalidCode"),
+          t("deviceSetup.qr.invalidCodeMessage"),
+          [
+            {
+              text: t("deviceSetup.buttons.ok"),
+              onPress: () => setScanned(false),
+            },
+          ]
         );
         return;
       }
@@ -376,9 +395,14 @@ export default function DeviceSetupScreen({ navigation }) {
 
       if (!bleInitialized) {
         Alert.alert(
-          "Bluetooth Hazır Değil",
-          "Bluetooth başlatılırken bekleyin...",
-          [{ text: "Tamam", onPress: () => setScanned(false) }]
+          t("deviceSetup.bluetooth.notReady"),
+          t("deviceSetup.bluetooth.notReadyMessage"),
+          [
+            {
+              text: t("deviceSetup.buttons.ok"),
+              onPress: () => setScanned(false),
+            },
+          ]
         );
         return;
       }
@@ -399,9 +423,9 @@ export default function DeviceSetupScreen({ navigation }) {
 
     if (!serialRegex.test(data)) {
       Alert.alert(
-        "Geçersiz Serial",
-        "Serial formatı hatalı. Örnek: TF-2025-00008-5",
-        [{ text: "Tamam" }]
+        t("deviceSetup.serial.invalid"),
+        t("deviceSetup.serial.invalidFormat"),
+        [{ text: t("deviceSetup.buttons.ok") }]
       );
       return;
     }
@@ -511,11 +535,17 @@ export default function DeviceSetupScreen({ navigation }) {
 
   const handleWifiFormSubmit = async () => {
     if (!wifiSsid || wifiSsid.trim().length === 0) {
-      Alert.alert("Hata", "WiFi ağ adı (SSID) boş olamaz");
+      Alert.alert(
+        t("taskDetail.actions.error"),
+        t("deviceSetup.wifi.emptySSID")
+      );
       return;
     }
     if (!wifiPassword || wifiPassword.length < 8) {
-      Alert.alert("Hata", "WiFi şifresi en az 8 karakter olmalı");
+      Alert.alert(
+        t("taskDetail.actions.error"),
+        t("deviceSetup.wifi.shortPassword")
+      );
       return;
     }
 
@@ -585,7 +615,7 @@ export default function DeviceSetupScreen({ navigation }) {
       if (activationResult.success) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
-        setStatus("Cihaz başarıyla aktive edildi!");
+        setStatus(t("deviceSetup.activation.successStatus"));
 
         setTimeout(async () => {
           await bleService.disconnect();
@@ -599,7 +629,7 @@ export default function DeviceSetupScreen({ navigation }) {
       ) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
-        setStatus("Cihaz aktive edildi!");
+        setStatus(t("deviceSetup.activation.successStatus"));
 
         setTimeout(async () => {
           await bleService.disconnect();
@@ -613,7 +643,7 @@ export default function DeviceSetupScreen({ navigation }) {
       // Even if backend fails, WiFi provisioning succeeded; treat as success
       await saveProvisionData(serial);
       setStep(STEPS.SUCCESS);
-      setStatus("Cihaz aktive edildi!\n(Backend doğrulaması sonra yapılacak)");
+      setStatus(t("deviceSetup.activation.successPending"));
 
       setTimeout(async () => {
         await bleService.disconnect();
@@ -649,35 +679,35 @@ export default function DeviceSetupScreen({ navigation }) {
 
   const getStatusText = (s) => {
     const map = {
-      [BLE_STATUS.WAITING_SERIAL]: "Serial bekleniyor",
-      [BLE_STATUS.SERIAL_RECEIVED]: "Serial alındı",
-      [BLE_STATUS.ACTIVATING]: "Aktivasyon başlıyor...",
-      [BLE_STATUS.WIFI_CONNECTING]: "WiFi bağlanıyor...",
-      [BLE_STATUS.WIFI_CONNECTED]: "WiFi bağlandı",
-      [BLE_STATUS.CALLING_API]: "Sunucu ile iletişim...",
-      [BLE_STATUS.API_SUCCESS]: "Sunucu onayladı",
-      [BLE_STATUS.API_FAILED]: "Sunucu hatası",
-      [BLE_STATUS.SAVING_NVS]: "Kaydediliyor...",
-      [BLE_STATUS.COMPLETE]: "Tamamlandı",
-      WAITING_SERIAL: "Serial bekleniyor",
-      ACTIVATING: "Aktivasyon başlıyor...",
-      WIFI_CRED_RECEIVED: "WiFi bilgileri alındı",
-      WIFI_PROVISION_OK: "WiFi bağlantısı başarılı",
-      WIFI_PROVISION_FAIL: "WiFi bağlantısı başarısız",
+      [BLE_STATUS.WAITING_SERIAL]: t("deviceSetup.status.waitingSerial"),
+      [BLE_STATUS.SERIAL_RECEIVED]: t("deviceSetup.status.serialReceived"),
+      [BLE_STATUS.ACTIVATING]: t("deviceSetup.status.activating"),
+      [BLE_STATUS.WIFI_CONNECTING]: t("deviceSetup.status.wifiConnecting"),
+      [BLE_STATUS.WIFI_CONNECTED]: t("deviceSetup.status.wifiConnected"),
+      [BLE_STATUS.CALLING_API]: t("deviceSetup.status.callingApi"),
+      [BLE_STATUS.API_SUCCESS]: t("deviceSetup.status.apiSuccess"),
+      [BLE_STATUS.API_FAILED]: t("deviceSetup.status.apiFailed"),
+      [BLE_STATUS.SAVING_NVS]: t("deviceSetup.status.savingNvs"),
+      [BLE_STATUS.COMPLETE]: t("deviceSetup.status.complete"),
+      WAITING_SERIAL: t("deviceSetup.status.waitingSerial"),
+      ACTIVATING: t("deviceSetup.status.activating"),
+      WIFI_CRED_RECEIVED: t("deviceSetup.status.wifiCredReceived"),
+      WIFI_PROVISION_OK: t("deviceSetup.status.wifiProvisionOk"),
+      WIFI_PROVISION_FAIL: t("deviceSetup.status.wifiProvisionFail"),
     };
     return map[s] || s;
   };
 
   const getStepTitle = (st) => {
     const titles = {
-      [STEPS.QR_SCAN]: "QR Kod Okutun",
-      [STEPS.BLE_SCAN]: "Cihaz Aranıyor",
-      [STEPS.CONNECTING]: "Bağlanıyor",
-      [STEPS.WIFI_FORM]: "WiFi Ayarları",
-      [STEPS.WIFI_PROVISIONING]: "WiFi Bağlantısı",
-      [STEPS.ACTIVATING]: "Aktive Ediliyor",
-      [STEPS.SUCCESS]: "Tamamlandı",
-      [STEPS.ERROR]: "Hata",
+      [STEPS.QR_SCAN]: t("deviceSetup.steps.qrScan"),
+      [STEPS.BLE_SCAN]: t("deviceSetup.steps.bleScan"),
+      [STEPS.CONNECTING]: t("deviceSetup.steps.connecting"),
+      [STEPS.WIFI_FORM]: t("deviceSetup.steps.wifiForm"),
+      [STEPS.WIFI_PROVISIONING]: t("deviceSetup.steps.wifiProvisioning"),
+      [STEPS.ACTIVATING]: t("deviceSetup.steps.activating"),
+      [STEPS.SUCCESS]: t("deviceSetup.steps.success"),
+      [STEPS.ERROR]: t("deviceSetup.steps.error"),
     };
     return titles[st] || "";
   };
@@ -706,7 +736,7 @@ export default function DeviceSetupScreen({ navigation }) {
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={COLORS.PRIMARY} />
           <Text style={styles.loadingText}>
-            Cihaz durumu kontrol ediliyor...
+            {t("deviceSetup.checkingStatus")}
           </Text>
         </View>
       </SafeAreaView>
@@ -718,8 +748,12 @@ export default function DeviceSetupScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <Text style={styles.skipIcon}>🔄</Text>
-          <Text style={styles.skipTitle}>Cihaz Yeniden Kurulumu</Text>
-          <Text style={styles.skipText}>{skipReason}</Text>
+          <Text style={styles.skipTitle}>
+            {t("deviceSetup.deviceReinstall")}
+          </Text>
+          <Text style={styles.skipText}>
+            {t("deviceSetup.deviceWaitingReinstall")}
+          </Text>
           <Text style={styles.skipSerial}>{serial}</Text>
           <ActivityIndicator
             size="small"
@@ -736,7 +770,7 @@ export default function DeviceSetupScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>Yükleniyor...</Text>
+          <Text style={styles.loadingText}>{t("deviceSetup.loading")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -747,15 +781,19 @@ export default function DeviceSetupScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <Text style={styles.permissionIcon}>📷</Text>
-          <Text style={styles.permissionTitle}>Kamera İzni Gerekli</Text>
+          <Text style={styles.permissionTitle}>
+            {t("deviceSetup.camera.permissionRequired")}
+          </Text>
           <Text style={styles.permissionText}>
-            QR kod okumak için kamera izni vermeniz gerekiyor.
+            {t("deviceSetup.camera.permissionMessage")}
           </Text>
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={requestCameraPermission}
           >
-            <Text style={styles.primaryButtonText}>İzin Ver</Text>
+            <Text style={styles.primaryButtonText}>
+              {t("deviceSetup.camera.grantPermission")}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -776,7 +814,7 @@ export default function DeviceSetupScreen({ navigation }) {
         </TouchableOpacity>
 
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Cihaz Kurulumu</Text>
+          <Text style={styles.title}>{t("deviceSetup.title")}</Text>
           <Text style={styles.subtitle}>{getStepTitle(step)}</Text>
         </View>
 
@@ -823,9 +861,7 @@ export default function DeviceSetupScreen({ navigation }) {
               </View>
             </View>
             <View style={styles.hintContainer}>
-              <Text style={styles.hint}>
-                📱 Cihaz üzerindeki QR kodu okutun
-              </Text>
+              <Text style={styles.hint}>{t("deviceSetup.qr.scanHint")}</Text>
             </View>
 
             <TouchableOpacity
@@ -833,7 +869,7 @@ export default function DeviceSetupScreen({ navigation }) {
               onPress={() => setShowManualInput(true)}
             >
               <Text style={styles.manualEntryButtonText}>
-                ⌨️ Manuel Serial Giriş
+                {t("deviceSetup.qr.manualEntry")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -851,10 +887,10 @@ export default function DeviceSetupScreen({ navigation }) {
               <View style={styles.emptyState}>
                 <ActivityIndicator size="large" color={COLORS.PRIMARY} />
                 <Text style={styles.emptyText}>
-                  Bluetooth cihazları aranıyor...
+                  {t("deviceSetup.ble.searchingBluetooth")}
                 </Text>
                 <Text style={styles.emptyHint}>
-                  ESP32 cihazının açık ve yakında olduğundan emin olun
+                  {t("deviceSetup.ble.deviceHint")}
                 </Text>
               </View>
             ) : (
@@ -891,10 +927,10 @@ export default function DeviceSetupScreen({ navigation }) {
                       </Text>
                       <Text style={styles.rssiLabel}>
                         {item.rssi > -60
-                          ? "🟢 Güçlü"
+                          ? t("deviceSetup.ble.strong")
                           : item.rssi > -80
-                          ? "🟡 Orta"
-                          : "🔴 Zayıf"}
+                          ? t("deviceSetup.ble.medium")
+                          : t("deviceSetup.ble.weak")}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -907,7 +943,9 @@ export default function DeviceSetupScreen({ navigation }) {
               style={styles.secondaryButton}
               onPress={stopAndRescan}
             >
-              <Text style={styles.secondaryButtonText}>🔄 Tekrar Tara</Text>
+              <Text style={styles.secondaryButtonText}>
+                {t("deviceSetup.ble.rescan")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -937,18 +975,22 @@ export default function DeviceSetupScreen({ navigation }) {
                 <Text style={{ fontSize: 50 }}>📶</Text>
               </View>
 
-              <Text style={styles.wifiTitle}>WiFi Bağlantısı</Text>
+              <Text style={styles.wifiTitle}>
+                {t("deviceSetup.wifi.title")}
+              </Text>
               <Text style={styles.wifiSubtitle}>
-                ESP32 cihazının bağlanacağı WiFi ağ bilgilerini girin
+                {t("deviceSetup.wifi.subtitle")}
               </Text>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>WiFi Ağ Adı (SSID)</Text>
+                <Text style={styles.inputLabel}>
+                  {t("deviceSetup.wifi.ssidLabel")}
+                </Text>
                 <TextInput
                   style={styles.wifiInput}
                   value={wifiSsid}
                   onChangeText={setWifiSsid}
-                  placeholder="Örn: Ev_WiFi"
+                  placeholder={t("deviceSetup.wifi.ssidPlaceholder")}
                   placeholderTextColor="#ADB5BD"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -959,20 +1001,22 @@ export default function DeviceSetupScreen({ navigation }) {
                     onPress={() => setWifiSsid(lastUsedSsid)}
                   >
                     <Text style={styles.lastSsidText}>
-                      Son kullanılan: {lastUsedSsid}
+                      {t("deviceSetup.wifi.lastUsed", { ssid: lastUsedSsid })}
                     </Text>
                   </TouchableOpacity>
                 )}
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>WiFi Şifresi</Text>
+                <Text style={styles.inputLabel}>
+                  {t("deviceSetup.wifi.passwordLabel")}
+                </Text>
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={styles.passwordInput}
                     value={wifiPassword}
                     onChangeText={setWifiPassword}
-                    placeholder="En az 8 karakter"
+                    placeholder={t("deviceSetup.wifi.passwordPlaceholder")}
                     placeholderTextColor="#ADB5BD"
                     secureTextEntry={!showWifiPassword}
                     autoCapitalize="none"
@@ -991,8 +1035,7 @@ export default function DeviceSetupScreen({ navigation }) {
 
               <View style={styles.wifiHintBox}>
                 <Text style={styles.wifiHintText}>
-                  💡 Cihaz bu WiFi ağına bağlanarak veri gönderecek. Ağın 2.4GHz
-                  olduğundan emin olun (5GHz desteklenmez).
+                  {t("deviceSetup.wifi.hint")}
                 </Text>
               </View>
 
@@ -1005,7 +1048,9 @@ export default function DeviceSetupScreen({ navigation }) {
                 onPress={handleWifiFormSubmit}
                 disabled={!wifiSsid || wifiPassword.length < 8}
               >
-                <Text style={styles.primaryButtonText}>Bağlan</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t("deviceSetup.wifi.connect")}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -1017,11 +1062,15 @@ export default function DeviceSetupScreen({ navigation }) {
             <View style={styles.progressCircle}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
             </View>
-            <Text style={styles.wifiConnectingTitle}>📶 WiFi Bağlantısı</Text>
+            <Text style={styles.wifiConnectingTitle}>
+              {t("deviceSetup.wifi.connecting")}
+            </Text>
             <Text style={styles.wifiConnectingStatus}>{wifiStatus}</Text>
-            <Text style={styles.wifiConnectingSsid}>Ağ: {wifiSsid}</Text>
+            <Text style={styles.wifiConnectingSsid}>
+              {t("deviceSetup.wifi.network", { ssid: wifiSsid })}
+            </Text>
             <Text style={styles.activatingHint}>
-              ESP32 cihazı WiFi ağına bağlanıyor, lütfen bekleyin...
+              {t("deviceSetup.wifi.deviceConnecting")}
             </Text>
           </View>
         )}
@@ -1035,7 +1084,7 @@ export default function DeviceSetupScreen({ navigation }) {
             <Text style={styles.activatingDevice}>{selectedDevice?.name}</Text>
             <Text style={styles.activatingStatus}>{status}</Text>
             <Text style={styles.activatingHint}>
-              Cihaz sunucu ile iletişim kuruyor...
+              {t("deviceSetup.activation.serverCommunication")}
             </Text>
           </View>
         )}
@@ -1046,13 +1095,17 @@ export default function DeviceSetupScreen({ navigation }) {
             <View style={styles.successCircle}>
               <Text style={styles.successIcon}>✓</Text>
             </View>
-            <Text style={styles.resultTitle}>Kurulum Tamamlandı!</Text>
+            <Text style={styles.resultTitle}>
+              {t("deviceSetup.result.setupComplete")}
+            </Text>
             <Text style={styles.resultSerial}>{serial}</Text>
             <Text style={styles.resultMessage}>
-              Cihaz başarıyla aktive edildi ve kullanıma hazır.
+              {t("deviceSetup.result.deviceReady")}
             </Text>
             <TouchableOpacity style={styles.primaryButton} onPress={handleDone}>
-              <Text style={styles.primaryButtonText}>Tamam</Text>
+              <Text style={styles.primaryButtonText}>
+                {t("deviceSetup.result.done")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1063,16 +1116,22 @@ export default function DeviceSetupScreen({ navigation }) {
             <View style={styles.errorCircle}>
               <Text style={styles.errorIcon}>✗</Text>
             </View>
-            <Text style={styles.resultTitle}>Hata Oluştu</Text>
+            <Text style={styles.resultTitle}>
+              {t("deviceSetup.result.errorOccurred")}
+            </Text>
             <Text style={styles.errorMessage}>{error}</Text>
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={handleRetry}
             >
-              <Text style={styles.primaryButtonText}>Tekrar Dene</Text>
+              <Text style={styles.primaryButtonText}>
+                {t("deviceSetup.result.retry")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.linkButton} onPress={handleDone}>
-              <Text style={styles.linkButtonText}>Vazgeç</Text>
+              <Text style={styles.linkButtonText}>
+                {t("deviceSetup.result.cancel")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1090,8 +1149,12 @@ export default function DeviceSetupScreen({ navigation }) {
           style={styles.modalOverlay}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Serial Numarası Girin</Text>
-            <Text style={styles.modalSubtitle}>Örnek: TF-2025-00008-5</Text>
+            <Text style={styles.modalTitle}>
+              {t("deviceSetup.serial.enterSerial")}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {t("deviceSetup.serial.example")}
+            </Text>
 
             <TextInput
               style={styles.modalInput}
@@ -1112,14 +1175,18 @@ export default function DeviceSetupScreen({ navigation }) {
                   setManualSerial("");
                 }}
               >
-                <Text style={styles.modalCancelButtonText}>İptal</Text>
+                <Text style={styles.modalCancelButtonText}>
+                  {t("deviceSetup.buttons.cancel")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.modalSubmitButton}
                 onPress={handleManualSerialSubmit}
               >
-                <Text style={styles.modalSubmitButtonText}>Devam</Text>
+                <Text style={styles.modalSubmitButtonText}>
+                  {t("deviceSetup.buttons.continue")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

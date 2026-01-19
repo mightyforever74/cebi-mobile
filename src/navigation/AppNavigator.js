@@ -5,6 +5,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   ScrollView,
@@ -75,28 +76,31 @@ import EditProfileScreen from "../screens/shared/EditProfileScreen";
 // ============================================================================
 // PLACEHOLDER SCREENS (Henüz oluşturulmamış ekranlar için)
 // ============================================================================
-const PlaceholderScreen = ({ title, icon, description }) => (
-  <View style={styles.placeholderContainer}>
-    <Ionicons name={icon || "construct-outline"} size={64} color="#5E72E4" />
-    <Text style={styles.placeholderTitle}>{title}</Text>
-    <Text style={styles.placeholderDesc}>
-      {description || "Bu ekran yakında eklenecek"}
-    </Text>
-  </View>
-);
+const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.placeholderContainer}>
+      <Ionicons name={icon || "construct-outline"} size={64} color="#5E72E4" />
+      <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
+      <Text style={styles.placeholderDesc}>
+        {t(descriptionKey) || t("navigator.placeholder.comingSoon")}
+      </Text>
+    </View>
+  );
+};
 
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
-    title="Platform Raporları"
+    titleKey="navigator.placeholder.platformReports"
     icon="bar-chart-outline"
-    description="Aggregate istatistikler"
+    descriptionKey="navigator.placeholder.aggregateStats"
   />
 );
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
-    title="Platform Ayarları"
+    titleKey="navigator.placeholder.platformSettings"
     icon="settings-outline"
-    description="Sistem konfigürasyonu"
+    descriptionKey="navigator.placeholder.systemConfig"
   />
 );
 
@@ -105,16 +109,16 @@ const PlatformSettingsScreen = () => (
 // Driver Placeholders
 const DriverHistoryScreen = () => (
   <PlaceholderScreen
-    title="Görev Geçmişi"
+    titleKey="navigator.placeholder.taskHistory"
     icon="time-outline"
-    description="Tamamlanan görevler"
+    descriptionKey="navigator.placeholder.completedTasks"
   />
 );
 const DriverSOSScreen = () => (
   <PlaceholderScreen
-    title="Acil Durum"
+    titleKey="navigator.placeholder.emergency"
     icon="warning-outline"
-    description="SOS gönder"
+    descriptionKey="navigator.placeholder.sendSOS"
   />
 );
 
@@ -123,32 +127,29 @@ const DriverSOSScreen = () => (
 // ============================================================================
 const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
-    Alert.alert(
-      "Çıkış Yap",
-      "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Çıkış Yap",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-          },
+    Alert.alert(t("navigator.logout"), t("navigator.logoutConfirm"), [
+      { text: t("navigator.cancel"), style: "cancel" },
+      {
+        text: t("navigator.logout"),
+        style: "destructive",
+        onPress: async () => {
+          await logout();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getRoleDisplayName = () => {
     switch (user?.role) {
       case "super_admin":
-        return "Super Admin";
+        return t("navigator.roles.super_admin");
       case "company_admin":
-        return "Yönetici";
+        return t("navigator.roles.company_admin");
       case "driver":
-        return "Sürücü";
+        return t("navigator.roles.driver");
       default:
         return user?.role;
     }
@@ -228,7 +229,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.logoutText}>Çıkış Yap</Text>
+          <Text style={styles.logoutText}>{t("navigator.logout")}</Text>
         </TouchableOpacity>
 
         {/* Version Info */}
@@ -262,12 +263,50 @@ const superAdminMenuItems = [
 ];
 
 const SuperAdminNavigator = () => {
+  const { t } = useTranslation();
+  const menuItems = [
+    {
+      name: "SuperAdminDashboard",
+      label: t("navigator.superAdmin.dashboard"),
+      icon: "globe-outline",
+    },
+    {
+      name: "Companies",
+      label: t("navigator.superAdmin.companies"),
+      icon: "business-outline",
+    },
+    {
+      name: "Devices",
+      label: t("navigator.superAdmin.devices"),
+      icon: "hardware-chip-outline",
+    },
+    {
+      name: "DeviceQRManagement",
+      label: t("navigator.superAdmin.qrManagement"),
+      icon: "qr-code-outline",
+    },
+    {
+      name: "DeviceSetup",
+      label: t("navigator.superAdmin.deviceSetup"),
+      icon: "bluetooth-outline",
+    },
+    {
+      name: "PlatformUsers",
+      label: t("navigator.superAdmin.platformUsers"),
+      icon: "people-outline",
+    },
+    {
+      name: "SystemHealth",
+      label: t("navigator.superAdmin.systemHealth"),
+      icon: "pulse-outline",
+    },
+  ];
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
         <CustomDrawerContent
           {...props}
-          menuItems={superAdminMenuItems}
+          menuItems={menuItems}
           headerColor="#F5365C"
         />
       )}
@@ -359,12 +398,60 @@ const companyAdminMenuItems = [
 ];
 
 const CompanyAdminNavigator = () => {
+  const { t } = useTranslation();
+  const menuItems = [
+    {
+      name: "AdminDashboard",
+      label: t("navigator.companyAdmin.dashboard"),
+      icon: "speedometer-outline",
+    },
+    {
+      name: "FleetMap",
+      label: t("navigator.companyAdmin.fleetMap"),
+      icon: "map-outline",
+    },
+    {
+      name: "Vehicles",
+      label: t("navigator.companyAdmin.vehicles"),
+      icon: "car-outline",
+    },
+    {
+      name: "Drivers",
+      label: t("navigator.companyAdmin.drivers"),
+      icon: "people-outline",
+    },
+    {
+      name: "Tasks",
+      label: t("navigator.companyAdmin.tasks"),
+      icon: "clipboard-outline",
+    },
+    {
+      name: "Alerts",
+      label: t("navigator.companyAdmin.alerts"),
+      icon: "notifications-outline",
+    },
+    {
+      name: "DeviceSetup",
+      label: t("navigator.companyAdmin.deviceSetup"),
+      icon: "bluetooth-outline",
+    },
+    {
+      name: "Reports",
+      label: t("navigator.companyAdmin.reports"),
+      icon: "bar-chart-outline",
+    },
+    {
+      name: "Settings",
+      label: t("navigator.companyAdmin.settings"),
+      icon: "settings-outline",
+    },
+  ];
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
         <CustomDrawerContent
           {...props}
-          menuItems={companyAdminMenuItems}
+          menuItems={menuItems}
           headerColor="#5E72E4"
         />
       )}
@@ -508,22 +595,80 @@ const ProfileStack = () => (
 );
 
 const DriverNavigator = () => {
+  const { t } = useTranslation();
+  const menuItems = [
+    {
+      name: "DriverDashboard",
+      label: t("navigator.driver.dashboard"),
+      icon: "speedometer-outline",
+    },
+    {
+      name: "MyTasks",
+      label: t("navigator.driver.myTasks"),
+      icon: "list-outline",
+    },
+    {
+      name: "Navigation",
+      label: t("navigator.driver.navigation"),
+      icon: "navigate-outline",
+    },
+    {
+      name: "MyVehicle",
+      label: t("navigator.driver.myVehicle"),
+      icon: "car-sport-outline",
+    },
+    {
+      name: "DeviceSetup",
+      label: t("navigator.driver.deviceSetup"),
+      icon: "bluetooth-outline",
+    },
+    {
+      name: "TaskHistory",
+      label: t("navigator.driver.taskHistory"),
+      icon: "time-outline",
+    },
+    {
+      name: "Profile",
+      label: t("navigator.driver.profile"),
+      icon: "person-outline",
+    },
+    {
+      name: "DriverSettings",
+      label: t("navigator.driver.settings"),
+      icon: "settings-outline",
+    },
+    { name: "SOS", label: t("navigator.driver.sos"), icon: "warning-outline" },
+  ];
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
         <CustomDrawerContent
           {...props}
-          menuItems={driverMenuItems}
+          menuItems={menuItems}
           headerColor="#2DCE89"
         />
       )}
-      screenOptions={{
-        headerStyle: { backgroundColor: "#2DCE89", elevation: 4 },
-        headerTintColor: "#FFFFFF",
-        headerTitleStyle: { fontWeight: "600" },
-        drawerType: "front",
-        swipeEnabled: true,
-        drawerStyle: { width: 280 },
+      screenOptions={({ route }) => {
+        const titles = {
+          DriverDashboard: t("navigator.driver.dashboard"),
+          MyTasks: t("navigator.driver.myTasks"),
+          Navigation: t("navigator.driver.navigation"),
+          MyVehicle: t("navigator.driver.myVehicle"),
+          DeviceSetup: t("navigator.driver.deviceSetup"),
+          TaskHistory: t("navigator.driver.taskHistory"),
+          Profile: t("navigator.driver.profile"),
+          DriverSettings: t("navigator.driver.settings"),
+          SOS: t("navigator.driver.sos"),
+        };
+        return {
+          headerStyle: { backgroundColor: "#2DCE89", elevation: 4 },
+          headerTintColor: "#FFFFFF",
+          headerTitleStyle: { fontWeight: "600" },
+          drawerType: "front",
+          swipeEnabled: true,
+          drawerStyle: { width: 280 },
+          title: titles[route.name] || route.name,
+        };
       }}
     >
       {/* Welcome Screen - Giriş sonrası ilk gösterilen */}
@@ -538,23 +683,15 @@ const DriverNavigator = () => {
       <Drawer.Screen
         name="DriverDashboard"
         component={DriverDashboard}
-        options={{ title: "Sürücü Paneli" }}
+        options={{}}
       />
-      <Drawer.Screen
-        name="MyTasks"
-        component={TasksStack}
-        options={{ title: "Görevlerim" }}
-      />
+      <Drawer.Screen name="MyTasks" component={TasksStack} options={{}} />
       <Drawer.Screen
         name="Navigation"
         component={DriverRouteMapScreen}
-        options={{ title: "Navigasyon" }}
+        options={{}}
       />
-      <Drawer.Screen
-        name="MyVehicle"
-        component={DriverVehicle}
-        options={{ title: "Araç Durumu" }}
-      />
+      <Drawer.Screen name="MyVehicle" component={DriverVehicle} options={{}} />
       {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
       <Drawer.Screen
         name="DeviceSetup"
@@ -567,23 +704,15 @@ const DriverNavigator = () => {
       <Drawer.Screen
         name="TaskHistory"
         component={DriverHistoryScreen}
-        options={{ title: "Görev Geçmişi" }}
+        options={{}}
       />
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileStack}
-        options={{ title: "Profilim" }}
-      />
+      <Drawer.Screen name="Profile" component={ProfileStack} options={{}} />
       <Drawer.Screen
         name="DriverSettings"
         component={DriverSettings}
-        options={{ title: "Ayarlar" }}
+        options={{}}
       />
-      <Drawer.Screen
-        name="SOS"
-        component={DriverSOSScreen}
-        options={{ title: "Acil Durum" }}
-      />
+      <Drawer.Screen name="SOS" component={DriverSOSScreen} options={{}} />
     </Drawer.Navigator>
   );
 };

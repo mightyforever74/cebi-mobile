@@ -1,8 +1,10 @@
 // src/screens/driver/DriverProfile.js
 // TulipFleet - Sürücü Profil Ekranı
+// Updated: 17 Ocak 2026 - Full i18n Support
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
@@ -15,7 +17,6 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
-// Theme colors
 const COLORS = {
   primary: "#5E72E4",
   success: "#2DCE89",
@@ -30,7 +31,7 @@ const COLORS = {
   border: "#E9ECEF",
 };
 
-// Ayar Öğesi
+// Setting Item Component
 const SettingItem = ({
   icon,
   iconColor,
@@ -65,14 +66,14 @@ const SettingItem = ({
   </TouchableOpacity>
 );
 
-// Bölüm Başlığı
+// Section Header Component
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{title}</Text>
   </View>
 );
 
-// Stat Kartı
+// Stat Card Component
 const StatCard = ({ icon, iconColor, value, label }) => (
   <View style={styles.statCard}>
     <View style={[styles.statIcon, { backgroundColor: `${iconColor}15` }]}>
@@ -84,64 +85,50 @@ const StatCard = ({ icon, iconColor, value, label }) => (
 );
 
 const DriverProfile = ({ navigation }) => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
 
-  // Çıkış yap
   const handleLogout = () => {
-    Alert.alert(
-      "Çıkış Yap",
-      "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Çıkış Yap",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-          },
+    Alert.alert(t("profile.logout"), t("profile.logoutConfirm"), [
+      { text: t("profile.cancel"), style: "cancel" },
+      {
+        text: t("profile.logout"),
+        style: "destructive",
+        onPress: async () => {
+          await logout();
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  // Profil düzenle
   const handleEditProfile = () => {
     navigation.navigate("EditProfile");
   };
-
-  // Şifre değiştir
   const handleChangePassword = () => {
     navigation.navigate("ChangePassword");
   };
 
-  // Destek
   const handleSupport = () => {
-    Alert.alert("Destek", "Yardıma mı ihtiyacınız var?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t("profile.supportTitle"), t("profile.supportMessage"), [
+      { text: t("profile.cancel"), style: "cancel" },
       {
-        text: "E-posta Gönder",
+        text: t("profile.sendEmail"),
         onPress: () => Linking.openURL("mailto:support@tulipfleet.com"),
       },
     ]);
   };
 
-  // Hakkında
   const handleAbout = () => {
-    Alert.alert(
-      "TulipFleet Hakkında",
-      "TulipFleet v1.0.0\n\n" +
-        "Filo Yönetim Sistemi\n" +
-        "© 2025 TulipFleet\n\n" +
-        "Tüm hakları saklıdır.",
-      [{ text: "Tamam" }]
-    );
+    Alert.alert(t("profile.aboutTitle"), t("profile.aboutMessage"), [
+      { text: t("profile.ok") },
+    ]);
   };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Profil Kartı */}
+      {/* Profile Card */}
       <View style={styles.profileCard}>
         <View style={styles.avatarLarge}>
           <Text style={styles.avatarText}>
@@ -149,65 +136,67 @@ const DriverProfile = ({ navigation }) => {
           </Text>
         </View>
         <Text style={styles.profileName}>
-          {user?.first_name || user?.email?.split("@")[0] || "Sürücü"}
+          {user?.first_name ||
+            user?.email?.split("@")[0] ||
+            t("profile.driver")}
         </Text>
         <Text style={styles.profileEmail}>{user?.email || "-"}</Text>
         <View style={styles.roleBadge}>
           <Ionicons name="car" size={14} color={COLORS.white} />
-          <Text style={styles.roleText}>Sürücü</Text>
+          <Text style={styles.roleText}>{t("profile.driver")}</Text>
         </View>
       </View>
 
-      {/* İstatistikler */}
+      {/* Stats */}
       <View style={styles.statsContainer}>
         <StatCard
           icon="checkmark-circle"
           iconColor={COLORS.success}
           value="0"
-          label="Tamamlanan"
+          label={t("profile.completed")}
         />
         <StatCard
           icon="navigate"
           iconColor={COLORS.info}
           value="0"
-          label="Toplam KM"
+          label={t("profile.totalKm")}
         />
         <StatCard
           icon="star"
           iconColor={COLORS.warning}
           value="-"
-          label="Puan"
+          label={t("profile.score")}
         />
       </View>
 
-      {/* Hesap Ayarları */}
-      <SectionHeader title="HESAP" />
+      {/* Account Settings */}
+      <SectionHeader title={t("profile.account")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="person-outline"
           iconColor={COLORS.primary}
-          title="Profili Düzenle"
-          subtitle="Ad, soyad, telefon"
+          title={t("profile.editProfile")}
+          subtitle={t("profile.editProfileSubtitle")}
           onPress={handleEditProfile}
         />
         <View style={styles.divider} />
         <SettingItem
           icon="lock-closed-outline"
           iconColor={COLORS.warning}
-          title="Şifre Değiştir"
-          subtitle="Hesap güvenliği"
+          title={t("profile.changePassword")}
+          subtitle={t("profile.changePasswordSubtitle")}
           onPress={handleChangePassword}
         />
       </View>
 
-      {/* Bildirimler */}
-      <SectionHeader title="BİLDİRİMLER" />
+      {/* Notifications */}
+      <SectionHeader title={t("profile.notifications")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
           iconColor={COLORS.info}
-          title="Bildirimler"
-          subtitle="Görev bildirimleri"
+          title={t("profile.notificationsTitle")}
+          subtitle={t("profile.notificationsSubtitle")}
           showArrow={false}
           rightElement={
             <Switch
@@ -222,8 +211,8 @@ const DriverProfile = ({ navigation }) => {
         <SettingItem
           icon="location-outline"
           iconColor={COLORS.success}
-          title="Konum Paylaşımı"
-          subtitle="Takip için gerekli"
+          title={t("profile.locationSharing")}
+          subtitle={t("profile.locationSubtitle")}
           showArrow={false}
           rightElement={
             <Switch
@@ -236,21 +225,21 @@ const DriverProfile = ({ navigation }) => {
         />
       </View>
 
-      {/* Destek */}
-      <SectionHeader title="DESTEK" />
+      {/* Support */}
+      <SectionHeader title={t("profile.support")} />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="help-circle-outline"
           iconColor={COLORS.info}
-          title="Yardım"
-          subtitle="SSS ve kılavuz"
+          title={t("profile.help")}
+          subtitle={t("profile.helpSubtitle")}
           onPress={handleSupport}
         />
         <View style={styles.divider} />
         <SettingItem
           icon="chatbubble-outline"
           iconColor={COLORS.success}
-          title="Bize Ulaşın"
+          title={t("profile.contactUs")}
           subtitle="support@tulipfleet.com"
           onPress={handleSupport}
         />
@@ -258,19 +247,19 @@ const DriverProfile = ({ navigation }) => {
         <SettingItem
           icon="information-circle-outline"
           iconColor={COLORS.secondary}
-          title="Hakkında"
-          subtitle="Versiyon 1.0.0"
+          title={t("profile.about")}
+          subtitle={`${t("profile.version")} 1.0.0`}
           onPress={handleAbout}
         />
       </View>
 
-      {/* Çıkış */}
+      {/* Logout */}
       <View style={styles.settingGroup}>
         <SettingItem
           icon="log-out-outline"
           iconColor={COLORS.danger}
-          title="Çıkış Yap"
-          subtitle="Hesabından çıkış yap"
+          title={t("profile.logout")}
+          subtitle={t("profile.logoutSubtitle")}
           onPress={handleLogout}
         />
       </View>
@@ -285,12 +274,7 @@ const DriverProfile = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  // Profile Card
+  container: { flex: 1, backgroundColor: COLORS.background },
   profileCard: {
     backgroundColor: COLORS.primary,
     alignItems: "center",
@@ -306,11 +290,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
+  avatarText: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
   profileName: {
     fontSize: 22,
     fontWeight: "bold",
@@ -336,8 +316,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 6,
   },
-
-  // Stats
   statsContainer: {
     flexDirection: "row",
     paddingHorizontal: 12,
@@ -365,31 +343,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.dark,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-
-  // Section Header
-  sectionHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
+  statValue: { fontSize: 18, fontWeight: "bold", color: COLORS.dark },
+  statLabel: { fontSize: 11, color: COLORS.secondary, marginTop: 2 },
+  sectionHeader: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 8 },
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
     color: COLORS.secondary,
     letterSpacing: 1,
   },
-
-  // Setting Group
   settingGroup: {
     backgroundColor: COLORS.white,
     marginHorizontal: 12,
@@ -400,8 +362,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-
-  // Setting Item
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -416,42 +376,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
   },
-  settingContent: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: COLORS.dark,
-  },
-  settingSubtitle: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-
-  // Divider
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginLeft: 68,
-  },
-
-  // Footer
-  footer: {
-    alignItems: "center",
-    paddingVertical: 30,
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    fontWeight: "500",
-  },
-  footerSubtext: {
-    fontSize: 12,
-    color: COLORS.muted,
-    marginTop: 4,
-  },
+  settingContent: { flex: 1 },
+  settingTitle: { fontSize: 15, fontWeight: "500", color: COLORS.dark },
+  settingSubtitle: { fontSize: 12, color: COLORS.secondary, marginTop: 2 },
+  divider: { height: 1, backgroundColor: COLORS.border, marginLeft: 68 },
+  footer: { alignItems: "center", paddingVertical: 30 },
+  footerText: { fontSize: 14, color: COLORS.secondary, fontWeight: "500" },
+  footerSubtext: { fontSize: 12, color: COLORS.muted, marginTop: 4 },
 });
 
 export default DriverProfile;

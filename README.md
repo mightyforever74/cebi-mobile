@@ -119,3 +119,26 @@ WiFi kapalı Mavi blink Veri gelmez
 GPS fix yok Kırmızı blink Kapalı alan / anten
 İkisi ON Her şey OK Backend de OK
 GPS gidip geliyor Kırmızı yanıp söner Urban canyon
+Pratik Kul
+
+lanım Senaryoları
+Senaryo 1: Araç yeni lokasyona taşındı
+
+1. Backend'den MQTT komutu: REPROVISION
+2. ESP32 WiFi'ı keser, BLE açar (2 dakika)
+3. Şoför telefonla bağlanır, yeni WiFi girer
+4. ESP32 yeni WiFi'a bağlanır, çalışmaya devam eder
+   Senaryo 2: ESP32 restart edildi (elektrik kesildi)
+5. Boot olur
+6. 60 saniye BLE penceresi açılır (otomatik)
+7. Kimse bağlanmazsa → eski WiFi ile devam
+8. Biri bağlanırsa → yeni WiFi kaydedilir
+   Senaryo 3: WiFi şifresi değişti
+9. ESP32 eski WiFi'a bağlanamaz
+10. Backend'den ulaşılamaz (çünkü offline)
+11. Cihazı manuel restart et (güç kes/aç)
+12. 60sn boot window'da yeni WiFi gir📟 ESP32 Firmware → v4.3.3 (GPS + BLE + MQTT + Adaptive Interval)
+    📱 Mobile App → React Native + 7 dil desteği
+    🖥️ Backend → Node.js + PostgreSQL + TimescaleDB
+    ☁️ Infrastructure → Docker + NGINX + SSL + EMQX
+    🚀 Deployment → Play Store + TestFlight

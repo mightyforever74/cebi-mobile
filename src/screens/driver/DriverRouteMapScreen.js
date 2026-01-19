@@ -1,12 +1,13 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 12 Ocak 2026 v12 - Compact bottom bar, integrated complete button
+// Updated: 18 Ocak 2026 v13 - Full i18n Support
 // Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -30,6 +31,7 @@ const MAX_WAYPOINTS = 10;
 const MAX_ROUTE_POINTS = 500;
 
 const DriverRouteMapScreen = ({ navigation, route }) => {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const initialTask = route?.params?.task || null;
 
@@ -115,7 +117,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       const vehicleId = await resolveVehicleId();
       if (!vehicleId) {
-        setLocationError("Araç bulunamadı");
+        setLocationError(t("routeMap.vehicleNotFound"));
         setLoading(false);
         return;
       }
@@ -131,11 +133,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         if (loc.heading !== undefined && loc.heading !== null)
           setHeading(parseFloat(loc.heading) || 0);
       } else {
-        setLocationError("Konum alınamadı");
+        setLocationError(t("routeMap.locationNotAvailable"));
       }
     } catch (e) {
       console.log("[Nav] Location error:", e);
-      setLocationError("Konum alınamadı");
+      setLocationError(t("routeMap.locationNotAvailable"));
     } finally {
       setLoading(false);
     }
@@ -246,7 +248,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           (totalDistance / 1000).toFixed(1),
           "km,",
           Math.ceil(totalDuration / 60),
-          "dk"
+          "min"
         );
 
         return {
@@ -424,7 +426,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       setTask(updated);
       console.log("[Nav] Task started, status: in_progress");
     } catch (e) {
-      Alert.alert("Hata", e.message || "Görev başlatılamadı");
+      Alert.alert(
+        t("routeMap.error"),
+        e.message || t("routeMap.taskCouldNotStart")
+      );
     } finally {
       setActionLoading(false);
     }
@@ -433,38 +438,37 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const handleCompleteTask = async () => {
     if (!task) return;
 
-    Alert.alert(
-      "Görevi Tamamla",
-      "Bu görevi tamamlamak istediğinize emin misiniz?",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Tamamla",
-          style: "default",
-          onPress: async () => {
-            setActionLoading(true);
-            try {
-              await driverTaskAPI.updateTaskStatus(task.id, "completed");
-              stopLocationTracking();
-              setTask(null);
-              setRouteCoords([]);
-              setNavigationInfo(null);
-              routeFetchedRef.current = false;
-              Alert.alert("Başarılı", "Görev tamamlandı!", [
-                {
-                  text: "Tamam",
-                  onPress: () => navigation.navigate("DriverDashboard"),
-                },
-              ]);
-            } catch (e) {
-              Alert.alert("Hata", e.message || "Görev tamamlanamadı");
-            } finally {
-              setActionLoading(false);
-            }
-          },
+    Alert.alert(t("routeMap.completeTask"), t("routeMap.completeConfirm"), [
+      { text: t("routeMap.cancel"), style: "cancel" },
+      {
+        text: t("routeMap.complete"),
+        style: "default",
+        onPress: async () => {
+          setActionLoading(true);
+          try {
+            await driverTaskAPI.updateTaskStatus(task.id, "completed");
+            stopLocationTracking();
+            setTask(null);
+            setRouteCoords([]);
+            setNavigationInfo(null);
+            routeFetchedRef.current = false;
+            Alert.alert(t("routeMap.success"), t("routeMap.taskCompleted"), [
+              {
+                text: t("routeMap.ok"),
+                onPress: () => navigation.navigate("DriverDashboard"),
+              },
+            ]);
+          } catch (e) {
+            Alert.alert(
+              t("routeMap.error"),
+              e.message || t("routeMap.taskCouldNotComplete")
+            );
+          } finally {
+            setActionLoading(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleAcceptTask = async () => {
@@ -475,7 +479,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const updated = { ...task, status: "accepted" };
       setTask(updated);
     } catch (e) {
-      Alert.alert("Hata", e.message || "Görev kabul edilemedi");
+      Alert.alert(
+        t("routeMap.error"),
+        e.message || t("routeMap.taskCouldNotAccept")
+      );
     } finally {
       setActionLoading(false);
     }
@@ -484,33 +491,32 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const handleRejectTask = async () => {
     if (!task) return;
 
-    Alert.alert(
-      "Görevi Reddet",
-      "Bu görevi reddetmek istediğinize emin misiniz?",
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Reddet",
-          style: "destructive",
-          onPress: async () => {
-            setActionLoading(true);
-            try {
-              await driverTaskAPI.rejectTask(task.id);
-              setTask(null);
-              Alert.alert(
-                "Görev Reddedildi",
-                "Başka görevler için bekleyebilirsiniz."
-              );
-              loadActiveTask();
-            } catch (e) {
-              Alert.alert("Hata", e.message || "Görev reddedilemedi");
-            } finally {
-              setActionLoading(false);
-            }
-          },
+    Alert.alert(t("routeMap.rejectTask"), t("routeMap.rejectConfirm"), [
+      { text: t("routeMap.cancel"), style: "cancel" },
+      {
+        text: t("routeMap.reject"),
+        style: "destructive",
+        onPress: async () => {
+          setActionLoading(true);
+          try {
+            await driverTaskAPI.rejectTask(task.id);
+            setTask(null);
+            Alert.alert(
+              t("routeMap.taskRejected"),
+              t("routeMap.waitForOtherTasks")
+            );
+            loadActiveTask();
+          } catch (e) {
+            Alert.alert(
+              t("routeMap.error"),
+              e.message || t("routeMap.taskCouldNotReject")
+            );
+          } finally {
+            setActionLoading(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // ══════════════════════════════════════════════════════════════
@@ -592,7 +598,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Konum alınıyor...</Text>
+        <Text style={styles.loadingText}>{t("routeMap.loading")}</Text>
       </View>
     );
   }
@@ -624,7 +630,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           pitchEnabled={isNavigating}
         >
           {/* Current Location Marker */}
-          {/* Current Location Marker */}
           <Marker
             coordinate={{
               latitude: location.latitude,
@@ -638,7 +643,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 6
               )}, ${location.longitude.toFixed(6)}`;
               Clipboard.setStringAsync(coords);
-              Alert.alert("Koordinat Kopyalandı", coords);
+              Alert.alert(t("routeMap.coordinateCopied"), coords);
             }}
           >
             {isNavigating ? (
@@ -658,7 +663,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
           {/* Destination Marker */}
           {isNavigating && getEndLocationCoords() && (
-            <Marker coordinate={getEndLocationCoords()} title="Hedef">
+            <Marker
+              coordinate={getEndLocationCoords()}
+              title={t("routeMap.target")}
+            >
               <View style={styles.destinationMarker}>
                 <Ionicons name="flag" size={20} color="#fff" />
               </View>
@@ -685,11 +693,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         <View style={styles.center}>
           <Ionicons name="location-outline" size={48} color="#CBD5E1" />
           <Text style={styles.errorText}>
-            {locationError || "Konum alınamadı"}
+            {locationError || t("routeMap.locationNotAvailable")}
           </Text>
           <TouchableOpacity style={styles.retryBtn} onPress={getLocation}>
             <Ionicons name="refresh" size={18} color="#fff" />
-            <Text style={styles.retryBtnText}>Tekrar Dene</Text>
+            <Text style={styles.retryBtnText}>{t("routeMap.retry")}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -744,7 +752,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {routeLoading && (
         <View style={styles.routeLoadingBar}>
           <ActivityIndicator size="small" color="#fff" />
-          <Text style={styles.routeLoadingText}>Güzergah hesaplanıyor...</Text>
+          <Text style={styles.routeLoadingText}>
+            {t("routeMap.calculatingRoute")}
+          </Text>
         </View>
       )}
 
@@ -766,7 +776,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           {/* ETA */}
           <View style={styles.compactItem}>
             <Ionicons name="time" size={18} color="#94A3B8" />
-            <Text style={styles.compactValue}>{navigationInfo.eta} dk</Text>
+            <Text style={styles.compactValue}>
+              {navigationInfo.eta} {t("routeMap.min")}
+            </Text>
           </View>
 
           <View style={styles.compactDivider} />
@@ -800,9 +812,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <Ionicons name="time" size={24} color="#F59E0B" />
           </View>
           <View style={styles.pendingTextContainer}>
-            <Text style={styles.pendingTitle}>Bekleyen Görev Var</Text>
+            <Text style={styles.pendingTitle}>{t("routeMap.pendingTask")}</Text>
             <Text style={styles.pendingSubtitle}>
-              {task.title || "Yeni görev teklifi"} •{" "}
+              {task.title || t("routeMap.newTaskOffer")} •{" "}
               {getDistance() ? `${getDistance()} km` : ""}
             </Text>
           </View>
@@ -838,12 +850,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <View style={{ flex: 1 }}>
               <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
               <Text style={styles.taskTitle} numberOfLines={1}>
-                {task.title || "Teslimat Görevi"}
+                {task.title || t("routeMap.deliveryTask")}
               </Text>
             </View>
             <View style={styles.statusBadge}>
               <Ionicons name="checkmark-circle" size={14} color="#3B82F6" />
-              <Text style={styles.statusText}>Başlamaya Hazır</Text>
+              <Text style={styles.statusText}>
+                {t("routeMap.readyToStart")}
+              </Text>
             </View>
           </View>
 
@@ -853,9 +867,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 style={[styles.locationDot, { backgroundColor: "#10B981" }]}
               />
               <View style={styles.locationInfo}>
-                <Text style={styles.locationLabel}>Başlangıç</Text>
+                <Text style={styles.locationLabel}>{t("routeMap.origin")}</Text>
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {getStartLocation() || "Mevcut konum"}
+                  {getStartLocation() || t("routeMap.currentLocation")}
                 </Text>
               </View>
             </View>
@@ -867,9 +881,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 style={[styles.locationDot, { backgroundColor: "#EF4444" }]}
               />
               <View style={styles.locationInfo}>
-                <Text style={styles.locationLabel}>Hedef</Text>
+                <Text style={styles.locationLabel}>
+                  {t("routeMap.destination")}
+                </Text>
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {getEndLocation() || "Belirlenmedi"}
+                  {getEndLocation() || t("routeMap.notDetermined")}
                 </Text>
               </View>
             </View>
@@ -879,7 +895,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <View style={styles.distanceContainer}>
               <Ionicons name="navigate-circle" size={18} color="#64748B" />
               <Text style={styles.distanceText}>
-                Toplam: {getDistance()} km
+                {t("routeMap.total")}: {getDistance()} km
               </Text>
             </View>
           )}
@@ -894,7 +910,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             ) : (
               <>
                 <Ionicons name="play-circle" size={22} color="#fff" />
-                <Text style={styles.startBtnText}>Görevi Başlat</Text>
+                <Text style={styles.startBtnText}>
+                  {t("routeMap.startTask")}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -904,54 +922,51 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════
-// STYLES
-// ══════════════════════════════════════════════════════════════
-
 const styles = StyleSheet.create({
   center: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#F8FAFC",
-    padding: 20,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 16,
+    fontSize: 16,
     color: "#64748B",
-    fontSize: 14,
+    fontWeight: "500",
   },
   errorText: {
-    color: "#64748B",
-    fontSize: 16,
     marginTop: 16,
+    fontSize: 16,
+    color: "#64748B",
     textAlign: "center",
+    paddingHorizontal: 30,
   },
   retryBtn: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
     backgroundColor: "#3B82F6",
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 20,
     gap: 8,
   },
   retryBtnText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: 14,
   },
 
-  // Back Button
+  // Header Buttons
   backBtn: {
     position: "absolute",
     top: 50,
     left: 16,
-    backgroundColor: "#fff",
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
@@ -960,15 +975,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
-
-  // Header Buttons
   headerBtn: {
     position: "absolute",
     top: 50,
-    backgroundColor: "#fff",
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
@@ -985,7 +998,6 @@ const styles = StyleSheet.create({
   },
   followBtn: {
     right: 124,
-    backgroundColor: "#fff",
     borderWidth: 2,
     borderColor: "#10B981",
   },

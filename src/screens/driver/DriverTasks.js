@@ -1,10 +1,11 @@
 // src/screens/driver/DriverTasks.js
 // TulipFleet - Sürücü Görevlerim Ekranı
-// Updated: 12 Ocak 2026 v4 - Kapsamlı Analiz (Zaman, Yakıt, Rota, Güvenlik, Karbon)
+// Updated: 17 Ocak 2026 - Full i18n Support
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -29,86 +30,84 @@ const COLORS = {
   white: "#FFFFFF",
   dark: "#172B4D",
   muted: "#ADB5BD",
-  carbon: "#10B981", // Yeşil - karbon
-  fuel: "#F59E0B", // Turuncu - yakıt
-  safety: "#8B5CF6", // Mor - güvenlik
+  carbon: "#10B981",
+  fuel: "#F59E0B",
+  safety: "#8B5CF6",
 };
 
-// Görev durumu
+// Status config (colors and icons only - labels come from i18n)
 const STATUS_CONFIG = {
   pending_review: {
     color: COLORS.warning,
     bg: "#FFF5F3",
     icon: "notifications",
-    label: "Yeni Görev!",
+    key: "pending_review",
   },
   accepted: {
     color: COLORS.info,
     bg: "#E8FAFC",
     icon: "checkmark-circle",
-    label: "Kabul Edildi",
+    key: "accepted",
   },
   in_progress: {
     color: COLORS.primary,
     bg: "#F0F2FF",
     icon: "navigate",
-    label: "Devam Ediyor",
+    key: "in_progress",
   },
   completed: {
     color: COLORS.success,
     bg: "#E8FCF1",
     icon: "checkmark-done",
-    label: "Tamamlandı",
+    key: "completed",
   },
   rejected: {
     color: COLORS.danger,
     bg: "#FFF0F3",
     icon: "close-circle",
-    label: "Reddedildi",
+    key: "rejected",
   },
   pending: {
     color: COLORS.warning,
     bg: "#FFF5F3",
     icon: "time",
-    label: "Bekliyor",
+    key: "pending",
   },
   assigned: {
     color: COLORS.info,
     bg: "#E8FAFC",
     icon: "person",
-    label: "Atandı",
+    key: "assigned",
   },
   cancelled: {
     color: COLORS.danger,
     bg: "#FFF0F3",
     icon: "close-circle",
-    label: "İptal",
+    key: "cancelled",
   },
 };
 
-// CO₂ Emisyon Faktörleri (kg CO₂/km)
 const CO2_FACTORS = {
   diesel: 0.27,
   gasoline: 0.23,
   petrol: 0.23,
   lpg: 0.21,
-  electric: 0.05, // Şebeke karışımı
+  electric: 0.05,
   hybrid: 0.15,
   default: 0.25,
 };
-
-// Yakıt Tüketimi (L/100km tahmini)
 const FUEL_CONSUMPTION = {
   diesel: 8.5,
   gasoline: 9.5,
   petrol: 9.5,
   lpg: 11.0,
-  electric: 0, // kWh için ayrı hesap
+  electric: 0,
   hybrid: 5.5,
   default: 9.0,
 };
 
 const DriverTasks = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState("active");
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -118,6 +117,9 @@ const DriverTasks = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [expandedAnalytics, setExpandedAnalytics] = useState(false);
+
+  const getStatusLabel = (statusKey) =>
+    t(`tasks.statuses.${statusKey}`, statusKey);
 
   useFocusEffect(
     useCallback(() => {
@@ -129,22 +131,17 @@ const DriverTasks = ({ navigation }) => {
   const fetchTasks = async () => {
     try {
       setError(null);
-      console.log("📋 Fetching driver tasks...", { activeTab });
-
       if (activeTab === "completed") {
         const data = await driverTaskAPI.getCompletedTasks();
-        console.log("✅ Completed tasks loaded:", data);
         const taskList = data.tasks || data || [];
         setCompletedTasks(Array.isArray(taskList) ? taskList : []);
       } else {
         const data = await driverTaskAPI.getMyTasks();
-        console.log("✅ Active tasks loaded:", data);
         const taskList = data.tasks || data || [];
         setTasks(Array.isArray(taskList) ? taskList : []);
       }
     } catch (err) {
-      console.error("❌ Fetch tasks error:", err);
-      setError(err.message || "Görevler yüklenemedi");
+      setError(err.message || t("tasks.couldNotLoadTasks"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -156,7 +153,6 @@ const DriverTasks = ({ navigation }) => {
       const data = await taskOffersAPI.getOffers("pending");
       setPendingOffersCount(data.offers?.length || 0);
     } catch (err) {
-      console.log("Pending offers fetch error:", err);
       setPendingOffersCount(0);
     }
   };
@@ -166,7 +162,6 @@ const DriverTasks = ({ navigation }) => {
     fetchTasks();
     fetchPendingOffers();
   }, [activeTab]);
-
   useEffect(() => {
     fetchTasks();
   }, [activeTab]);
@@ -175,38 +170,37 @@ const DriverTasks = ({ navigation }) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
     setLoading(true);
-
     try {
       if (tab === "completed") {
         const data = await driverTaskAPI.getCompletedTasks();
-        const taskList = data.tasks || data || [];
-        setCompletedTasks(Array.isArray(taskList) ? taskList : []);
+        setCompletedTasks(
+          Array.isArray(data.tasks || data || [])
+            ? data.tasks || data || []
+            : []
+        );
       } else {
         const data = await driverTaskAPI.getMyTasks();
-        const taskList = data.tasks || data || [];
-        setTasks(Array.isArray(taskList) ? taskList : []);
+        setTasks(
+          Array.isArray(data.tasks || data || [])
+            ? data.tasks || data || []
+            : []
+        );
       }
     } catch (err) {
-      console.error("Tab change fetch error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ═══════════════════════════════════════════════════════════════
-  // TASK ACTIONS
-  // ═══════════════════════════════════════════════════════════════
-
   const handleAcceptTask = async (task) => {
     Alert.alert(
-      "Görevi Kabul Et",
-      `"${
-        task.title || task.task_no
-      }" görevini kabul etmek istediğinize emin misiniz?`,
+      t("tasks.acceptTask"),
+      t("tasks.acceptTaskConfirm", { title: task.title || task.task_no }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("tasks.cancel"), style: "cancel" },
         {
-          text: "Kabul Et",
+          text: t("tasks.accept"),
           onPress: async () => {
             setActionLoading(task.id);
             try {
@@ -217,22 +211,24 @@ const DriverTasks = ({ navigation }) => {
                 )
               );
               Alert.alert(
-                "✅ Görev Kabul Edildi",
-                "Harita sayfasından görevi başlatabilirsiniz.",
+                `✅ ${t("tasks.taskAccepted")}`,
+                t("tasks.taskAcceptedMessage"),
                 [
                   {
-                    text: "Haritaya Git",
+                    text: t("tasks.goToMap"),
                     onPress: () =>
                       navigation.navigate("Navigation", {
                         task: { ...task, status: "accepted" },
                       }),
                   },
-                  { text: "Tamam", style: "cancel" },
+                  { text: t("tasks.ok"), style: "cancel" },
                 ]
               );
             } catch (err) {
-              console.error("Accept task error:", err);
-              Alert.alert("Hata", err.message || "Görev kabul edilemedi");
+              Alert.alert(
+                t("tasks.error"),
+                err.message || t("tasks.couldNotAcceptTask")
+              );
             } finally {
               setActionLoading(null);
             }
@@ -244,27 +240,24 @@ const DriverTasks = ({ navigation }) => {
 
   const handleRejectTask = async (task) => {
     Alert.alert(
-      "Görevi Reddet",
-      `"${
-        task.title || task.task_no
-      }" görevini reddetmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.`,
+      t("tasks.rejectTask"),
+      t("tasks.rejectTaskConfirm", { title: task.title || task.task_no }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("tasks.cancel"), style: "cancel" },
         {
-          text: "Reddet",
+          text: t("tasks.reject"),
           style: "destructive",
           onPress: async () => {
             setActionLoading(task.id);
             try {
               await driverTaskAPI.rejectTask(task.id);
               setTasks((prev) => prev.filter((t) => t.id !== task.id));
-              Alert.alert(
-                "Bilgi",
-                "Görev reddedildi. Yöneticinize bildirildi."
-              );
+              Alert.alert(t("tasks.info"), t("tasks.taskRejected"));
             } catch (err) {
-              console.error("Reject task error:", err);
-              Alert.alert("Hata", err.message || "Görev reddedilemedi");
+              Alert.alert(
+                t("tasks.error"),
+                err.message || t("tasks.couldNotRejectTask")
+              );
             } finally {
               setActionLoading(null);
             }
@@ -274,24 +267,18 @@ const DriverTasks = ({ navigation }) => {
     );
   };
 
-  // ═══════════════════════════════════════════════════════════════
-  // HELPERS
-  // ═══════════════════════════════════════════════════════════════
-
   const filteredTasks =
     activeTab === "completed"
       ? completedTasks
-      : tasks.filter((task) => {
-          const status = task.status || "pending";
-          return [
+      : tasks.filter((task) =>
+          [
             "pending_review",
             "accepted",
             "in_progress",
             "pending",
             "assigned",
-          ].includes(status);
-        });
-
+          ].includes(task.status || "pending")
+        );
   const activeCount = tasks.filter((t) =>
     [
       "pending_review",
@@ -301,93 +288,69 @@ const DriverTasks = ({ navigation }) => {
       "assigned",
     ].includes(t.status)
   ).length;
-
   const completedCount = completedTasks.length;
   const pendingReviewCount = tasks.filter(
     (t) => t.status === "pending_review"
   ).length;
 
-  const getOrigin = (task) => {
-    if (task.route_json?.origin) return task.route_json.origin;
-    if (task.start_location) return task.start_location;
-    return null;
-  };
+  const getOrigin = (task) =>
+    task.route_json?.origin || task.start_location || null;
+  const getDestination = (task) =>
+    task.route_json?.destination || task.end_location || null;
+  const getDistance = (task) =>
+    parseFloat(task.route_json?.distance) ||
+    parseFloat(task.total_distance_km) ||
+    0;
+  const getFuelType = (task) =>
+    task.vehicle_fuel_type || task.fuel_type || "diesel";
 
-  const getDestination = (task) => {
-    if (task.route_json?.destination) return task.route_json.destination;
-    if (task.end_location) return task.end_location;
-    return null;
-  };
-
-  const getDistance = (task) => {
-    if (task.route_json?.distance)
-      return parseFloat(task.route_json.distance) || 0;
-    if (task.total_distance_km) return parseFloat(task.total_distance_km) || 0;
-    return 0;
-  };
-
-  const getFuelType = (task) => {
-    return task.vehicle_fuel_type || task.fuel_type || "diesel";
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const getLocale = () => {
+    const locales = {
+      tr: "tr-TR",
+      nl: "nl-NL",
+      it: "it-IT",
+      bg: "bg-BG",
+      es: "es-ES",
+      ku: "ku",
+      en: "en-US",
+    };
+    return locales[i18n.language] || "en-US";
   };
 
   const formatShortDate = (dateString) => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("tr-TR", {
+    return new Date(dateString).toLocaleDateString(getLocale(), {
       day: "2-digit",
       month: "short",
     });
   };
 
-  // ═══════════════════════════════════════════════════════════════
-  // KAPSAMLI ANALİTİK HESAPLAMALAR
-  // ═══════════════════════════════════════════════════════════════
-
   const calculateAnalytics = () => {
-    if (completedTasks.length === 0) {
+    if (completedTasks.length === 0)
       return {
-        // Temel
         totalTasks: 0,
         totalKm: 0,
         avgKm: 0,
         maxKm: 0,
         minKm: 0,
-        // Zaman
         avgDurationMin: 0,
         onTimeCount: 0,
         lateCount: 0,
         onTimePercent: 0,
         latePercent: 0,
-        // Yakıt & Emisyon
         totalFuelL: 0,
         avgFuelPer100km: 0,
         totalCO2kg: 0,
         avgCO2perKm: 0,
-        // Rota
         cityPercent: 0,
         highwayPercent: 0,
-        // Güvenlik
         safetyScore: 0,
         hardBrakeCount: 0,
         accidentCount: 0,
-        // Enerji
         electricPercent: 0,
         fossilPercent: 0,
       };
-    }
 
-    // Mesafe hesaplamaları
     const distances = completedTasks
       .map((t) => getDistance(t))
       .filter((d) => d > 0);
@@ -396,36 +359,25 @@ const DriverTasks = ({ navigation }) => {
     const maxKm = distances.length > 0 ? Math.max(...distances) : 0;
     const minKm = distances.length > 0 ? Math.min(...distances) : 0;
 
-    // ⏱️ ZAMAN ANALİZİ
-    let totalDurationMin = 0;
-    let onTimeCount = 0;
-    let lateCount = 0;
-    let durationsCount = 0;
-
+    let totalDurationMin = 0,
+      onTimeCount = 0,
+      lateCount = 0,
+      durationsCount = 0;
     completedTasks.forEach((task) => {
-      // Süre hesabı
       if (task.actual_start && task.actual_end) {
-        const start = new Date(task.actual_start);
-        const end = new Date(task.actual_end);
-        const durationMin = (end - start) / (1000 * 60);
+        const durationMin =
+          (new Date(task.actual_end) - new Date(task.actual_start)) /
+          (1000 * 60);
         if (durationMin > 0 && durationMin < 1440) {
-          // Max 24 saat
           totalDurationMin += durationMin;
           durationsCount++;
         }
       }
-
-      // Gecikme analizi
       if (task.scheduled_start && task.actual_start) {
-        const scheduled = new Date(task.scheduled_start);
-        const actual = new Date(task.actual_start);
-        if (actual <= scheduled) {
-          onTimeCount++;
-        } else {
-          lateCount++;
-        }
+        new Date(task.actual_start) <= new Date(task.scheduled_start)
+          ? onTimeCount++
+          : lateCount++;
       } else {
-        // Planlı başlangıç yoksa zamanında say
         onTimeCount++;
       }
     });
@@ -438,32 +390,19 @@ const DriverTasks = ({ navigation }) => {
     const latePercent =
       totalScheduled > 0 ? (lateCount / totalScheduled) * 100 : 0;
 
-    // 🚗 YAKIT & EMİSYON ANALİZİ
-    let totalFuelL = 0;
-    let totalCO2kg = 0;
-    let electricTasks = 0;
-    let fossilTasks = 0;
-
+    let totalFuelL = 0,
+      totalCO2kg = 0,
+      electricTasks = 0,
+      fossilTasks = 0;
     completedTasks.forEach((task) => {
       const distance = getDistance(task);
       const fuelType = getFuelType(task).toLowerCase();
-
       if (distance > 0) {
-        // CO₂ hesabı
-        const co2Factor = CO2_FACTORS[fuelType] || CO2_FACTORS.default;
-        totalCO2kg += distance * co2Factor;
-
-        // Yakıt hesabı
-        const consumption =
-          FUEL_CONSUMPTION[fuelType] || FUEL_CONSUMPTION.default;
-        totalFuelL += (distance / 100) * consumption;
-
-        // Enerji kaynağı ayrımı
-        if (fuelType === "electric") {
-          electricTasks++;
-        } else {
-          fossilTasks++;
-        }
+        totalCO2kg += distance * (CO2_FACTORS[fuelType] || CO2_FACTORS.default);
+        totalFuelL +=
+          (distance / 100) *
+          (FUEL_CONSUMPTION[fuelType] || FUEL_CONSUMPTION.default);
+        fuelType === "electric" ? electricTasks++ : fossilTasks++;
       }
     });
 
@@ -475,61 +414,41 @@ const DriverTasks = ({ navigation }) => {
     const fossilPercent =
       totalEnergyTasks > 0 ? (fossilTasks / totalEnergyTasks) * 100 : 0;
 
-    // 📍 ROTA DAĞILIMI (Tahmini - mesafe bazlı)
-    // Şehir içi: <30km, Şehir dışı: >=30km
-    let cityKm = 0;
-    let highwayKm = 0;
-
+    let cityKm = 0,
+      highwayKm = 0;
     completedTasks.forEach((task) => {
       const distance = getDistance(task);
       if (distance > 0) {
-        if (distance < 30) {
-          cityKm += distance;
-        } else {
-          // Karışık varsay: %40 şehir içi, %60 şehir dışı
-          cityKm += distance * 0.4;
-          highwayKm += distance * 0.6;
-        }
+        distance < 30
+          ? (cityKm += distance)
+          : ((cityKm += distance * 0.4), (highwayKm += distance * 0.6));
       }
     });
-
     const totalRouteKm = cityKm + highwayKm;
     const cityPercent = totalRouteKm > 0 ? (cityKm / totalRouteKm) * 100 : 50;
     const highwayPercent =
       totalRouteKm > 0 ? (highwayKm / totalRouteKm) * 100 : 50;
 
-    // ⚠️ GÜVENLİK ANALİZİ (Tahmini - görev sayısı bazlı)
-    // Gerçek veriler backend'den gelecek
-    const safetyScore = 4.5 + Math.random() * 0.5; // 4.5-5.0 arası
-    const hardBrakeCount = Math.floor(completedTasks.length * 0.1); // %10 oranında
-    const accidentCount = 0; // Kaza yok varsayımı
-
     return {
-      // Temel
       totalTasks: completedTasks.length,
       totalKm: totalKm.toFixed(1),
       avgKm: avgKm.toFixed(1),
       maxKm: maxKm.toFixed(1),
       minKm: minKm.toFixed(1),
-      // Zaman
       avgDurationMin: Math.round(avgDurationMin),
       onTimeCount,
       lateCount,
       onTimePercent: onTimePercent.toFixed(0),
       latePercent: latePercent.toFixed(0),
-      // Yakıt & Emisyon
       totalFuelL: totalFuelL.toFixed(1),
       avgFuelPer100km: avgFuelPer100km.toFixed(1),
       totalCO2kg: totalCO2kg.toFixed(1),
-      avgCO2perKm: (avgCO2perKm * 1000).toFixed(0), // g/km
-      // Rota
+      avgCO2perKm: (avgCO2perKm * 1000).toFixed(0),
       cityPercent: cityPercent.toFixed(0),
       highwayPercent: highwayPercent.toFixed(0),
-      // Güvenlik
-      safetyScore: safetyScore.toFixed(1),
-      hardBrakeCount,
-      accidentCount,
-      // Enerji
+      safetyScore: (4.5 + Math.random() * 0.5).toFixed(1),
+      hardBrakeCount: Math.floor(completedTasks.length * 0.1),
+      accidentCount: 0,
       electricPercent: electricPercent.toFixed(0),
       fossilPercent: fossilPercent.toFixed(0),
     };
@@ -537,24 +456,19 @@ const DriverTasks = ({ navigation }) => {
 
   const analytics = calculateAnalytics();
 
-  // ═══════════════════════════════════════════════════════════════
-  // RENDER COMPONENTS
-  // ═══════════════════════════════════════════════════════════════
-
-  // 📊 Kapsamlı Analiz Kartları
   const renderAnalyticsCards = () => {
     if (activeTab !== "completed" || completedTasks.length === 0) return null;
-
     return (
       <View style={styles.analyticsContainer}>
-        {/* Header */}
         <TouchableOpacity
           style={styles.analyticsHeader}
           onPress={() => setExpandedAnalytics(!expandedAnalytics)}
         >
           <View style={styles.analyticsHeaderLeft}>
             <Ionicons name="analytics" size={22} color={COLORS.primary} />
-            <Text style={styles.analyticsTitle}>Performans Analizi</Text>
+            <Text style={styles.analyticsTitle}>
+              {t("tasks.performanceAnalysis")}
+            </Text>
           </View>
           <Ionicons
             name={expandedAnalytics ? "chevron-up" : "chevron-down"}
@@ -562,8 +476,6 @@ const DriverTasks = ({ navigation }) => {
             color={COLORS.secondary}
           />
         </TouchableOpacity>
-
-        {/* Ana Özet Kartı */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
@@ -577,11 +489,9 @@ const DriverTasks = ({ navigation }) => {
                 />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalTasks}</Text>
-              <Text style={styles.summaryLabel}>Tamamlanan</Text>
+              <Text style={styles.summaryLabel}>{t("tasks.completed")}</Text>
             </View>
-
             <View style={styles.summaryDivider} />
-
             <View style={styles.summaryItem}>
               <View
                 style={[styles.summaryIconBg, { backgroundColor: "#F0F2FF" }]}
@@ -589,11 +499,9 @@ const DriverTasks = ({ navigation }) => {
                 <Ionicons name="speedometer" size={22} color={COLORS.primary} />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalKm}</Text>
-              <Text style={styles.summaryLabel}>Toplam KM</Text>
+              <Text style={styles.summaryLabel}>{t("tasks.totalKm")}</Text>
             </View>
-
             <View style={styles.summaryDivider} />
-
             <View style={styles.summaryItem}>
               <View
                 style={[styles.summaryIconBg, { backgroundColor: "#ECFDF5" }]}
@@ -605,15 +513,14 @@ const DriverTasks = ({ navigation }) => {
             </View>
           </View>
         </View>
-
-        {/* Genişletilmiş Detaylar */}
         {expandedAnalytics && (
           <View style={styles.expandedAnalytics}>
-            {/* ⏱️ ZAMAN ANALİZİ */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="time" size={18} color={COLORS.info} />
-                <Text style={styles.sectionTitle}>Zaman Analizi</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("tasks.timeAnalysis")}
+                </Text>
               </View>
               <View style={styles.sectionContent}>
                 <View style={styles.metricRow}>
@@ -621,7 +528,9 @@ const DriverTasks = ({ navigation }) => {
                     <Text style={styles.metricValue}>
                       {analytics.avgDurationMin} dk
                     </Text>
-                    <Text style={styles.metricLabel}>Ort. Süre</Text>
+                    <Text style={styles.metricLabel}>
+                      {t("tasks.avgDuration")}
+                    </Text>
                   </View>
                   <View style={styles.metricItem}>
                     <Text
@@ -629,7 +538,7 @@ const DriverTasks = ({ navigation }) => {
                     >
                       %{analytics.onTimePercent}
                     </Text>
-                    <Text style={styles.metricLabel}>Zamanında</Text>
+                    <Text style={styles.metricLabel}>{t("tasks.onTime")}</Text>
                   </View>
                   <View style={styles.metricItem}>
                     <Text
@@ -637,17 +546,17 @@ const DriverTasks = ({ navigation }) => {
                     >
                       %{analytics.latePercent}
                     </Text>
-                    <Text style={styles.metricLabel}>Gecikme</Text>
+                    <Text style={styles.metricLabel}>{t("tasks.delayed")}</Text>
                   </View>
                 </View>
               </View>
             </View>
-
-            {/* 🚗 YAKIT & EMİSYON */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="car" size={18} color={COLORS.fuel} />
-                <Text style={styles.sectionTitle}>Yakıt & Emisyon</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("tasks.fuelEmission")}
+                </Text>
               </View>
               <View style={styles.sectionContent}>
                 <View style={styles.metricRow}>
@@ -667,24 +576,25 @@ const DriverTasks = ({ navigation }) => {
                     <Text style={styles.metricValue}>
                       {analytics.totalFuelL} L
                     </Text>
-                    <Text style={styles.metricLabel}>Toplam</Text>
+                    <Text style={styles.metricLabel}>{t("tasks.total")}</Text>
                   </View>
                 </View>
               </View>
             </View>
-
-            {/* 📍 ROTA DAĞILIMI */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="map" size={18} color={COLORS.primary} />
-                <Text style={styles.sectionTitle}>Rota Dağılımı</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("tasks.routeDistribution")}
+                </Text>
               </View>
               <View style={styles.sectionContent}>
-                {/* Progress Bar */}
                 <View style={styles.progressContainer}>
                   <View style={styles.progressLabels}>
-                    <Text style={styles.progressLabel}>Şehir İçi</Text>
-                    <Text style={styles.progressLabel}>Şehir Dışı</Text>
+                    <Text style={styles.progressLabel}>{t("tasks.city")}</Text>
+                    <Text style={styles.progressLabel}>
+                      {t("tasks.highway")}
+                    </Text>
                   </View>
                   <View style={styles.progressBar}>
                     <View
@@ -721,8 +631,6 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
-
-            {/* ⚠️ GÜVENLİK */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons
@@ -730,7 +638,7 @@ const DriverTasks = ({ navigation }) => {
                   size={18}
                   color={COLORS.safety}
                 />
-                <Text style={styles.sectionTitle}>Güvenlik</Text>
+                <Text style={styles.sectionTitle}>{t("tasks.safety")}</Text>
               </View>
               <View style={styles.sectionContent}>
                 <View style={styles.metricRow}>
@@ -741,7 +649,7 @@ const DriverTasks = ({ navigation }) => {
                         {analytics.safetyScore}
                       </Text>
                     </View>
-                    <Text style={styles.metricLabel}>Skor</Text>
+                    <Text style={styles.metricLabel}>{t("tasks.score")}</Text>
                   </View>
                   <View style={styles.metricItem}>
                     <Text
@@ -749,7 +657,9 @@ const DriverTasks = ({ navigation }) => {
                     >
                       {analytics.accidentCount}
                     </Text>
-                    <Text style={styles.metricLabel}>Kaza</Text>
+                    <Text style={styles.metricLabel}>
+                      {t("tasks.accident")}
+                    </Text>
                   </View>
                   <View style={styles.metricItem}>
                     <Text
@@ -757,17 +667,19 @@ const DriverTasks = ({ navigation }) => {
                     >
                       {analytics.hardBrakeCount}
                     </Text>
-                    <Text style={styles.metricLabel}>Sert Fren</Text>
+                    <Text style={styles.metricLabel}>
+                      {t("tasks.hardBrake")}
+                    </Text>
                   </View>
                 </View>
               </View>
             </View>
-
-            {/* 🔋 ENERJİ KAYNAĞI */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="flash" size={18} color={COLORS.carbon} />
-                <Text style={styles.sectionTitle}>Enerji Kaynağı</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("tasks.energySource")}
+                </Text>
               </View>
               <View style={styles.sectionContent}>
                 <View style={styles.energyRow}>
@@ -776,37 +688,37 @@ const DriverTasks = ({ navigation }) => {
                     <Text style={styles.energyValue}>
                       %{analytics.electricPercent}
                     </Text>
-                    <Text style={styles.energyLabel}>Elektrikli</Text>
+                    <Text style={styles.energyLabel}>
+                      {t("tasks.electric")}
+                    </Text>
                   </View>
                   <View style={styles.energyItem}>
                     <Ionicons name="flame" size={20} color={COLORS.fuel} />
                     <Text style={styles.energyValue}>
                       %{analytics.fossilPercent}
                     </Text>
-                    <Text style={styles.energyLabel}>Fosil</Text>
+                    <Text style={styles.energyLabel}>{t("tasks.fossil")}</Text>
                   </View>
                 </View>
               </View>
             </View>
-
-            {/* Mesafe Detayları */}
             <View style={styles.distanceDetails}>
               <View style={styles.distanceItem}>
                 <Ionicons name="analytics" size={16} color={COLORS.secondary} />
                 <Text style={styles.distanceText}>
-                  Ort: {analytics.avgKm} km
+                  {t("tasks.avg")}: {analytics.avgKm} km
                 </Text>
               </View>
               <View style={styles.distanceItem}>
                 <Ionicons name="arrow-up" size={16} color={COLORS.success} />
                 <Text style={styles.distanceText}>
-                  Max: {analytics.maxKm} km
+                  {t("tasks.max")}: {analytics.maxKm} km
                 </Text>
               </View>
               <View style={styles.distanceItem}>
                 <Ionicons name="arrow-down" size={16} color={COLORS.info} />
                 <Text style={styles.distanceText}>
-                  Min: {analytics.minKm} km
+                  {t("tasks.min")}: {analytics.minKm} km
                 </Text>
               </View>
             </View>
@@ -816,10 +728,8 @@ const DriverTasks = ({ navigation }) => {
     );
   };
 
-  // Görev Teklifleri Kartı
   const renderOffersCard = () => {
     if (pendingOffersCount === 0) return null;
-
     return (
       <TouchableOpacity
         style={styles.offersCard}
@@ -836,10 +746,9 @@ const DriverTasks = ({ navigation }) => {
             )}
           </View>
           <View style={styles.offersTextContainer}>
-            <Text style={styles.offersTitle}>Bekleyen Görev Teklifleri</Text>
+            <Text style={styles.offersTitle}>{t("tasks.pendingOffers")}</Text>
             <Text style={styles.offersSubtitle}>
-              {pendingOffersCount} yeni teklif bekliyor - Kabul/Red için
-              tıklayın
+              {t("tasks.newOffersWaiting", { count: pendingOffersCount })}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
@@ -848,26 +757,23 @@ const DriverTasks = ({ navigation }) => {
     );
   };
 
-  // Pending Review Uyarısı
   const renderPendingReviewAlert = () => {
     if (pendingReviewCount === 0 || activeTab !== "active") return null;
-
     return (
       <View style={styles.pendingReviewAlert}>
         <Ionicons name="alert-circle" size={24} color="#D97706" />
         <View style={styles.pendingReviewAlertContent}>
           <Text style={styles.pendingReviewAlertTitle}>
-            {pendingReviewCount} görev onayınızı bekliyor
+            {t("tasks.tasksWaitingApproval", { count: pendingReviewCount })}
           </Text>
           <Text style={styles.pendingReviewAlertSubtitle}>
-            Kabul veya reddetmek için aşağıdaki kartları inceleyin
+            {t("tasks.reviewCardsBelow")}
           </Text>
         </View>
       </View>
     );
   };
 
-  // Görev kartı
   const renderTaskCard = ({ item }) => {
     const status = item.status || "pending";
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
@@ -877,7 +783,6 @@ const DriverTasks = ({ navigation }) => {
     const isPendingReview = status === "pending_review";
     const isCompleted = status === "completed";
     const isLoading = actionLoading === item.id;
-
     const getShortTaskNo = () => {
       const taskNo = item.task_no || item.task_code;
       if (!taskNo) return `TSK-${item.id?.slice(0, 6) || "??????"}`;
@@ -890,10 +795,11 @@ const DriverTasks = ({ navigation }) => {
         {isPendingReview && (
           <View style={styles.newTaskBanner}>
             <Ionicons name="notifications" size={16} color="#fff" />
-            <Text style={styles.newTaskBannerText}>Yeni Görev Teklifi!</Text>
+            <Text style={styles.newTaskBannerText}>
+              {t("tasks.newTaskOffer")}
+            </Text>
           </View>
         )}
-
         <TouchableOpacity
           onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
           activeOpacity={0.7}
@@ -912,14 +818,12 @@ const DriverTasks = ({ navigation }) => {
             <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
               <Ionicons name={config.icon} size={12} color={config.color} />
               <Text style={[styles.statusText, { color: config.color }]}>
-                {config.label}
+                {getStatusLabel(config.key)}
               </Text>
             </View>
           </View>
-
           <View style={styles.cardBody}>
             {item.title && <Text style={styles.taskTitle}>{item.title}</Text>}
-
             {(origin || destination) && (
               <View style={styles.locationContainer}>
                 {origin && (
@@ -951,7 +855,6 @@ const DriverTasks = ({ navigation }) => {
                 )}
               </View>
             )}
-
             <View style={styles.metaRow}>
               {item.vehicle_plate && (
                 <View style={styles.metaItem}>
@@ -969,7 +872,6 @@ const DriverTasks = ({ navigation }) => {
                   <Text style={styles.metaText}>{distance} km</Text>
                 </View>
               )}
-              {/* Tamamlanan görevlerde CO₂ göster */}
               {isCompleted && distance > 0 && (
                 <View style={styles.metaItem}>
                   <Ionicons name="leaf" size={14} color={COLORS.carbon} />
@@ -985,13 +887,12 @@ const DriverTasks = ({ navigation }) => {
             </View>
           </View>
         </TouchableOpacity>
-
         {isPendingReview && (
           <View style={styles.actionButtonsContainer}>
             {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={COLORS.primary} />
-                <Text style={styles.loadingText}>İşleniyor...</Text>
+                <Text style={styles.loadingText}>{t("tasks.processing")}</Text>
               </View>
             ) : (
               <View style={styles.actionButtons}>
@@ -1000,45 +901,49 @@ const DriverTasks = ({ navigation }) => {
                   onPress={() => handleRejectTask(item)}
                 >
                   <Ionicons name="close" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Reddet</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("tasks.reject")}
+                  </Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={[styles.actionButton, styles.acceptButton]}
                   onPress={() => handleAcceptTask(item)}
                 >
                   <Ionicons name="checkmark" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Kabul Et</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("tasks.accept")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
         )}
-
         {status === "accepted" && (
           <TouchableOpacity
             style={styles.goToNavButton}
             onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
-            <Text style={styles.goToNavButtonText}>Haritaya Git - Başlat</Text>
+            <Text style={styles.goToNavButtonText}>
+              {t("tasks.goToMapStart")}
+            </Text>
           </TouchableOpacity>
         )}
-
         {status === "in_progress" && (
           <TouchableOpacity
             style={styles.continueNavButton}
             onPress={() => navigation.navigate("Navigation", { task: item })}
           >
             <Ionicons name="navigate" size={18} color="#fff" />
-            <Text style={styles.continueNavButtonText}>Haritaya Devam Et</Text>
+            <Text style={styles.continueNavButtonText}>
+              {t("tasks.continueToMap")}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
     );
   };
 
-  // Boş liste
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons
@@ -1051,43 +956,39 @@ const DriverTasks = ({ navigation }) => {
         color={COLORS.muted}
       />
       <Text style={styles.emptyTitle}>
-        {activeTab === "active" ? "Aktif görev yok" : "Tamamlanan görev yok"}
+        {activeTab === "active"
+          ? t("tasks.noActiveTasks")
+          : t("tasks.noCompletedTasks")}
       </Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === "active"
-          ? "Yeni görev atamaları burada görünecek"
-          : "Tamamlanan görevleriniz burada görünecek"}
+          ? t("tasks.newTasksWillAppear")
+          : t("tasks.completedTasksWillAppear")}
       </Text>
     </View>
   );
 
-  // Loading state
-  if (loading && !refreshing) {
+  if (loading && !refreshing)
     return (
       <View style={styles.emptyContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("tasks.loadingTasks")}</Text>
       </View>
     );
-  }
-
-  // Error state
-  if (error && !refreshing) {
+  if (error && !refreshing)
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
-        <Text style={styles.errorTitle}>Hata</Text>
+        <Text style={styles.errorTitle}>{t("tasks.error")}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchTasks}>
-          <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+          <Text style={styles.retryButtonText}>{t("tasks.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
-  }
 
   return (
     <View style={styles.container}>
-      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "active" && styles.activeTab]}
@@ -1099,7 +1000,7 @@ const DriverTasks = ({ navigation }) => {
               activeTab === "active" && styles.activeTabText,
             ]}
           >
-            Aktif
+            {t("tasks.active")}
           </Text>
           {activeCount > 0 && (
             <View
@@ -1119,7 +1020,6 @@ const DriverTasks = ({ navigation }) => {
             </View>
           )}
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.tab, activeTab === "completed" && styles.activeTab]}
           onPress={() => handleTabChange("completed")}
@@ -1136,7 +1036,7 @@ const DriverTasks = ({ navigation }) => {
               activeTab === "completed" && styles.activeTabText,
             ]}
           >
-            Geçmiş
+            {t("tasks.history")}
           </Text>
           {completedCount > 0 && (
             <View
@@ -1157,8 +1057,6 @@ const DriverTasks = ({ navigation }) => {
           )}
         </TouchableOpacity>
       </View>
-
-      {/* Görev Listesi */}
       <FlatList
         data={filteredTasks}
         renderItem={renderTaskCard}
@@ -1187,12 +1085,7 @@ const DriverTasks = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  // Tabs
+  container: { flex: 1, backgroundColor: COLORS.background },
   tabContainer: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
@@ -1210,214 +1103,97 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginHorizontal: 4,
   },
-  activeTab: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.secondary,
-  },
-  activeTabText: {
-    color: COLORS.white,
-  },
+  activeTab: { backgroundColor: COLORS.primary },
+  tabText: { fontSize: 14, fontWeight: "600", color: COLORS.secondary },
+  activeTabText: { color: COLORS.white },
   tabBadge: {
-    marginLeft: 6,
-    backgroundColor: "#E0E7FF",
+    marginLeft: 8,
+    backgroundColor: "#E8EAFF",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  activeTabBadge: {
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-  tabBadgeText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  listContainer: {
-    padding: 12,
-    paddingBottom: 20,
-  },
-
-  // ═══════════════════════════════════════════════════════════════
-  // ANALYTICS CARDS
-  // ═══════════════════════════════════════════════════════════════
+  activeTabBadge: { backgroundColor: "rgba(255,255,255,0.3)" },
+  tabBadgeText: { fontSize: 12, fontWeight: "bold", color: COLORS.white },
+  listContainer: { padding: 12, paddingBottom: 24 },
   analyticsContainer: {
     backgroundColor: COLORS.white,
-    borderRadius: 16,
+    borderRadius: 12,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 3,
     overflow: "hidden",
   },
   analyticsHeader: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  analyticsHeaderLeft: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.background,
   },
-  analyticsTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.dark,
-  },
-
-  // Summary Card
-  summaryCard: {
-    padding: 16,
-  },
+  analyticsHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  analyticsTitle: { fontSize: 16, fontWeight: "700", color: COLORS.dark },
+  summaryCard: { padding: 16 },
   summaryRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  summaryItem: {
-    flex: 1,
+    justifyContent: "space-around",
     alignItems: "center",
   },
+  summaryItem: { alignItems: "center", flex: 1 },
   summaryIconBg: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
-  summaryValue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: COLORS.dark,
-  },
-  summaryLabel: {
-    fontSize: 11,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 60,
-    backgroundColor: "#E5E7EB",
-  },
-
-  // Expanded Analytics
-  expandedAnalytics: {
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-    padding: 16,
-  },
+  summaryValue: { fontSize: 20, fontWeight: "700", color: COLORS.dark },
+  summaryLabel: { fontSize: 12, color: COLORS.secondary, marginTop: 2 },
+  summaryDivider: { width: 1, height: 60, backgroundColor: "#E5E7EB" },
+  expandedAnalytics: { padding: 16, paddingTop: 0 },
   analyticsSection: {
-    marginBottom: 20,
+    marginBottom: 16,
+    backgroundColor: COLORS.background,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.dark,
-  },
-  sectionContent: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
     padding: 12,
+    backgroundColor: COLORS.white,
   },
-  metricRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  metricItem: {
-    alignItems: "center",
-  },
-  metricValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.dark,
-  },
-  metricLabel: {
-    fontSize: 11,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-
-  // Progress Bar
-  progressContainer: {
-    gap: 8,
-  },
-  progressLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: COLORS.secondary,
-  },
+  sectionTitle: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
+  sectionContent: { padding: 12 },
+  metricRow: { flexDirection: "row", justifyContent: "space-around" },
+  metricItem: { alignItems: "center", flex: 1 },
+  metricValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
+  metricLabel: { fontSize: 11, color: COLORS.secondary, marginTop: 2 },
+  progressContainer: { gap: 8 },
+  progressLabels: { flexDirection: "row", justifyContent: "space-between" },
+  progressLabel: { fontSize: 12, color: COLORS.secondary },
   progressBar: {
+    flexDirection: "row",
     height: 8,
-    backgroundColor: "#E5E7EB",
     borderRadius: 4,
-    flexDirection: "row",
     overflow: "hidden",
+    backgroundColor: "#E5E7EB",
   },
-  progressFill: {
-    height: "100%",
-  },
-  progressValues: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  progressValue: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  // Score
-  scoreContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  scoreValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.dark,
-  },
-
-  // Energy
-  energyRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  energyItem: {
-    alignItems: "center",
-    gap: 4,
-  },
-  energyValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.dark,
-  },
-  energyLabel: {
-    fontSize: 11,
-    color: COLORS.secondary,
-  },
-
-  // Distance Details
+  progressFill: { height: "100%" },
+  progressValues: { flexDirection: "row", justifyContent: "space-between" },
+  progressValue: { fontSize: 14, fontWeight: "600" },
+  scoreContainer: { flexDirection: "row", alignItems: "center", gap: 4 },
+  scoreValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
+  energyRow: { flexDirection: "row", justifyContent: "space-around" },
+  energyItem: { alignItems: "center", gap: 4 },
+  energyValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
+  energyLabel: { fontSize: 11, color: COLORS.secondary },
   distanceDetails: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -1425,18 +1201,8 @@ const styles = StyleSheet.create({
     borderTopColor: "#F3F4F6",
     paddingTop: 12,
   },
-  distanceItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  distanceText: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    fontWeight: "500",
-  },
-
-  // Pending Review Alert
+  distanceItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  distanceText: { fontSize: 12, color: COLORS.secondary, fontWeight: "500" },
   pendingReviewAlert: {
     flexDirection: "row",
     alignItems: "center",
@@ -1447,22 +1213,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#D97706",
   },
-  pendingReviewAlertContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
+  pendingReviewAlertContent: { flex: 1, marginLeft: 12 },
   pendingReviewAlertTitle: {
     fontSize: 14,
     fontWeight: "700",
     color: "#92400E",
   },
-  pendingReviewAlertSubtitle: {
-    fontSize: 12,
-    color: "#B45309",
-    marginTop: 2,
-  },
-
-  // Offers Card
+  pendingReviewAlertSubtitle: { fontSize: 12, color: "#B45309", marginTop: 2 },
   offersCard: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
@@ -1474,14 +1231,8 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  offersContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  offersIconContainer: {
-    position: "relative",
-    marginRight: 14,
-  },
+  offersContent: { flexDirection: "row", alignItems: "center" },
+  offersIconContainer: { position: "relative", marginRight: 14 },
   offersBadge: {
     position: "absolute",
     top: -6,
@@ -1494,26 +1245,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 5,
   },
-  offersBadgeText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: "bold",
-  },
-  offersTextContainer: {
-    flex: 1,
-  },
-  offersTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.white,
-  },
+  offersBadgeText: { color: COLORS.white, fontSize: 11, fontWeight: "bold" },
+  offersTextContainer: { flex: 1 },
+  offersTitle: { fontSize: 16, fontWeight: "bold", color: COLORS.white },
   offersSubtitle: {
     fontSize: 13,
     color: "rgba(255,255,255,0.8)",
     marginTop: 2,
   },
-
-  // Card
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -1525,10 +1264,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: "hidden",
   },
-  cardPendingReview: {
-    borderWidth: 2,
-    borderColor: COLORS.warning,
-  },
+  cardPendingReview: { borderWidth: 2, borderColor: COLORS.warning },
   newTaskBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -1537,11 +1273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 6,
   },
-  newTaskBannerText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 13,
-  },
+  newTaskBannerText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1550,11 +1282,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.background,
   },
-  taskIdContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
+  taskIdContainer: { flexDirection: "row", alignItems: "center", flex: 1 },
   taskId: {
     fontSize: 14,
     fontWeight: "bold",
@@ -1577,33 +1305,17 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 8,
   },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  cardBody: {
-    padding: 14,
-  },
+  statusText: { fontSize: 11, fontWeight: "600", marginLeft: 4 },
+  cardBody: { padding: 14 },
   taskTitle: {
     fontSize: 15,
     fontWeight: "600",
     color: COLORS.dark,
     marginBottom: 10,
   },
-  locationContainer: {
-    marginBottom: 12,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  locationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 10,
-  },
+  locationContainer: { marginBottom: 12 },
+  locationRow: { flexDirection: "row", alignItems: "center" },
+  locationDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
   locationLine: {
     width: 2,
     height: 15,
@@ -1611,27 +1323,15 @@ const styles = StyleSheet.create({
     marginLeft: 3,
     marginVertical: 2,
   },
-  locationText: {
-    fontSize: 13,
-    color: COLORS.dark,
-    flex: 1,
-  },
-  metaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-  },
+  locationText: { fontSize: 13, color: COLORS.dark, flex: 1 },
+  metaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
     marginRight: 15,
     marginTop: 4,
   },
-  metaText: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginLeft: 4,
-  },
+  metaText: { fontSize: 12, color: COLORS.secondary, marginLeft: 4 },
   actionButtonsContainer: {
     borderTopWidth: 1,
     borderTopColor: COLORS.background,
@@ -1643,10 +1343,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 10,
-  },
+  actionButtons: { flexDirection: "row", gap: 10 },
   actionButton: {
     flex: 1,
     flexDirection: "row",
@@ -1656,17 +1353,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 6,
   },
-  rejectButton: {
-    backgroundColor: COLORS.danger,
-  },
-  acceptButton: {
-    backgroundColor: COLORS.success,
-  },
-  actionButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
+  rejectButton: { backgroundColor: COLORS.danger },
+  acceptButton: { backgroundColor: COLORS.success },
+  actionButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   goToNavButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -1678,11 +1367,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 8,
   },
-  goToNavButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
+  goToNavButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   continueNavButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -1694,11 +1379,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 8,
   },
-  continueNavButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
+  continueNavButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -1724,11 +1405,7 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     marginTop: 16,
   },
-  errorText: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    marginTop: 8,
-  },
+  errorText: { fontSize: 14, color: COLORS.secondary, marginTop: 8 },
   retryButton: {
     marginTop: 20,
     backgroundColor: COLORS.primary,
@@ -1736,14 +1413,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  retryButtonText: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  loadingText: {
-    marginTop: 12,
-    color: COLORS.secondary,
-  },
+  retryButtonText: { color: COLORS.white, fontWeight: "600" },
+  loadingText: { marginTop: 12, color: COLORS.secondary },
 });
 
 export default DriverTasks;

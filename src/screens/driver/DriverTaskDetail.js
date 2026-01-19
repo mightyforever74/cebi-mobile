@@ -1,9 +1,10 @@
 // src/screens/driver/DriverTaskDetail.js
 // TulipFleet - Sürücü Görev Detay Ekranı
-// Updated: 30 Aralık 2025 - assigned için "Göreve Başla" butonu, kısa görev no formatı
+// Updated: 17 Ocak 2026 - Full i18n Support
 
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +17,6 @@ import {
 } from "react-native";
 import { driverTaskAPI } from "../../services/api";
 
-// Theme colors
 const COLORS = {
   primary: "#5E72E4",
   success: "#2DCE89",
@@ -30,59 +30,60 @@ const COLORS = {
   muted: "#ADB5BD",
 };
 
-// Status config
+// Status config with translation keys
 const STATUS_CONFIG = {
   pending_review: {
     color: COLORS.warning,
     bg: "#FFF5F3",
-    text: "İncelemenizi Bekliyor",
+    key: "pending_review",
     icon: "notifications",
   },
   accepted: {
     color: COLORS.info,
     bg: "#E8FAFC",
-    text: "Onaylandı - Başlatmayı Bekliyor",
+    key: "accepted",
     icon: "checkmark-circle",
   },
   in_progress: {
     color: COLORS.primary,
     bg: "#F0F2FF",
-    text: "Devam Ediyor",
+    key: "in_progress",
     icon: "navigate",
   },
   completed: {
     color: COLORS.success,
     bg: "#E8FCF1",
-    text: "Tamamlandı",
+    key: "completed",
     icon: "checkmark-done",
   },
   rejected: {
     color: COLORS.danger,
     bg: "#FFF0F3",
-    text: "Reddedildi",
+    key: "rejected",
     icon: "close-circle",
   },
   pending: {
     color: COLORS.warning,
     bg: "#FFF5F3",
-    text: "Bekliyor",
+    key: "pending",
     icon: "time",
   },
   assigned: {
     color: COLORS.info,
     bg: "#E8FAFC",
-    text: "Atandı",
+    key: "assigned",
     icon: "person",
   },
   cancelled: {
     color: COLORS.danger,
     bg: "#FFF0F3",
-    text: "İptal Edildi",
+    key: "cancelled",
     icon: "close-circle",
   },
 };
 
 const DriverTaskDetail = ({ route, navigation }) => {
+  const { t, i18n } = useTranslation();
   const { taskId } = route.params || {};
 
   const [task, setTask] = useState(null);
@@ -91,11 +92,38 @@ const DriverTaskDetail = ({ route, navigation }) => {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
 
+  // Get status label from translations
+  const getStatusLabel = (statusKey) => {
+    return t(`taskDetail.statuses.${statusKey}`) || statusKey;
+  };
+
+  // Locale-aware date formatting
+  const getLocale = () => {
+    const localeMap = {
+      tr: "tr-TR",
+      en: "en-US",
+      ku: "ku",
+      nl: "nl-NL",
+      it: "it-IT",
+      bg: "bg-BG",
+      es: "es-ES",
+    };
+    return localeMap[i18n.language] || "en-US";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleString(getLocale());
+  };
+
   useEffect(() => {
     if (taskId) {
       fetchTaskDetail();
     } else {
-      Alert.alert("Hata", "Görev ID bulunamadı");
+      Alert.alert(
+        t("taskDetail.actions.error"),
+        t("taskDetail.taskIdNotFound")
+      );
       navigation.goBack();
     }
   }, [taskId]);
@@ -108,36 +136,30 @@ const DriverTaskDetail = ({ route, navigation }) => {
       setTask(data.task || data);
     } catch (error) {
       console.error("❌ Fetch task detail error:", error);
-      Alert.alert("Hata", "Görev bulunamadı");
+      Alert.alert(t("taskDetail.actions.error"), t("taskDetail.notFound"));
       navigation.goBack();
     } finally {
       setLoading(false);
     }
   };
 
-  // Görev numarasını kısa formatta al
   const getShortTaskNo = () => {
     const taskNo = task?.task_no || task?.task_code;
     if (!taskNo) return `TSK-${task?.id?.slice(0, 6) || "??????"}`;
-
-    // Eğer çok uzunsa son 6 karakteri al
-    if (taskNo.length > 12) {
-      return `TSK-${taskNo.slice(-6)}`;
-    }
+    if (taskNo.length > 12) return `TSK-${taskNo.slice(-6)}`;
     return taskNo;
   };
 
-  // Lokasyon bilgisini al
   const getOrigin = () => {
     if (task?.route_json?.origin) return task.route_json.origin;
     if (task?.start_location) return task.start_location;
-    return "Belirtilmedi";
+    return t("taskDetail.info.notSpecified");
   };
 
   const getDestination = () => {
     if (task?.route_json?.destination) return task.route_json.destination;
     if (task?.end_location) return task.end_location;
-    return "Belirtilmedi";
+    return t("taskDetail.info.notSpecified");
   };
 
   const getDistance = () => {
@@ -146,26 +168,29 @@ const DriverTaskDetail = ({ route, navigation }) => {
     return null;
   };
 
-  // Görevi Kabul Et (sadece pending_review için)
+  // Accept task
   const handleAccept = () => {
     Alert.alert(
-      "Görevi Kabul Et",
-      "Bu görevi kabul etmek istediğinize emin misiniz?",
+      t("taskDetail.actions.acceptTask"),
+      t("taskDetail.actions.acceptConfirm"),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("taskDetail.actions.cancel"), style: "cancel" },
         {
-          text: "Kabul Et",
+          text: t("taskDetail.actions.accept"),
           onPress: async () => {
             setActionLoading(true);
             try {
               await driverTaskAPI.acceptTask(taskId);
-              Alert.alert("✅ Başarılı", "Görev kabul edildi!", [
-                { text: "Tamam", onPress: () => fetchTaskDetail() },
-              ]);
+              Alert.alert(
+                t("taskDetail.actions.success"),
+                t("taskDetail.actions.taskAccepted"),
+                [{ text: t("profile.ok"), onPress: () => fetchTaskDetail() }]
+              );
             } catch (error) {
               Alert.alert(
-                "Hata",
-                error.response?.data?.error || "İşlem başarısız"
+                t("taskDetail.actions.error"),
+                error.response?.data?.error ||
+                  t("taskDetail.actions.operationFailed")
               );
             } finally {
               setActionLoading(false);
@@ -176,86 +201,73 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
-  // Görevi Reddet (sadece pending_review için)
+  // Reject task
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      Alert.alert("Uyarı", "Lütfen red nedenini belirtin");
+      Alert.alert(
+        t("taskDetail.actions.info"),
+        t("taskDetail.actions.rejectReasonRequired")
+      );
       return;
     }
 
     setActionLoading(true);
     try {
       await driverTaskAPI.rejectTask(taskId, rejectReason);
-      Alert.alert("Bilgi", "Görev reddedildi", [
-        { text: "Tamam", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert(
+        t("taskDetail.actions.info"),
+        t("taskDetail.actions.taskRejected"),
+        [{ text: t("profile.ok"), onPress: () => navigation.goBack() }]
+      );
     } catch (error) {
-      Alert.alert("Hata", error.response?.data?.error || "İşlem başarısız");
+      Alert.alert(
+        t("taskDetail.actions.error"),
+        error.response?.data?.error || t("taskDetail.actions.operationFailed")
+      );
     } finally {
       setActionLoading(false);
       setShowRejectInput(false);
     }
   };
 
-  // Göreve Başla (assigned veya accepted için)
+  // Start task
   const handleStart = () => {
-    Alert.alert("Göreve Başla", "Göreve başlamak istediğinize emin misiniz?", [
-      { text: "İptal", style: "cancel" },
-      {
-        text: "Başla",
-        onPress: async () => {
-          setActionLoading(true);
-          try {
-            await driverTaskAPI.startTask(taskId);
-            Alert.alert("🚀 Başarılı", "Görev başlatıldı!", [
-              {
-                text: "Navigasyona Git",
-                onPress: () => {
-                  navigation.navigate("Navigation", {
-                    task: task,
-                    origin: getOrigin(),
-                    destination: getDestination(),
-                  });
-                },
-              },
-              {
-                text: "Burada Kal",
-                onPress: () => fetchTaskDetail(),
-              },
-            ]);
-          } catch (error) {
-            Alert.alert(
-              "Hata",
-              error.response?.data?.error || "İşlem başarısız"
-            );
-          } finally {
-            setActionLoading(false);
-          }
-        },
-      },
-    ]);
-  };
-
-  // Görevi Tamamla
-  const handleComplete = () => {
     Alert.alert(
-      "Görevi Tamamla",
-      "Bu görevi tamamlamak istediğinize emin misiniz?",
+      t("taskDetail.actions.startTask"),
+      t("taskDetail.actions.startConfirm"),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("taskDetail.actions.cancel"), style: "cancel" },
         {
-          text: "Tamamla",
+          text: t("taskDetail.actions.start"),
           onPress: async () => {
             setActionLoading(true);
             try {
-              await driverTaskAPI.completeTask(taskId);
-              Alert.alert("🎉 Tebrikler!", "Görev başarıyla tamamlandı!", [
-                { text: "Tamam", onPress: () => navigation.goBack() },
-              ]);
+              await driverTaskAPI.startTask(taskId);
+              Alert.alert(
+                t("taskDetail.actions.taskStarted"),
+                t("taskDetail.actions.taskStartedMessage"),
+                [
+                  {
+                    text: t("taskDetail.actions.goToNavigation"),
+                    onPress: () => {
+                      navigation.navigate("Navigation", {
+                        task: task,
+                        origin: getOrigin(),
+                        destination: getDestination(),
+                      });
+                    },
+                  },
+                  {
+                    text: t("taskDetail.actions.stayHere"),
+                    onPress: () => fetchTaskDetail(),
+                  },
+                ]
+              );
             } catch (error) {
               Alert.alert(
-                "Hata",
-                error.response?.data?.error || "İşlem başarısız"
+                t("taskDetail.actions.error"),
+                error.response?.data?.error ||
+                  t("taskDetail.actions.operationFailed")
               );
             } finally {
               setActionLoading(false);
@@ -266,17 +278,44 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
-  // Tarih formatla
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleString("tr-TR");
+  // Complete task
+  const handleComplete = () => {
+    Alert.alert(
+      t("taskDetail.actions.completeTask"),
+      t("taskDetail.actions.completeConfirm"),
+      [
+        { text: t("taskDetail.actions.cancel"), style: "cancel" },
+        {
+          text: t("taskDetail.actions.complete"),
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              await driverTaskAPI.completeTask(taskId);
+              Alert.alert(
+                t("taskDetail.actions.congratulations"),
+                t("taskDetail.actions.taskCompleted"),
+                [{ text: t("profile.ok"), onPress: () => navigation.goBack() }]
+              );
+            } catch (error) {
+              Alert.alert(
+                t("taskDetail.actions.error"),
+                error.response?.data?.error ||
+                  t("taskDetail.actions.operationFailed")
+              );
+            } finally {
+              setActionLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.success} />
-        <Text style={styles.loadingText}>Görev yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("taskDetail.loading")}</Text>
       </View>
     );
   }
@@ -285,19 +324,13 @@ const DriverTaskDetail = ({ route, navigation }) => {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={60} color={COLORS.danger} />
-        <Text style={styles.errorText}>Görev bulunamadı</Text>
+        <Text style={styles.errorText}>{t("taskDetail.notFound")}</Text>
       </View>
     );
   }
 
   const status = task.status || "pending";
   const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-
-  // Buton mantığı:
-  // pending_review → Kabul/Reddet
-  // assigned, accepted → Göreve Başla
-  // in_progress → Tamamla
-  // completed, rejected, cancelled → Sadece bilgi
 
   const showAcceptReject = status === "pending_review";
   const showStart = status === "assigned" || status === "accepted";
@@ -323,109 +356,136 @@ const DriverTaskDetail = ({ route, navigation }) => {
           <Text
             style={[styles.statusBannerText, { color: statusConfig.color }]}
           >
-            {statusConfig.text}
+            {getStatusLabel(statusConfig.key)}
           </Text>
         </View>
 
-        {/* Görev Bilgileri */}
+        {/* Task Info Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Görev Bilgileri</Text>
+          <Text style={styles.cardTitle}>{t("taskDetail.title")}</Text>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Görev No</Text>
+            <Text style={styles.infoLabel}>{t("taskDetail.info.taskNo")}</Text>
             <Text style={styles.infoValue}>{getShortTaskNo()}</Text>
           </View>
 
-          {task.vehicle_plate && (
+          {(task.vehicle_plate || task.vehicle?.plate_no) && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Araç</Text>
+              <Text style={styles.infoLabel}>
+                {t("taskDetail.info.vehicle")}
+              </Text>
               <View style={styles.vehicleBadge}>
                 <Ionicons name="car" size={14} color={COLORS.primary} />
-                <Text style={styles.vehicleText}>{task.vehicle_plate}</Text>
-                {(task.vehicle_brand || task.vehicle_model) && (
+                <Text style={styles.vehicleText}>
+                  {task.vehicle_plate || task.vehicle?.plate_no}
+                </Text>
+                {task.vehicle?.brand && (
                   <Text style={styles.vehicleModel}>
-                    {task.vehicle_brand} {task.vehicle_model}
+                    {task.vehicle.brand} {task.vehicle.model}
                   </Text>
                 )}
               </View>
             </View>
           )}
 
+          {task.scheduled_start && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {t("taskDetail.info.scheduledStart")}
+              </Text>
+              <Text style={styles.infoValue}>
+                {formatDate(task.scheduled_start)}
+              </Text>
+            </View>
+          )}
+
           {task.actual_start && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Başlama Zamanı</Text>
+              <Text style={styles.infoLabel}>
+                {t("taskDetail.info.actualStart")}
+              </Text>
               <Text style={styles.infoValue}>
                 {formatDate(task.actual_start)}
               </Text>
             </View>
           )}
 
-          {task.actual_end && (
+          {task.completed_at && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Bitiş Zamanı</Text>
+              <Text style={styles.infoLabel}>
+                {t("taskDetail.info.completedAt")}
+              </Text>
               <Text style={styles.infoValue}>
-                {formatDate(task.actual_end)}
+                {formatDate(task.completed_at)}
               </Text>
             </View>
           )}
         </View>
 
-        {/* Rota Bilgileri */}
+        {/* Route Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Rota Bilgileri</Text>
+          <Text style={styles.cardTitle}>{t("taskDetail.route.title")}</Text>
 
           <View style={styles.routeContainer}>
-            {/* Başlangıç */}
             <View style={styles.routePoint}>
               <View style={[styles.routeIcon, { backgroundColor: "#E8FCF1" }]}>
                 <Ionicons name="location" size={20} color={COLORS.success} />
               </View>
               <View style={styles.routeInfo}>
-                <Text style={styles.routeLabel}>Başlangıç Noktası</Text>
+                <Text style={styles.routeLabel}>
+                  {t("taskDetail.route.origin")}
+                </Text>
                 <Text style={styles.routeAddress}>{getOrigin()}</Text>
               </View>
             </View>
 
             <View style={styles.routeLineVertical} />
 
-            {/* Varış */}
             <View style={styles.routePoint}>
               <View style={[styles.routeIcon, { backgroundColor: "#FFF0F3" }]}>
                 <Ionicons name="flag" size={20} color={COLORS.danger} />
               </View>
               <View style={styles.routeInfo}>
-                <Text style={styles.routeLabel}>Varış Noktası</Text>
+                <Text style={styles.routeLabel}>
+                  {t("taskDetail.route.destination")}
+                </Text>
                 <Text style={styles.routeAddress}>{getDestination()}</Text>
               </View>
             </View>
 
-            {/* Mesafe */}
             {getDistance() && (
               <View style={styles.distanceBox}>
-                <Ionicons name="speedometer" size={20} color={COLORS.primary} />
+                <Ionicons
+                  name="navigate-outline"
+                  size={18}
+                  color={COLORS.primary}
+                />
                 <Text style={styles.distanceText}>
-                  Tahmini Mesafe: {getDistance()} km
+                  {t("taskDetail.route.distance")}: {getDistance()} km
                 </Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* Notlar */}
+        {/* Notes Card */}
         {task.notes && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Notlar</Text>
+            <Text style={styles.cardTitle}>{t("taskDetail.notes.title")}</Text>
             <Text style={styles.notesText}>{task.notes}</Text>
           </View>
         )}
 
-        {/* Reject Input (if showing) */}
+        {/* Reject Input */}
         {showRejectInput && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Red Nedeni</Text>
+            <Text style={styles.cardTitle}>
+              {t("taskDetail.actions.rejectReason")}
+            </Text>
             <TextInput
               style={styles.rejectInput}
-              placeholder="Red nedeninizi yazın..."
+              placeholder={t("taskDetail.actions.rejectReasonPlaceholder")}
+              placeholderTextColor={COLORS.muted}
               value={rejectReason}
               onChangeText={setRejectReason}
               multiline
@@ -439,7 +499,9 @@ const DriverTaskDetail = ({ route, navigation }) => {
                   setRejectReason("");
                 }}
               >
-                <Text style={styles.cancelRejectText}>İptal</Text>
+                <Text style={styles.cancelRejectText}>
+                  {t("taskDetail.actions.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmRejectButton}
@@ -449,7 +511,9 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 {actionLoading ? (
                   <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
-                  <Text style={styles.confirmRejectText}>Reddet</Text>
+                  <Text style={styles.confirmRejectText}>
+                    {t("taskDetail.actions.reject")}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -460,7 +524,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
       {/* Action Buttons */}
       {!showRejectInput && (
         <View style={styles.actionContainer}>
-          {/* pending_review: Kabul/Reddet */}
+          {/* pending_review: Accept/Reject */}
           {showAcceptReject && (
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -469,7 +533,9 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 disabled={actionLoading}
               >
                 <Ionicons name="close-circle" size={20} color={COLORS.white} />
-                <Text style={styles.actionButtonText}>Reddet</Text>
+                <Text style={styles.actionButtonText}>
+                  {t("taskDetail.actions.reject")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -486,14 +552,16 @@ const DriverTaskDetail = ({ route, navigation }) => {
                       size={20}
                       color={COLORS.white}
                     />
-                    <Text style={styles.actionButtonText}>Kabul Et</Text>
+                    <Text style={styles.actionButtonText}>
+                      {t("taskDetail.actions.accept")}
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
             </View>
           )}
 
-          {/* assigned/accepted: Göreve Başla */}
+          {/* assigned/accepted: Start */}
           {showStart && (
             <TouchableOpacity
               style={[
@@ -509,13 +577,15 @@ const DriverTaskDetail = ({ route, navigation }) => {
               ) : (
                 <>
                   <Ionicons name="play-circle" size={20} color={COLORS.white} />
-                  <Text style={styles.actionButtonText}>Göreve Başla</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("taskDetail.actions.startTask")}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
           )}
 
-          {/* in_progress: Tamamla */}
+          {/* in_progress: Complete */}
           {showComplete && (
             <TouchableOpacity
               style={[
@@ -535,13 +605,15 @@ const DriverTaskDetail = ({ route, navigation }) => {
                     size={20}
                     color={COLORS.white}
                   />
-                  <Text style={styles.actionButtonText}>Görevi Tamamla</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("taskDetail.actions.completeTask")}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
           )}
 
-          {/* completed/rejected/cancelled: Bilgi */}
+          {/* completed/rejected/cancelled: Info */}
           {showInfo && (
             <View
               style={[styles.infoBox, { backgroundColor: statusConfig.bg }]}
@@ -552,12 +624,11 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 color={statusConfig.color}
               />
               <Text style={[styles.infoBoxText, { color: statusConfig.color }]}>
-                Bu görev{" "}
                 {status === "completed"
-                  ? "tamamlandı"
+                  ? t("taskDetail.statusInfo.completed")
                   : status === "rejected"
-                  ? "reddedildi"
-                  : "iptal edildi"}
+                  ? t("taskDetail.statusInfo.rejected")
+                  : t("taskDetail.statusInfo.cancelled")}
               </Text>
             </View>
           )}
@@ -568,32 +639,21 @@ const DriverTaskDetail = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollView: { flex: 1 },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: COLORS.background,
   },
-  loadingText: {
-    marginTop: 10,
-    color: COLORS.secondary,
-    fontSize: 14,
-  },
+  loadingText: { marginTop: 10, color: COLORS.secondary, fontSize: 14 },
   errorText: {
     marginTop: 10,
     color: COLORS.danger,
     fontSize: 16,
     fontWeight: "600",
   },
-
-  // Status Banner
   statusBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -601,13 +661,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
   },
-  statusBannerText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 10,
-  },
-
-  // Cards
+  statusBannerText: { fontSize: 16, fontWeight: "600", marginLeft: 10 },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -626,8 +680,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
     marginBottom: 15,
   },
-
-  // Info Rows
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -636,15 +688,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.background,
   },
-  infoLabel: {
-    fontSize: 14,
-    color: COLORS.secondary,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.dark,
-  },
+  infoLabel: { fontSize: 14, color: COLORS.secondary },
+  infoValue: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
   vehicleBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -659,21 +704,9 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginLeft: 5,
   },
-  vehicleModel: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginLeft: 8,
-  },
-
-  // Route
-  routeContainer: {
-    position: "relative",
-  },
-  routePoint: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  vehicleModel: { fontSize: 12, color: COLORS.secondary, marginLeft: 8 },
+  routeContainer: { position: "relative" },
+  routePoint: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   routeIcon: {
     width: 40,
     height: 40,
@@ -681,14 +714,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  routeInfo: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  routeLabel: {
-    fontSize: 12,
-    color: COLORS.secondary,
-  },
+  routeInfo: { marginLeft: 12, flex: 1 },
+  routeLabel: { fontSize: 12, color: COLORS.secondary },
   routeAddress: {
     fontSize: 15,
     fontWeight: "600",
@@ -716,15 +743,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginLeft: 8,
   },
-
-  // Notes
-  notesText: {
-    fontSize: 14,
-    color: "#525F7F",
-    lineHeight: 20,
-  },
-
-  // Reject Input
+  notesText: { fontSize: 14, color: "#525F7F", lineHeight: 20 },
   rejectInput: {
     borderWidth: 1,
     borderColor: "#E9ECEF",
@@ -735,10 +754,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: "top",
   },
-  rejectButtons: {
-    flexDirection: "row",
-    marginTop: 15,
-  },
+  rejectButtons: { flexDirection: "row", marginTop: 15 },
   cancelRejectButton: {
     flex: 1,
     padding: 12,
@@ -757,13 +773,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  confirmRejectText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  // Action Container
+  confirmRejectText: { color: COLORS.white, fontSize: 14, fontWeight: "600" },
   actionContainer: {
     position: "absolute",
     bottom: 0,
@@ -780,9 +790,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  buttonRow: {
-    flexDirection: "row",
-  },
+  buttonRow: { flexDirection: "row" },
   actionButton: {
     flex: 1,
     flexDirection: "row",
@@ -792,29 +800,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 5,
   },
-  fullWidth: {
-    marginHorizontal: 0,
-  },
+  fullWidth: { marginHorizontal: 0 },
   actionButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
   },
-  acceptButton: {
-    backgroundColor: COLORS.success,
-  },
-  rejectButton: {
-    backgroundColor: COLORS.danger,
-  },
-  startButton: {
-    backgroundColor: COLORS.primary,
-  },
-  completeButton: {
-    backgroundColor: COLORS.success,
-  },
-
-  // Info Box
+  acceptButton: { backgroundColor: COLORS.success },
+  rejectButton: { backgroundColor: COLORS.danger },
+  startButton: { backgroundColor: COLORS.primary },
+  completeButton: { backgroundColor: COLORS.success },
   infoBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -822,11 +818,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
   },
-  infoBoxText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
+  infoBoxText: { fontSize: 14, fontWeight: "600", marginLeft: 8 },
 });
 
 export default DriverTaskDetail;
