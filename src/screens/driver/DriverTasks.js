@@ -930,15 +930,36 @@ const DriverTasks = ({ navigation }) => {
           </TouchableOpacity>
         )}
         {status === "in_progress" && (
-          <TouchableOpacity
-            style={styles.continueNavButton}
-            onPress={() => navigation.navigate("Navigation", { task: item })}
-          >
-            <Ionicons name="navigate" size={18} color="#fff" />
-            <Text style={styles.continueNavButtonText}>
-              {t("tasks.continueToMap")}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.acceptedButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.acceptedButton, styles.withdrawButton]}
+              onPress={() => handleWithdrawTask(item)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="arrow-undo" size={18} color="#fff" />
+                  <Text style={styles.acceptedButtonText}>
+                    {t("tasks.withdraw")}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.acceptedButton,
+                { backgroundColor: COLORS.info, flex: 0.6 },
+              ]}
+              onPress={() => navigation.navigate("Navigation", { task: item })}
+            >
+              <Ionicons name="navigate" size={18} color="#fff" />
+              <Text style={styles.acceptedButtonText}>
+                {t("tasks.continueToMap")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     );

@@ -74,22 +74,28 @@ const DrawerContent = ({ navigation, state }) => {
   // CRITICAL FIX: Nested Navigation Handler
   // ============================================
   const handleMenuPress = (item) => {
-    if (isAdmin) {
-      // ADMIN NAVIGATION
-      if (item.screen === "AdminHome" || item.screen === "AdminDashboard") {
-        navigation.navigate("AdminHome");
-      } else {
-        navigation.navigate("AdminHome", { screen: item.screen });
-      }
+  if (isAdmin) {
+    // ADMIN NAVIGATION
+    if (item.screen === "AdminHome" || item.screen === "AdminDashboard") {
+      navigation.navigate("AdminHome");
     } else {
-      // DRIVER NAVIGATION
-      if (item.screen === "DriverHome" || item.screen === "DriverDashboard") {
-        navigation.navigate("DriverHome");
-      } else {
-        navigation.navigate("DriverHome", { screen: item.screen });
-      }
+      navigation.navigate("AdminHome", { screen: item.screen });
     }
-  };
+  } else {
+    // DRIVER NAVIGATION
+    if (item.screen === "DriverHome" || item.screen === "DriverDashboard") {
+      navigation.navigate("DriverHome");
+    } else if (item.nestedScreen) {
+      // ← YENİ: Nested screen varsa onu da geç
+      navigation.navigate("DriverHome", { 
+        screen: item.screen,
+        params: { screen: item.nestedScreen }
+      });
+    } else {
+      navigation.navigate("DriverHome", { screen: item.screen });
+    }
+  }
+};
 
   // ============================================
   // MENU ITEMS - Role-based with i18n
@@ -130,12 +136,8 @@ const DrawerContent = ({ navigation, state }) => {
 
     // DRIVER
     return [
-      {
-        title: t("navigation.dashboard"),
-        icon: "🏠",
-        screen: "DriverDashboard",
-      },
-      { title: t("navigation.myTasks"), icon: "📋", screen: "MyTasks" },
+      { title: t("navigation.dashboard"), icon: "🏠", screen: "DriverDashboard" },
+      { title: t("navigation.myTasks"), icon: "📋", screen: "MyTasks", nestedScreen: "DriverTasksScreen" }, 
       { title: t("navigation.myVehicle"), icon: "🚗", screen: "MyVehicle" },
       { title: t("navigation.profile"), icon: "👤", screen: "Profile" },
       { title: t("navigation.settings"), icon: "⚙️", screen: "Settings" },

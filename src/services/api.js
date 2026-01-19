@@ -727,6 +727,15 @@ export const driverTaskAPI = {
     );
     return response.data;
   },
+
+  // 🆕 Kabul edilmiş görevi geri çek (Admin'e bildirim gönderir)
+  withdrawTask: async (taskId, data = {}) => {
+    const response = await api.put(
+      `/api/driver/tasks/${taskId}/withdraw`,
+      data
+    );
+    return response.data;
+  },
 };
 
 // ============================================

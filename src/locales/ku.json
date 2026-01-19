@@ -357,6 +357,13 @@
     "taskRejected": "Erk hat redkirin. Rêveberê te hat agahdarkirin.",
     "couldNotRejectTask": "Erk nehat redkirin",
     "error": "Çewtî",
+    "withdrawTask": "Erkê Vekişîne",
+    "withdrawTaskConfirm": "Ma hûn dixwazin \"{{title}}\" vekişînin?\n\nRêveberê we tê agahdar kirin.",
+    "withdrawConfirm": "Erê, Vekişîne",
+    "withdraw": "Vekişîne",
+    "taskWithdrawn": "Erk hat vekişandin. Rêveberê we hat agahdar kirin.",
+    "viewHistory": "Dîroka Bibîne",
+    "couldNotWithdrawTask": "Erk nehat vekişandin",
     "statuses": {
       "pending_review": "Erkê Nû!",
       "accepted": "Hat Qebûlkirin",
@@ -365,7 +372,8 @@
       "rejected": "Hat Redkirin",
       "pending": "Li Benda",
       "assigned": "Hat Tayînkirin",
-      "cancelled": "Betal"
+      "cancelled": "Betal",
+      "withdrawn": "Vekişandî"
     }
   },
   "deviceSetup": {

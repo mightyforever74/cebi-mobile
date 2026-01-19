@@ -282,6 +282,13 @@
     "taskRejected": "Attività rifiutata. Il tuo responsabile è stato informato.",
     "couldNotRejectTask": "Impossibile rifiutare l'attività",
     "error": "Errore",
+    "withdrawTask": "Ritira Attività",
+    "withdrawTaskConfirm": "Sei sicuro di voler ritirare \"{{title}}\"?\n\nIl tuo manager verrà notificato.",
+    "withdrawConfirm": "Sì, Ritira",
+    "withdraw": "Ritira",
+    "taskWithdrawn": "Attività ritirata. Il tuo manager è stato notificato.",
+    "viewHistory": "Vedi Cronologia",
+    "couldNotWithdrawTask": "Impossibile ritirare l'attività",
     "statuses": {
       "pending_review": "Nuova Attività!",
       "accepted": "Accettata",
@@ -290,7 +297,8 @@
       "rejected": "Rifiutata",
       "pending": "In Attesa",
       "assigned": "Assegnata",
-      "cancelled": "Annullata"
+      "cancelled": "Annullata",
+      "withdrawn": "Ritirato"
     }
   },
   "deviceSetup": {

@@ -282,6 +282,13 @@
     "taskRejected": "Задачата е отхвърлена. Вашият мениджър е уведомен.",
     "couldNotRejectTask": "Задачата не можа да бъде отхвърлена",
     "error": "Грешка",
+    "withdrawTask": "Оттегляне на Задача",
+    "withdrawTaskConfirm": "Сигурни ли сте, че искате да оттеглите \"{{title}}\"?\n\nВашият мениджър ще бъде уведомен.",
+    "withdrawConfirm": "Да, Оттегли",
+    "withdraw": "Оттегли",
+    "taskWithdrawn": "Задачата е оттеглена. Вашият мениджър е уведомен.",
+    "viewHistory": "Виж История",
+    "couldNotWithdrawTask": "Задачата не може да бъде оттеглена",
     "statuses": {
       "pending_review": "Нова Задача!",
       "accepted": "Приета",
@@ -290,7 +297,8 @@
       "rejected": "Отхвърлена",
       "pending": "Чакаща",
       "assigned": "Възложена",
-      "cancelled": "Отменена"
+      "cancelled": "Отменена",
+      "withdrawn": "Оттеглена"
     }
   },
   "deviceSetup": {

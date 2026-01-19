@@ -353,6 +353,13 @@
     "taskRejected": "Görev reddedildi. Yöneticinize bildirildi.",
     "couldNotRejectTask": "Görev reddedilemedi",
     "error": "Hata",
+    "withdrawTask": "Görevi Geri Çek",
+    "withdrawTaskConfirm": "\"{{title}}\" görevini geri çekmek istediğinize emin misiniz?\n\nYöneticinize bildirim gönderilecek.",
+    "withdrawConfirm": "Evet, Geri Çek",
+    "withdraw": "Vazgeç",
+    "taskWithdrawn": "Görev geri çekildi. Yöneticinize bildirim gönderildi.",
+    "viewHistory": "Geçmişi Gör",
+    "couldNotWithdrawTask": "Görev geri çekilemedi",
     "statuses": {
       "pending_review": "Yeni Görev!",
       "accepted": "Kabul Edildi",
@@ -361,7 +368,8 @@
       "rejected": "Reddedildi",
       "pending": "Bekliyor",
       "assigned": "Atandı",
-      "cancelled": "İptal"
+      "cancelled": "İptal",
+      "withdrawn": "Geri Çekildi"
     }
   },
   "deviceSetup": {

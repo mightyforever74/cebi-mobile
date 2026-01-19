@@ -308,6 +308,13 @@
     "taskRejected": "Task rejected. Your manager has been notified.",
     "couldNotRejectTask": "Could not reject task",
     "error": "Error",
+    "withdrawTask": "Withdraw Task",
+    "withdrawTaskConfirm": "Are you sure you want to withdraw \"{{title}}\"?\n\nYour manager will be notified.",
+    "withdrawConfirm": "Yes, Withdraw",
+    "withdraw": "Withdraw",
+    "taskWithdrawn": "Task withdrawn. Your manager has been notified.",
+    "viewHistory": "View History",
+    "couldNotWithdrawTask": "Could not withdraw task",
     "statuses": {
       "pending_review": "New Task!",
       "accepted": "Accepted",
@@ -316,7 +323,8 @@
       "rejected": "Rejected",
       "pending": "Pending",
       "assigned": "Assigned",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "withdrawn": "Withdrawn"
     }
   },
   "profile": {

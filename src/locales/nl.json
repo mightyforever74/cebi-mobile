@@ -357,6 +357,13 @@
     "taskRejected": "Taak geweigerd. Uw manager is op de hoogte gebracht.",
     "couldNotRejectTask": "Kon taak niet weigeren",
     "error": "Fout",
+    "withdrawTask": "Taak Intrekken",
+    "withdrawTaskConfirm": "Weet u zeker dat u \"{{title}}\" wilt intrekken?\n\nUw manager wordt op de hoogte gebracht.",
+    "withdrawConfirm": "Ja, Intrekken",
+    "withdraw": "Intrekken",
+    "taskWithdrawn": "Taak ingetrokken. Uw manager is op de hoogte gebracht.",
+    "viewHistory": "Bekijk Geschiedenis",
+    "couldNotWithdrawTask": "Kon taak niet intrekken",
     "statuses": {
       "pending_review": "Nieuwe Taak!",
       "accepted": "Geaccepteerd",
@@ -365,7 +372,8 @@
       "rejected": "Geweigerd",
       "pending": "Wachtend",
       "assigned": "Toegewezen",
-      "cancelled": "Geannuleerd"
+      "cancelled": "Geannuleerd",
+      "withdrawn": "Ingetrokken"
     }
   },
   "deviceSetup": {

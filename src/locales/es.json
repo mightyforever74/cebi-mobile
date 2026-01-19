@@ -225,6 +225,13 @@
     "taskRejected": "Tarea rechazada. Tu gerente ha sido notificado.",
     "couldNotRejectTask": "No se pudo rechazar la tarea",
     "error": "Error",
+    "withdrawTask": "Retirar Tarea",
+    "withdrawTaskConfirm": "¿Está seguro de que desea retirar \"{{title}}\"?\n\nSu gerente será notificado.",
+    "withdrawConfirm": "Sí, Retirar",
+    "withdraw": "Retirar",
+    "taskWithdrawn": "Tarea retirada. Su gerente ha sido notificado.",
+    "viewHistory": "Ver Historial",
+    "couldNotWithdrawTask": "No se pudo retirar la tarea",
     "statuses": {
       "pending_review": "¡Nueva Tarea!",
       "accepted": "Aceptada",
@@ -233,7 +240,8 @@
       "rejected": "Rechazada",
       "pending": "Pendiente",
       "assigned": "Asignada",
-      "cancelled": "Cancelada"
+      "cancelled": "Cancelada",
+      "withdrawn": "Retirada"
     }
   },
   "vehicle": {
