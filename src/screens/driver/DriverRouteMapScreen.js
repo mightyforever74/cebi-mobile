@@ -421,7 +421,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     if (!task) return;
     setActionLoading(true);
     try {
-      await driverTaskAPI.updateTaskStatus(task.id, "in_progress");
+      await driverTaskAPI.startTask(task.id);
       const updated = { ...task, status: "in_progress" };
       setTask(updated);
       console.log("[Nav] Task started, status: in_progress");
@@ -446,7 +446,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         onPress: async () => {
           setActionLoading(true);
           try {
-            await driverTaskAPI.updateTaskStatus(task.id, "completed");
+            await driverTaskAPI.completeTask(task.id);
             stopLocationTracking();
             setTask(null);
             setRouteCoords([]);
