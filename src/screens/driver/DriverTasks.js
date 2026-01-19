@@ -212,16 +212,20 @@ const DriverTasks = ({ navigation }) => {
               );
               Alert.alert(
                 `✅ ${t("tasks.taskAccepted")}`,
-                t("tasks.taskAcceptedMessage"),
+                t("tasks.wantToTrackOnMap"),
                 [
                   {
-                    text: t("tasks.goToMap"),
+                    text: t("tasks.yes"),
                     onPress: () =>
                       navigation.navigate("Navigation", {
                         task: { ...task, status: "accepted" },
                       }),
                   },
-                  { text: t("tasks.ok"), style: "cancel" },
+                  {
+                    text: t("tasks.no"),
+                    style: "cancel",
+                    onPress: () => fetchTasks(),
+                  },
                 ]
               );
             } catch (err) {

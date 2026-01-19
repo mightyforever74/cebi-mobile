@@ -245,10 +245,10 @@ const DriverTaskDetail = ({ route, navigation }) => {
               await driverTaskAPI.startTask(taskId);
               Alert.alert(
                 t("taskDetail.actions.taskStarted"),
-                t("taskDetail.actions.taskStartedMessage"),
+                t("tasks.wantToTrackOnMap"),
                 [
                   {
-                    text: t("taskDetail.actions.goToNavigation"),
+                    text: t("tasks.yes"),
                     onPress: () => {
                       navigation.navigate("Navigation", {
                         task: task,
@@ -258,7 +258,8 @@ const DriverTaskDetail = ({ route, navigation }) => {
                     },
                   },
                   {
-                    text: t("taskDetail.actions.stayHere"),
+                    text: t("tasks.no"),
+                    style: "cancel",
                     onPress: () => fetchTaskDetail(),
                   },
                 ]
@@ -293,8 +294,23 @@ const DriverTaskDetail = ({ route, navigation }) => {
               await driverTaskAPI.completeTask(taskId);
               Alert.alert(
                 t("taskDetail.actions.congratulations"),
-                t("taskDetail.actions.taskCompleted"),
-                [{ text: t("profile.ok"), onPress: () => navigation.goBack() }]
+                t("tasks.wantToTrackOnMap"),
+                [
+                  {
+                    text: t("tasks.yes"),
+                    onPress: () =>
+                      navigation.navigate("Navigation", {
+                        task: { ...task, status: "completed" },
+                        origin: getOrigin(),
+                        destination: getDestination(),
+                      }),
+                  },
+                  {
+                    text: t("tasks.no"),
+                    style: "cancel",
+                    onPress: () => navigation.goBack(),
+                  },
+                ]
               );
             } catch (error) {
               Alert.alert(

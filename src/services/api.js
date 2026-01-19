@@ -1,10 +1,11 @@
 // src/services/api.js
 // TulipFleet API Service
-// Updated: 12 Ocak 2026 - Token Race Condition Fix v4
+// Updated: 19 Ocak 2026 - Duplikasyon Temizliği + Kritik Fix
 // FIXES:
-// - KRİTİK A: Auth endpoint'leri için interceptor'sız authClient
-// - KRİTİK B: 401 guard (auth endpoint hariç) + spam lock
-// - AsyncStorage import kaldırıldı (storage utils kullanılıyor)
+// - KRİTİK: updateTaskStatus fonksiyon adı ve URL düzeltildi
+// - Duplikasyonlar temizlendi (getAll/getList, getTasks vb.)
+// - deviceAPI'den yersiz task fonksiyonu kaldırıldı
+// - Tutarlı endpoint naming (/tasks/ çoğul)
 
 import axios from "axios";
 import { API_BASE_URL } from "../constants/config";
@@ -252,10 +253,12 @@ export const userAPI = {
 // ============================================
 
 export const adminAPI = {
+  // Fleet stats - tek kaynak
   getFleetStats: async () => {
-    const response = await api.get("/api/admin/fleet-stats"); // ✅ DOĞRU
+    const response = await api.get("/api/admin/fleet-stats");
     return response.data;
   },
+
   // Admin Devices inventory
   getDevices: async (assigned) => {
     const params = {};
@@ -272,34 +275,17 @@ export const adminAPI = {
   },
 
   claimDevice: async (data) => {
-    // FIX: Backend uyumlu - action parametresi kaldırıldı, company_id eklendi
-    // data = string (deviceId) veya object { deviceId, company_id }
     const body = typeof data === "string" ? { deviceId: data } : data;
-
     const response = await api.post("/api/admin/devices/claim", body);
     return response.data;
   },
 
-  getVehicles: async () => {
-    const response = await api.get("/api/vehicles");
-    return response.data;
-  },
+  // Delegate to canonical APIs
+  getVehicles: async () => vehicleAPI.getList(),
+  getDrivers: async () => driverAPI.getList(),
+  getTasks: async () => taskAPI.getList(),
 
-  getDrivers: async () => {
-    const response = await api.get("/api/drivers");
-    return response.data;
-  },
-
-  getTasks: async () => {
-    const response = await api.get("/api/tasks");
-    return response.data;
-  },
-
-  getAlerts: async (status) => {
-    const url = status ? `/api/alerts?status=${status}` : "/api/alerts";
-    const response = await api.get(url);
-    return response.data;
-  },
+  getAlerts: async (status) => alertsAPI.getAll({ status }),
 
   resolveAlert: async (alertId, resolution) => {
     const response = await api.put(`/api/alerts/${alertId}/resolve`, {
@@ -344,7 +330,6 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Device QR management
   getDeviceQR: async (deviceId) => {
     const response = await api.get(`/api/superadmin/devices/${deviceId}/qr`);
     return response.data;
@@ -371,7 +356,6 @@ export const superAdminAPI = {
 // ============================================
 
 export const deviceAPI = {
-  // Claim via QR token
   validateClaimToken: async (token) => {
     const response = await api.get("/api/device/claim/validate", {
       params: { token },
@@ -380,7 +364,6 @@ export const deviceAPI = {
   },
 
   claimByToken: async (token, actionOrBody = "add_to_stock") => {
-    // FIX: Hem string hem object kabul eder (geriye uyumlu)
     const body =
       typeof actionOrBody === "string"
         ? { token, action: actionOrBody }
@@ -389,6 +372,7 @@ export const deviceAPI = {
     const response = await api.post("/api/device/claim", body);
     return response.data;
   },
+
   validateSerial: async (serial) => {
     const response = await api.post("/api/devices/validate-serial", { serial });
     return response.data;
@@ -411,10 +395,7 @@ export const deviceAPI = {
     return response.data;
   },
 
-  updateTaskStatus: async (id, status) => {
-    const response = await api.put(`/api/driver/task/${id}/status`, { status });
-    return response.data;
-  },
+  // KALDIRILDI: updateTaskStatus - bu driverTaskAPI'de olmalı
 
   quarantine: async (deviceId, reason) => {
     const response = await api.post(
@@ -431,19 +412,18 @@ export const deviceAPI = {
 };
 
 // ============================================
-// DRIVER ENDPOINTS
+// DRIVER ENDPOINTS (Admin tarafından kullanılır)
 // ============================================
 
 export const driverAPI = {
-  getAll: async () => {
-    const response = await api.get("/api/drivers");
-    return response.data;
-  },
-
+  // Canonical list endpoint
   getList: async () => {
     const response = await api.get("/api/drivers");
     return response.data;
   },
+
+  // Alias for backward compatibility
+  getAll: async () => driverAPI.getList(),
 
   createWithUser: async (data) => {
     const response = await api.post("/api/drivers/create-with-user", data);
@@ -460,15 +440,13 @@ export const driverAPI = {
     return response.data;
   },
 
+  // Driver's own endpoints
   getStats: async () => {
     const response = await api.get("/api/driver/stats");
     return response.data;
   },
 
-  getTasks: async () => {
-    const response = await api.get("/api/driver/tasks");
-    return response.data;
-  },
+  getTasks: async () => driverTaskAPI.getMyTasks(),
 
   getVehicle: async () => {
     const response = await api.get("/api/driver/vehicle");
@@ -495,7 +473,6 @@ export const driverAPI = {
     return response.data;
   },
 
-  // YENİ: Cihaz envanter fonksiyonları
   getAssignableDevices: async () => {
     const response = await api.get("/api/driver/devices/assignable");
     return response.data;
@@ -509,24 +486,12 @@ export const driverAPI = {
   },
 
   assignDevice: async (arg1, arg2) => {
-    // OVERLOAD: Hem object hem (deviceId, vehicleId) kabul eder
-    // Kullanım 1: assignDevice({ deviceId, serial, vehicleId })
-    // Kullanım 2: assignDevice(deviceId, vehicleId)
     const data =
       typeof arg1 === "object" && arg1 !== null
         ? arg1
         : { deviceId: arg1, vehicleId: arg2 };
 
     const response = await api.post("/api/driver/devices/assign", data);
-    return response.data;
-  },
-
-  // Alternatif basit versiyon
-  assignDeviceSimple: async (deviceId, vehicleId) => {
-    const response = await api.post("/api/driver/devices/assign", {
-      deviceId,
-      vehicleId,
-    });
     return response.data;
   },
 };
@@ -536,15 +501,14 @@ export const driverAPI = {
 // ============================================
 
 export const vehicleAPI = {
-  getAll: async () => {
-    const response = await api.get("/api/vehicles");
-    return response.data;
-  },
-
+  // Canonical list endpoint
   getList: async () => {
     const response = await api.get("/api/vehicles");
     return response.data;
   },
+
+  // Alias for backward compatibility
+  getAll: async () => vehicleAPI.getList(),
 
   getById: async (id) => {
     const response = await api.get(`/api/vehicles/${id}`);
@@ -577,6 +541,7 @@ export const vehicleAPI = {
     const response = await api.get(url);
     return response.data;
   },
+
   getTrack: async (vehicleId, from, to) => {
     const params = new URLSearchParams();
     if (from) params.append("start", from);
@@ -592,7 +557,7 @@ export const vehicleAPI = {
     const response = await api.get(`/api/vehicles/${vehicleId}/location`);
     return response.data;
   },
-  // Tüm araçların son konumları - FleetMap için
+
   getAllWithLocations: async () => {
     const response = await api.get("/api/locations/latest");
     return response.data;
@@ -600,19 +565,18 @@ export const vehicleAPI = {
 };
 
 // ============================================
-// TASK ENDPOINTS
+// TASK ENDPOINTS (Admin tarafından kullanılır)
 // ============================================
 
 export const taskAPI = {
-  getAll: async () => {
-    const response = await api.get("/api/tasks");
-    return response.data;
-  },
-
+  // Canonical list endpoint
   getList: async () => {
     const response = await api.get("/api/tasks");
     return response.data;
   },
+
+  // Alias for backward compatibility
+  getAll: async () => taskAPI.getList(),
 
   getById: async (id) => {
     const response = await api.get(`/api/tasks/${id}`);
@@ -641,10 +605,8 @@ export const taskAPI = {
     return response.data;
   },
 
-  getDriverTasks: async () => {
-    const response = await api.get("/api/driver/tasks");
-    return response.data;
-  },
+  // Delegate to driverTaskAPI
+  getDriverTasks: async () => driverTaskAPI.getMyTasks(),
 };
 
 // ============================================
@@ -679,10 +641,11 @@ export const taskOffersAPI = {
 };
 
 // ============================================
-// DRIVER TASK API
+// DRIVER TASK API (Sürücü görev işlemleri - TEK KAYNAK)
 // ============================================
 
 export const driverTaskAPI = {
+  // Canonical: Sürücünün görevlerini getir
   getMyTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
@@ -698,8 +661,11 @@ export const driverTaskAPI = {
     return response.data;
   },
 
-  updateStatus: async (id, status) => {
-    const response = await api.put(`/api/driver/task/${id}/status`, { status });
+  // KRİTİK FIX: Fonksiyon adı ve URL düzeltildi
+  updateTaskStatus: async (taskId, status) => {
+    const response = await api.put(`/api/driver/tasks/${taskId}/status`, {
+      status,
+    });
     return response.data;
   },
 
@@ -728,7 +694,6 @@ export const driverTaskAPI = {
     return response.data;
   },
 
-  // 🆕 Kabul edilmiş görevi geri çek (Admin'e bildirim gönderir)
   withdrawTask: async (taskId, data = {}) => {
     const response = await api.put(
       `/api/driver/tasks/${taskId}/withdraw`,
@@ -753,8 +718,9 @@ export const pushAPI = {
     return response.data;
   },
 };
+
 // ============================================
-// ALERTS API
+// ALERTS API (TEK KAYNAK)
 // ============================================
 
 export const alertsAPI = {
@@ -789,16 +755,17 @@ export const alertsAPI = {
     return response.data;
   },
 };
+
+// Standardize on alertsAPI (alias kaldırıldı, doğrudan kullan)
 export const alertAPI = alertsAPI;
+
 // ============================================
 // REPORTS API
 // ============================================
 
 export const reportAPI = {
-  getSummary: async (from, to) => {
-    const response = await api.get("/api/admin/fleet-stats");
-    return response.data;
-  },
+  // Delegate to adminAPI
+  getSummary: async (from, to) => adminAPI.getFleetStats(),
 
   getVehicles: async () => {
     const response = await api.get("/api/reports/vehicles");
@@ -811,8 +778,8 @@ export const reportAPI = {
   },
 
   getAlerts: async (from, to) => {
-    const response = await api.get("/api/alerts");
-    const alerts = response.data.alerts || [];
+    const data = await alertsAPI.getAll();
+    const alerts = data.alerts || [];
 
     // Tip bazlı grupla
     const byType = {};
@@ -829,8 +796,8 @@ export const reportAPI = {
   },
 
   getTasks: async (from, to) => {
-    const response = await api.get("/api/tasks");
-    const tasks = response.data.tasks || response.data || [];
+    const data = await taskAPI.getList();
+    const tasks = data.tasks || data || [];
 
     // Durum bazlı grupla
     const byStatus = {};
