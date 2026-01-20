@@ -1,11 +1,6 @@
 // src/services/api.js
 // TulipFleet API Service
-// Updated: 19 Ocak 2026 - Duplikasyon Temizliği + Kritik Fix
-// FIXES:
-// - KRİTİK: updateTaskStatus fonksiyon adı ve URL düzeltildi
-// - Duplikasyonlar temizlendi (getAll/getList, getTasks vb.)
-// - deviceAPI'den yersiz task fonksiyonu kaldırıldı
-// - Tutarlı endpoint naming (/tasks/ çoğul)
+// Updated: 20 Ocak 2026
 
 import axios from "axios";
 import { API_BASE_URL } from "../constants/config";
@@ -305,26 +300,93 @@ export const adminAPI = {
 // ============================================
 
 export const superAdminAPI = {
-  getCompanies: async () => {
-    const response = await api.get("/api/superadmin/companies");
+  // ============================================
+  // COMPANIES (Birleşik - Şirket + Abonelik)
+  // ============================================
+
+  // Liste + Özet + Acil durumlar
+  getCompanies: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await api.get(
+      `/api/superadmin/companies${query ? "?" + query : ""}`
+    );
     return response.data;
   },
 
+  // Şirket detayı (tüm tab'lar için veri)
+  getCompanyDetail: async (id) => {
+    const response = await api.get(`/api/superadmin/companies/${id}`);
+    return response.data;
+  },
+
+  // Şirket oluştur (Trial olarak başlar)
   createCompany: async (data) => {
     const response = await api.post("/api/superadmin/companies", data);
     return response.data;
   },
 
+  // Şirket güncelle (abonelik dahil)
   updateCompany: async (id, data) => {
     const response = await api.put(`/api/superadmin/companies/${id}`, data);
     return response.data;
   },
 
+  // Şirket sil
   deleteCompany: async (id) => {
     const response = await api.delete(`/api/superadmin/companies/${id}`);
     return response.data;
   },
 
+  // ============================================
+  // ABONELİK İŞLEMLERİ
+  // ============================================
+
+  // Ödeme kaydet + Otomatik aktifleştir (TEK BUTON)
+  recordPayment: async (companyId, data) => {
+    const response = await api.post(
+      `/api/superadmin/companies/${companyId}/payment-received`,
+      data
+    );
+    return response.data;
+  },
+
+  // Şirketi askıya al
+  suspendCompany: async (companyId, data) => {
+    const response = await api.post(
+      `/api/superadmin/companies/${companyId}/suspend`,
+      data
+    );
+    return response.data;
+  },
+
+  // Trial süresini uzat
+  extendTrial: async (companyId, days = 7) => {
+    const response = await api.post(
+      `/api/superadmin/companies/${companyId}/extend-trial`,
+      { days }
+    );
+    return response.data;
+  },
+
+  // Ödeme geçmişi (detaylı)
+  getPaymentHistory: async (companyId) => {
+    const response = await api.get(
+      `/api/superadmin/companies/${companyId}/payments`
+    );
+    return response.data;
+  },
+
+  // Audit log (değişiklik geçmişi)
+  getAuditLogs: async (companyId) => {
+    const response = await api.get(
+      `/api/superadmin/companies/${companyId}/audit-logs`
+    );
+    return response.data;
+  },
+
+  // ============================================
+  // CİHAZLAR (Mevcut - Değişiklik yok)
+  // ============================================
   getDevices: async () => {
     const response = await api.get("/api/superadmin/devices");
     return response.data;
@@ -340,6 +402,9 @@ export const superAdminAPI = {
     return response.data;
   },
 
+  // ============================================
+  // KULLANICILAR & SİSTEM
+  // ============================================
   getUsers: async () => {
     const response = await api.get("/api/superadmin/users");
     return response.data;
@@ -469,6 +534,15 @@ export const driverAPI = {
     const response = await api.put(
       `/api/driver/vehicle/${vehicleId}/odometer`,
       { odometer }
+    );
+    return response.data;
+  },
+
+  // Update vehicle settings (uses authClient per request)
+  updateVehicleSettings: async (vehicleId, data) => {
+    const response = await authClient.put(
+      `/api/driver/vehicle/${vehicleId}/settings`,
+      data
     );
     return response.data;
   },
@@ -819,6 +893,49 @@ export const reportAPI = {
       byStatus,
       tasks,
     };
+  },
+};
+
+// ============================================
+// FUEL API
+// ============================================
+
+export const fuelAPI = {
+  // Driver endpoints
+  addRecord: async (data) => {
+    const response = await api.post("/api/fuel/records", data);
+    return response.data;
+  },
+
+  getLastRecord: async (vehicleId) => {
+    const response = await api.get(`/api/fuel/last-record/${vehicleId}`);
+    return response.data;
+  },
+
+  // Admin endpoints
+  getCompanyRecords: async (params = {}) => {
+    const response = await api.get("/api/fuel/company/records", { params });
+    return response.data;
+  },
+
+  getCompanyAnalytics: async () => {
+    const response = await api.get("/api/fuel/company/analytics");
+    return response.data;
+  },
+
+  getCompanySavings: async () => {
+    const response = await api.get("/api/fuel/company/savings");
+    return response.data;
+  },
+
+  getVehicleAnalysis: async (vehicleId) => {
+    const response = await api.get(`/api/fuel/vehicle/${vehicleId}`);
+    return response.data;
+  },
+
+  getAlerts: async () => {
+    const response = await api.get("/api/fuel/alerts");
+    return response.data;
   },
 };
 

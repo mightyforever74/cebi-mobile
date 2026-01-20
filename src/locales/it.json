@@ -51,7 +51,8 @@
     "fleetMap": "Mappa Live",
     "myTasks": "Le Mie Attività",
     "myVehicle": "Il Mio Veicolo",
-    "taskHistory": "Cronologia Attività"
+    "taskHistory": "Cronologia Attività",
+    "fuelEntry": "Inserimento Carburante"
   },
   "settings": {
     "title": "Impostazioni",
@@ -140,31 +141,58 @@
     "completedTasks": "Completate",
     "totalDistance": "Distanza Totale",
     "avgScore": "Punteggio Medio",
-    "activeTasksCount": "Attive"
+    "activeTasksCount": "Attive",
+    "fuelEntry": "Rifornimento"
   },
   "vehicle": {
     "title": "Il Mio Veicolo",
-    "loading": "Caricamento info veicolo...",
-    "couldNotLoad": "Impossibile caricare info veicolo",
+    "loading": "Caricamento informazioni veicolo...",
+    "couldNotLoad": "Impossibile caricare le informazioni",
+    "notAssigned": "Nessun Veicolo Assegnato",
+    "notAssignedMessage": "Non hai ancora un veicolo assegnato. Contatta il tuo amministratore.",
     "errorOccurred": "Si è Verificato un Errore",
     "retry": "Riprova",
-    "notAssigned": "Nessun Veicolo Assegnato",
-    "notAssignedMessage": "Non ti è ancora stato assegnato un veicolo. Contatta il tuo responsabile.",
-    "fuelLevel": "Livello Carburante",
-    "mileage": "Chilometraggio",
-    "modelYear": "Anno Modello",
-    "color": "Colore",
-    "esp32": "ESP32",
     "connected": "Connesso",
     "noConnection": "Nessuna Connessione",
     "none": "Nessuno",
+    "active": "Attivo",
+    "fuelLevel": "Livello Carburante",
+    "fuelType": "Tipo Carburante",
+    "tankCapacity": "Capacità Serbatoio",
+    "mileage": "Chilometraggio",
+    "modelYear": "Anno Modello",
+    "color": "Colore",
+    "esp32": "Dispositivo",
     "vehicleDetails": "Dettagli Veicolo",
     "plate": "Targa",
     "brand": "Marca",
     "model": "Modello",
     "year": "Anno",
     "status": "Stato",
-    "active": "Attivo"
+    "selectColor": "Seleziona Colore",
+    "noColorSelected": "Nessun colore selezionato",
+    "colorUpdated": "Colore aggiornato",
+    "colorUpdateFailed": "Impossibile aggiornare il colore",
+    "statuses": {
+      "available": "Disponibile",
+      "in_use": "In Uso",
+      "maintenance": "In Manutenzione",
+      "retired": "Dismesso"
+    },
+    "colors": {
+      "white": "Bianco",
+      "black": "Nero",
+      "silver": "Argento",
+      "gray": "Grigio",
+      "red": "Rosso",
+      "blue": "Blu",
+      "navy": "Blu Navy",
+      "green": "Verde",
+      "yellow": "Giallo",
+      "orange": "Arancione",
+      "brown": "Marrone",
+      "beige": "Beige"
+    }
   },
   "profile": {
     "title": "Profilo",
@@ -177,22 +205,42 @@
     "editProfileSubtitle": "Nome, cognome, telefono",
     "changePassword": "Cambia Password",
     "changePasswordSubtitle": "Sicurezza account",
+      "error": {
+        "title": "Errore",
+        "loadFailed": "Caricamento info veicolo fallito",
+        "saveFailed": "Salvataggio registro fallito",
+        "noVehicle": "Nessun veicolo assegnato",
+        "vehicleUpdateFailed": "Aggiornamento info veicolo fallito"
+      },
     "notifications": "NOTIFICHE",
     "notificationsTitle": "Notifiche",
     "notificationsSubtitle": "Notifiche attività",
     "locationSharing": "Condivisione Posizione",
     "locationSubtitle": "Richiesto per il tracciamento",
     "support": "SUPPORTO",
+      "notFullTankWarning": {
+        "title": "Avviso",
+        "message": "Se il serbatoio non è pieno, questo registro non verrà incluso nell'analisi dei consumi. Continuare?",
+        "cancel": "Annulla",
+        "saveAnyway": "Salva comunque"
+      },
     "help": "Aiuto",
     "helpSubtitle": "FAQ e guida",
     "contactUs": "Contattaci",
     "about": "Informazioni",
     "version": "Versione",
+        "message": "Salvato!",
     "logout": "Esci",
     "logoutSubtitle": "Esci dal tuo account",
     "logoutConfirm": "Sei sicuro di voler uscire?",
     "cancel": "Annulla",
-    "supportTitle": "Supporto",
+      },
+      "fuelTypes": {
+        "diesel": "Diesel",
+        "gasoline": "Benzina",
+        "lpg": "GPL",
+        "electric": "Elettrico"
+      }
     "supportMessage": "Hai bisogno di aiuto?",
     "sendEmail": "Invia Email",
     "aboutTitle": "Informazioni su TulipFleet",
@@ -753,5 +801,46 @@
   },
   "root": {
     "loading": "Caricamento..."
+  },
+  "fuel": {
+    "menuTitle": "Inserimento Carburante",
+    "loading": "Caricamento...",
+    "noVehicle": "Nessun veicolo assegnato",
+    "retry": "Riprova",
+    "labels": {
+      "odometerKm": "Chilometraggio",
+      "litersFilled": "Litri Inseriti",
+      "totalCost": "Costo Totale (opzionale)",
+      "fullTank": "Serbatoio PIENO"
+    },
+    "hints": {
+      "lastRecordTitle": "Ultimo registro",
+      "lastRecordPrefix": "💡 Ultimo",
+      "warningFull": "⚠️ Riempire fino al PIENO"
+    },
+    "errors": {
+      "vehicleLoadFailed": "Impossibile caricare info veicolo",
+      "odometerRequired": "Il chilometraggio è obbligatorio",
+      "litersRequired": "I litri sono obbligatori",
+      "odometerLessThanPrev": "Il chilometraggio deve essere maggiore del precedente ({{prev}})",
+      "litersExceedCapacity": "Massimo {{capacity}}L",
+      "submitFailed": "Impossibile salvare il record"
+    },
+    "confirmNotFull": {
+      "title": "Attenzione",
+      "message": "Se il serbatoio non è PIENO, questa voce è esclusa dall'analisi dei consumi. Continuare?",
+      "cancel": "Annulla",
+      "proceed": "Salva comunque"
+    },
+    "submit": {
+      "save": "Salva"
+    },
+    "success": {
+      "title": "Successo",
+      "saved": "Salvato",
+      "kmTraveled": "{{km}} km",
+      "consumptionPer100km": "{{value}} L/100km",
+      "costPerKm": "{{value}}/km"
+    }
   }
 }

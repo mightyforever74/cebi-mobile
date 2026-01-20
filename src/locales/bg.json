@@ -51,6 +51,7 @@
     "fleetMap": "Карта на живо",
     "myTasks": "Моите задачи",
     "myVehicle": "Моето превозно средство",
+    "fuelEntry": "Въвеждане на гориво",
     "taskHistory": "История на задачите"
   },
   "settings": {
@@ -137,34 +138,61 @@
     "noActiveTasks": "Няма активни задачи",
     "seeAll": "Виж всички",
     "myStats": "Моята статистика",
+    "fuelEntry": "Зареждане",
     "completedTasks": "Завършени",
     "totalDistance": "Общо разстояние",
     "avgScore": "Средна оценка",
     "activeTasksCount": "Активни"
   },
   "vehicle": {
-    "title": "Моето Превозно Средство",
-    "loading": "Зареждане на информация за превозното средство...",
-    "couldNotLoad": "Информацията за превозното средство не можа да се зареди",
-    "errorOccurred": "Възникна Грешка",
-    "retry": "Опитай Отново",
-    "notAssigned": "Няма Назначено Превозно Средство",
-    "notAssignedMessage": "Все още не ви е назначено превозно средство. Свържете се с вашия мениджър.",
-    "fuelLevel": "Ниво на Горивото",
-    "mileage": "Километраж",
-    "modelYear": "Година на Модела",
-    "color": "Цвят",
-    "esp32": "ESP32",
+    "title": "Моето превозно средство",
+    "loading": "Зареждане на информация...",
+    "couldNotLoad": "Неуспешно зареждане",
+    "notAssigned": "Няма назначено превозно средство",
+    "notAssignedMessage": "Все още нямате назначено превозно средство. Моля, свържете се с вашия администратор.",
+    "errorOccurred": "Възникна грешка",
+    "retry": "Опитайте отново",
     "connected": "Свързан",
-    "noConnection": "Няма Връзка",
+    "noConnection": "Няма връзка",
     "none": "Няма",
-    "vehicleDetails": "Детайли за Превозното Средство",
-    "plate": "Регистрационен Номер",
+    "active": "Активен",
+    "fuelLevel": "Ниво на горивото",
+    "fuelType": "Вид гориво",
+    "tankCapacity": "Капацитет на резервоара",
+    "mileage": "Километраж",
+    "modelYear": "Година на модела",
+    "color": "Цвят",
+    "esp32": "Устройство",
+    "vehicleDetails": "Детайли на превозното средство",
+    "plate": "Регистрационен номер",
     "brand": "Марка",
     "model": "Модел",
     "year": "Година",
     "status": "Статус",
-    "active": "Активен"
+    "selectColor": "Изберете цвят",
+    "noColorSelected": "Не е избран цвят",
+    "colorUpdated": "Цветът е актуализиран",
+    "colorUpdateFailed": "Неуспешна актуализация на цвета",
+    "statuses": {
+      "available": "Наличен",
+      "in_use": "В употреба",
+      "maintenance": "В ремонт",
+      "retired": "Изведен от експлоатация"
+    },
+    "colors": {
+      "white": "Бял",
+      "black": "Черен",
+      "silver": "Сребърен",
+      "gray": "Сив",
+      "red": "Червен",
+      "blue": "Син",
+      "navy": "Тъмносин",
+      "green": "Зелен",
+      "yellow": "Жълт",
+      "orange": "Оранжев",
+      "brown": "Кафяв",
+      "beige": "Бежов"
+    }
   },
   "profile": {
     "title": "Профил",
@@ -753,5 +781,99 @@
   },
   "root": {
     "loading": "Зареждане..."
+  },
+  "fuel": {
+    "title": "Зареждане",
+    "menuTitle": "Зареждане",
+    "vehicleInfo": "Информация за превозното средство",
+    "plate": "Регистрационен номер",
+    "lastOdometer": "Последен",
+    "tankCapacity": "Резервоар",
+    "fuelType": "Вид гориво",
+    "currentOdometer": "Километраж",
+    "odometerPlaceholder": "напр. 100 520",
+    "litersFilled": "Заредени литри",
+    "litersPlaceholder": "напр. 52",
+    "totalCost": "Обща сума",
+    "costPlaceholder": "напр. 150",
+    "pricePerLiter": "Цена на литър",
+    "isFullTank": "Пълен резервоар",
+    "fullTankNote": "Заредете пълен резервоар",
+    "save": "ЗАПАЗИ",
+    "calculation": "Преглед на изчислението",
+    "kmTraveled": "Изминато разстояние",
+    "consumption": "Разход",
+    "costPerKm": "Цена на км",
+    "lastRecord": "Последен запис",
+    "editVehicle": "Редактиране на информацията",
+    "vehicleUpdated": "Информацията е актуализирана",
+    "plateReadonly": "Номерът не може да бъде променен",
+    "firstRecordNote": "Това е първият запис, разходът ще бъде изчислен при следващото зареждане.",
+    "loading": "Зареждане...",
+    "noVehicle": "Няма назначено превозно средство",
+    "retry": "Опитай Отново",
+    "validation": {
+      "odometerRequired": "Километражът е задължителен",
+      "odometerMustBeHigher": "Километражът трябва да е по-голям от предишния запис ({{lastKm}})",
+      "litersRequired": "Количеството литри е задължително",
+      "litersExceedsTank": "Максимум {{capacity}}L позволено",
+      "consumptionUnrealistic": "Изчисленият разход ({{value}} L/100km) изглежда нереалистичен",
+      "kmTooHigh": "{{km}} км за едно зареждане изглежда твърде много"
+    },
+    "labels": {
+      "odometerKm": "Километраж",
+      "litersFilled": "Заредени литри",
+      "totalCost": "Сума (по избор)",
+      "fullTank": "Пълен резервоар"
+    },
+    "hints": {
+      "lastRecordTitle": "Последен запис",
+      "lastRecordPrefix": "💡 Последно",
+      "warningFull": "⚠️ Моля, напълнете до ПЪЛНО"
+    },
+    "errors": {
+      "vehicleLoadFailed": "Информацията за превозното средство не можа да се зареди",
+      "odometerRequired": "Километражът е задължителен",
+      "litersRequired": "Литрите са задължителни",
+      "odometerLessThanPrev": "Километражът трябва да е по-голям от предишния ({{prev}})",
+      "litersExceedCapacity": "Максимум {{capacity}}L",
+      "submitFailed": "Записът не можа да се запази"
+    },
+    "error": {
+      "title": "Грешка",
+      "loadFailed": "Неуспешно зареждане на информацията",
+      "saveFailed": "Неуспешно запазване",
+      "noVehicle": "Няма назначено превозно средство",
+      "vehicleUpdateFailed": "Неуспешна актуализация"
+    },
+    "confirmNotFull": {
+      "title": "Внимание",
+      "message": "Ако резервоарът не е ПЪЛЕН, този запис няма да участва в анализа на разхода. Продължавате ли?",
+      "cancel": "Отказ",
+      "proceed": "Запази въпреки това"
+    },
+    "notFullTankWarning": {
+      "title": "Внимание",
+      "message": "Ако резервоарът не е пълен, този запис няма да бъде включен в анализа на разхода. Продължавате ли?",
+      "cancel": "Отказ",
+      "saveAnyway": "Запази все пак"
+    },
+    "submit": {
+      "save": "Запази"
+    },
+    "success": {
+      "title": "Успех",
+      "message": "Запазено!",
+      "saved": "Записано",
+      "kmTraveled": "{{km}} км",
+      "consumptionPer100km": "{{value}} L/100км",
+      "costPerKm": "{{value}}/км"
+    },
+    "fuelTypes": {
+      "diesel": "Дизел",
+      "gasoline": "Бензин",
+      "lpg": "Газ",
+      "electric": "Електричество"
+    }
   }
 }

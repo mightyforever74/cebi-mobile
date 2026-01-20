@@ -51,6 +51,7 @@
     "fleetMap": "Mapa en Vivo",
     "myTasks": "Mis Tareas",
     "myVehicle": "Mi Vehículo",
+    "fuelEntry": "Entrada de Combustible",
     "taskHistory": "Historial de Tareas"
   },
   "settings": {
@@ -140,7 +141,8 @@
     "completedTasks": "Completadas",
     "totalDistance": "Distancia Total",
     "avgScore": "Puntuación Prom.",
-    "activeTasksCount": "Activas"
+    "activeTasksCount": "Activas",
+    "fuelEntry": "Registro de Combustible"
   },
   "task": {
     "title": "Gestión de Tareas",
@@ -250,26 +252,52 @@
   "vehicle": {
     "title": "Mi Vehículo",
     "loading": "Cargando información del vehículo...",
-    "couldNotLoad": "No se pudo cargar la información del vehículo",
+    "couldNotLoad": "No se pudo cargar la información",
+    "notAssigned": "Sin Vehículo Asignado",
+    "notAssignedMessage": "Aún no tiene un vehículo asignado. Contacte a su administrador.",
     "errorOccurred": "Ocurrió un Error",
     "retry": "Reintentar",
-    "notAssigned": "Sin Vehículo Asignado",
-    "notAssignedMessage": "Aún no se te ha asignado un vehículo. Contacta a tu gerente.",
-    "fuelLevel": "Nivel de Combustible",
-    "mileage": "Kilometraje",
-    "modelYear": "Año del Modelo",
-    "color": "Color",
-    "esp32": "ESP32",
     "connected": "Conectado",
     "noConnection": "Sin Conexión",
     "none": "Ninguno",
+    "active": "Activo",
+    "fuelLevel": "Nivel de Combustible",
+    "fuelType": "Tipo de Combustible",
+    "tankCapacity": "Capacidad del Tanque",
+    "mileage": "Kilometraje",
+    "modelYear": "Año del Modelo",
+    "color": "Color",
+    "esp32": "Dispositivo",
     "vehicleDetails": "Detalles del Vehículo",
-    "plate": "Placa",
+    "plate": "Matrícula",
     "brand": "Marca",
     "model": "Modelo",
     "year": "Año",
     "status": "Estado",
-    "active": "Activo"
+    "selectColor": "Seleccionar Color",
+    "noColorSelected": "Sin color seleccionado",
+    "colorUpdated": "Color actualizado",
+    "colorUpdateFailed": "Error al actualizar el color",
+    "statuses": {
+      "available": "Disponible",
+      "in_use": "En Uso",
+      "maintenance": "En Mantenimiento",
+      "retired": "Retirado"
+    },
+    "colors": {
+      "white": "Blanco",
+      "black": "Negro",
+      "silver": "Plata",
+      "gray": "Gris",
+      "red": "Rojo",
+      "blue": "Azul",
+      "navy": "Azul Marino",
+      "green": "Verde",
+      "yellow": "Amarillo",
+      "orange": "Naranja",
+      "brown": "Marrón",
+      "beige": "Beige"
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -286,22 +314,42 @@
     "notificationsTitle": "Notificaciones",
     "notificationsSubtitle": "Notificaciones de tareas",
     "locationSharing": "Compartir Ubicación",
+      "error": {
+        "title": "Error",
+        "loadFailed": "Error al cargar la información del vehículo",
+        "saveFailed": "Error al guardar el registro",
+        "noVehicle": "No hay vehículo asignado",
+        "vehicleUpdateFailed": "Error al actualizar la información del vehículo"
+      },
     "locationSubtitle": "Requerido para seguimiento",
     "support": "SOPORTE",
     "help": "Ayuda",
     "helpSubtitle": "FAQ y guía de usuario",
     "contactUs": "Contáctanos",
     "about": "Acerca de",
+      "notFullTankWarning": {
+        "title": "Advertencia",
+        "message": "Si el tanque no está lleno, este registro no se incluirá en el análisis de consumo. ¿Desea continuar?",
+        "cancel": "Cancelar",
+        "saveAnyway": "Guardar de todos modos"
+      },
     "version": "Versión",
     "logout": "Cerrar Sesión",
     "logoutSubtitle": "Salir de tu cuenta",
     "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?",
     "cancel": "Cancelar",
+        "message": "¡Guardado!",
     "supportTitle": "Soporte",
     "supportMessage": "¿Necesitas ayuda?",
     "sendEmail": "Enviar Email",
     "aboutTitle": "Acerca de TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nSistema de Gestión de Flota\n© 2025 TulipFleet\n\nTodos los derechos reservados.",
+      },
+      "fuelTypes": {
+        "diesel": "Diésel",
+        "gasoline": "Gasolina",
+        "lpg": "GLP",
+        "electric": "Eléctrico"
+      }
     "ok": "OK"
   },
   "deviceSetup": {
@@ -753,5 +801,46 @@
   },
   "root": {
     "loading": "Cargando..."
+  },
+  "fuel": {
+    "menuTitle": "Entrada de Combustible",
+    "loading": "Cargando...",
+    "noVehicle": "Sin vehículo asignado",
+    "retry": "Reintentar",
+    "labels": {
+      "odometerKm": "Odómetro",
+      "litersFilled": "Litros Cargados",
+      "totalCost": "Costo Total (opcional)",
+      "fullTank": "Tanque LLENO"
+    },
+    "hints": {
+      "lastRecordTitle": "Último registro",
+      "lastRecordPrefix": "💡 Último",
+      "warningFull": "⚠️ Llene hasta LLENO"
+    },
+    "errors": {
+      "vehicleLoadFailed": "No se pudo cargar la información del vehículo",
+      "odometerRequired": "El odómetro es obligatorio",
+      "litersRequired": "Los litros son obligatorios",
+      "odometerLessThanPrev": "El odómetro debe ser mayor que el anterior ({{prev}})",
+      "litersExceedCapacity": "Máximo {{capacity}}L",
+      "submitFailed": "No se pudo guardar el registro"
+    },
+    "confirmNotFull": {
+      "title": "Atención",
+      "message": "Si el tanque no está LLENO, esta entrada se excluye del análisis de consumo. ¿Continuar?",
+      "cancel": "Cancelar",
+      "proceed": "Guardar de todos modos"
+    },
+    "submit": {
+      "save": "Guardar"
+    },
+    "success": {
+      "title": "Éxito",
+      "saved": "Guardado",
+      "kmTraveled": "{{km}} km",
+      "consumptionPer100km": "{{value}} L/100km",
+      "costPerKm": "{{value}}/km"
+    }
   }
 }

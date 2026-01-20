@@ -84,6 +84,7 @@
     "fleetMap": "Nexşeya Zindî",
     "myTasks": "Peywirên Min",
     "myVehicle": "Wesayîta Min",
+    "fuelEntry": "Têketina Sotemeniyê",
     "taskHistory": "Dîroka Peywiran"
   },
   "device": {
@@ -294,7 +295,8 @@
     "completedTasks": "Qediyayî",
     "totalDistance": "Mesafeya Tevahî",
     "avgScore": "Pûana Navîn",
-    "activeTasksCount": "Çalak"
+    "activeTasksCount": "Çalak",
+    "fuelEntry": "Sotemenî"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -557,37 +559,56 @@
     },
     "info": {
       "taskNo": "Hejmara Erkê",
-      "vehicle": "Wesayît",
-      "scheduledStart": "Destpêka Plankirin",
-      "actualStart": "Destpêka Rastî",
-      "completedAt": "Qediya",
-      "notSpecified": "Nehatiye Diyarkirin"
-    },
-    "route": {
-      "title": "Agahiya Rêyê",
-      "origin": "Destpêk",
-      "destination": "Menzil",
-      "distance": "Mesafeya Tevahî"
-    },
-    "notes": {
-      "title": "Têbînî"
-    },
-    "actions": {
-      "acceptTask": "Erkê Qebûl Bike",
-      "acceptConfirm": "Tu dixwazî vê erkê qebûl bikî?",
-      "accept": "Qebûl Bike",
-      "cancel": "Betal",
-      "success": "✅ Serkeftî",
-      "taskAccepted": "Erk hat qebûlkirin!",
-      "rejectTask": "Erkê Red Bike",
-      "rejectReason": "Sedema Redkirinê",
-      "rejectReasonPlaceholder": "Ji kerema xwe sedema redkirinê binivîse...",
-      "rejectReasonRequired": "Ji kerema xwe sedema redkirinê binivîse",
-      "reject": "Red Bike",
-      "info": "Agahî",
-      "taskRejected": "Erk hat redkirin",
-      "startTask": "Erkê Dest Pê Bike",
-      "startConfirm": "Tu dixwazî erkê dest pê bikî?",
+      "vehicle": {
+        "title": "Wesayîta Min",
+        "loading": "Agahî tê barkirin...",
+        "couldNotLoad": "Agahî nehate barkirin",
+        "notAssigned": "Tu Wesayît Nehatiye Tayînkirin",
+        "notAssignedMessage": "Hêj wesayîtek ji we re nehatiye tayînkirin. Ji kerema xwe bi rêveberê xwe re têkilî daynin.",
+        "errorOccurred": "Çewtîyek Çêbû",
+        "retry": "Dîsa biceribîne",
+        "connected": "Girêdayî",
+        "noConnection": "Girêdan Tune",
+        "none": "Tune",
+        "active": "Çalak",
+        "fuelLevel": "Asta Sotemeniyê",
+        "fuelType": "Cûreya Sotemeniyê",
+        "tankCapacity": "Kapasîteya Tankê",
+        "mileage": "Kîlometre",
+        "modelYear": "Sala Modelê",
+        "color": "Reng",
+        "esp32": "Amûr",
+        "vehicleDetails": "Hûrguliyên Wesayîtê",
+        "plate": "Plaka",
+        "brand": "Marka",
+        "model": "Model",
+        "year": "Sal",
+        "status": "Rewş",
+        "selectColor": "Reng Hilbijêre",
+        "noColorSelected": "Reng nehat hilbijartin",
+        "colorUpdated": "Reng hate nûkirin",
+        "colorUpdateFailed": "Nûkirina rengê bi ser neket",
+        "statuses": {
+          "available": "Berdest",
+          "in_use": "Tê bikaranîn",
+          "maintenance": "Di tamîrê de",
+          "retired": "Ji xizmetê derketî"
+        },
+        "colors": {
+          "white": "Spî",
+          "black": "Reş",
+          "silver": "Zîv",
+          "gray": "Gewr",
+          "red": "Sor",
+          "blue": "Şîn",
+          "navy": "Şîn-tarî",
+          "green": "Kesk",
+          "yellow": "Zer",
+          "orange": "Pirteqalî",
+          "brown": "Qehweyî",
+          "beige": "Bej"
+        }
+      },
       "start": "Dest Pê Bike",
       "taskStarted": "🚀 Serkeftî",
       "taskStartedMessage": "Erk dest pê kir!",
@@ -828,5 +849,99 @@
   },
   "root": {
     "loading": "دەرهێنانی زانیاری..."
+  },
+  "fuel": {
+    "title": "Têkeftina Sotemeniyê",
+    "menuTitle": "Têkeftina Sotemeniyê",
+    "vehicleInfo": "Agahiyên Wesayîtê",
+    "plate": "Plaka",
+    "lastOdometer": "Dawî",
+    "tankCapacity": "Depo",
+    "fuelType": "Cureyê Sotemeniyê",
+    "currentOdometer": "Kîlometreya Niha",
+    "odometerPlaceholder": "mînak: 100.520",
+    "litersFilled": "Litrên têketî",
+    "litersPlaceholder": "mînak: 52",
+    "totalCost": "Biha Tevahî",
+    "costPlaceholder": "mînak: 150",
+    "pricePerLiter": "Biha/Litr",
+    "isFullTank": "Depo Tije",
+    "fullTankNote": "Depo bi temam tije bike",
+    "save": "Tomar Bike",
+    "calculation": "Pêşdîtina Hesabê",
+    "kmTraveled": "Mesafe",
+    "consumption": "Xwerê",
+    "costPerKm": "Biha per KM",
+    "lastRecord": "Tomara Dawî",
+    "editVehicle": "Agahiya Wesayîtê Biguherîne",
+    "vehicleUpdated": "Agahiyên wesayîtê hate nûvekirin",
+    "plateReadonly": "Plaka nayê guherandin",
+    "firstRecordNote": "Ev tomara yekem e, xwerê di tomara din de dihêse.",
+    "loading": "Tê barkirin...",
+    "noVehicle": "Wesayît nehatiye tayînkirin",
+    "retry": "Dîsa Biceribîne",
+    "validation": {
+      "odometerRequired": "Kîlometre pêwîst e",
+      "odometerMustBeHigher": "Kîlometre divê ji tomara berê ({{lastKm}}) mezintir be",
+      "litersRequired": "Lîtr pêwîst e",
+      "litersExceedsTank": "Zêdetirî {{capacity}}L nayê destûr",
+      "consumptionUnrealistic": "Xwerê ({{value}} L/100km) nayê bawer kirin",
+      "kmTooHigh": "{{km}} km ji bo yek têketinê zêdeye"
+    },
+    "labels": {
+      "odometerKm": "Kîlometre",
+      "litersFilled": "Litrên têketî",
+      "totalCost": "Biha tevahî (opsiyonel)",
+      "fullTank": "Depo Tije"
+    },
+    "hints": {
+      "lastRecordTitle": "Tomara Dawî",
+      "lastRecordPrefix": "💡 Dawî",
+      "warningFull": "⚠️ Depo tije bike"
+    },
+    "errors": {
+      "vehicleLoadFailed": "Agahiya wesayîtê nehat wergirtin",
+      "odometerRequired": "Kîlometre pêwîst e",
+      "litersRequired": "Lîtr pêwîst e",
+      "odometerLessThanPrev": "Kîlometre divê ji berê ({{prev}}) mezintir be",
+      "litersExceedCapacity": "Zêdetirî {{capacity}}L nayê destûr",
+      "submitFailed": "Tomar nehatin zêdekirin"
+    },
+    "error": {
+      "title": "Çewtî",
+      "loadFailed": "Agahiya wesayîtê nehat barkirin",
+      "saveFailed": "Tomar nehatin zêdekirin",
+      "noVehicle": "Wesayît nehatiye tayînkirin",
+      "vehicleUpdateFailed": "Agahiya wesayîtê nehat nûvekirin"
+    },
+    "confirmNotFull": {
+      "title": "Hişyarî",
+      "message": "Heke depo tije nabe, ev tomar ji lêkolîna xwêrê derdikeve. Dîsa bidomîn?",
+      "cancel": "Betal",
+      "proceed": "Her çendê Tomar Bike"
+    },
+    "notFullTankWarning": {
+      "title": "Hişyarî",
+      "message": "Heke depo tije nabe, ev tomar di lêkolîna xwerê de nayê têketin. Dîsa bidomîn?",
+      "cancel": "Betal",
+      "saveAnyway": "Her çendê Tomar Bike"
+    },
+    "submit": {
+      "save": "Tomar Bike"
+    },
+    "success": {
+      "title": "Serkeftî",
+      "message": "Hate tomar kirin!",
+      "saved": "Hate tomar kirin",
+      "kmTraveled": "{{km}} km",
+      "consumptionPer100km": "{{value}} L/100km",
+      "costPerKm": "{{value}}/km"
+    },
+    "fuelTypes": {
+      "diesel": "Dîzel",
+      "gasoline": "Benzîn",
+      "lpg": "LPG",
+      "electric": "Elektrîk"
+    }
   }
 }

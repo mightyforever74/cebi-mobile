@@ -1,7 +1,7 @@
 // src/navigation/MainNavigator.js
 // TulipFleet - Professional Navigation with Stable Route Keys
 // Updated: 06 Ocak 2026 - Argon Pro compatible, stable route names
-// 
+//
 // ÖNEMLI DEĞİŞİKLİKLER:
 // 1. Route name'ler stabil key oldu (DriverHome, DriverTasks vs)
 // 2. Emoji yerine drawerLabel + drawerIcon kullanılıyor
@@ -26,33 +26,33 @@ import SuperAdminCompaniesScreen from "../screens/superadmin/SuperAdminCompanies
 import SuperAdminDashboard from "../screens/superadmin/SuperAdminDashboard";
 
 // Admin Screens
+import AdminAlerts from "../screens/admin/AdminAlerts";
 import AdminDashboard from "../screens/admin/AdminDashboard";
 import AdminDrivers from "../screens/admin/AdminDrivers";
-import AdminVehicles from "../screens/admin/AdminVehicles";
-import AdminTasks from "../screens/admin/AdminTasks";
-import AdminAlerts from "../screens/admin/AdminAlerts";
-import AdminSettings from "../screens/admin/AdminSettings";
 import AdminReportsScreen from "../screens/admin/AdminReportsScreen";
+import AdminSettings from "../screens/admin/AdminSettings";
+import AdminTasks from "../screens/admin/AdminTasks";
+import AdminVehicles from "../screens/admin/AdminVehicles";
+import CreateDriverScreen from "../screens/admin/CreateDriverScreen";
+import CreateTaskScreen from "../screens/admin/CreateTaskScreen";
+import CreateVehicleScreen from "../screens/admin/CreateVehicleScreen";
+import EditDriverScreen from "../screens/admin/EditDriverScreen";
+import EditTaskScreen from "../screens/admin/EditTaskScreen";
+import EditVehicleScreen from "../screens/admin/EditVehicleScreen";
 import FleetMapScreen from "../screens/admin/FleetMapScreen";
 import VehicleTrackScreen from "../screens/admin/VehicleTrackScreen";
-import CreateDriverScreen from "../screens/admin/CreateDriverScreen";
-import CreateVehicleScreen from "../screens/admin/CreateVehicleScreen";
-import CreateTaskScreen from "../screens/admin/CreateTaskScreen";
-import EditDriverScreen from "../screens/admin/EditDriverScreen";
-import EditVehicleScreen from "../screens/admin/EditVehicleScreen";
-import EditTaskScreen from "../screens/admin/EditTaskScreen";
 
 // Driver Screens
+import DeviceSetupScreen from "../screens/driver/DeviceSetupScreen";
 import DriverDashboard from "../screens/driver/DriverDashboard";
+import DriverProfile from "../screens/driver/DriverProfile";
+import DriverRouteMapScreen from "../screens/driver/DriverRouteMapScreen";
+import DriverSettings from "../screens/driver/DriverSettings";
+import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
-import DriverProfile from "../screens/driver/DriverProfile";
-import DriverSettings from "../screens/driver/DriverSettings";
-import DriverRouteMapScreen from "../screens/driver/DriverRouteMapScreen";
-import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
-import DeviceSetupScreen from "../screens/driver/DeviceSetupScreen";
-import TaskOffers from "../screens/driver/TaskOffers";
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
+import TaskOffers from "../screens/driver/TaskOffers";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -92,20 +92,22 @@ const HamburgerButton = ({ navigation }) => (
 // ============================================
 
 // Drawer screen options (with hamburger)
-const getScreenOptions = (title, color) => ({ navigation }) => ({
-  title,
-  headerStyle: {
-    backgroundColor: color,
-    elevation: 4,
-    shadowOpacity: 0.3,
-  },
-  headerTintColor: COLORS.white,
-  headerTitleStyle: {
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  headerLeft: () => <HamburgerButton navigation={navigation} />,
-});
+const getScreenOptions =
+  (title, color) =>
+  ({ navigation }) => ({
+    title,
+    headerStyle: {
+      backgroundColor: color,
+      elevation: 4,
+      shadowOpacity: 0.3,
+    },
+    headerTintColor: COLORS.white,
+    headerTitleStyle: {
+      fontWeight: "bold",
+      fontSize: 18,
+    },
+    headerLeft: () => <HamburgerButton navigation={navigation} />,
+  });
 
 // Stack screen options (with back button, no hamburger)
 const getStackScreenOptions = (title, color) => ({
@@ -188,14 +190,14 @@ const CustomDrawerContent = (props) => {
       <DrawerContentScrollView {...props} style={styles.menuContainer}>
         {props.state.routes.map((route, index) => {
           const focused = props.state.index === index;
-          
+
           // ✅ descriptors'tan label ve icon al
           const { options } = props.descriptors[route.key];
           const label = options.drawerLabel ?? options.title ?? route.name;
           const IconComponent = options.drawerIcon;
-          
+
           // Hidden screen'leri gösterme
-          if (options.drawerItemStyle?.display === 'none') {
+          if (options.drawerItemStyle?.display === "none") {
             return null;
           }
 
@@ -211,9 +213,9 @@ const CustomDrawerContent = (props) => {
               <View style={styles.menuItemContent}>
                 {IconComponent && (
                   <View style={styles.menuIconContainer}>
-                    {IconComponent({ 
-                      color: focused ? roleColor : COLORS.text, 
-                      size: 20 
+                    {IconComponent({
+                      color: focused ? roleColor : COLORS.text,
+                      size: 20,
                     })}
                   </View>
                 )}
@@ -249,7 +251,7 @@ const CustomDrawerContent = (props) => {
 
 const DriverTasksStack = () => {
   const primaryColor = COLORS.driver;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -278,7 +280,7 @@ const DriverTasksStack = () => {
 
 const DriverMapStack = () => {
   const primaryColor = COLORS.driver;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -296,7 +298,7 @@ const DriverMapStack = () => {
 
 const AdminVehiclesStack = () => {
   const primaryColor = COLORS.admin;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -325,7 +327,7 @@ const AdminVehiclesStack = () => {
 
 const AdminDriversStack = () => {
   const primaryColor = COLORS.admin;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -349,7 +351,7 @@ const AdminDriversStack = () => {
 
 const AdminTasksStack = () => {
   const primaryColor = COLORS.admin;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -373,7 +375,7 @@ const AdminTasksStack = () => {
 
 const AdminMapStack = () => {
   const primaryColor = COLORS.admin;
-  
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -407,6 +409,7 @@ const SuperAdminNavigator = () => {
         },
         drawerActiveTintColor: primaryColor,
         drawerInactiveTintColor: COLORS.text,
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen
@@ -518,6 +521,7 @@ const AdminNavigator = () => {
         },
         drawerActiveTintColor: primaryColor,
         drawerInactiveTintColor: COLORS.text,
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen
@@ -629,6 +633,7 @@ const DriverNavigator = () => {
         },
         drawerActiveTintColor: primaryColor,
         drawerInactiveTintColor: COLORS.text,
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen
@@ -704,7 +709,7 @@ const DriverNavigator = () => {
         options={{
           ...getScreenOptions("Cihaz Kurulumu", primaryColor)(),
           drawerLabel: () => null,
-          drawerItemStyle: { display: 'none' },
+          drawerItemStyle: { display: "none" },
         }}
       />
     </Drawer.Navigator>

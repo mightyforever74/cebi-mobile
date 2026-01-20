@@ -1,6 +1,6 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 17 Ocak 2026 - Header'a dil seçici eklendi
+// Updated: 21 Ocak 2026 - Aracım kartı yakıt girişine yönlendirir, İstatistikler sadeleştirildi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -8,14 +8,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -25,11 +23,53 @@ import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI } from "../../services/api";
 
+// Yakıt tipi çevirisi
+const FUEL_TYPE_LABELS = {
+  diesel: {
+    tr: "Dizel",
+    en: "Diesel",
+    bg: "Дизел",
+    es: "Diésel",
+    it: "Diesel",
+    nl: "Diesel",
+    ku: "Dîzel",
+  },
+  gasoline: {
+    tr: "Benzin",
+    en: "Gasoline",
+    bg: "Бензин",
+    es: "Gasolina",
+    it: "Benzina",
+    nl: "Benzine",
+    ku: "Benzîn",
+  },
+  lpg: {
+    tr: "LPG",
+    en: "LPG",
+    bg: "Газ",
+    es: "GLP",
+    it: "GPL",
+    nl: "LPG",
+    ku: "LPG",
+  },
+  electric: {
+    tr: "Elektrik",
+    en: "Electric",
+    bg: "Електричество",
+    es: "Eléctrico",
+    it: "Elettrico",
+    nl: "Elektrisch",
+    ku: "Elektrîk",
+  },
+};
+
 const DriverDashboard = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const { expoPushToken, error: pushError } = usePushNotifications();
+
+  const currentLangCode = i18n.language || "tr";
 
   // State
   const [loading, setLoading] = useState(true);
@@ -43,12 +83,7 @@ const DriverDashboard = () => {
   const [deviceCheckDone, setDeviceCheckDone] = useState(false);
   const [checkingDevice, setCheckingDevice] = useState(true);
 
-  // Edit Modal State (Yakıt/KM)
-  const [editModal, setEditModal] = useState({ visible: false, type: null });
-  const [editValue, setEditValue] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  // 🆕 Language Modal State
+  // Language Modal State
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   // Gate Logic - Her ekran açılışında cihaz durumu kontrol
@@ -127,6 +162,7 @@ const DriverDashboard = () => {
       console.log("✅ Driver data loaded:", {
         stats: statsData.stats,
         taskCount: tasksData.tasks?.length,
+        vehicle: vehicleData.vehicle?.plate,
       });
     } catch (error) {
       console.error("❌ Error fetching driver data:", error);
@@ -142,9 +178,6 @@ const DriverDashboard = () => {
 
   const getDefaultStats = () => ({
     completed_tasks: 0,
-    total_distance: 0,
-    average_score: 0,
-    fuel_efficiency: 0,
     active_tasks: 0,
   });
 
@@ -166,73 +199,23 @@ const DriverDashboard = () => {
     navigation.navigate("MyTasks");
   };
 
-  // Aracım kartına tıklanınca detaya git
+  // Aracım kartına tıklanınca Yakıt Girişi'ne git
   const handleVehiclePress = () => {
     if (vehicle) {
-      Alert.alert(
-        t("dashboard.vehicleDetail"),
-        `${vehicle.plate}\n${vehicle.brand} ${vehicle.model}\n\n${t(
-          "dashboard.vehicleEditHint"
-        )}`
-      );
+      navigation.navigate("FuelEntry");
     }
   };
 
-  // Yakıt/KM düzenleme
-  const openEditModal = (type) => {
-    if (!vehicle) return;
-
-    if (type === "fuel") {
-      setEditValue(vehicle.fuelLevel?.toString() || "0");
-    } else if (type === "km") {
-      setEditValue(vehicle.odometer?.toString() || "0");
+  // Yakıt tipi label
+  const getFuelTypeLabel = (fuelType) => {
+    const labels = FUEL_TYPE_LABELS[fuelType];
+    if (labels) {
+      return labels[currentLangCode] || labels.en || fuelType;
     }
-    setEditModal({ visible: true, type });
+    return fuelType || "Dizel";
   };
 
-  const handleSaveEdit = async () => {
-    if (!vehicle || !editModal.type) return;
-
-    const numValue = parseFloat(editValue);
-    if (isNaN(numValue) || numValue < 0) {
-      Alert.alert(t("common.error"), t("dashboard.invalidValue"));
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (editModal.type === "fuel") {
-        if (numValue > 9999) {
-          Alert.alert(t("common.error"), t("dashboard.fuelMaxError"));
-          setSaving(false);
-          return;
-        }
-        await driverAPI.updateVehicleFuel(vehicle.id, numValue);
-        setVehicle({ ...vehicle, fuelLevel: numValue });
-        Alert.alert(t("common.success"), t("dashboard.fuelUpdated"));
-      } else if (editModal.type === "km") {
-        if (numValue > 9999999) {
-          Alert.alert(t("common.error"), t("dashboard.kmMaxError"));
-          setSaving(false);
-          return;
-        }
-        await driverAPI.updateVehicleKm(vehicle.id, numValue);
-        setVehicle({ ...vehicle, odometer: numValue });
-        Alert.alert(t("common.success"), t("dashboard.kmUpdated"));
-      }
-      setEditModal({ visible: false, type: null });
-    } catch (err) {
-      console.error("Update error:", err);
-      Alert.alert(
-        t("common.error"),
-        err.message || t("dashboard.updateFailed")
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 🆕 Dil değiştir
+  // Dil değiştir
   const changeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
     setLangModalVisible(false);
@@ -282,7 +265,7 @@ const DriverDashboard = () => {
           </View>
         </View>
         <View style={styles.headerButtons}>
-          {/* 🆕 Language Button */}
+          {/* Language Button */}
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => setLangModalVisible(true)}
@@ -322,7 +305,7 @@ const DriverDashboard = () => {
         </View>
       </TouchableOpacity>
 
-      {/* Vehicle Card - Tıklanabilir */}
+      {/* Vehicle Card - Tıklanınca Yakıt Girişi'ne git */}
       {vehicle ? (
         <TouchableOpacity
           style={styles.card}
@@ -331,56 +314,48 @@ const DriverDashboard = () => {
         >
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={COLORS.textSecondary}
-            />
+            <View style={styles.fuelEntryHint}>
+              <Ionicons name="flame-outline" size={16} color={COLORS.primary} />
+              <Text style={styles.fuelEntryHintText}>
+                {t("dashboard.fuelEntry", "Yakıt Girişi")}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={COLORS.primary}
+              />
+            </View>
           </View>
+
+          {/* Araç Bilgileri */}
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
             <Text style={styles.vehicleModel}>
               {vehicle.brand} {vehicle.model}
             </Text>
           </View>
-          <View style={styles.row}>
-            {/* Yakıt - Tıklanabilir */}
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => openEditModal("fuel")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.editableStatRow}>
-                <Ionicons name="water" size={20} color={COLORS.info} />
-                <Text style={styles.statValue}>{vehicle.fuelLevel || 0}%</Text>
-                <Ionicons
-                  name="pencil"
-                  size={14}
-                  color={COLORS.textSecondary}
-                />
-              </View>
-              <Text style={styles.statLabel}>{t("dashboard.fuel")}</Text>
-            </TouchableOpacity>
 
-            {/* Kilometre - Tıklanabilir */}
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => openEditModal("km")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.editableStatRow}>
-                <Ionicons name="speedometer" size={20} color={COLORS.success} />
-                <Text style={styles.statValue}>
-                  {(vehicle.odometer || 0).toLocaleString()}
-                </Text>
-                <Ionicons
-                  name="pencil"
-                  size={14}
-                  color={COLORS.textSecondary}
-                />
-              </View>
-              <Text style={styles.statLabel}>{t("dashboard.km")}</Text>
-            </TouchableOpacity>
+          {/* Yakıt Tipi ve Depo Kapasitesi */}
+          <View style={styles.vehicleDetailsRow}>
+            <View style={styles.vehicleDetailItem}>
+              <Ionicons name="water-outline" size={20} color={COLORS.info} />
+              <Text style={styles.vehicleDetailLabel}>
+                {t("fuel.fuelType", "Yakıt")}
+              </Text>
+              <Text style={styles.vehicleDetailValue}>
+                {getFuelTypeLabel(vehicle.fuel_type)}
+              </Text>
+            </View>
+            <View style={styles.vehicleDetailDivider} />
+            <View style={styles.vehicleDetailItem}>
+              <Ionicons name="cube-outline" size={20} color={COLORS.success} />
+              <Text style={styles.vehicleDetailLabel}>
+                {t("fuel.tankCapacity", "Depo")}
+              </Text>
+              <Text style={styles.vehicleDetailValue}>
+                {vehicle.fuel_capacity || 60}L
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
       ) : (
@@ -447,34 +422,31 @@ const DriverDashboard = () => {
         )}
       </View>
 
-      {/* Stats Card */}
+      {/* Stats Card - Sadeleştirildi */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>📊 {t("dashboard.myStats")}</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats?.completed_tasks || 0}</Text>
-            <Text style={styles.statText}>{t("dashboard.completedTasks")}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {stats?.total_distance || 0} km
+        <View style={styles.statsRow}>
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {stats?.completed_tasks || 0}
             </Text>
-            <Text style={styles.statText}>{t("dashboard.totalDistance")}</Text>
+            <Text style={styles.statTextLarge}>
+              {t("dashboard.completedTasks")}
+            </Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats?.average_score || 0}</Text>
-            <Text style={styles.statText}>{t("dashboard.avgScore")}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats?.active_tasks || 0}</Text>
-            <Text style={styles.statText}>
+          <View style={styles.statDivider} />
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {stats?.active_tasks || 0}
+            </Text>
+            <Text style={styles.statTextLarge}>
               {t("dashboard.activeTasksCount")}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* 🆕 Language Selection Modal */}
+      {/* Language Selection Modal */}
       <Modal
         visible={langModalVisible}
         transparent
@@ -508,7 +480,7 @@ const DriverDashboard = () => {
                     {item.name}
                   </Text>
                   {item.code === i18n.language && (
-                    <Ionicons name="checkmark" size={20} color="#FFF" />
+                    <Ionicons name="checkmark" size={20} color={COLORS.white} />
                   )}
                 </TouchableOpacity>
               )}
@@ -520,62 +492,6 @@ const DriverDashboard = () => {
             >
               <Text style={styles.langCloseBtnText}>{t("common.close")}</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Edit Modal (Fuel/KM) */}
-      <Modal
-        visible={editModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEditModal({ visible: false, type: null })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editModal.type === "fuel"
-                ? t("dashboard.editFuel")
-                : t("dashboard.editKm")}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              {editModal.type === "fuel"
-                ? t("dashboard.enterFuelLevel")
-                : t("dashboard.enterKm")}
-            </Text>
-
-            <TextInput
-              style={styles.modalInput}
-              value={editValue}
-              onChangeText={setEditValue}
-              keyboardType="numeric"
-              maxLength={editModal.type === "fuel" ? 4 : 7}
-              selectTextOnFocus
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => setEditModal({ visible: false, type: null })}
-              >
-                <Text style={styles.modalButtonCancelText}>
-                  {t("common.cancel")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSave]}
-                onPress={handleSaveEdit}
-                disabled={saving}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.modalButtonSaveText}>
-                    {t("common.save")}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
       </Modal>
@@ -595,18 +511,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 10,
     fontSize: 16,
     color: COLORS.textSecondary,
   },
   header: {
+    backgroundColor: COLORS.primary,
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: COLORS.primary,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   greetingContainer: {
     flexDirection: "row",
@@ -624,12 +542,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: COLORS.white,
-    marginTop: 2,
   },
-  // 🆕 Header Buttons
   headerButtons: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 8,
   },
   headerButton: {
@@ -639,11 +554,6 @@ const styles = StyleSheet.create({
   },
   langFlag: {
     fontSize: 20,
-  },
-  logoutButton: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    padding: 10,
-    borderRadius: 12,
   },
   errorCard: {
     backgroundColor: "#FEE",
@@ -720,6 +630,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 20,
   },
+  // Vehicle Card
   vehicleInfo: {
     marginBottom: 16,
   },
@@ -733,29 +644,48 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 4,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  statBox: {
-    alignItems: "center",
-    padding: 8,
-  },
-  editableStatRow: {
+  fuelEntryHint: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#f0f3ff",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     gap: 4,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-  },
-  statLabel: {
+  fuelEntryHintText: {
     fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  // Vehicle Details Row (Yakıt Tipi + Depo)
+  vehicleDetailsRow: {
+    flexDirection: "row",
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
+    padding: 12,
+  },
+  vehicleDetailItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  vehicleDetailLabel: {
+    fontSize: 11,
     color: COLORS.textSecondary,
     marginTop: 4,
   },
+  vehicleDetailValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginTop: 2,
+  },
+  vehicleDetailDivider: {
+    width: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 8,
+  },
+  // Task Card
   taskCard: {
     backgroundColor: COLORS.background,
     padding: 12,
@@ -793,102 +723,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
   },
-  seeAllButton: {
-    alignItems: "center",
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    marginTop: 4,
-  },
   seeAllText: {
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: "600",
   },
-  statsGrid: {
+  // Stats - Sadeleştirilmiş (2 kutu)
+  statsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  statItem: {
-    width: "48%",
     alignItems: "center",
-    padding: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    marginBottom: 12,
   },
-  statNumber: {
-    fontSize: 24,
+  statItemLarge: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  statNumberLarge: {
+    fontSize: 32,
     fontWeight: "bold",
     color: COLORS.primary,
   },
-  statText: {
-    fontSize: 12,
+  statTextLarge: {
+    fontSize: 13,
     color: COLORS.textSecondary,
     marginTop: 4,
-  },
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 24,
-    width: "85%",
-    maxWidth: 340,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
     textAlign: "center",
-    marginBottom: 8,
   },
-  modalSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginBottom: 16,
+  statDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: COLORS.border,
   },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  modalButtonCancel: {
-    backgroundColor: COLORS.background,
-  },
-  modalButtonCancelText: {
-    color: COLORS.text,
-    fontWeight: "600",
-  },
-  modalButtonSave: {
-    backgroundColor: COLORS.primary,
-  },
-  modalButtonSaveText: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  // 🆕 Language Modal Styles
+  // Language Modal
   langModalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",

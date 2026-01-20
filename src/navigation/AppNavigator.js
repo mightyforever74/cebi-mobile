@@ -59,6 +59,7 @@ import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
 import DriverWelcomeScreen from "../screens/driver/DriverWelcomeScreen"; // ← BU SATIRI EKLE
+import FuelEntryScreen from "../screens/driver/FuelEntryScreen";
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
 import TaskOffers from "../screens/driver/TaskOffers";
 
@@ -107,13 +108,6 @@ const PlatformSettingsScreen = () => (
 // Company Admin Placeholders
 
 // Driver Placeholders
-const DriverHistoryScreen = () => (
-  <PlaceholderScreen
-    titleKey="navigator.placeholder.taskHistory"
-    icon="time-outline"
-    descriptionKey="navigator.placeholder.completedTasks"
-  />
-);
 const DriverSOSScreen = () => (
   <PlaceholderScreen
     titleKey="navigator.placeholder.emergency"
@@ -617,6 +611,11 @@ const DriverNavigator = () => {
       icon: "navigate-outline",
     },
     {
+      name: "FuelEntry",
+      label: t("navigation.fuelEntry"),
+      icon: "flame-outline",
+    },
+    {
       name: "MyVehicle",
       label: t("navigator.driver.myVehicle"),
       icon: "car-sport-outline",
@@ -625,11 +624,6 @@ const DriverNavigator = () => {
       name: "DeviceSetup",
       label: t("navigator.driver.deviceSetup"),
       icon: "bluetooth-outline",
-    },
-    {
-      name: "TaskHistory",
-      label: t("navigator.driver.taskHistory"),
-      icon: "time-outline",
     },
     {
       name: "Profile",
@@ -657,9 +651,9 @@ const DriverNavigator = () => {
           DriverDashboard: t("navigator.driver.dashboard"),
           MyTasks: t("navigator.driver.myTasks"),
           Navigation: t("navigator.driver.navigation"),
+          FuelEntry: t("navigation.fuelEntry"),
           MyVehicle: t("navigator.driver.myVehicle"),
           DeviceSetup: t("navigator.driver.deviceSetup"),
-          TaskHistory: t("navigator.driver.taskHistory"),
           Profile: t("navigator.driver.profile"),
           DriverSettings: t("navigator.driver.settings"),
           SOS: t("navigator.driver.sos"),
@@ -695,6 +689,16 @@ const DriverNavigator = () => {
         component={DriverRouteMapScreen}
         options={{}}
       />
+      <Drawer.Screen
+        name="FuelEntry"
+        component={FuelEntryScreen}
+        options={{
+          drawerLabel: t("navigation.fuelEntry"),
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="flame-outline" size={size} color={color} />
+          ),
+        }}
+      />
       <Drawer.Screen name="MyVehicle" component={DriverVehicle} options={{}} />
       {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
       <Drawer.Screen
@@ -705,12 +709,8 @@ const DriverNavigator = () => {
           headerShown: false,
         }}
       />
-      <Drawer.Screen
-        name="TaskHistory"
-        component={DriverHistoryScreen}
-        options={{}}
-      />
       <Drawer.Screen name="Profile" component={ProfileStack} options={{}} />
+
       <Drawer.Screen
         name="DriverSettings"
         component={DriverSettings}

@@ -51,6 +51,7 @@
     "fleetMap": "Live Map",
     "myTasks": "My Tasks",
     "myVehicle": "My Vehicle",
+    "fuelEntry": "Fuel Entry",
     "taskHistory": "Task History"
   },
   "device": {
@@ -88,18 +89,54 @@
     }
   },
   "vehicle": {
-    "title": "Vehicle Management",
+    "title": "My Vehicle",
+    "loading": "Loading vehicle info...",
+    "couldNotLoad": "Could not load vehicle info",
+    "notAssigned": "No Vehicle Assigned",
+    "notAssignedMessage": "You don't have a vehicle assigned yet. Please contact your administrator.",
+    "errorOccurred": "An Error Occurred",
+    "retry": "Retry",
+    "connected": "Connected",
+    "noConnection": "No Connection",
+    "none": "None",
+    "active": "Active",
+    "fuelLevel": "Fuel Level",
+    "fuelType": "Fuel Type",
+    "tankCapacity": "Tank Capacity",
+    "mileage": "Mileage",
+    "modelYear": "Model Year",
+    "color": "Color",
+    "esp32": "Device",
+    "vehicleDetails": "Vehicle Details",
     "plate": "Plate",
     "brand": "Brand",
     "model": "Model",
     "year": "Year",
-    "fuel": "Fuel",
-    "odometer": "Odometer",
     "status": "Status",
-    "driver": "Driver",
-    "noVehicle": "No vehicle found",
-    "addVehicle": "Add Vehicle",
-    "editVehicle": "Edit Vehicle"
+    "selectColor": "Select Color",
+    "noColorSelected": "No color selected",
+    "colorUpdated": "Color updated",
+    "colorUpdateFailed": "Failed to update color",
+    "statuses": {
+      "available": "Available",
+      "in_use": "In Use",
+      "maintenance": "Maintenance",
+      "retired": "Retired"
+    },
+    "colors": {
+      "white": "White",
+      "black": "Black",
+      "silver": "Silver",
+      "gray": "Gray",
+      "red": "Red",
+      "blue": "Blue",
+      "navy": "Navy",
+      "green": "Green",
+      "yellow": "Yellow",
+      "orange": "Orange",
+      "brown": "Brown",
+      "beige": "Beige"
+    }
   },
   "task": {
     "title": "Task Management",
@@ -245,7 +282,8 @@
     "completedTasks": "Completed",
     "totalDistance": "Total Distance",
     "avgScore": "Avg Score",
-    "activeTasksCount": "Active"
+    "activeTasksCount": "Active",
+    "fuelEntry": "Fuel Entry"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -780,5 +818,99 @@
   },
   "root": {
     "loading": "Loading..."
+  },
+  "fuel": {
+    "title": "Fuel Entry",
+    "menuTitle": "Fuel Entry",
+    "vehicleInfo": "Vehicle Info",
+    "plate": "Plate",
+    "lastOdometer": "Last",
+    "tankCapacity": "Tank",
+    "fuelType": "Fuel Type",
+    "currentOdometer": "Odometer",
+    "odometerPlaceholder": "e.g. 100,520",
+    "litersFilled": "Liters Filled",
+    "litersPlaceholder": "e.g. 52",
+    "totalCost": "Total Cost",
+    "costPlaceholder": "e.g. 150",
+    "pricePerLiter": "Price per liter",
+    "isFullTank": "Full Tank",
+    "fullTankNote": "Fill the tank completely",
+    "save": "SAVE",
+    "calculation": "Calculation Preview",
+    "kmTraveled": "Distance Traveled",
+    "consumption": "Consumption",
+    "costPerKm": "Cost per KM",
+    "lastRecord": "Last Record",
+    "editVehicle": "Edit Vehicle Info",
+    "vehicleUpdated": "Vehicle info updated",
+    "plateReadonly": "Plate cannot be changed",
+    "firstRecordNote": "This is the first record, consumption will be calculated on the next entry.",
+    "loading": "Loading...",
+    "noVehicle": "No assigned vehicle",
+    "retry": "Retry",
+    "validation": {
+      "odometerRequired": "Odometer reading is required",
+      "odometerMustBeHigher": "Odometer must be higher than previous record ({{lastKm}})",
+      "litersRequired": "Liters amount is required",
+      "litersExceedsTank": "Maximum {{capacity}}L allowed",
+      "consumptionUnrealistic": "Calculated consumption ({{value}} L/100km) seems unrealistic",
+      "kmTooHigh": "{{km}} km in a single fill seems too high"
+    },
+    "labels": {
+      "odometerKm": "Odometer",
+      "litersFilled": "Liters Filled",
+      "totalCost": "Total Cost (optional)",
+      "fullTank": "Full Tank"
+    },
+    "hints": {
+      "lastRecordTitle": "Last Record",
+      "lastRecordPrefix": "💡 Last",
+      "warningFull": "⚠️ Please fill to FULL"
+    },
+    "errors": {
+      "vehicleLoadFailed": "Could not load vehicle info",
+      "odometerRequired": "Odometer is required",
+      "litersRequired": "Liters amount is required",
+      "odometerLessThanPrev": "Odometer must be greater than previous ({{prev}})",
+      "litersExceedCapacity": "Maximum {{capacity}}L allowed",
+      "submitFailed": "Failed to save record"
+    },
+    "error": {
+      "title": "Error",
+      "loadFailed": "Failed to load vehicle info",
+      "saveFailed": "Failed to save record",
+      "noVehicle": "No vehicle assigned",
+      "vehicleUpdateFailed": "Failed to update vehicle info"
+    },
+    "confirmNotFull": {
+      "title": "Attention",
+      "message": "If the tank is not FULL, this entry is excluded from consumption analysis. Continue?",
+      "cancel": "Cancel",
+      "proceed": "Save Anyway"
+    },
+    "notFullTankWarning": {
+      "title": "Warning",
+      "message": "If the tank is not full, this record won't be included in consumption analysis. Continue anyway?",
+      "cancel": "Cancel",
+      "saveAnyway": "Save Anyway"
+    },
+    "submit": {
+      "save": "Save"
+    },
+    "success": {
+      "title": "Success",
+      "message": "Saved!",
+      "saved": "Saved",
+      "kmTraveled": "{{km}} km",
+      "consumptionPer100km": "{{value}} L/100km",
+      "costPerKm": "{{value}}/km"
+    },
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "gasoline": "Gasoline",
+      "lpg": "LPG",
+      "electric": "Electric"
+    }
   }
 }

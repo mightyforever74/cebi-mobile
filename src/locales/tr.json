@@ -84,6 +84,7 @@
     "fleetMap": "Canlı Harita",
     "myTasks": "Görevlerim",
     "myVehicle": "Aracım",
+    "fuelEntry": "Yakıt Girişi",
     "taskHistory": "Görev Geçmişi"
   },
   "device": {
@@ -122,33 +123,53 @@
   },
   "vehicle": {
     "title": "Aracım",
+    "loading": "Araç bilgisi yükleniyor...",
+    "couldNotLoad": "Araç bilgisi yüklenemedi",
+    "notAssigned": "Araç Atanmadı",
+    "notAssignedMessage": "Henüz size atanmış bir araç bulunmuyor. Lütfen yöneticinizle iletişime geçin.",
+    "errorOccurred": "Bir Hata Oluştu",
+    "retry": "Tekrar Dene",
+    "connected": "Bağlı",
+    "noConnection": "Bağlantı Yok",
+    "none": "Yok",
+    "active": "Aktif",
+    "fuelLevel": "Yakıt Seviyesi",
+    "fuelType": "Yakıt Tipi",
+    "tankCapacity": "Depo Kapasitesi",
+    "mileage": "Kilometre",
+    "modelYear": "Model Yılı",
+    "color": "Renk",
+    "esp32": "Cihaz",
+    "vehicleDetails": "Araç Detayları",
     "plate": "Plaka",
     "brand": "Marka",
     "model": "Model",
     "year": "Yıl",
-    "fuel": "Yakıt",
-    "odometer": "Kilometre",
     "status": "Durum",
-    "driver": "Sürücü",
-    "noVehicle": "Araç bulunamadı",
-    "addVehicle": "Araç Ekle",
-    "editVehicle": "Araç Düzenle",
-    "loading": "Araç bilgisi yükleniyor...",
-    "couldNotLoad": "Araç bilgisi yüklenemedi",
-    "errorOccurred": "Hata Oluştu",
-    "retry": "Tekrar Dene",
-    "notAssigned": "Araç Atanmamış",
-    "notAssignedMessage": "Size henüz bir araç atanmamış. Yöneticinizle iletişime geçin.",
-    "fuelLevel": "Yakıt Seviyesi",
-    "mileage": "Kilometre",
-    "modelYear": "Model Yılı",
-    "color": "Renk",
-    "esp32": "ESP32",
-    "connected": "Bağlı",
-    "noConnection": "Bağlantı Yok",
-    "none": "Yok",
-    "vehicleDetails": "Araç Detayları",
-    "active": "Aktif"
+    "selectColor": "Renk Seçin",
+    "noColorSelected": "Renk seçilmedi",
+    "colorUpdated": "Renk güncellendi",
+    "colorUpdateFailed": "Renk güncellenemedi",
+    "statuses": {
+      "available": "Müsait",
+      "in_use": "Kullanımda",
+      "maintenance": "Bakımda",
+      "retired": "Emekli"
+    },
+    "colors": {
+      "white": "Beyaz",
+      "black": "Siyah",
+      "silver": "Gümüş",
+      "gray": "Gri",
+      "red": "Kırmızı",
+      "blue": "Mavi",
+      "navy": "Lacivert",
+      "green": "Yeşil",
+      "yellow": "Sarı",
+      "orange": "Turuncu",
+      "brown": "Kahverengi",
+      "beige": "Bej"
+    }
   },
   "task": {
     "title": "Görev Yönetimi",
@@ -294,7 +315,8 @@
     "completedTasks": "Tamamlanan",
     "totalDistance": "Toplam Mesafe",
     "avgScore": "Ort. Puan",
-    "activeTasksCount": "Aktif"
+    "activeTasksCount": "Aktif",
+    "fuelEntry": "Yakıt Girişi"
   },
   "tasks": {
     "title": "Görevlerim",
@@ -824,5 +846,99 @@
     "h": "sa",
     "min": "dk",
     "sec": "sn"
+  },
+  "fuel": {
+    "title": "Yakıt Girişi",
+    "menuTitle": "Yakıt Girişi",
+    "vehicleInfo": "Araç Bilgisi",
+    "plate": "Plaka",
+    "lastOdometer": "Son",
+    "tankCapacity": "Depo",
+    "fuelType": "Yakıt Tipi",
+    "currentOdometer": "KM Sayacı",
+    "odometerPlaceholder": "Örn: 100.520",
+    "litersFilled": "Aldığım Litre",
+    "litersPlaceholder": "Örn: 52",
+    "totalCost": "Tutar",
+    "costPlaceholder": "Örn: 2230",
+    "pricePerLiter": "Litre fiyatı",
+    "isFullTank": "Depo FULL",
+    "fullTankNote": "Depoyu FULL yapın",
+    "save": "KAYDET",
+    "calculation": "Hesaplama Önizleme",
+    "kmTraveled": "Gidilen KM",
+    "consumption": "Tüketim",
+    "costPerKm": "KM Başı Maliyet",
+    "lastRecord": "Son Kayıt",
+    "editVehicle": "Araç Bilgilerini Düzenle",
+    "vehicleUpdated": "Araç bilgileri güncellendi",
+    "plateReadonly": "Plaka değiştirilemez",
+    "firstRecordNote": "Bu ilk kayıttır, tüketim hesaplaması bir sonraki kayıtta yapılacak.",
+    "loading": "Yükleniyor...",
+    "noVehicle": "Atanmış aracınız yok",
+    "retry": "Tekrar Dene",
+    "validation": {
+      "odometerRequired": "KM sayacı gerekli",
+      "odometerMustBeHigher": "KM değeri önceki kayıttan ({{lastKm}}) büyük olmalı",
+      "litersRequired": "Litre miktarı gerekli",
+      "litersExceedsTank": "Maksimum {{capacity}}L girebilirsiniz",
+      "consumptionUnrealistic": "Hesaplanan tüketim ({{value}} L/100km) mantıksız görünüyor",
+      "kmTooHigh": "Tek dolumda {{km}} km çok yüksek görünüyor"
+    },
+    "labels": {
+      "odometerKm": "KM Sayacı",
+      "litersFilled": "Aldığım Litre",
+      "totalCost": "Tutar (opsiyonel)",
+      "fullTank": "Depo FULL"
+    },
+    "hints": {
+      "lastRecordTitle": "Son Kayıt",
+      "lastRecordPrefix": "💡 Son",
+      "warningFull": "⚠️ Depoyu FULL yapın"
+    },
+    "errors": {
+      "vehicleLoadFailed": "Araç bilgisi alınamadı",
+      "odometerRequired": "KM sayacı gerekli",
+      "litersRequired": "Litre miktarı gerekli",
+      "odometerLessThanPrev": "KM sayacı önceki kayıttan ({{prev}}) büyük olmalı",
+      "litersExceedCapacity": "Maksimum {{capacity}}L girebilirsiniz",
+      "submitFailed": "Kayıt eklenemedi"
+    },
+    "error": {
+      "title": "Hata",
+      "loadFailed": "Araç bilgisi alınamadı",
+      "saveFailed": "Kayıt eklenemedi",
+      "noVehicle": "Atanmış aracınız yok",
+      "vehicleUpdateFailed": "Araç bilgileri güncellenemedi"
+    },
+    "confirmNotFull": {
+      "title": "Dikkat",
+      "message": "Depo FULL değilse bu kayıt tüketim analizine dahil edilmez. Devam etmek istiyor musunuz?",
+      "cancel": "İptal",
+      "proceed": "Yine de Kaydet"
+    },
+    "notFullTankWarning": {
+      "title": "Dikkat",
+      "message": "Depo FULL değilse bu kayıt tüketim analizine dahil edilmez. Devam etmek istiyor musunuz?",
+      "cancel": "İptal",
+      "saveAnyway": "Yine de Kaydet"
+    },
+    "submit": {
+      "save": "Kaydet"
+    },
+    "success": {
+      "title": "Başarılı",
+      "message": "Kaydedildi!",
+      "saved": "Kaydedildi",
+      "kmTraveled": "{{km}} km",
+      "consumptionPer100km": "{{value}} L/100km",
+      "costPerKm": "{{value}}/km"
+    },
+    "fuelTypes": {
+      "diesel": "Dizel",
+      "gasoline": "Benzin",
+      "lpg": "LPG",
+      "electric": "Elektrik"
+    }
   }
 }
