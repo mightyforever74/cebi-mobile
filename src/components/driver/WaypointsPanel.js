@@ -1,10 +1,11 @@
 /**
- * WaypointsPanel.js - Collapsible Waypoints List (v2)
+ * WaypointsPanel.js - Collapsible Waypoints List (v3)
  * TulipFleet - Driver Navigation Waypoints
  *
+ * v3 Fix: galio-framework Text yerine React Native Text
+ */
 
 import { Ionicons } from "@expo/vector-icons";
-import { Text } from "galio-framework";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -12,6 +13,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -60,16 +62,13 @@ const STATUS_CONFIG = {
 
 // i18n helper with namespace prefix
 const getText = (t, key, fallbackTr, fallbackEn, isEn) => {
-  // Try with nav. namespace first
   const namespacedKey = `nav.${key}`;
   let translated = t(namespacedKey);
 
-  // If namespaced key returns itself, try without namespace
   if (translated === namespacedKey) {
     translated = t(key);
   }
 
-  // If still returns key, use fallback
   if (translated === key || translated === namespacedKey) {
     return isEn ? fallbackEn : fallbackTr;
   }
@@ -79,18 +78,10 @@ const getText = (t, key, fallbackTr, fallbackEn, isEn) => {
 /**
  * Single Waypoint Item
  */
-const WaypointItem = ({
-  waypoint,
-  displayIndex, // FIX #3: UI görsel sırası
-  isLast,
-  onPress,
-  isEn,
-  t,
-}) => {
+const WaypointItem = ({ waypoint, displayIndex, isLast, onPress, isEn, t }) => {
   const status = waypoint.status || "pending";
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
 
-  // Format ETA (already handles timezone - Date converts UTC to local)
   const formatETA = (eta) => {
     if (!eta) return null;
     const date = new Date(eta);
@@ -100,7 +91,6 @@ const WaypointItem = ({
     });
   };
 
-  // Format duration
   const formatDuration = (minutes) => {
     if (!minutes) return null;
     if (minutes < 60) {
@@ -114,9 +104,10 @@ const WaypointItem = ({
     return isEn ? `${hours}h ${mins}m` : `${hours} sa ${mins} dk`;
   };
 
-  // FIX #3: Press handler uses waypointIndex (null for origin/destination)
   const handlePress = () => {
-    onPress?.(waypoint, waypoint.waypointIndex);
+    if (onPress) {
+      onPress(waypoint, waypoint.waypointIndex);
+    }
   };
 
   return (
@@ -173,7 +164,6 @@ const WaypointItem = ({
 
         {/* Meta Row */}
         <View style={styles.waypointMeta}>
-          {/* Distance */}
           {waypoint.distance_km != null && (
             <View style={styles.metaItem}>
               <Ionicons
@@ -187,7 +177,6 @@ const WaypointItem = ({
             </View>
           )}
 
-          {/* Duration */}
           {waypoint.duration_min != null && (
             <View style={styles.metaItem}>
               <Ionicons
@@ -201,7 +190,6 @@ const WaypointItem = ({
             </View>
           )}
 
-          {/* Stop Time */}
           {waypoint.stop_duration_min != null && (
             <View style={styles.metaItem}>
               <Ionicons
@@ -216,7 +204,6 @@ const WaypointItem = ({
             </View>
           )}
 
-          {/* Completed Time */}
           {status === "completed" && waypoint.completed_at && (
             <View style={[styles.metaItem, styles.completedBadge]}>
               <Ionicons name="checkmark" size={12} color={COLORS.completed} />
@@ -273,40 +260,31 @@ export default function WaypointsPanel({
   const animatedHeight = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  // Calculate stats
   const totalWaypoints = waypoints.length;
   const isDirectRoute = totalWaypoints === 0;
-
-  // FIX #2: completedWaypoints tek kaynaktan (currentWaypointIndex)
-  // Backend status'larına değil, currentWaypointIndex'e güveniyoruz
   const completedWaypoints = Math.min(
     Math.max(currentWaypointIndex, 0),
     totalWaypoints
   );
-
   const hasWaypoints = totalWaypoints > 0 || origin || destination;
 
-  // Build full route list (origin + waypoints + destination)
   const routeList = useMemo(() => {
     const list = [];
     let displayIdx = 1;
 
-    // Origin
     if (origin) {
       list.push({
         ...origin,
         _type: "origin",
-        waypointIndex: null, // FIX #3: origin has no waypoint index
+        waypointIndex: null,
         name:
           origin.name || getText(t, "start_point", "Başlangıç", "Start", isEn),
-        status: "completed", // Origin is always completed when navigation starts
+        status: "completed",
         displayIndex: displayIdx++,
       });
     }
 
-    // Waypoints with status derived from currentWaypointIndex
     waypoints.forEach((wp, idx) => {
-      // FIX #2: Status from currentWaypointIndex, not from wp.status
       const derivedStatus =
         idx < currentWaypointIndex
           ? "completed"
@@ -316,15 +294,13 @@ export default function WaypointsPanel({
       list.push({
         ...wp,
         _type: "waypoint",
-        waypointIndex: idx, // FIX #3: actual waypoint index for callbacks
+        waypointIndex: idx,
         status: derivedStatus,
         displayIndex: displayIdx++,
       });
     });
 
-    // Destination
     if (destination) {
-      // FIX #1: Direkt rota için destination = current
       const destStatus = isDirectRoute
         ? "current"
         : completedWaypoints === totalWaypoints
@@ -334,7 +310,7 @@ export default function WaypointsPanel({
       list.push({
         ...destination,
         _type: "destination",
-        waypointIndex: null, // FIX #3: destination has no waypoint index
+        waypointIndex: null,
         name:
           destination.name ||
           getText(t, "destination", "Varış", "Destination", isEn),
@@ -356,15 +332,13 @@ export default function WaypointsPanel({
     isEn,
   ]);
 
-  // FIX #4: Dynamic expanded height based on content
   const expandedMaxHeight = useMemo(() => {
-    const baseHeight = 60; // Header padding
-    const itemHeight = 80; // Approximate height per item
+    const baseHeight = 60;
+    const itemHeight = 80;
     const calculated = baseHeight + routeList.length * itemHeight;
-    return Math.min(calculated, 420); // Cap at 420
+    return Math.min(calculated, 420);
   }, [routeList.length]);
 
-  // Toggle animation
   useEffect(() => {
     Animated.parallel([
       Animated.timing(animatedHeight, {
@@ -385,14 +359,12 @@ export default function WaypointsPanel({
     outputRange: ["0deg", "180deg"],
   });
 
-  // Handle waypoint press
   const handleItemPress = (waypoint, waypointIndex) => {
     if (waypoint._type === "origin" && onOriginPress) {
       onOriginPress(waypoint);
     } else if (waypoint._type === "destination" && onDestinationPress) {
       onDestinationPress(waypoint);
     } else if (waypoint._type === "waypoint" && onWaypointPress) {
-      // FIX #3: Pass actual waypoint index, not routeList index
       onWaypointPress(waypoint, waypointIndex);
     }
   };
@@ -444,7 +416,6 @@ export default function WaypointsPanel({
         </View>
 
         <View style={styles.headerRight}>
-          {/* Progress indicator - only show if has waypoints */}
           {!isDirectRoute && (
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
@@ -479,7 +450,6 @@ export default function WaypointsPanel({
         style={[
           styles.content,
           {
-            // FIX #4: Dynamic max height
             maxHeight: animatedHeight.interpolate({
               inputRange: [0, 1],
               outputRange: [0, expandedMaxHeight],
@@ -491,14 +461,13 @@ export default function WaypointsPanel({
         <ScrollView
           style={styles.waypointsList}
           showsVerticalScrollIndicator={false}
-          // FIX #5: nestedScrollEnabled only on Android
           nestedScrollEnabled={Platform.OS === "android"}
         >
           {routeList.map((item, idx) => (
             <WaypointItem
               key={item.id || `${item._type}-${idx}`}
               waypoint={item}
-              displayIndex={item.displayIndex} // FIX #3: UI display number
+              displayIndex={item.displayIndex}
               isLast={idx === routeList.length - 1}
               onPress={handleItemPress}
               isEn={isEn}
@@ -524,8 +493,6 @@ const styles = StyleSheet.create({
     elevation: 4,
     overflow: "hidden",
   },
-
-  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -562,8 +529,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-
-  // Progress
   progressContainer: {
     width: 50,
   },
@@ -578,8 +543,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 2,
   },
-
-  // Content
   content: {
     overflow: "hidden",
   },
@@ -588,15 +551,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 14,
   },
-
-  // Waypoint Item
   waypointItem: {
     flexDirection: "row",
     alignItems: "flex-start",
     paddingVertical: 10,
   },
-
-  // Timeline
   timelineContainer: {
     alignItems: "center",
     width: 32,
@@ -616,8 +575,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
     marginTop: 4,
   },
-
-  // Waypoint Content
   waypointContent: {
     flex: 1,
     paddingRight: 8,
@@ -650,8 +607,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 26,
   },
-
-  // ETA Badge
   etaBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -666,8 +621,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: COLORS.primary,
   },
-
-  // Meta
   waypointMeta: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -690,8 +643,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-
-  // Notes
   notesContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -708,8 +659,6 @@ const styles = StyleSheet.create({
     color: COLORS.warning,
     fontStyle: "italic",
   },
-
-  // Arrow
   waypointArrow: {
     marginTop: 4,
   },
