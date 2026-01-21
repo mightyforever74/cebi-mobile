@@ -30,13 +30,7 @@
     "loginError": "Error al iniciar sesión",
     "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?"
   },
-  "roles": {
-    "superAdmin": "Super Admin",
-    "companyAdmin": "Gerente",
-    "driver": "Conductor"
-  },
   "navigation": {
-    "dashboard": "Panel",
     "vehicles": "Vehículos",
     "drivers": "Conductores",
     "tasks": "Tareas",
@@ -110,7 +104,15 @@
     "clear": "Limpiar",
     "cacheCleared": "Caché limpiada",
     "gpsComingSoon": "Configuración de precisión GPS próximamente",
-    "privacyComingSoon": "Política de privacidad próximamente"
+    "privacyComingSoon": "Política de privacidad próximamente",
+    "notificationPermissionDenied": "Permiso de notificación denegado. Puede habilitarlo desde configuración.",
+    "locationPermissionDenied": "Permiso de ubicación denegado. Puede habilitarlo desde configuración.",
+    "openSettings": "Abrir Configuración",
+    "gpsAccuracyMessage": "La precisión del GPS se gestiona desde la configuración del dispositivo.",
+    "locationGranted": "Permiso concedido ✓",
+    "itemsCleared": "elementos",
+    "cacheClearFailed": "Error al limpiar la caché",
+    "privacyPolicyText": "Nuestra política de privacidad está disponible en: tulipfleet.com/privacy"
   },
   "dashboard": {
     "hello": "Hola,",
@@ -225,29 +227,10 @@
     "ok": "OK",
     "couldNotAcceptTask": "No se pudo aceptar la tarea",
     "rejectTask": "Rechazar Tarea",
-    "rejectTaskConfirm": "¿Estás seguro de que quieres rechazar \"{{title}}\"?\n\nEsta acción no se puede deshacer.",
-    "info": "Info",
-    "taskRejected": "Tarea rechazada. Tu gerente ha sido notificado.",
-    "couldNotRejectTask": "No se pudo rechazar la tarea",
-    "error": "Error",
-    "withdrawTask": "Retirar Tarea",
-    "withdrawTaskConfirm": "¿Está seguro de que desea retirar \"{{title}}\"?\n\nSu gerente será notificado.",
-    "withdrawConfirm": "Sí, Retirar",
-    "withdraw": "Retirar",
-    "taskWithdrawn": "Tarea retirada. Su gerente ha sido notificado.",
-    "viewHistory": "Ver Historial",
-    "couldNotWithdrawTask": "No se pudo retirar la tarea",
-    "statuses": {
-      "pending_review": "¡Nueva Tarea!",
-      "accepted": "Aceptada",
-      "in_progress": "En Progreso",
-      "completed": "Completada",
-      "rejected": "Rechazada",
-      "pending": "Pendiente",
-      "assigned": "Asignada",
-      "cancelled": "Cancelada",
-      "withdrawn": "Retirada"
-    }
+    "rejectTaskConfirm": "¿Estás seguro de que quieres rechazar \"{{title}}\"?",
+    "taskRejected": "Tarea Rechazada",
+    "taskRejectedMessage": "Puedes ver otras ofertas en la pantalla de Mis Tareas.",
+    "couldNotRejectTask": "No se pudo rechazar la tarea"
   },
   "vehicle": {
     "title": "Mi Vehículo",
@@ -310,312 +293,74 @@
     "editProfileSubtitle": "Nombre, apellido, teléfono",
     "changePassword": "Cambiar Contraseña",
     "changePasswordSubtitle": "Seguridad de la cuenta",
+    "error": {
+      "title": "Error",
+      "loadFailed": "Error al cargar info del vehículo",
+      "saveFailed": "Error al guardar el registro",
+      "noVehicle": "Sin vehículo asignado",
+      "vehicleUpdateFailed": "Error al actualizar info del vehículo"
+    },
     "notifications": "NOTIFICACIONES",
     "notificationsTitle": "Notificaciones",
     "notificationsSubtitle": "Notificaciones de tareas",
     "locationSharing": "Compartir Ubicación",
-      "error": {
-        "title": "Error",
-        "loadFailed": "Error al cargar la información del vehículo",
-        "saveFailed": "Error al guardar el registro",
-        "noVehicle": "No hay vehículo asignado",
-        "vehicleUpdateFailed": "Error al actualizar la información del vehículo"
-      },
     "locationSubtitle": "Requerido para seguimiento",
     "support": "SOPORTE",
+    "notFullTankWarning": {
+      "title": "Advertencia",
+      "message": "Si el tanque no está lleno, este registro no se incluirá en el análisis de consumo. ¿Continuar?",
+      "cancel": "Cancelar",
+      "saveAnyway": "Guardar de todas formas"
+    },
     "help": "Ayuda",
-    "helpSubtitle": "FAQ y guía de usuario",
+    "helpSubtitle": "FAQ y guía",
     "contactUs": "Contáctanos",
     "about": "Acerca de",
-      "notFullTankWarning": {
-        "title": "Advertencia",
-        "message": "Si el tanque no está lleno, este registro no se incluirá en el análisis de consumo. ¿Desea continuar?",
-        "cancel": "Cancelar",
-        "saveAnyway": "Guardar de todos modos"
-      },
     "version": "Versión",
+    "message": "¡Guardado!",
     "logout": "Cerrar Sesión",
     "logoutSubtitle": "Salir de tu cuenta",
     "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?",
     "cancel": "Cancelar",
-        "message": "¡Guardado!",
-    "supportTitle": "Soporte",
+    "fuelTypes": {
+      "diesel": "Diésel",
+      "gasoline": "Gasolina",
+      "lpg": "GLP",
+      "electric": "Eléctrico"
+    },
     "supportMessage": "¿Necesitas ayuda?",
-    "sendEmail": "Enviar Email",
+    "sendEmail": "Enviar Correo",
     "aboutTitle": "Acerca de TulipFleet",
-      },
-      "fuelTypes": {
-        "diesel": "Diésel",
-        "gasoline": "Gasolina",
-        "lpg": "GLP",
-        "electric": "Eléctrico"
-      }
-    "ok": "OK"
+    "aboutMessage": "TulipFleet v1.0.0\n\nSistema de Gestión de Flota\n© 2025 TulipFleet\n\nTodos los derechos reservados."
+  },
+  "editProfile": {
+    "title": "Editar Perfil",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "save": "Guardar Cambios",
+    "success": "Perfil actualizado exitosamente",
+    "error": "Error al actualizar el perfil"
+  },
+  "changePassword": {
+    "title": "Cambiar Contraseña",
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Nueva Contraseña",
+    "save": "Cambiar Contraseña",
+    "success": "Contraseña cambiada exitosamente",
+    "error": "Error al cambiar la contraseña",
+    "mismatch": "Las contraseñas no coinciden"
   },
   "deviceSetup": {
     "title": "Configuración del Dispositivo",
-    "checkingStatus": "Verificando estado del dispositivo...",
-    "loading": "Cargando...",
-    "setupNotRequired": "Configuración No Requerida ✅",
-    "deviceActiveMessage": "El dispositivo conectado a tu vehículo está activo.\n\nDispositivo: {{serial}}\nPlaca: {{plate}}",
-    "deviceReinstall": "Reinstalación del Dispositivo",
-    "deviceWaitingReinstall": "Dispositivo esperando reinstalación...",
-    "steps": {
-      "qrScan": "Escanear Código QR",
-      "bleScan": "Buscando Dispositivo",
-      "connecting": "Conectando",
-      "wifiForm": "Configuración WiFi",
-      "wifiProvisioning": "Conexión WiFi",
-      "activating": "Activando",
-      "success": "Completado",
-      "error": "Error"
-    },
-    "bluetooth": {
-      "off": "Bluetooth Apagado",
-      "offMessage": "Enciende el Bluetooth para la configuración del dispositivo",
-      "unauthorized": "Permiso de Bluetooth Requerido",
-      "unauthorizedMessage": "Otorga permiso de Bluetooth en configuración",
-      "unsupported": "Bluetooth No Soportado",
-      "unsupportedMessage": "Este dispositivo no soporta Bluetooth Low Energy",
-      "permissionsDenied": "Permiso Requerido",
-      "permissionsDeniedMessage": "Otorga permisos de Bluetooth y ubicación",
-      "locationDenied": "Permiso de Ubicación Requerido",
-      "locationDeniedMessage": "Permiso de ubicación requerido para escaneo Bluetooth",
-      "error": "Error de Bluetooth",
-      "notReady": "Bluetooth No Listo",
-      "notReadyMessage": "Espera mientras el Bluetooth se inicia..."
-    },
-    "qr": {
-      "invalidCode": "Código QR Inválido",
-      "invalidCodeMessage": "Formato de código QR no reconocido. Escanea el código QR en el dispositivo.",
-      "scanHint": "📱 Escanea el código QR en el dispositivo",
-      "manualEntry": "⌨️ Entrada Manual de Serial"
-    },
-    "serial": {
-      "validating": "Validando serial...",
-      "invalid": "Serial Inválido",
-      "invalidFormat": "Formato de serial incorrecto. Ejemplo: TF-2025-00008-5",
-      "notRegistered": "Este serial no está registrado en el sistema",
-      "enterSerial": "Ingresa Número de Serie",
-      "example": "Ejemplo: TF-2025-00008-5"
-    },
-    "ble": {
-      "searchingDevices": "Buscando dispositivos...",
-      "deviceNotFound": "Dispositivo no encontrado.\n\nAsegúrate de que el dispositivo esté encendido y cerca.",
-      "devicesFound": "{{count}} dispositivo(s) encontrado(s)",
-      "searchingBluetooth": "Buscando dispositivos Bluetooth...",
-      "deviceHint": "Asegúrate de que el dispositivo ESP32 esté encendido y cerca",
-      "rescan": "🔄 Escanear de Nuevo",
-      "strong": "🟢 Fuerte",
-      "medium": "🟡 Medio",
-      "weak": "🔴 Débil"
-    },
-    "connection": {
-      "connecting": "Conectando...",
-      "connected": "Conectado, preparando...",
-      "disconnected": "Conexión perdida: ",
-      "unknownError": "Error desconocido"
-    },
-    "wifi": {
-      "title": "Conexión WiFi",
-      "subtitle": "Ingresa la información de la red WiFi a la que se conectará el dispositivo ESP32",
-      "ssidLabel": "Nombre de Red WiFi (SSID)",
-      "ssidPlaceholder": "ej. Casa_WiFi",
-      "passwordLabel": "Contraseña WiFi",
-      "passwordPlaceholder": "Mínimo 8 caracteres",
-      "lastUsed": "Último usado: {{ssid}}",
-      "hint": "💡 El dispositivo se conectará a esta red WiFi para enviar datos. Asegúrate de que la red sea 2.4GHz (5GHz no soportado).",
-      "connect": "Conectar",
-      "enterCredentials": "Ingresa credenciales WiFi",
-      "emptySSID": "El nombre de la red WiFi (SSID) no puede estar vacío",
-      "shortPassword": "La contraseña WiFi debe tener al menos 8 caracteres",
-      "sendingCredentials": "Enviando credenciales WiFi...",
-      "connectionFailed": "Conexión WiFi fallida",
-      "connecting": "📶 Conexión WiFi",
-      "network": "Red: {{ssid}}",
-      "deviceConnecting": "El dispositivo ESP32 se está conectando al WiFi, por favor espera..."
-    },
-    "activation": {
-      "activating": "Activando dispositivo...",
-      "success": "¡Dispositivo activado exitosamente!",
-      "failed": "Activación fallida",
-      "serverCommunication": "Dispositivo comunicándose con el servidor..."
-    },
-    "result": {
-      "setupComplete": "¡Configuración Completada!",
-      "deviceReady": "Dispositivo activado exitosamente y listo para usar.",
-      "errorOccurred": "Ocurrió un Error",
-      "done": "Listo",
-      "retry": "Reintentar",
-      "cancel": "Cancelar"
-    },
-    "camera": {
-      "permissionRequired": "Permiso de Cámara Requerido",
-      "permissionMessage": "Necesitas otorgar permiso de cámara para escanear el código QR.",
-      "grantPermission": "Otorgar Permiso"
-    },
-    "buttons": {
-      "settings": "Configuración",
-      "cancel": "Cancelar",
-      "ok": "OK",
-      "continue": "Continuar"
-    },
-    "status": {
-      "waitingSerial": "Esperando serial",
-      "serialReceived": "Serial recibido",
-      "activating": "Activación iniciando...",
-      "wifiConnecting": "Conectando WiFi...",
-      "wifiConnected": "WiFi conectado",
-      "callingApi": "Comunicando con servidor...",
-      "apiSuccess": "Servidor confirmó",
-      "apiFailed": "Error de servidor",
-      "savingNvs": "Guardando...",
-      "complete": "Completado",
-      "wifiCredReceived": "Credenciales WiFi recibidas",
-      "wifiProvisionOk": "Conexión WiFi exitosa",
-      "wifiProvisionFail": "Conexión WiFi fallida"
-    }
-  },
-  "taskOffers": {
-    "title": "Ofertas de Tareas",
-    "loading": "Cargando ofertas...",
-    "connectionIssue": "Problema de conexión, reintentando... ({{current}}/{{max}})",
-    "sessionExpired": "Sesión expirada. Por favor inicia sesión de nuevo.",
-    "noPermission": "No tienes permiso para esta operación.",
-    "offersNotFound": "Ofertas no encontradas.",
-    "serverError": "Error del servidor. Por favor intenta más tarde.",
-    "checkInternet": "Verifica tu conexión a internet.",
-    "genericError": "Ocurrió un error. Por favor intenta de nuevo.",
-    "retry": "Reintentar",
-    "statuses": {
-      "pending": "Pendiente",
-      "accepted": "Aceptada",
-      "rejected": "Rechazada",
-      "expired": "Expirada"
-    },
-    "filters": {
-      "pending": "Pendientes",
-      "accepted": "Aceptadas",
-      "rejected": "Rechazadas",
-      "all": "Todas"
-    },
-    "timeRemaining": {
-      "expired": "Expirada",
-      "minutes": "{{minutes}} min restantes",
-      "hours": "{{hours}} hora(s) restantes"
-    },
-    "tapForDetails": "Toca para detalles →",
-    "empty": {
-      "error": "😔",
-      "normal": "📭",
-      "couldNotLoad": "No se pudieron cargar las ofertas",
-      "noPending": "No hay ofertas pendientes",
-      "notFound": "No se encontraron ofertas de tareas"
-    }
-  },
-  "taskDetail": {
-    "title": "Detalle de Tarea",
-    "loading": "Cargando tarea...",
-    "notFound": "Tarea no encontrada",
-    "taskIdNotFound": "ID de tarea no encontrado",
-    "statuses": {
-      "pending_review": "Esperando Tu Revisión",
-      "accepted": "Aprobada - Esperando Inicio",
-      "in_progress": "En Progreso",
-      "completed": "Completada",
-      "rejected": "Rechazada",
-      "pending": "Pendiente",
-      "assigned": "Asignada",
-      "cancelled": "Cancelada"
-    },
-    "info": {
-      "taskNo": "N° de Tarea",
-      "vehicle": "Vehículo",
-      "scheduledStart": "Inicio Programado",
-      "actualStart": "Inicio Real",
-      "completedAt": "Completada El",
-      "notSpecified": "No Especificado"
-    },
-    "route": {
-      "title": "Información de Ruta",
-      "origin": "Origen",
-      "destination": "Destino",
-      "distance": "Distancia Total"
-    },
-    "notes": {
-      "title": "Notas"
-    },
-    "actions": {
-      "acceptTask": "Aceptar Tarea",
-      "acceptConfirm": "¿Estás seguro de que quieres aceptar esta tarea?",
-      "accept": "Aceptar",
-      "cancel": "Cancelar",
-      "success": "✅ Éxito",
-      "taskAccepted": "¡Tarea aceptada!",
-      "rejectTask": "Rechazar Tarea",
-      "rejectReason": "Motivo del Rechazo",
-      "rejectReasonPlaceholder": "Por favor especifica el motivo del rechazo...",
-      "rejectReasonRequired": "Por favor especifica el motivo del rechazo",
-      "reject": "Rechazar",
-      "info": "Info",
-      "taskRejected": "Tarea rechazada",
-      "startTask": "Iniciar Tarea",
-      "startConfirm": "¿Estás seguro de que quieres iniciar la tarea?",
-      "start": "Iniciar",
-      "taskStarted": "🚀 Éxito",
-      "taskStartedMessage": "¡Tarea iniciada!",
-      "goToNavigation": "Ir a Navegación",
-      "stayHere": "Quedarme Aquí",
-      "completeTask": "Completar Tarea",
-      "completeConfirm": "¿Estás seguro de que quieres completar esta tarea?",
-      "complete": "Completar",
-      "congratulations": "🎉 ¡Felicitaciones!",
-      "taskCompleted": "¡Tarea completada exitosamente!",
-      "error": "Error",
-      "operationFailed": "Operación fallida"
-    },
-    "statusInfo": {
-      "completed": "Esta tarea ha sido completada",
-      "rejected": "Esta tarea ha sido rechazada",
-      "cancelled": "Esta tarea ha sido cancelada"
-    }
-  },
-  "routeMap": {
-    "loading": "Obteniendo ubicación...",
-    "vehicleNotFound": "Vehículo no encontrado",
-    "locationNotAvailable": "Ubicación no disponible",
-    "calculatingRoute": "Calculando ruta...",
-    "coordinateCopied": "Coordenada Copiada",
-    "retry": "Reintentar",
-    "completeTask": "Completar Tarea",
-    "completeConfirm": "¿Estás seguro de que quieres completar esta tarea?",
-    "cancel": "Cancelar",
-    "complete": "Completar",
-    "success": "Éxito",
-    "taskCompleted": "¡Tarea completada!",
-    "ok": "OK",
-    "error": "Error",
-    "taskCouldNotComplete": "No se pudo completar la tarea",
-    "taskCouldNotStart": "No se pudo iniciar la tarea",
-    "taskCouldNotAccept": "No se pudo aceptar la tarea",
-    "taskCouldNotReject": "No se pudo rechazar la tarea",
-    "rejectTask": "Rechazar Tarea",
-    "rejectConfirm": "¿Estás seguro de que quieres rechazar esta tarea?",
-    "reject": "Rechazar",
-    "taskRejected": "Tarea Rechazada",
-    "waitForOtherTasks": "Puedes esperar otras tareas.",
-    "pendingTask": "Tarea Pendiente",
-    "newTaskOffer": "Nueva oferta de tarea",
-    "deliveryTask": "Tarea de Entrega",
-    "readyToStart": "Listo para Iniciar",
-    "origin": "Origen",
-    "currentLocation": "Ubicación actual",
-    "destination": "Destino",
-    "notDetermined": "No determinado",
-    "total": "Total",
-    "startTask": "Iniciar Tarea",
-    "target": "Objetivo",
-    "min": "min"
+    "scanQR": "Escanear Código QR",
+    "enterSerial": "Ingresar Número de Serie",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "failed": "Falló la Conexión",
+    "retry": "Reintentar"
   },
   "navigator": {
     "logout": "Cerrar Sesión",
@@ -842,5 +587,88 @@
       "consumptionPer100km": "{{value}} L/100km",
       "costPerKm": "{{value}}/km"
     }
+  },
+  "help": {
+    "title": "Centro de Ayuda",
+    "heroTitle": "¿Cómo podemos ayudarte?",
+    "heroSubtitle": "Preguntas frecuentes y manual de usuario",
+    "quickHelp": "AYUDA RÁPIDA",
+    "troubleshooting": "Solución de Problemas",
+    "ledIndicators": "Indicadores LED",
+    "contactSupport": "Contactar Soporte",
+    "userManual": "MANUAL DE USUARIO",
+    "version": "Versión",
+    "view": "Ver",
+    "hide": "Ocultar",
+    "loadingPdf": "Cargando PDF...",
+    "needMoreHelp": "¿Necesitas más ayuda?"
+  },
+  "troubleshooting": {
+    "title": "Solución de Problemas",
+    "tapToExpand": "Toca para ver detalles",
+    "solution": "Solución",
+    "stepsToTry": "Pasos a Intentar",
+    "stillNeedHelp": "¿Aún necesitas ayuda?",
+    "contactUs": "Contacta a nuestro equipo de soporte técnico",
+    "problems": {
+      "noPower": "El dispositivo no enciende",
+      "noGps": "Sin señal GPS",
+      "noWifi": "Error de conexión WiFi",
+      "noBle": "Bluetooth no encontrado",
+      "noUpdate": "La ubicación no se actualiza",
+      "appCrash": "La app se cierra"
+    },
+    "solutions": {
+      "noPower": "Verifica la conexión de energía y el fusible.",
+      "noGps": "Orienta la antena GPS hacia cielo abierto.",
+      "noWifi": "Verifica la contraseña y configuración de red.",
+      "noBle": "Reinicia el dispositivo y conecta en 60 segundos.",
+      "noUpdate": "Verifica la conexión a internet y estado del servidor.",
+      "appCrash": "Actualiza la app o limpia la caché."
+    },
+    "steps": {
+      "checkPowerConnection": "Verifica la conexión del cable de alimentación",
+      "checkFuse": "Revisa el fusible del vehículo",
+      "checkVoltage": "Verifica el rango de voltaje 12V-24V",
+      "moveOutdoors": "Mueve el dispositivo al exterior",
+      "checkAntenna": "Verifica la conexión de la antena GPS",
+      "avoidMetal": "Aléjate de obstáculos metálicos",
+      "checkPassword": "Asegúrate de que la contraseña WiFi sea correcta",
+      "use24Ghz": "Usa red 2.4GHz (5GHz no soportado)",
+      "checkSignal": "Verifica la intensidad de señal WiFi",
+      "restartDevice": "Reinicia el dispositivo",
+      "connect60sec": "Intenta conectar en 60 segundos",
+      "enableBluetooth": "Activa Bluetooth en tu teléfono",
+      "checkInternet": "Verifica tu conexión a internet",
+      "checkServer": "Verifica el estado del servidor",
+      "restartApp": "Reinicia la aplicación",
+      "updateApp": "Actualiza a la última versión",
+      "clearCache": "Limpia la caché de la app",
+      "reinstall": "Desinstala y reinstala la app"
+    }
+  },
+  "led": {
+    "title": "Indicadores LED",
+    "heroTitle": "Luces de Estado",
+    "heroSubtitle": "Los LEDs indican el estado del dispositivo",
+    "green": "LED Verde",
+    "blue": "LED Azul",
+    "yellow": "LED Amarillo",
+    "red": "LED Rojo",
+    "greenSolid": "Encendido fijo",
+    "greenSolidMeaning": "Sistema funcionando, GPS conectado",
+    "greenSlow": "Parpadeo lento",
+    "greenSlowMeaning": "Conexión WiFi en progreso",
+    "blueFast": "Parpadeo rápido",
+    "blueFastMeaning": "Modo de configuración BLE activo",
+    "blueSolid": "Encendido fijo",
+    "blueSolidMeaning": "Conexión Bluetooth activa",
+    "yellowBlink": "Parpadeando",
+    "yellowBlinkMeaning": "Buscando señal GPS",
+    "redSolid": "Encendido fijo",
+    "redSolidMeaning": "Estado de error - soporte necesario",
+    "redFast": "Parpadeo rápido",
+    "redFastMeaning": "Error de conexión WiFi",
+    "infoNote": "El modo BLE solo está activo los primeros 60 segundos. Reinicia el dispositivo si el tiempo expira."
   }
 }

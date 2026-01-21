@@ -3,6 +3,7 @@
 import * as SplashScreen from "expo-splash-screen";
 import { GalioProvider } from "galio-framework";
 import { useEffect, useState } from "react";
+import RNBootSplash from "react-native-bootsplash";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -30,6 +31,8 @@ export default function App() {
       } finally {
         setAppIsReady(true);
         SplashScreen.hideAsync();
+        // Hide RNBootSplash after app is ready
+        RNBootSplash.hide({ fade: true });
       }
     }
     prepare();

@@ -244,7 +244,15 @@
     "clear": "Paqij bike",
     "cacheCleared": "Cache hate paqijkirin",
     "gpsComingSoon": "Mîhengên rastiya GPS zû tên",
-    "privacyComingSoon": "Polîtîkaya nepeniyê zû tê"
+    "privacyComingSoon": "Polîtîkaya nepeniyê zû tê",
+    "notificationPermissionDenied": "Destûra agahdariyê hat redkirin. Hûn dikarin ji mîhengan çalak bikin.",
+    "locationPermissionDenied": "Destûra cîhê hat redkirin. Hûn dikarin ji mîhengan çalak bikin.",
+    "openSettings": "Mîhengan Veke",
+    "gpsAccuracyMessage": "Rastbûna GPS ji mîhengên amûrê tê birêvebirin.",
+    "locationGranted": "Destûr hate dayîn ✓",
+    "itemsCleared": "tişt",
+    "cacheClearFailed": "Paqijkirina cache biserneket",
+    "privacyPolicyText": "Polîtîkaya me ya nepenîtiyê li ser malpera me heye: tulipfleet.com/privacy"
   },
   "wifi": {
     "ssid": "Tora WiFi",
@@ -943,5 +951,88 @@
       "lpg": "LPG",
       "electric": "Elektrîk"
     }
+  },
+  "help": {
+    "title": "Navenda Alîkariyê",
+    "heroTitle": "Em çawa dikarin alîkariyê bikin?",
+    "heroSubtitle": "Pirsên pir tên pirsîn û rêbernameya bikarhêner",
+    "quickHelp": "ALÎKARIYA BILEZ",
+    "troubleshooting": "Çareserkirina Pirsgirêkan",
+    "ledIndicators": "Nîşaneyên LED",
+    "contactSupport": "Pêwendiya Piştgiriyê",
+    "userManual": "RÊBERNAMEYA BIKARHÊNER",
+    "version": "Versiyon",
+    "view": "Bibîne",
+    "hide": "Veşêre",
+    "loadingPdf": "PDF tê barkirin...",
+    "needMoreHelp": "Hê jî hewcedariya alîkariyê heye?"
+  },
+  "troubleshooting": {
+    "title": "Çareserkirina Pirsgirêkan",
+    "tapToExpand": "Ji bo hûrguliyan bitikîne",
+    "solution": "Çareserî",
+    "stepsToTry": "Gavên ku Biceribînin",
+    "stillNeedHelp": "Hê jî alîkarî hewce dike?",
+    "contactUs": "Bi tîma piştgiriya teknîkî re têkilî daynin",
+    "problems": {
+      "noPower": "Cîhaz venabe",
+      "noGps": "Sînyala GPS tune",
+      "noWifi": "Xeletiya girêdana WiFi",
+      "noBle": "Bluetooth nehat dîtin",
+      "noUpdate": "Cîh nayê nûkirin",
+      "appCrash": "Sepan dikeve"
+    },
+    "solutions": {
+      "noPower": "Girêdana hêzê û sigortê kontrol bikin.",
+      "noGps": "Antena GPS ber bi ezmên vekirî ve bikin.",
+      "noWifi": "Şîfreya WiFi û mîhengên torê kontrol bikin.",
+      "noBle": "Cîhazê ji nû ve bidin destpêkirin û di 60 saniyeyan de girêdin.",
+      "noUpdate": "Girêdana înternetê û rewşa serverê kontrol bikin.",
+      "appCrash": "Sepanê nû bikin an cache paqij bikin."
+    },
+    "steps": {
+      "checkPowerConnection": "Girêdana kabloya hêzê kontrol bikin",
+      "checkFuse": "Sigortaya wesayîtê kontrol bikin",
+      "checkVoltage": "Navbera voltaja 12V-24V verast bikin",
+      "moveOutdoors": "Cîhazê derve bixin",
+      "checkAntenna": "Girêdana antena GPS kontrol bikin",
+      "avoidMetal": "Ji astengiyên metal dûr bixin",
+      "checkPassword": "Piştrast bin ku şîfreya WiFi rast e",
+      "use24Ghz": "Tora 2.4GHz bikar bînin (5GHz nayê piştgirîkirin)",
+      "checkSignal": "Hêza sînyala WiFi kontrol bikin",
+      "restartDevice": "Cîhazê ji nû ve bidin destpêkirin",
+      "connect60sec": "Di 60 saniyeyan de girêdanê biceribînin",
+      "enableBluetooth": "Li ser têlefonê Bluetooth çalak bikin",
+      "checkInternet": "Girêdana înternetê kontrol bikin",
+      "checkServer": "Rewşa serverê kontrol bikin",
+      "restartApp": "Sepanê ji nû ve bidin destpêkirin",
+      "updateApp": "Bi versiyona dawî nû bikin",
+      "clearCache": "Cache ya sepanê paqij bikin",
+      "reinstall": "Sepanê rakin û ji nû ve saz bikin"
+    }
+  },
+  "led": {
+    "title": "Nîşaneyên LED",
+    "heroTitle": "Ronahiyên Rewşê",
+    "heroSubtitle": "LED rewşa cîhazê nîşan didin",
+    "green": "LED Kesk",
+    "blue": "LED Şîn",
+    "yellow": "LED Zer",
+    "red": "LED Sor",
+    "greenSolid": "Domdar ronî",
+    "greenSolidMeaning": "Sîstem dixebite, GPS girêdayî",
+    "greenSlow": "Hêdî diçirûske",
+    "greenSlowMeaning": "Girêdana WiFi tê çêkirin",
+    "blueFast": "Bilez diçirûske",
+    "blueFastMeaning": "Moda mîhengkirina BLE çalak e",
+    "blueSolid": "Domdar ronî",
+    "blueSolidMeaning": "Girêdana Bluetooth çalak e",
+    "yellowBlink": "Diçirûske",
+    "yellowBlinkMeaning": "Li sînyala GPS digere",
+    "redSolid": "Domdar ronî",
+    "redSolidMeaning": "Rewşa xeletiyê - piştgirî hewce ye",
+    "redFast": "Bilez diçirûske",
+    "redFastMeaning": "Xeletiya girêdana WiFi",
+    "infoNote": "Moda BLE tenê 60 saniyeyên yekem çalak e. Ger dem derbas bû cîhazê ji nû ve bidin destpêkirin."
   }
 }

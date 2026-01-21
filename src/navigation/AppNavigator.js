@@ -1,6 +1,6 @@
 ﻿// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Updated: 01 Ocak 2026 - FAZ 4 CİHAZ KURULUMU EKLENDİ
+// Updated: 21 Ocak 2026 - SettingsStack eklendi (Help screens navigation)
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -58,10 +58,13 @@ import DriverSettings from "../screens/driver/DriverSettings";
 import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
-import DriverWelcomeScreen from "../screens/driver/DriverWelcomeScreen"; // ← BU SATIRI EKLE
+import DriverWelcomeScreen from "../screens/driver/DriverWelcomeScreen";
 import FuelEntryScreen from "../screens/driver/FuelEntryScreen";
+import HelpCenterScreen from "../screens/driver/HelpCenterScreen";
+import LEDIndicatorsScreen from "../screens/driver/LEDIndicatorsScreen";
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
 import TaskOffers from "../screens/driver/TaskOffers";
+import TroubleshootingScreen from "../screens/driver/TroubleshootingScreen";
 
 // ============================================================================
 // FAZ 4: DEVICE SETUP SCREEN (BLE + QR Activation)
@@ -240,61 +243,57 @@ const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
 // ============================================================================
+// SUPER ADMIN STACK NAVIGATORS
+// ============================================================================
+const CompaniesStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="CompaniesMain" component={CompaniesScreen} />
+    <Stack.Screen name="CreateCompany" component={CreateCompanyScreen} />
+    <Stack.Screen name="CompanyEdit" component={CompanyEditScreen} />
+  </Stack.Navigator>
+);
+
+const SADevicesStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="DevicesMain" component={DevicesScreen} />
+    <Stack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
+    <Stack.Screen name="DeviceQRManagement" component={DeviceQRManagement} />
+  </Stack.Navigator>
+);
+
+// ============================================================================
 // SUPER ADMIN NAVIGATOR
 // ============================================================================
-const superAdminMenuItems = [
-  {
-    name: "SuperAdminDashboard",
-    label: "Platform Dashboard",
-    icon: "globe-outline",
-  },
-  { name: "Companies", label: "Şirket Yönetimi", icon: "business-outline" },
-  { name: "Devices", label: "Cihaz Yönetimi", icon: "hardware-chip-outline" },
-  { name: "DeviceQRManagement", label: "QR Yönetimi", icon: "qr-code-outline" },
-  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
-  { name: "PlatformUsers", label: "Tüm Kullanıcılar", icon: "people-outline" },
-  { name: "SystemHealth", label: "Sistem Health", icon: "pulse-outline" },
-];
-
 const SuperAdminNavigator = () => {
   const { t } = useTranslation();
   const menuItems = [
     {
-      name: "SuperAdminDashboard",
-      label: t("navigator.superAdmin.dashboard"),
-      icon: "globe-outline",
+      name: "SADashboard",
+      label: t("navigator.superadmin.dashboard"),
+      icon: "speedometer-outline",
     },
     {
       name: "Companies",
-      label: t("navigator.superAdmin.companies"),
+      label: t("navigator.superadmin.companies"),
       icon: "business-outline",
     },
     {
-      name: "Devices",
-      label: t("navigator.superAdmin.devices"),
+      name: "SADevices",
+      label: t("navigator.superadmin.devices"),
       icon: "hardware-chip-outline",
     },
     {
-      name: "DeviceQRManagement",
-      label: t("navigator.superAdmin.qrManagement"),
-      icon: "qr-code-outline",
-    },
-    {
-      name: "DeviceSetup",
-      label: t("navigator.superAdmin.deviceSetup"),
-      icon: "bluetooth-outline",
-    },
-    {
       name: "PlatformUsers",
-      label: t("navigator.superAdmin.platformUsers"),
+      label: t("navigator.superadmin.users"),
       icon: "people-outline",
     },
     {
-      name: "SystemHealth",
-      label: t("navigator.superAdmin.systemHealth"),
-      icon: "pulse-outline",
+      name: "PlatformSettings",
+      label: t("navigator.superadmin.settings"),
+      icon: "settings-outline",
     },
   ];
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
@@ -304,277 +303,175 @@ const SuperAdminNavigator = () => {
           headerColor="#F5365C"
         />
       )}
-      screenOptions={{
-        headerStyle: { backgroundColor: "#F5365C", elevation: 4 },
-        headerTintColor: "#FFFFFF",
-        headerTitleStyle: { fontWeight: "600" },
-        drawerType: "front",
-        swipeEnabled: true,
-        drawerStyle: { width: 280 },
+      screenOptions={({ route }) => {
+        const titles = {
+          SADashboard: t("navigator.superadmin.dashboard"),
+          Companies: t("navigator.superadmin.companies"),
+          SADevices: t("navigator.superadmin.devices"),
+          PlatformUsers: t("navigator.superadmin.users"),
+          SystemHealth: t("navigator.superadmin.health"),
+          PlatformReports: t("navigator.superadmin.reports"),
+          PlatformSettings: t("navigator.superadmin.settings"),
+        };
+        return {
+          headerStyle: { backgroundColor: "#F5365C", elevation: 4 },
+          headerTintColor: "#FFFFFF",
+          headerTitleStyle: { fontWeight: "600" },
+          drawerType: "front",
+          swipeEnabled: true,
+          drawerStyle: { width: 280 },
+          title: titles[route.name] || route.name,
+        };
       }}
     >
+      <Drawer.Screen name="SADashboard" component={SuperAdminDashboard} />
+      <Drawer.Screen name="Companies" component={CompaniesStack} />
+      <Drawer.Screen name="SADevices" component={SADevicesStack} />
+      <Drawer.Screen name="PlatformUsers" component={PlatformUsersScreen} />
+      <Drawer.Screen name="SystemHealth" component={SystemHealthScreen} />
+      <Drawer.Screen name="PlatformReports" component={PlatformReportsScreen} />
       <Drawer.Screen
-        name="SuperAdminDashboard"
-        component={SuperAdminDashboard}
-        options={{ title: "Platform Dashboard" }}
-      />
-      <Drawer.Screen
-        name="Companies"
-        component={CompaniesScreen}
-        options={{ title: "Şirket Yönetimi" }}
-      />
-      <Drawer.Screen
-        name="CreateCompany"
-        component={CreateCompanyScreen}
-        options={{ title: "Yeni Şirket" }}
-      />
-      {/* CİHAZ YÖNETİMİ */}
-      <Drawer.Screen
-        name="Devices"
-        component={DevicesScreen}
-        options={{ title: "Cihaz Yönetimi" }}
-      />
-      <Drawer.Screen
-        name="DeviceDetail"
-        component={DeviceDetailScreen}
-        options={{ title: "Cihaz Detay" }}
-      />
-      <Drawer.Screen
-        name="DeviceQRManagement"
-        component={DeviceQRManagement}
-        options={{ title: "QR Yönetimi" }}
-      />
-      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
-      <Drawer.Screen
-        name="DeviceSetup"
-        component={DeviceSetupScreen}
-        options={{
-          title: "Cihaz Kurulumu",
-          headerShown: false,
-        }}
-      />
-      {/* Placeholder Screens */}
-      <Drawer.Screen
-        name="PlatformUsers"
-        component={PlatformUsersScreen}
-        options={{ title: "Tüm Kullanıcılar" }}
-      />
-      <Drawer.Screen
-        name="SystemHealth"
-        component={SystemHealthScreen}
-        options={{ title: "Sistem Health" }}
-      />
-      <Drawer.Screen
-        name="CompanyEdit"
-        component={CompanyEditScreen}
-        options={{
-          title: "Şirket Düzenle",
-          drawerItemStyle: { display: "none" },
-        }}
+        name="PlatformSettings"
+        component={PlatformSettingsScreen}
       />
     </Drawer.Navigator>
   );
 };
 
 // ============================================================================
+// COMPANY ADMIN STACK NAVIGATORS
+// ============================================================================
+const AdminVehiclesStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="VehiclesMain" component={AdminVehicles} />
+    <Stack.Screen name="CreateVehicle" component={CreateVehicleScreen} />
+    <Stack.Screen name="EditVehicle" component={EditVehicleScreen} />
+  </Stack.Navigator>
+);
+
+const AdminDriversStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="DriversMain" component={AdminDrivers} />
+    <Stack.Screen name="CreateDriver" component={CreateDriverScreen} />
+    <Stack.Screen name="EditDriver" component={EditDriverScreen} />
+  </Stack.Navigator>
+);
+
+const AdminTasksStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="TasksMain" component={AdminTasks} />
+    <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
+    <Stack.Screen name="EditTask" component={EditTaskScreen} />
+  </Stack.Navigator>
+);
+
+const AdminFleetMapStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="FleetMapMain" component={FleetMapScreen} />
+    <Stack.Screen name="VehicleTrack" component={VehicleTrackScreen} />
+  </Stack.Navigator>
+);
+
+// ============================================================================
 // COMPANY ADMIN NAVIGATOR
 // ============================================================================
-const companyAdminMenuItems = [
-  { name: "AdminDashboard", label: "Dashboard", icon: "speedometer-outline" },
-  { name: "FleetMap", label: "Canlı Harita", icon: "map-outline" },
-  { name: "Vehicles", label: "Araç Yönetimi", icon: "car-outline" },
-  { name: "Drivers", label: "Sürücü Yönetimi", icon: "people-outline" },
-  { name: "Tasks", label: "Görev Yönetimi", icon: "clipboard-outline" },
-  { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
-  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
-  { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
-  { name: "Settings", label: "Şirket Ayarları", icon: "settings-outline" },
-];
-
 const CompanyAdminNavigator = () => {
   const { t } = useTranslation();
   const menuItems = [
     {
       name: "AdminDashboard",
-      label: t("navigator.companyAdmin.dashboard"),
+      label: t("navigator.admin.dashboard"),
       icon: "speedometer-outline",
     },
     {
-      name: "FleetMap",
-      label: t("navigator.companyAdmin.fleetMap"),
-      icon: "map-outline",
-    },
-    {
       name: "Vehicles",
-      label: t("navigator.companyAdmin.vehicles"),
-      icon: "car-outline",
+      label: t("navigator.admin.vehicles"),
+      icon: "car-sport-outline",
     },
     {
       name: "Drivers",
-      label: t("navigator.companyAdmin.drivers"),
+      label: t("navigator.admin.drivers"),
       icon: "people-outline",
     },
     {
       name: "Tasks",
-      label: t("navigator.companyAdmin.tasks"),
+      label: t("navigator.admin.tasks"),
       icon: "clipboard-outline",
     },
     {
-      name: "Alerts",
-      label: t("navigator.companyAdmin.alerts"),
-      icon: "notifications-outline",
-    },
-    {
-      name: "DeviceSetup",
-      label: t("navigator.companyAdmin.deviceSetup"),
-      icon: "bluetooth-outline",
+      name: "FleetMap",
+      label: t("navigator.admin.map"),
+      icon: "map-outline",
     },
     {
       name: "Reports",
-      label: t("navigator.companyAdmin.reports"),
+      label: t("navigator.admin.reports"),
       icon: "bar-chart-outline",
     },
     {
+      name: "Alerts",
+      label: t("navigator.admin.alerts"),
+      icon: "notifications-outline",
+    },
+    {
       name: "Settings",
-      label: t("navigator.companyAdmin.settings"),
+      label: t("navigator.admin.settings"),
       icon: "settings-outline",
     },
   ];
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
         <CustomDrawerContent
           {...props}
           menuItems={menuItems}
-          headerColor="#5E72E4"
+          headerColor="#FB6340"
         />
       )}
-      screenOptions={{
-        headerStyle: { backgroundColor: "#5E72E4", elevation: 4 },
-        headerTintColor: "#FFFFFF",
-        headerTitleStyle: { fontWeight: "600" },
-        drawerType: "front",
-        swipeEnabled: true,
-        drawerStyle: { width: 280 },
+      screenOptions={({ route }) => {
+        const titles = {
+          AdminDashboard: t("navigator.admin.dashboard"),
+          Vehicles: t("navigator.admin.vehicles"),
+          Drivers: t("navigator.admin.drivers"),
+          Tasks: t("navigator.admin.tasks"),
+          FleetMap: t("navigator.admin.map"),
+          Reports: t("navigator.admin.reports"),
+          Alerts: t("navigator.admin.alerts"),
+          Settings: t("navigator.admin.settings"),
+        };
+        return {
+          headerStyle: { backgroundColor: "#FB6340", elevation: 4 },
+          headerTintColor: "#FFFFFF",
+          headerTitleStyle: { fontWeight: "600" },
+          drawerType: "front",
+          swipeEnabled: true,
+          drawerStyle: { width: 280 },
+          title: titles[route.name] || route.name,
+        };
       }}
     >
-      <Drawer.Screen
-        name="AdminDashboard"
-        component={AdminDashboard}
-        options={{ title: "Dashboard" }}
-      />
-      <Drawer.Screen
-        name="FleetMap"
-        component={FleetMapScreen}
-        options={{ title: "Canlı Harita" }}
-      />
-      <Drawer.Screen
-        name="VehicleTrack"
-        component={VehicleTrackScreen}
-        options={{ headerShown: false, drawerItemStyle: { display: "none" } }}
-      />
-      <Drawer.Screen
-        name="Vehicles"
-        component={AdminVehicles}
-        options={{ title: "Araç Yönetimi" }}
-      />
-      <Drawer.Screen
-        name="CreateVehicle"
-        component={CreateVehicleScreen}
-        options={{ title: "Yeni Araç" }}
-      />
-      <Drawer.Screen
-        name="EditVehicle"
-        component={EditVehicleScreen}
-        options={{ title: "Araç Düzenle" }}
-      />
-      <Drawer.Screen
-        name="Drivers"
-        component={AdminDrivers}
-        options={{ title: "Sürücü Yönetimi" }}
-      />
-      <Drawer.Screen
-        name="CreateDriver"
-        component={CreateDriverScreen}
-        options={{ title: "Yeni Sürücü" }}
-      />
-      <Drawer.Screen
-        name="EditDriver"
-        component={EditDriverScreen}
-        options={{ title: "Sürücü Düzenle" }}
-      />
-      <Drawer.Screen
-        name="Tasks"
-        component={AdminTasks}
-        options={{ title: "Görev Yönetimi" }}
-      />
-      <Drawer.Screen
-        name="CreateTask"
-        component={CreateTaskScreen}
-        options={{ title: "Yeni Görev" }}
-      />
-      <Drawer.Screen
-        name="EditTask"
-        component={EditTaskScreen}
-        options={{ title: "Görev Düzenle" }}
-      />
-      <Drawer.Screen
-        name="Alerts"
-        component={AdminAlerts}
-        options={{ title: "Uyarılar" }}
-      />
-      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
-      <Drawer.Screen
-        name="DeviceSetup"
-        component={DeviceSetupScreen}
-        options={{
-          title: "Cihaz Kurulumu",
-          headerShown: false,
-        }}
-      />
-      <Drawer.Screen
-        name="Reports"
-        component={AdminReportsScreen}
-        options={{ title: "Raporlar" }}
-      />
-      <Drawer.Screen
-        name="Settings"
-        component={AdminSettings}
-        options={{ title: "Şirket Ayarları" }}
-      />
+      <Drawer.Screen name="AdminDashboard" component={AdminDashboard} />
+      <Drawer.Screen name="Vehicles" component={AdminVehiclesStack} />
+      <Drawer.Screen name="Drivers" component={AdminDriversStack} />
+      <Drawer.Screen name="Tasks" component={AdminTasksStack} />
+      <Drawer.Screen name="FleetMap" component={AdminFleetMapStack} />
+      <Drawer.Screen name="Reports" component={AdminReportsScreen} />
+      <Drawer.Screen name="Alerts" component={AdminAlerts} />
+      <Drawer.Screen name="Settings" component={AdminSettings} />
     </Drawer.Navigator>
   );
 };
 
 // ============================================================================
-// DRIVER NAVIGATOR
+// DRIVER STACK NAVIGATORS
 // ============================================================================
-const driverMenuItems = [
-  { name: "DriverDashboard", label: "Dashboard", icon: "speedometer-outline" },
-  { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
-  { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
-  { name: "MyVehicle", label: "Araç Durumu", icon: "car-sport-outline" },
-  { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" }, // FAZ 4
-  { name: "TaskHistory", label: "Görev Geçmişi", icon: "time-outline" },
-  { name: "Profile", label: "Profilim", icon: "person-outline" },
-  { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
-  { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
-];
-
-// Tasks Stack - Görev teklifleri (liste) ve detay + aktif görevler
 const TasksStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {/* Ana ekran: Aktif Görevler */}
-    <Stack.Screen name="TasksList" component={DriverTasks} />
-    {/* Görev teklifleri listesi */}
-    <Stack.Screen name="TaskOffers" component={TaskOffers} />
-    {/* Detay ekranları */}
+    <Stack.Screen name="TasksMain" component={DriverTasks} />
     <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
-    <Stack.Screen
-      name="DriverTasksScreen"
-      component={DriverTasks}
-      options={{ title: "Aktif Görevler" }}
-    />
+    <Stack.Screen name="RouteMap" component={DriverRouteMapScreen} />
+    <Stack.Screen name="TaskOffers" component={TaskOffers} />
     <Stack.Screen
       name="TaskOfferDetail"
       component={TaskOfferDetail}
@@ -592,6 +489,24 @@ const ProfileStack = () => (
   </Stack.Navigator>
 );
 
+// ============================================================================
+// SETTINGS STACK - DriverSettings + Help Screens
+// ============================================================================
+const SettingsStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SettingsMain" component={DriverSettings} />
+    <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
+    <Stack.Screen
+      name="TroubleshootingScreen"
+      component={TroubleshootingScreen}
+    />
+    <Stack.Screen name="LEDIndicatorsScreen" component={LEDIndicatorsScreen} />
+  </Stack.Navigator>
+);
+
+// ============================================================================
+// DRIVER NAVIGATOR
+// ============================================================================
 const DriverNavigator = () => {
   const { t } = useTranslation();
   const menuItems = [
@@ -711,9 +626,10 @@ const DriverNavigator = () => {
       />
       <Drawer.Screen name="Profile" component={ProfileStack} options={{}} />
 
+      {/* DriverSettings -> SettingsStack (Help ekranları için) */}
       <Drawer.Screen
         name="DriverSettings"
-        component={DriverSettings}
+        component={SettingsStack}
         options={{}}
       />
       <Drawer.Screen name="SOS" component={DriverSOSScreen} options={{}} />

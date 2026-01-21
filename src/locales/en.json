@@ -230,8 +230,16 @@
     "clearCacheMessage": "Do you want to clear the app cache?",
     "clear": "Clear",
     "cacheCleared": "Cache cleared",
+    "itemsCleared": "items",
+    "cacheClearFailed": "Failed to clear cache",
     "gpsComingSoon": "GPS accuracy settings coming soon",
-    "privacyComingSoon": "Privacy policy coming soon"
+    "gpsAccuracyMessage": "GPS accuracy is managed from device settings.",
+    "privacyComingSoon": "Privacy policy coming soon",
+    "privacyPolicyText": "Our privacy policy is available on our website: tulipfleet.com/privacy",
+    "notificationPermissionDenied": "Notification permission denied. You can enable it from settings.",
+    "locationPermissionDenied": "Location permission denied. You can enable it from settings.",
+    "locationGranted": "Permission granted ✓",
+    "openSettings": "Open Settings"
   },
   "wifi": {
     "ssid": "WiFi Network",
@@ -912,5 +920,88 @@
       "lpg": "LPG",
       "electric": "Electric"
     }
+  },
+  "help": {
+    "title": "Help Center",
+    "heroTitle": "How can we help you?",
+    "heroSubtitle": "FAQ and user manual",
+    "quickHelp": "QUICK HELP",
+    "troubleshooting": "Troubleshooting",
+    "ledIndicators": "LED Indicators",
+    "contactSupport": "Contact Support",
+    "userManual": "USER MANUAL",
+    "version": "Version",
+    "view": "View",
+    "hide": "Hide",
+    "loadingPdf": "Loading PDF...",
+    "needMoreHelp": "Need more help?"
+  },
+  "troubleshooting": {
+    "title": "Troubleshooting",
+    "tapToExpand": "Tap to see details",
+    "solution": "Solution",
+    "stepsToTry": "Steps to Try",
+    "stillNeedHelp": "Still need help?",
+    "contactUs": "Contact our technical support team",
+    "problems": {
+      "noPower": "Device won't turn on",
+      "noGps": "No GPS signal",
+      "noWifi": "WiFi connection error",
+      "noBle": "Bluetooth not found",
+      "noUpdate": "Location not updating",
+      "appCrash": "App crashes"
+    },
+    "solutions": {
+      "noPower": "Check power connection and fuse.",
+      "noGps": "Point GPS antenna to open sky.",
+      "noWifi": "Check WiFi password and network settings.",
+      "noBle": "Restart device and connect within 60 seconds.",
+      "noUpdate": "Check internet connection and server status.",
+      "appCrash": "Update app or clear cache."
+    },
+    "steps": {
+      "checkPowerConnection": "Check power cable connection",
+      "checkFuse": "Check vehicle fuse",
+      "checkVoltage": "Verify 12V-24V voltage range",
+      "moveOutdoors": "Move device outdoors",
+      "checkAntenna": "Check GPS antenna connection",
+      "avoidMetal": "Move away from metal obstacles",
+      "checkPassword": "Make sure WiFi password is correct",
+      "use24Ghz": "Use 2.4GHz network (5GHz not supported)",
+      "checkSignal": "Check WiFi signal strength",
+      "restartDevice": "Restart the device",
+      "connect60sec": "Try connecting within 60 seconds",
+      "enableBluetooth": "Enable Bluetooth on your phone",
+      "checkInternet": "Check your internet connection",
+      "checkServer": "Check server status",
+      "restartApp": "Restart the application",
+      "updateApp": "Update app to latest version",
+      "clearCache": "Clear app cache",
+      "reinstall": "Uninstall and reinstall app"
+    }
+  },
+  "led": {
+    "title": "LED Indicators",
+    "heroTitle": "Device Status Lights",
+    "heroSubtitle": "LEDs indicate your device status",
+    "green": "Green LED",
+    "blue": "Blue LED",
+    "yellow": "Yellow LED",
+    "red": "Red LED",
+    "greenSolid": "Solid on",
+    "greenSolidMeaning": "System running, GPS connected",
+    "greenSlow": "Slow blinking",
+    "greenSlowMeaning": "WiFi connection in progress",
+    "blueFast": "Fast blinking",
+    "blueFastMeaning": "BLE configuration mode active",
+    "blueSolid": "Solid on",
+    "blueSolidMeaning": "Bluetooth connection active",
+    "yellowBlink": "Blinking",
+    "yellowBlinkMeaning": "Searching for GPS signal",
+    "redSolid": "Solid on",
+    "redSolidMeaning": "Error state - support needed",
+    "redFast": "Fast blinking",
+    "redFastMeaning": "WiFi connection error",
+    "infoNote": "BLE configuration mode is only active for the first 60 seconds. Restart device if time expires."
   }
 }

@@ -263,8 +263,16 @@
     "clearCacheMessage": "Uygulama önbelleğini temizlemek istiyor musunuz?",
     "clear": "Temizle",
     "cacheCleared": "Önbellek temizlendi",
+    "itemsCleared": "öğe",
+    "cacheClearFailed": "Önbellek temizlenemedi",
     "gpsComingSoon": "GPS doğruluk ayarları yakında eklenecek",
-    "privacyComingSoon": "Gizlilik politikası yakında eklenecek"
+    "gpsAccuracyMessage": "GPS doğruluğu cihaz ayarlarından yönetilir.",
+    "privacyComingSoon": "Gizlilik politikası yakında eklenecek",
+    "privacyPolicyText": "Gizlilik politikamız web sitemizde mevcuttur: tulipfleet.com/privacy",
+    "notificationPermissionDenied": "Bildirim izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
+    "locationPermissionDenied": "Konum izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
+    "locationGranted": "İzin verildi ✓",
+    "openSettings": "Ayarları Aç"
   },
   "wifi": {
     "ssid": "WiFi Ağı",
@@ -940,5 +948,88 @@
       "lpg": "LPG",
       "electric": "Elektrik"
     }
+  },
+  "help": {
+    "title": "Yardım Merkezi",
+    "heroTitle": "Nasıl yardımcı olabiliriz?",
+    "heroSubtitle": "Sık sorulan sorular ve kullanım kılavuzu",
+    "quickHelp": "HIZLI YARDIM",
+    "troubleshooting": "Sorun Giderme",
+    "ledIndicators": "LED Göstergeleri",
+    "contactSupport": "Destek İletişim",
+    "userManual": "KULLANIM KILAVUZU",
+    "version": "Versiyon",
+    "view": "Görüntüle",
+    "hide": "Gizle",
+    "loadingPdf": "PDF yükleniyor...",
+    "needMoreHelp": "Daha fazla yardıma mı ihtiyacınız var?"
+  },
+  "troubleshooting": {
+    "title": "Sorun Giderme",
+    "tapToExpand": "Detayları görmek için dokunun",
+    "solution": "Çözüm",
+    "stepsToTry": "Denenecek Adımlar",
+    "stillNeedHelp": "Hala yardıma mı ihtiyacınız var?",
+    "contactUs": "Teknik destek ekibimizle iletişime geçin",
+    "problems": {
+      "noPower": "Cihaz açılmıyor",
+      "noGps": "GPS sinyali yok",
+      "noWifi": "WiFi bağlantı hatası",
+      "noBle": "Bluetooth bulunamıyor",
+      "noUpdate": "Konum güncellenmiyor",
+      "appCrash": "Uygulama çöküyor"
+    },
+    "solutions": {
+      "noPower": "Güç bağlantısını ve sigortayı kontrol edin.",
+      "noGps": "GPS antenini açık alana yönlendirin.",
+      "noWifi": "WiFi şifresini ve ağ ayarlarını kontrol edin.",
+      "noBle": "Cihazı yeniden başlatın ve 60 saniye içinde bağlanın.",
+      "noUpdate": "İnternet bağlantısını ve sunucu durumunu kontrol edin.",
+      "appCrash": "Uygulamayı güncelleyin veya önbelleği temizleyin."
+    },
+    "steps": {
+      "checkPowerConnection": "Güç kablosu bağlantısını kontrol edin",
+      "checkFuse": "Araç sigortasını kontrol edin",
+      "checkVoltage": "12V-24V gerilim aralığını doğrulayın",
+      "moveOutdoors": "Cihazı açık alana taşıyın",
+      "checkAntenna": "GPS anten bağlantısını kontrol edin",
+      "avoidMetal": "Metal engellerden uzaklaştırın",
+      "checkPassword": "WiFi şifresini doğru girdiğinizden emin olun",
+      "use24Ghz": "2.4GHz ağ kullanın (5GHz desteklenmez)",
+      "checkSignal": "WiFi sinyal gücünü kontrol edin",
+      "restartDevice": "Cihazı yeniden başlatın",
+      "connect60sec": "60 saniye içinde bağlanmayı deneyin",
+      "enableBluetooth": "Telefonunuzda Bluetooth'u etkinleştirin",
+      "checkInternet": "İnternet bağlantınızı kontrol edin",
+      "checkServer": "Sunucu durumunu kontrol edin",
+      "restartApp": "Uygulamayı yeniden başlatın",
+      "updateApp": "Uygulamayı en son sürüme güncelleyin",
+      "clearCache": "Uygulama önbelleğini temizleyin",
+      "reinstall": "Uygulamayı kaldırıp yeniden yükleyin"
+    }
+  },
+  "led": {
+    "title": "LED Göstergeleri",
+    "heroTitle": "Cihaz Durum Işıkları",
+    "heroSubtitle": "LED'ler cihazınızın durumunu gösterir",
+    "green": "Yeşil LED",
+    "blue": "Mavi LED",
+    "yellow": "Sarı LED",
+    "red": "Kırmızı LED",
+    "greenSolid": "Sabit yanıyor",
+    "greenSolidMeaning": "Sistem çalışıyor, GPS bağlı",
+    "greenSlow": "Yavaş yanıp sönüyor",
+    "greenSlowMeaning": "WiFi bağlantısı kuruluyor",
+    "blueFast": "Hızlı yanıp sönüyor",
+    "blueFastMeaning": "BLE yapılandırma modu aktif",
+    "blueSolid": "Sabit yanıyor",
+    "blueSolidMeaning": "Bluetooth bağlantısı aktif",
+    "yellowBlink": "Yanıp sönüyor",
+    "yellowBlinkMeaning": "GPS sinyali aranıyor",
+    "redSolid": "Sabit yanıyor",
+    "redSolidMeaning": "Hata durumu - destek gerekli",
+    "redFast": "Hızlı yanıp sönüyor",
+    "redFastMeaning": "WiFi bağlantı hatası",
+    "infoNote": "BLE yapılandırma modu sadece ilk 60 saniye aktiftir. Süre geçerse cihazı yeniden başlatın."
   }
 }
