@@ -579,5 +579,29 @@
       "consumptionPer100km": "{{value}} L/100km",
       "costPerKm": "{{value}}/km"
     }
+  },
+  "led": {
+    "title": "Indicatori LED",
+    "deviceSubtitle": "Stati LED sul dispositivo",
+    "quickStatus": "TABELLA STATO RAPIDO",
+    "wifiLed": "LED WiFi (Blu)",
+    "gpsLed": "LED GPS (Rosso)",
+    "wifiConnected": "Fisso acceso",
+    "wifiConnectedMeaning": "WiFi connesso, i dati vengono inviati",
+    "wifiConnecting": "Lampeggia (500ms)",
+    "wifiConnectingMeaning": "Nessun WiFi o in connessione",
+    "gpsFixed": "Fisso acceso",
+    "gpsFixedMeaning": "Fix GPS acquisito, posizione nota",
+    "gpsSearching": "Lampeggia (300ms)",
+    "gpsSearchingMeaning": "Ricerca segnale GPS; interno o problema antenna",
+    "statusAllOk": "Tutto ok",
+    "statusAllOkMeaning": "WiFi e GPS connessi; sistema normale",
+    "statusNoWifi": "Problema WiFi",
+    "statusNoWifiMeaning": "I dati non raggiungono il server",
+    "statusNoGps": "Problema GPS",
+    "statusNoGpsMeaning": "Nessuna posizione; controlla interno/antenna",
+    "statusBothIssue": "Problema di connessione",
+    "statusBothIssueMeaning": "WiFi e GPS non funzionano; controlla il dispositivo",
+    "infoNote": "I LED si trovano sul pannello frontale del dispositivo. Lampeggio continuo indica un problema."
   }
 }

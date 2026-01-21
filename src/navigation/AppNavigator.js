@@ -1,6 +1,6 @@
 ﻿// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Updated: 21 Ocak 2026 - SettingsStack eklendi (Help screens navigation)
+// Updated: 21 Ocak 2026 - Hardcoded labels (no i18n prefixes)
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -78,7 +78,7 @@ import ChangePasswordScreen from "../screens/shared/ChangePasswordScreen";
 import EditProfileScreen from "../screens/shared/EditProfileScreen";
 
 // ============================================================================
-// PLACEHOLDER SCREENS (Henüz oluşturulmamış ekranlar için)
+// PLACEHOLDER SCREENS
 // ============================================================================
 const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
   const { t } = useTranslation();
@@ -87,7 +87,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
       <Ionicons name={icon || "construct-outline"} size={64} color="#5E72E4" />
       <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
       <Text style={styles.placeholderDesc}>
-        {t(descriptionKey) || t("navigator.placeholder.comingSoon")}
+        {t(descriptionKey) || "Yakında..."}
       </Text>
     </View>
   );
@@ -95,27 +95,24 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
 
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
-    titleKey="navigator.placeholder.platformReports"
+    titleKey="Platform Raporları"
     icon="bar-chart-outline"
-    descriptionKey="navigator.placeholder.aggregateStats"
+    descriptionKey="Platform istatistikleri"
   />
 );
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
-    titleKey="navigator.placeholder.platformSettings"
+    titleKey="Platform Ayarları"
     icon="settings-outline"
-    descriptionKey="navigator.placeholder.systemConfig"
+    descriptionKey="Sistem konfigürasyonu"
   />
 );
 
-// Company Admin Placeholders
-
-// Driver Placeholders
 const DriverSOSScreen = () => (
   <PlaceholderScreen
-    titleKey="navigator.placeholder.emergency"
+    titleKey="Acil Durum"
     icon="warning-outline"
-    descriptionKey="navigator.placeholder.sendSOS"
+    descriptionKey="SOS gönder"
   />
 );
 
@@ -127,10 +124,10 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const { t } = useTranslation();
 
   const handleLogout = () => {
-    Alert.alert(t("navigator.logout"), t("navigator.logoutConfirm"), [
-      { text: t("navigator.cancel"), style: "cancel" },
+    Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
+      { text: "İptal", style: "cancel" },
       {
-        text: t("navigator.logout"),
+        text: "Çıkış Yap",
         style: "destructive",
         onPress: async () => {
           await logout();
@@ -142,22 +139,20 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const getRoleDisplayName = () => {
     switch (user?.role) {
       case "super_admin":
-        return t("navigator.roles.super_admin");
+        return "Super Admin";
       case "company_admin":
-        return t("navigator.roles.company_admin");
+        return "Yönetici";
       case "driver":
-        return t("navigator.roles.driver");
+        return "Sürücü";
       default:
         return user?.role;
     }
   };
 
-  // Get current route name
   const currentRoute = state.routes[state.index]?.name;
 
   return (
     <View style={styles.drawerContainer}>
-      {/* Header - User Info */}
       <View
         style={[
           styles.drawerHeader,
@@ -193,7 +188,6 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
         </View>
       </View>
 
-      {/* Menu Items */}
       <ScrollView
         style={styles.menuContainer}
         showsVerticalScrollIndicator={false}
@@ -220,16 +214,13 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
           );
         })}
 
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.logoutText}>{t("navigator.logout")}</Text>
+          <Text style={styles.logoutText}>Çıkış Yap</Text>
         </TouchableOpacity>
 
-        {/* Version Info */}
         <Text style={styles.versionText}>TulipFleet v2.0.0</Text>
       </ScrollView>
     </View>
@@ -265,33 +256,12 @@ const SADevicesStack = () => (
 // SUPER ADMIN NAVIGATOR
 // ============================================================================
 const SuperAdminNavigator = () => {
-  const { t } = useTranslation();
   const menuItems = [
-    {
-      name: "SADashboard",
-      label: t("navigator.superadmin.dashboard"),
-      icon: "speedometer-outline",
-    },
-    {
-      name: "Companies",
-      label: t("navigator.superadmin.companies"),
-      icon: "business-outline",
-    },
-    {
-      name: "SADevices",
-      label: t("navigator.superadmin.devices"),
-      icon: "hardware-chip-outline",
-    },
-    {
-      name: "PlatformUsers",
-      label: t("navigator.superadmin.users"),
-      icon: "people-outline",
-    },
-    {
-      name: "PlatformSettings",
-      label: t("navigator.superadmin.settings"),
-      icon: "settings-outline",
-    },
+    { name: "SADashboard", label: "Dashboard", icon: "speedometer-outline" },
+    { name: "Companies", label: "Şirketler", icon: "business-outline" },
+    { name: "SADevices", label: "Cihazlar", icon: "hardware-chip-outline" },
+    { name: "PlatformUsers", label: "Kullanıcılar", icon: "people-outline" },
+    { name: "PlatformSettings", label: "Ayarlar", icon: "settings-outline" },
   ];
 
   return (
@@ -305,13 +275,13 @@ const SuperAdminNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          SADashboard: t("navigator.superadmin.dashboard"),
-          Companies: t("navigator.superadmin.companies"),
-          SADevices: t("navigator.superadmin.devices"),
-          PlatformUsers: t("navigator.superadmin.users"),
-          SystemHealth: t("navigator.superadmin.health"),
-          PlatformReports: t("navigator.superadmin.reports"),
-          PlatformSettings: t("navigator.superadmin.settings"),
+          SADashboard: "Dashboard",
+          Companies: "Şirketler",
+          SADevices: "Cihazlar",
+          PlatformUsers: "Kullanıcılar",
+          SystemHealth: "Sistem Sağlığı",
+          PlatformReports: "Raporlar",
+          PlatformSettings: "Ayarlar",
         };
         return {
           headerStyle: { backgroundColor: "#F5365C", elevation: 4 },
@@ -376,48 +346,15 @@ const AdminFleetMapStack = () => (
 // COMPANY ADMIN NAVIGATOR
 // ============================================================================
 const CompanyAdminNavigator = () => {
-  const { t } = useTranslation();
   const menuItems = [
-    {
-      name: "AdminDashboard",
-      label: t("navigator.admin.dashboard"),
-      icon: "speedometer-outline",
-    },
-    {
-      name: "Vehicles",
-      label: t("navigator.admin.vehicles"),
-      icon: "car-sport-outline",
-    },
-    {
-      name: "Drivers",
-      label: t("navigator.admin.drivers"),
-      icon: "people-outline",
-    },
-    {
-      name: "Tasks",
-      label: t("navigator.admin.tasks"),
-      icon: "clipboard-outline",
-    },
-    {
-      name: "FleetMap",
-      label: t("navigator.admin.map"),
-      icon: "map-outline",
-    },
-    {
-      name: "Reports",
-      label: t("navigator.admin.reports"),
-      icon: "bar-chart-outline",
-    },
-    {
-      name: "Alerts",
-      label: t("navigator.admin.alerts"),
-      icon: "notifications-outline",
-    },
-    {
-      name: "Settings",
-      label: t("navigator.admin.settings"),
-      icon: "settings-outline",
-    },
+    { name: "AdminDashboard", label: "Dashboard", icon: "speedometer-outline" },
+    { name: "Vehicles", label: "Araçlar", icon: "car-sport-outline" },
+    { name: "Drivers", label: "Sürücüler", icon: "people-outline" },
+    { name: "Tasks", label: "Görevler", icon: "clipboard-outline" },
+    { name: "FleetMap", label: "Canlı Harita", icon: "map-outline" },
+    { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
+    { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
+    { name: "Settings", label: "Ayarlar", icon: "settings-outline" },
   ];
 
   return (
@@ -431,14 +368,14 @@ const CompanyAdminNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          AdminDashboard: t("navigator.admin.dashboard"),
-          Vehicles: t("navigator.admin.vehicles"),
-          Drivers: t("navigator.admin.drivers"),
-          Tasks: t("navigator.admin.tasks"),
-          FleetMap: t("navigator.admin.map"),
-          Reports: t("navigator.admin.reports"),
-          Alerts: t("navigator.admin.alerts"),
-          Settings: t("navigator.admin.settings"),
+          AdminDashboard: "Dashboard",
+          Vehicles: "Araçlar",
+          Drivers: "Sürücüler",
+          Tasks: "Görevler",
+          FleetMap: "Canlı Harita",
+          Reports: "Raporlar",
+          Alerts: "Uyarılar",
+          Settings: "Ayarlar",
         };
         return {
           headerStyle: { backgroundColor: "#FB6340", elevation: 4 },
@@ -472,15 +409,10 @@ const TasksStack = () => (
     <Stack.Screen name="TaskDetail" component={DriverTaskDetail} />
     <Stack.Screen name="RouteMap" component={DriverRouteMapScreen} />
     <Stack.Screen name="TaskOffers" component={TaskOffers} />
-    <Stack.Screen
-      name="TaskOfferDetail"
-      component={TaskOfferDetail}
-      options={{ title: "Teklif Detayı" }}
-    />
+    <Stack.Screen name="TaskOfferDetail" component={TaskOfferDetail} />
   </Stack.Navigator>
 );
 
-// Profile Stack
 const ProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ProfileMain" component={DriverProfile} />
@@ -489,9 +421,7 @@ const ProfileStack = () => (
   </Stack.Navigator>
 );
 
-// ============================================================================
-// SETTINGS STACK - DriverSettings + Help Screens
-// ============================================================================
+// Settings Stack - DriverSettings + Help Screens
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SettingsMain" component={DriverSettings} />
@@ -508,50 +438,22 @@ const SettingsStack = () => (
 // DRIVER NAVIGATOR
 // ============================================================================
 const DriverNavigator = () => {
-  const { t } = useTranslation();
   const menuItems = [
     {
       name: "DriverDashboard",
-      label: t("navigator.driver.dashboard"),
+      label: "Ana Sayfa",
       icon: "speedometer-outline",
     },
-    {
-      name: "MyTasks",
-      label: t("navigator.driver.myTasks"),
-      icon: "list-outline",
-    },
-    {
-      name: "Navigation",
-      label: t("navigator.driver.navigation"),
-      icon: "navigate-outline",
-    },
-    {
-      name: "FuelEntry",
-      label: t("navigation.fuelEntry"),
-      icon: "flame-outline",
-    },
-    {
-      name: "MyVehicle",
-      label: t("navigator.driver.myVehicle"),
-      icon: "car-sport-outline",
-    },
-    {
-      name: "DeviceSetup",
-      label: t("navigator.driver.deviceSetup"),
-      icon: "bluetooth-outline",
-    },
-    {
-      name: "Profile",
-      label: t("navigator.driver.profile"),
-      icon: "person-outline",
-    },
-    {
-      name: "DriverSettings",
-      label: t("navigator.driver.settings"),
-      icon: "settings-outline",
-    },
-    { name: "SOS", label: t("navigator.driver.sos"), icon: "warning-outline" },
+    { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
+    { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
+    { name: "FuelEntry", label: "Yakıt Girişi", icon: "flame-outline" },
+    { name: "MyVehicle", label: "Aracım", icon: "car-sport-outline" },
+    { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" },
+    { name: "Profile", label: "Profil", icon: "person-outline" },
+    { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
+    { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
   ];
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
@@ -563,15 +465,15 @@ const DriverNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          DriverDashboard: t("navigator.driver.dashboard"),
-          MyTasks: t("navigator.driver.myTasks"),
-          Navigation: t("navigator.driver.navigation"),
-          FuelEntry: t("navigation.fuelEntry"),
-          MyVehicle: t("navigator.driver.myVehicle"),
-          DeviceSetup: t("navigator.driver.deviceSetup"),
-          Profile: t("navigator.driver.profile"),
-          DriverSettings: t("navigator.driver.settings"),
-          SOS: t("navigator.driver.sos"),
+          DriverDashboard: "Ana Sayfa",
+          MyTasks: "Görevlerim",
+          Navigation: "Navigasyon",
+          FuelEntry: "Yakıt Girişi",
+          MyVehicle: "Aracım",
+          DeviceSetup: "Cihaz Kurulumu",
+          Profile: "Profil",
+          DriverSettings: "Ayarlar",
+          SOS: "Acil Durum",
         };
         return {
           headerStyle: { backgroundColor: "#2DCE89", elevation: 4 },
@@ -584,7 +486,6 @@ const DriverNavigator = () => {
         };
       }}
     >
-      {/* Welcome Screen - Giriş sonrası ilk gösterilen */}
       <Drawer.Screen
         name="DriverWelcome"
         component={DriverWelcomeScreen}
@@ -593,59 +494,31 @@ const DriverNavigator = () => {
           drawerItemStyle: { display: "none" },
         }}
       />
-      <Drawer.Screen
-        name="DriverDashboard"
-        component={DriverDashboard}
-        options={{}}
-      />
-      <Drawer.Screen name="MyTasks" component={TasksStack} options={{}} />
-      <Drawer.Screen
-        name="Navigation"
-        component={DriverRouteMapScreen}
-        options={{}}
-      />
-      <Drawer.Screen
-        name="FuelEntry"
-        component={FuelEntryScreen}
-        options={{
-          drawerLabel: t("navigation.fuelEntry"),
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="flame-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen name="MyVehicle" component={DriverVehicle} options={{}} />
-      {/* FAZ 4: CİHAZ KURULUMU (BLE + QR) */}
+      <Drawer.Screen name="DriverDashboard" component={DriverDashboard} />
+      <Drawer.Screen name="MyTasks" component={TasksStack} />
+      <Drawer.Screen name="Navigation" component={DriverRouteMapScreen} />
+      <Drawer.Screen name="FuelEntry" component={FuelEntryScreen} />
+      <Drawer.Screen name="MyVehicle" component={DriverVehicle} />
       <Drawer.Screen
         name="DeviceSetup"
         component={DeviceSetupScreen}
-        options={{
-          title: "Cihaz Kurulumu",
-          headerShown: false,
-        }}
+        options={{ headerShown: false }}
       />
-      <Drawer.Screen name="Profile" component={ProfileStack} options={{}} />
-
-      {/* DriverSettings -> SettingsStack (Help ekranları için) */}
-      <Drawer.Screen
-        name="DriverSettings"
-        component={SettingsStack}
-        options={{}}
-      />
-      <Drawer.Screen name="SOS" component={DriverSOSScreen} options={{}} />
+      <Drawer.Screen name="Profile" component={ProfileStack} />
+      <Drawer.Screen name="DriverSettings" component={SettingsStack} />
+      <Drawer.Screen name="SOS" component={DriverSOSScreen} />
     </Drawer.Navigator>
   );
 };
 
 // ============================================================================
-// MAIN APP NAVIGATOR - Role-based routing
+// MAIN APP NAVIGATOR
 // ============================================================================
 const AppNavigator = () => {
   const { user } = useAuth();
 
   console.log("📱 AppNavigator - User:", user?.email, "Role:", user?.role);
 
-  // Role'e göre doğru navigator'ı döndür
   switch (user?.role) {
     case "super_admin":
       console.log("🔴 Loading SuperAdmin Navigator");
@@ -669,7 +542,6 @@ const AppNavigator = () => {
 // STYLES
 // ============================================================================
 const styles = StyleSheet.create({
-  // Placeholder Screen
   placeholderContainer: {
     flex: 1,
     justifyContent: "center",
@@ -689,8 +561,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
   },
-
-  // Drawer
   drawerContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
@@ -741,8 +611,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.8)",
     marginTop: 4,
   },
-
-  // Menu
   menuContainer: {
     flex: 1,
     paddingTop: 10,

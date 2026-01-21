@@ -22,7 +22,7 @@ class MainActivity : ReactActivity() {
     SplashScreenManager.registerOnActivity(this)
     // @generated end expo-splashscreen
     super.onCreate(savedInstanceState)
-    RNBootSplash.init(this)
+    RNBootSplash.init(this, R.style.BootTheme)
   }
 
   /**

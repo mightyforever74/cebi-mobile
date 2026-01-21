@@ -48,9 +48,8 @@ const COLORS = {
   border: "#E9ECEF",
 };
 
-// Privacy Policy URL
-const PRIVACY_POLICY_URL = "https://tulipfleet.com/privacy";
-const TERMS_URL = "https://tulipfleet.com/terms";
+// Base URL (dil parametresi fonksiyonlarda eklenir)
+const BASE_URL = "https://tulipfleet.com";
 
 // Ayar Öğesi
 const SettingItem = ({
@@ -101,7 +100,8 @@ const SectionHeader = ({ title }) => (
 
 const DriverSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || "en";
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -372,12 +372,13 @@ const DriverSettings = ({ navigation }) => {
     navigation.navigate("HelpCenterScreen");
   };
 
-  // Gizlilik Politikası - URL aç
+  // Gizlilik Politikası - URL aç (dil destekli)
   const handlePrivacyPolicy = async () => {
+    const privacyUrl = `${BASE_URL}/privacy?lang=${currentLang}`;
     try {
-      const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
+      const canOpen = await Linking.canOpenURL(privacyUrl);
       if (canOpen) {
-        await Linking.openURL(PRIVACY_POLICY_URL);
+        await Linking.openURL(privacyUrl);
       } else {
         Alert.alert(
           t("settings.privacyPolicy"),
