@@ -1,5 +1,5 @@
 // App.js - TulipFleet Mobile App
-// Updated: 16 Aralık 2025 - RootNavigator'a geçiş
+// Updated: 21 Ocak 2026 - Animasyonlu Splash Screen
 import * as SplashScreen from "expo-splash-screen";
 import { GalioProvider } from "galio-framework";
 import { useEffect, useState } from "react";
@@ -17,22 +17,27 @@ import { AuthProvider } from "./src/context/AuthContext";
 // NEW: RootNavigator (includes NavigationContainer)
 import RootNavigator from "./src/navigation/RootNavigator";
 
+// NEW: Animated Splash
+import AnimatedSplash from "./src/components/AnimatedSplash";
+
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   useEffect(() => {
     async function prepare() {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Minimum bekleme süresi
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (e) {
         console.warn(e);
       } finally {
         setAppIsReady(true);
+        // Native splash'ları gizle
         SplashScreen.hideAsync();
-        // Hide RNBootSplash after app is ready
-        RNBootSplash.hide({ fade: true });
+        RNBootSplash.hide({ fade: true, duration: 200 });
       }
     }
     prepare();
@@ -43,6 +48,11 @@ export default function App() {
     PushNotificationService.initialize();
   }, []);
 
+  // Animasyonlu splash bitince
+  const handleSplashFinish = () => {
+    setShowAnimatedSplash(false);
+  };
+
   if (!appIsReady) {
     return null;
   }
@@ -52,6 +62,10 @@ export default function App() {
       <GalioProvider theme={argonTheme}>
         <AuthProvider>
           <RootNavigator />
+          {/* Animated Splash - en üstte göster */}
+          {showAnimatedSplash && (
+            <AnimatedSplash onFinish={handleSplashFinish} />
+          )}
         </AuthProvider>
       </GalioProvider>
     </GestureHandlerRootView>

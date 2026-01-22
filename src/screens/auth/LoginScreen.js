@@ -1,9 +1,11 @@
 // src/screens/auth/LoginScreen.js
 // TulipFleet - Login Screen with CORRECT credentials
+// Updated: 21 Ocak 2026 - Lale görseli eklendi
 
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -25,9 +27,9 @@ const LoginScreen = ({ navigation }) => {
   const auth = useAuth();
 
   useEffect(() => {
-    console.log("🔍 LoginScreen mounted");
-    console.log("🔍 Auth context:", auth);
-    console.log("🔍 Auth.login exists?", typeof auth?.login === "function");
+    console.log("🔐 LoginScreen mounted");
+    console.log("🔐 Auth context:", auth);
+    console.log("🔐 Auth.login exists?", typeof auth?.login === "function");
   }, []);
 
   // Eğer auth undefined ise erken uyarı ver
@@ -123,7 +125,12 @@ const LoginScreen = ({ navigation }) => {
       >
         {/* Logo / Başlık */}
         <View style={styles.header}>
-          <Text style={styles.logo}>🌷 TulipFleet</Text>
+          <Image
+            source={require("../../../assets/splash-tulip.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.logo}>TulipFleet</Text>
           <Text style={styles.subtitle}>Araç Takip Sistemi</Text>
         </View>
 
@@ -230,12 +237,12 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           <Text style={styles.demoNote}>
-            ⓘ Butonlara tıklayarak bilgileri otomatik doldurabilirsiniz
+            ℹ Butonlara tıklayarak bilgileri otomatik doldurabilirsiniz
           </Text>
         </View>
 
         {/* Version Info */}
-        <Text style={styles.version}>TulipFleet v1.0.0</Text>
+        <Text style={styles.version}>TulipFleet v2.0.0</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -253,16 +260,21 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 120,
+    height: 150,
+    marginBottom: 12,
   },
   logo: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: "bold",
     color: COLORS.primary,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: "500",
   },
@@ -342,7 +354,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   demoContainer: {
-    marginTop: 32,
+    marginTop: 24,
     backgroundColor: "#EFF6FF",
     borderRadius: 12,
     padding: 16,

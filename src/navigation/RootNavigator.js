@@ -1,12 +1,12 @@
 // src/navigation/RootNavigator.js
 // TulipFleet - Root Navigator (Auth Check)
 // Single NavigationContainer - this is critical!
-// Updated: 18 Ocak 2026 - i18n Support
+// Updated: 22 Ocak 2026 - Lale görseli eklendi
 
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/config";
 import { useAuth } from "../context/AuthContext";
 import AppNavigator from "./AppNavigator";
@@ -24,7 +24,11 @@ const RootNavigator = () => {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
-          <Text style={styles.loadingLogo}>🚛</Text>
+          <Image
+            source={require("../../assets/splash-tulip.png")}
+            style={styles.loadingLogo}
+            resizeMode="contain"
+          />
           <Text style={styles.loadingTitle}>TulipFleet</Text>
           <ActivityIndicator
             size="large"
@@ -81,7 +85,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingLogo: {
-    fontSize: 64,
+    width: 100,
+    height: 120,
     marginBottom: 16,
   },
   loadingTitle: {
