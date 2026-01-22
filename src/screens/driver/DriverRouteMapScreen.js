@@ -1,6 +1,6 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 20 Ocak 2026 v14 - Full i18n Support
+// Updated: 22 Ocak 2026 - Dark Mode Migration v3
 // Fixes: navInfoBar moved to bottom, complete button as icon
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,8 +19,11 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
-import { COLORS } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
+
+// ❌ KALDIRILDI: import { COLORS } from "../../constants/config";
 
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
@@ -44,9 +47,435 @@ const setGeocodeCacheItem = (key, coords) => {
   geocodeCache.set(key, coords);
 };
 
+// ============================================
+// makeStyles - BÜYÜK HARF TOKEN'LAR
+// ============================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: COLORS.TEXT_SECONDARY,
+      fontWeight: "500",
+    },
+    errorText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      paddingHorizontal: 30,
+    },
+    retryBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.PRIMARY,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 10,
+      marginTop: 20,
+      gap: 8,
+    },
+    retryBtnText: {
+      color: COLORS.WHITE,
+      fontWeight: "600",
+      fontSize: 14,
+    },
+
+    // Header Buttons
+    backBtn: {
+      position: "absolute",
+      top: 50,
+      left: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: COLORS.SURFACE,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 4,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+    },
+    headerBtn: {
+      position: "absolute",
+      top: 50,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: COLORS.SURFACE,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 4,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+    },
+    centerBtn: {
+      right: 16,
+    },
+    fitBtn: {
+      right: 70,
+    },
+    followBtn: {
+      right: 124,
+      borderWidth: 2,
+      borderColor: COLORS.SUCCESS,
+    },
+    followBtnActive: {
+      backgroundColor: COLORS.SUCCESS,
+      borderColor: COLORS.SUCCESS,
+    },
+
+    // Markers
+    locationMarker: {
+      backgroundColor: COLORS.PRIMARY,
+      padding: 8,
+      borderRadius: 20,
+      borderWidth: 3,
+      borderColor: COLORS.WHITE,
+      elevation: 4,
+    },
+    navMarkerContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    navMarkerOuter: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: "rgba(59, 130, 246, 0.2)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    navMarkerInner: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: COLORS.WHITE,
+      elevation: 4,
+    },
+    navArrow: {
+      width: 0,
+      height: 0,
+      borderLeftWidth: 8,
+      borderRightWidth: 8,
+      borderBottomWidth: 14,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+      borderBottomColor: COLORS.WHITE,
+      marginTop: -2,
+    },
+    destinationMarker: {
+      backgroundColor: COLORS.ERROR,
+      padding: 10,
+      borderRadius: 20,
+      borderWidth: 3,
+      borderColor: COLORS.WHITE,
+      elevation: 4,
+    },
+
+    // COMPACT BOTTOM BAR (in_progress)
+    compactBottomBar: {
+      position: "absolute",
+      bottom: 30,
+      left: 16,
+      right: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.CARD,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 16,
+      elevation: 8,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    compactItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    compactValue: {
+      color: COLORS.TEXT,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    compactTaskNo: {
+      color: COLORS.PRIMARY,
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    compactDivider: {
+      width: 1,
+      height: 20,
+      backgroundColor: COLORS.DIVIDER,
+      marginHorizontal: 12,
+    },
+    compactCompleteBtn: {
+      marginLeft: "auto",
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: COLORS.SUCCESS,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 4,
+    },
+
+    // Route Loading
+    routeLoadingBar: {
+      position: "absolute",
+      top: 110,
+      left: 16,
+      right: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      padding: 10,
+      borderRadius: 10,
+      gap: 8,
+    },
+    routeLoadingText: {
+      color: COLORS.WHITE,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+
+    // Pending Review Banner
+    pendingBanner: {
+      position: "absolute",
+      bottom: 30,
+      left: 16,
+      right: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE,
+      padding: 16,
+      borderRadius: 16,
+      elevation: 6,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.WARNING,
+    },
+    pendingIconContainer: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: COLORS.INPUT_ERROR,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    pendingTextContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    pendingTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    pendingSubtitle: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    pendingActions: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    rejectBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: COLORS.INPUT_ERROR,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    acceptBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: COLORS.SUCCESS,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    // Task Card (accepted)
+    taskCard: {
+      position: "absolute",
+      left: 16,
+      right: 16,
+      bottom: 30,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: 20,
+      padding: 20,
+      elevation: 8,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+    },
+    taskHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 16,
+    },
+    taskCode: {
+      fontSize: 12,
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    taskTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+      marginTop: 4,
+    },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 20,
+      gap: 4,
+    },
+    statusText: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: COLORS.PRIMARY,
+    },
+    locationsContainer: {
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
+    },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 12,
+    },
+    locationDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginTop: 4,
+    },
+    locationLine: {
+      width: 2,
+      height: 16,
+      backgroundColor: COLORS.DIVIDER,
+      marginLeft: 5,
+      marginVertical: 4,
+    },
+    locationInfo: {
+      flex: 1,
+    },
+    locationLabel: {
+      fontSize: 11,
+      color: COLORS.TEXT_SECONDARY,
+      fontWeight: "500",
+    },
+    locationText: {
+      fontSize: 14,
+      color: COLORS.TEXT,
+      marginTop: 2,
+      fontWeight: "500",
+    },
+    distanceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 16,
+    },
+    distanceText: {
+      fontSize: 13,
+      color: COLORS.TEXT_SECONDARY,
+      fontWeight: "500",
+    },
+    startBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      paddingVertical: 14,
+      borderRadius: 12,
+      gap: 8,
+    },
+    startBtnText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 16,
+    },
+
+    // Waypoints Panel placement
+    waypointsPanel: {
+      position: "absolute",
+      bottom: 100,
+      left: 0,
+      right: 0,
+    },
+
+    // Harita üzerindeki waypoint marker'ları
+    waypointMarker: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: COLORS.MUTED,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: COLORS.WHITE,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    waypointCompleted: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    waypointCurrent: {
+      backgroundColor: COLORS.PRIMARY,
+      transform: [{ scale: 1.2 }],
+    },
+    waypointMarkerText: {
+      color: COLORS.WHITE,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+  });
+
+// ============================================
+// COMPONENT
+// ============================================
 const DriverRouteMapScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
+  const styles = useThemedStyles(makeStyles);
+  const { COLORS } = useTheme();
+
   const initialTask = route?.params?.task || null;
 
   // Koordinat formatını normalize et (lat/lng → latitude/longitude)
@@ -279,6 +708,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     task?.waypoints?.length,
     normalizeCoords,
   ]);
+
   // ══════════════════════════════════════════════════════════════
   // DATA LOADING
   // ══════════════════════════════════════════════════════════════
@@ -814,10 +1244,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   }, [routeCoords]);
 
-  // ============================================
-  // 4) WAYPOINT PRESS HANDLER
-  // Waypoint'e tıklandığında haritada göster
-  // ============================================
+  // Waypoint press handler
   const handleWaypointPress = (waypoint, index) => {
     if (waypoint?.latitude && waypoint?.longitude && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -832,10 +1259,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ============================================
-  // 5) WAYPOINT COMPLETE HANDLER
-  // Waypoint tamamlandığında (opsiyonel)
-  // ============================================
+  // Waypoint complete handler
   const handleWaypointComplete = async (waypointId) => {
     try {
       if (task?.id && waypointId) {
@@ -857,7 +1281,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>{t("routeMap.loading")}</Text>
       </View>
     );
@@ -919,7 +1343,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               </View>
             ) : (
               <View style={styles.locationMarker}>
-                <Ionicons name="navigate" size={20} color="#fff" />
+                <Ionicons name="navigate" size={20} color={COLORS.WHITE} />
               </View>
             )}
           </Marker>
@@ -931,7 +1355,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               title={t("routeMap.target")}
             >
               <View style={styles.destinationMarker}>
-                <Ionicons name="flag" size={20} color="#fff" />
+                <Ionicons name="flag" size={20} color={COLORS.WHITE} />
               </View>
             </Marker>
           )}
@@ -947,12 +1371,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               <Polyline
                 coordinates={routeCoords}
                 strokeWidth={5}
-                strokeColor="#3B82F6"
+                strokeColor={COLORS.PRIMARY}
               />
             </>
           )}
 
-          {/* Waypoint Markers (opsiyonel - haritada göster) */}
+          {/* Waypoint Markers */}
           {Array.isArray(waypoints) &&
             waypoints.length > 0 &&
             waypoints
@@ -986,12 +1410,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </MapView>
       ) : (
         <View style={styles.center}>
-          <Ionicons name="location-outline" size={48} color="#CBD5E1" />
+          <Ionicons name="location-outline" size={48} color={COLORS.MUTED} />
           <Text style={styles.errorText}>
             {locationError || t("routeMap.locationNotAvailable")}
           </Text>
           <TouchableOpacity style={styles.retryBtn} onPress={getLocation}>
-            <Ionicons name="refresh" size={18} color="#fff" />
+            <Ionicons name="refresh" size={18} color={COLORS.WHITE} />
             <Text style={styles.retryBtnText}>{t("routeMap.retry")}</Text>
           </TouchableOpacity>
         </View>
@@ -1019,7 +1443,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         style={styles.backBtn}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={24} color="#1E293B" />
+        <Ionicons name="arrow-back" size={24} color={COLORS.TEXT} />
       </TouchableOpacity>
 
       {/* Center on Location */}
@@ -1028,7 +1452,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           style={[styles.headerBtn, styles.centerBtn]}
           onPress={centerOnLocation}
         >
-          <Ionicons name="locate" size={22} color="#3B82F6" />
+          <Ionicons name="locate" size={22} color={COLORS.PRIMARY} />
         </TouchableOpacity>
       )}
 
@@ -1038,7 +1462,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           style={[styles.headerBtn, styles.fitBtn]}
           onPress={fitToRoute}
         >
-          <Ionicons name="expand" size={22} color="#8B5CF6" />
+          <Ionicons name="expand" size={22} color={COLORS.PRIMARY} />
         </TouchableOpacity>
       )}
 
@@ -1055,7 +1479,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <Ionicons
             name={followMode ? "navigate" : "navigate-outline"}
             size={22}
-            color={followMode ? "#fff" : "#10B981"}
+            color={followMode ? COLORS.WHITE : COLORS.SUCCESS}
           />
         </TouchableOpacity>
       )}
@@ -1063,21 +1487,19 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {/* Route Loading Indicator */}
       {routeLoading && (
         <View style={styles.routeLoadingBar}>
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="small" color={COLORS.WHITE} />
           <Text style={styles.routeLoadingText}>
             {t("routeMap.calculatingRoute")}
           </Text>
         </View>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
       {/* COMPACT BOTTOM BAR - in_progress (navInfo + Tamamla) */}
-      {/* ═══════════════════════════════════════════════════════ */}
       {isNavigating && navigationInfo && (
         <View style={styles.compactBottomBar}>
           {/* Distance */}
           <View style={styles.compactItem}>
-            <Ionicons name="speedometer" size={18} color="#94A3B8" />
+            <Ionicons name="speedometer" size={18} color={COLORS.MUTED} />
             <Text style={styles.compactValue}>
               {navigationInfo.distance} km
             </Text>
@@ -1087,7 +1509,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
           {/* ETA */}
           <View style={styles.compactItem}>
-            <Ionicons name="time" size={18} color="#94A3B8" />
+            <Ionicons name="time" size={18} color={COLORS.MUTED} />
             <Text style={styles.compactValue}>
               {navigationInfo.eta} {t("routeMap.min")}
             </Text>
@@ -1107,21 +1529,19 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             disabled={actionLoading}
           >
             {actionLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={COLORS.WHITE} />
             ) : (
-              <Ionicons name="checkmark" size={24} color="#fff" />
+              <Ionicons name="checkmark" size={24} color={COLORS.WHITE} />
             )}
           </TouchableOpacity>
         </View>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
       {/* PENDING REVIEW BANNER */}
-      {/* ═══════════════════════════════════════════════════════ */}
       {isPendingReview && location && (
         <View style={styles.pendingBanner}>
           <View style={styles.pendingIconContainer}>
-            <Ionicons name="time" size={24} color="#F59E0B" />
+            <Ionicons name="time" size={24} color={COLORS.WARNING} />
           </View>
           <View style={styles.pendingTextContainer}>
             <Text style={styles.pendingTitle}>{t("routeMap.pendingTask")}</Text>
@@ -1136,7 +1556,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               onPress={handleRejectTask}
               disabled={actionLoading}
             >
-              <Ionicons name="close" size={20} color="#EF4444" />
+              <Ionicons name="close" size={20} color={COLORS.ERROR} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.acceptBtn}
@@ -1144,18 +1564,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               disabled={actionLoading}
             >
               {actionLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
-                <Ionicons name="checkmark" size={20} color="#fff" />
+                <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
               )}
             </TouchableOpacity>
           </View>
         </View>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
       {/* TASK CARD - SADECE accepted DURUMUNDA */}
-      {/* ═══════════════════════════════════════════════════════ */}
       {showTaskCard && (
         <View style={styles.taskCard}>
           <View style={styles.taskHeader}>
@@ -1166,7 +1584,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               </Text>
             </View>
             <View style={styles.statusBadge}>
-              <Ionicons name="checkmark-circle" size={14} color="#3B82F6" />
+              <Ionicons
+                name="checkmark-circle"
+                size={14}
+                color={COLORS.PRIMARY}
+              />
               <Text style={styles.statusText}>
                 {t("routeMap.readyToStart")}
               </Text>
@@ -1176,7 +1598,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.locationsContainer}>
             <View style={styles.locationRow}>
               <View
-                style={[styles.locationDot, { backgroundColor: "#10B981" }]}
+                style={[
+                  styles.locationDot,
+                  { backgroundColor: COLORS.SUCCESS },
+                ]}
               />
               <View style={styles.locationInfo}>
                 <Text style={styles.locationLabel}>{t("routeMap.origin")}</Text>
@@ -1190,7 +1615,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
             <View style={styles.locationRow}>
               <View
-                style={[styles.locationDot, { backgroundColor: "#EF4444" }]}
+                style={[styles.locationDot, { backgroundColor: COLORS.ERROR }]}
               />
               <View style={styles.locationInfo}>
                 <Text style={styles.locationLabel}>
@@ -1205,7 +1630,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
           {getDistance() && (
             <View style={styles.distanceContainer}>
-              <Ionicons name="navigate-circle" size={18} color="#64748B" />
+              <Ionicons
+                name="navigate-circle"
+                size={18}
+                color={COLORS.TEXT_SECONDARY}
+              />
               <Text style={styles.distanceText}>
                 {t("routeMap.total")}: {getDistance()} km
               </Text>
@@ -1218,10 +1647,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             disabled={actionLoading}
           >
             {actionLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={COLORS.WHITE} />
             ) : (
               <>
-                <Ionicons name="play-circle" size={22} color="#fff" />
+                <Ionicons name="play-circle" size={22} color={COLORS.WHITE} />
                 <Text style={styles.startBtnText}>
                   {t("routeMap.startTask")}
                 </Text>
@@ -1234,422 +1663,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  errorText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#64748B",
-    textAlign: "center",
-    paddingHorizontal: 30,
-  },
-  retryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#3B82F6",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 20,
-    gap: 8,
-  },
-  retryBtnText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-
-  // Header Buttons
-  backBtn: {
-    position: "absolute",
-    top: 50,
-    left: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  headerBtn: {
-    position: "absolute",
-    top: 50,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  centerBtn: {
-    right: 16,
-  },
-  fitBtn: {
-    right: 70,
-  },
-  followBtn: {
-    right: 124,
-    borderWidth: 2,
-    borderColor: "#10B981",
-  },
-  followBtnActive: {
-    backgroundColor: "#10B981",
-    borderColor: "#10B981",
-  },
-
-  // Markers
-  locationMarker: {
-    backgroundColor: "#3B82F6",
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: "#fff",
-    elevation: 4,
-  },
-  navMarkerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navMarkerOuter: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(59, 130, 246, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navMarkerInner: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#3B82F6",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "#fff",
-    elevation: 4,
-  },
-  navArrow: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderBottomWidth: 14,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-    borderBottomColor: "#fff",
-    marginTop: -2,
-  },
-  destinationMarker: {
-    backgroundColor: "#EF4444",
-    padding: 10,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: "#fff",
-    elevation: 4,
-  },
-
-  // ═══════════════════════════════════════════════════════════════
-  // COMPACT BOTTOM BAR (NEW) - replaces navInfoBar + floatingCompleteBtn
-  // ═══════════════════════════════════════════════════════════════
-  compactBottomBar: {
-    position: "absolute",
-    bottom: 30,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1E293B",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  compactItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  compactValue: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  compactTaskNo: {
-    color: "#3B82F6",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  compactDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: "#334155",
-    marginHorizontal: 12,
-  },
-  compactCompleteBtn: {
-    marginLeft: "auto",
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#10B981",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-  },
-
-  // Route Loading
-  routeLoadingBar: {
-    position: "absolute",
-    top: 110,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#3B82F6",
-    padding: 10,
-    borderRadius: 10,
-    gap: 8,
-  },
-  routeLoadingText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-
-  // Pending Review Banner
-  pendingBanner: {
-    position: "absolute",
-    bottom: 30,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: "#F59E0B",
-  },
-  pendingIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FEF3C7",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pendingTextContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  pendingTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
-  pendingSubtitle: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  pendingActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  rejectBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FEE2E2",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  acceptBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#10B981",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Task Card (accepted)
-  taskCard: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 30,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  taskCode: {
-    fontSize: 12,
-    color: "#3B82F6",
-    fontWeight: "600",
-  },
-  taskTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginTop: 4,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#DBEAFE",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#3B82F6",
-  },
-  locationsContainer: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  locationDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 4,
-  },
-  locationLine: {
-    width: 2,
-    height: 16,
-    backgroundColor: "#E2E8F0",
-    marginLeft: 5,
-    marginVertical: 4,
-  },
-  locationInfo: {
-    flex: 1,
-  },
-  locationLabel: {
-    fontSize: 11,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  locationText: {
-    fontSize: 14,
-    color: "#1E293B",
-    marginTop: 2,
-    fontWeight: "500",
-  },
-  distanceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 16,
-  },
-  distanceText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  startBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#3B82F6",
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  startBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-
-  // Waypoints Panel placement
-  waypointsPanel: {
-    position: "absolute",
-    bottom: 100,
-    left: 0,
-    right: 0,
-  },
-
-  // Harita üzerindeki waypoint marker'ları
-  waypointMarker: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#94A3B8",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  waypointCompleted: {
-    backgroundColor: "#10B981",
-  },
-  waypointCurrent: {
-    backgroundColor: "#3B82F6",
-    transform: [{ scale: 1.2 }],
-  },
-  waypointMarkerText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-});
+// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverRouteMapScreen;

@@ -1,10 +1,11 @@
 // src/screens/superadmin/CompaniesScreen.js
 // TulipFleet - Birleşik Şirket + Abonelik Yönetimi
 // Updated: 21 Ocak 2026 - Subscription Management
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği (Rehbere uygun)
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -18,49 +19,631 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { API_URL } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-// Renkler
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  dark: "#172B4D",
-  muted: "#8898AA",
-  light: "#F7FAFC",
-  white: "#FFFFFF",
+// --- helper: #RRGGBB => #RRGGBBAA (rgba/hardcode olmadan) ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
 };
 
-// Status badge renkleri
-const STATUS_COLORS = {
-  trial: { bg: "#FFF3E0", text: "#FB6340", label: "Trial" },
-  active: { bg: "#E8F5E9", text: "#2DCE89", label: "Aktif" },
-  suspended: { bg: "#FFEBEE", text: "#F5365C", label: "Askıda" },
-  expired: { bg: "#ECEFF1", text: "#607D8B", label: "Süresi Doldu" },
-  cancelled: { bg: "#ECEFF1", text: "#607D8B", label: "İptal" },
-};
+// ------------------------------------
+// THEMED STYLES (Rehber Pattern)
+// ------------------------------------
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
 
-// Tier badge renkleri
-const TIER_COLORS = {
-  starter: { bg: "#E3F2FD", text: "#2196F3", label: "Starter", price: "€15" },
-  professional: {
-    bg: "#E8F5E9",
-    text: "#4CAF50",
-    label: "Professional",
-    price: "€25",
-  },
-  enterprise: {
-    bg: "#FFF3E0",
-    text: "#FF9800",
-    label: "Enterprise",
-    price: "€29",
-  },
-  custom: { bg: "#F3E5F5", text: "#9C27B0", label: "Custom", price: "-" },
-};
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      padding: 20,
+    },
+    loadingText: {
+      marginTop: 10,
+      color: COLORS.MUTED,
+      fontSize: 14,
+      fontWeight: "500",
+    },
 
+    // Search
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      margin: 15,
+      marginBottom: 0,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      height: 48,
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: 10,
+      fontSize: 15,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    // Summary
+    summaryContainer: { padding: 15 },
+    summaryRow: { flexDirection: "row", gap: 8 },
+    summaryCard: {
+      flex: 1,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 10,
+      padding: 12,
+      alignItems: "center",
+      elevation: 1,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    summaryValue: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 4,
+    },
+    summaryLabel: { fontSize: 11, color: COLORS.MUTED },
+
+    revenueCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 10,
+      padding: 15,
+      marginTop: 10,
+      gap: 12,
+      elevation: 1,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    revenueLabel: {
+      flex: 1,
+      fontSize: 15,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    revenueValue: { fontSize: 22, fontWeight: "bold", color: COLORS.SUCCESS },
+
+    // Urgent
+    urgentContainer: {
+      marginHorizontal: 15,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 10,
+      overflow: "hidden",
+      elevation: 1,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    urgentHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    urgentHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+    urgentTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    urgentContent: { padding: 15, gap: 12 },
+    urgentCard: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: 8,
+      padding: 12,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    urgentCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 10,
+    },
+    urgentCompanyName: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    urgentInfo: { fontSize: 13, color: COLORS.MUTED, marginTop: 4 },
+    urgentActions: { flexDirection: "row", gap: 8, marginTop: 12 },
+
+    // Action buttons
+    actionBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 8,
+      gap: 6,
+    },
+    successBtn: { backgroundColor: COLORS.SUCCESS },
+    warningBtn: { backgroundColor: COLORS.WARNING },
+    dangerBtn: { backgroundColor: COLORS.ERROR },
+    actionBtnText: { color: COLORS.WHITE, fontWeight: "700", fontSize: 13 },
+
+    // Filters
+    filtersContainer: { paddingHorizontal: 15, paddingVertical: 12 },
+    filterTab: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    filterTabActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    filterTabText: {
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "600",
+      fontSize: 13,
+    },
+    filterTabTextActive: { color: COLORS.WHITE },
+
+    // Company card
+    listContent: { paddingHorizontal: 15, paddingBottom: 110 },
+    companyCard: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 12,
+      padding: 15,
+      marginBottom: 12,
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 10,
+    },
+    cardHeaderLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
+    companyIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 10,
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    companyIconText: { fontSize: 22 },
+    companyInfo: { flex: 1, marginLeft: 12 },
+    companyName: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    companySlug: { fontSize: 12, color: COLORS.MUTED, marginTop: 2 },
+
+    badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+    badgeText: { fontSize: 11, fontWeight: "700" },
+
+    cardBody: { marginTop: 12 },
+    cardInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flexWrap: "wrap",
+    },
+    cardInfoText: { fontSize: 13, color: COLORS.MUTED },
+    cardSubInfo: { fontSize: 12, color: COLORS.MUTED, marginTop: 6 },
+
+    statsRow: {
+      flexDirection: "row",
+      marginTop: 15,
+      paddingTop: 15,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    statItem: { flex: 1, alignItems: "center" },
+    statValue: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    statLabel: { fontSize: 11, color: COLORS.MUTED, marginTop: 2 },
+
+    cardFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    cardFooterText: { fontSize: 13, color: COLORS.MUTED },
+
+    // Empty
+    emptyContainer: { alignItems: "center", paddingVertical: 40 },
+    emptyIcon: { fontSize: 48, marginBottom: 10 },
+    emptyText: { color: COLORS.MUTED, fontSize: 15 },
+
+    // FAB
+    fab: {
+      position: "absolute",
+      bottom: 20,
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+      shadowColor: COLORS.PRIMARY,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+    },
+
+    // Modal
+    modalContainer: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    modalContent: { flex: 1 },
+    modalActions: {
+      flexDirection: "row",
+      padding: 16,
+      gap: 10,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    modalBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 14,
+      borderRadius: 10,
+      gap: 8,
+    },
+    modalBtnText: { color: COLORS.WHITE, fontWeight: "700", fontSize: 15 },
+    cancelBtn: { backgroundColor: withAlpha(COLORS.MUTED, 0.22) },
+    cancelBtnText: {
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "700",
+      fontSize: 15,
+    },
+    disabledBtn: { opacity: 0.6 },
+
+    // Tabs
+    tabsContainer: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    tab: { flex: 1, paddingVertical: 14, alignItems: "center" },
+    tabActive: { borderBottomWidth: 2, borderBottomColor: COLORS.PRIMARY },
+    tabText: { fontSize: 13, color: COLORS.MUTED, fontWeight: "600" },
+    tabTextActive: { color: COLORS.PRIMARY, fontWeight: "800" },
+    tabContent: { padding: 16 },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginBottom: 12,
+    },
+
+    // Info rows
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor:
+        withAlpha(COLORS.BORDER, 0.12) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      gap: 12,
+    },
+    infoRowWithBadge: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor:
+        withAlpha(COLORS.BORDER, 0.12) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      gap: 12,
+    },
+    infoLabel: { fontSize: 14, color: COLORS.MUTED, fontWeight: "600" },
+    infoValue: {
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "600",
+    },
+
+    // Usage bar
+    usageContainer: { marginBottom: 15 },
+    usageHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 6,
+    },
+    usageLabel: {
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "600",
+    },
+    usageValue: { fontSize: 14, color: COLORS.MUTED, fontWeight: "600" },
+    usageBarBg: {
+      height: 8,
+      backgroundColor: withAlpha(COLORS.MUTED, 0.18),
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    usageBarFill: { height: "100%", borderRadius: 4 },
+
+    // Payment modal
+    paymentCompanyName: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      padding: 16,
+      textAlign: "center",
+    },
+    calculatedFee: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      padding: 16,
+      marginHorizontal: 16,
+      borderRadius: 10,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.14) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    calculatedFeeText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    calculatedFeeTier: { fontSize: 13, color: COLORS.MUTED, marginTop: 4 },
+
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 16,
+      marginBottom: 8,
+      paddingHorizontal: 16,
+    },
+    input: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: 10,
+      padding: 14,
+      marginHorizontal: 16,
+      fontSize: 15,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    textArea: { minHeight: 80, textAlignVertical: "top" },
+
+    methodContainer: { flexDirection: "row", paddingHorizontal: 16, gap: 8 },
+    methodBtn: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 10,
+      backgroundColor: withAlpha(COLORS.MUTED, 0.18),
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.12) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    methodBtnActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    methodBtnText: {
+      fontSize: 13,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "700",
+    },
+    methodBtnTextActive: { color: COLORS.WHITE },
+
+    periodContainer: { flexDirection: "row", paddingHorizontal: 16, gap: 10 },
+    periodField: { flex: 1 },
+
+    // Payment & Device rows
+    paymentRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      gap: 12,
+    },
+    paymentDate: {
+      flex: 1,
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "600",
+    },
+    paymentAmount: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    deviceRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor:
+        withAlpha(COLORS.BORDER, 0.12) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      gap: 12,
+    },
+    deviceCode: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    devicePlate: { fontSize: 13, color: COLORS.MUTED },
+
+    // Audit
+    auditRow: { flexDirection: "row", paddingVertical: 12 },
+    auditDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: COLORS.PRIMARY,
+      marginTop: 6,
+      marginRight: 12,
+    },
+    auditContent: { flex: 1 },
+    auditAction: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    auditMeta: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      marginTop: 2,
+      fontWeight: "600",
+    },
+    auditReason: {
+      fontSize: 13,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 4,
+      fontWeight: "600",
+    },
+  });
+
+// ------------------------------------
+// TOKEN-BASED BADGE MAPS (no hex)
+// ------------------------------------
+const useStatusConfig = (COLORS) =>
+  useMemo(
+    () => ({
+      trial: {
+        bg: withAlpha(COLORS.WARNING, 0.14),
+        text: COLORS.WARNING,
+        label: "Trial",
+      },
+      active: {
+        bg: withAlpha(COLORS.SUCCESS, 0.14),
+        text: COLORS.SUCCESS,
+        label: "Aktif",
+      },
+      suspended: {
+        bg: withAlpha(COLORS.ERROR, 0.14),
+        text: COLORS.ERROR,
+        label: "Askıda",
+      },
+      expired: {
+        bg: withAlpha(COLORS.MUTED, 0.14),
+        text: COLORS.MUTED,
+        label: "Süresi Doldu",
+      },
+      cancelled: {
+        bg: withAlpha(COLORS.MUTED, 0.14),
+        text: COLORS.MUTED,
+        label: "İptal",
+      },
+    }),
+    [COLORS]
+  );
+
+const useTierConfig = (COLORS) =>
+  useMemo(
+    () => ({
+      starter: {
+        bg: withAlpha(COLORS.INFO, 0.14),
+        text: COLORS.INFO,
+        label: "Starter",
+        price: "€15",
+      },
+      professional: {
+        bg: withAlpha(COLORS.SUCCESS, 0.14),
+        text: COLORS.SUCCESS,
+        label: "Professional",
+        price: "€25",
+      },
+      enterprise: {
+        bg: withAlpha(COLORS.WARNING, 0.14),
+        text: COLORS.WARNING,
+        label: "Enterprise",
+        price: "€29",
+      },
+      custom: {
+        bg: withAlpha(COLORS.LABEL ?? COLORS.PRIMARY, 0.14),
+        text: COLORS.LABEL ?? COLORS.PRIMARY,
+        label: "Custom",
+        price: "-",
+      },
+    }),
+    [COLORS]
+  );
+
+// ------------------------------------
+// MAIN SCREEN
+// ------------------------------------
 const CompaniesScreen = ({ navigation }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  const STATUS_COLORS = useStatusConfig(COLORS);
+  const TIER_COLORS = useTierConfig(COLORS);
+
   // State
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -116,25 +699,25 @@ const CompaniesScreen = ({ navigation }) => {
   }, [fetchCompanies]);
 
   // Filtrelenmiş şirketler
-  const filteredCompanies = data.companies.filter((company) => {
-    // Status filtresi
-    if (
-      activeFilter !== "all" &&
-      company.subscription_status !== activeFilter
-    ) {
-      return false;
-    }
-    // Arama filtresi
-    if (searchQuery) {
-      const search = searchQuery.toLowerCase();
-      return (
-        company.name?.toLowerCase().includes(search) ||
-        company.email?.toLowerCase().includes(search) ||
-        company.city?.toLowerCase().includes(search)
-      );
-    }
-    return true;
-  });
+  const filteredCompanies = useMemo(() => {
+    const list = Array.isArray(data.companies) ? data.companies : [];
+    return list.filter((company) => {
+      if (
+        activeFilter !== "all" &&
+        company.subscription_status !== activeFilter
+      )
+        return false;
+      if (searchQuery) {
+        const search = searchQuery.toLowerCase();
+        return (
+          company.name?.toLowerCase().includes(search) ||
+          company.email?.toLowerCase().includes(search) ||
+          company.city?.toLowerCase().includes(search)
+        );
+      }
+      return true;
+    });
+  }, [data.companies, activeFilter, searchQuery]);
 
   // Askıya al
   const handleSuspend = async (company) => {
@@ -251,7 +834,6 @@ const CompaniesScreen = ({ navigation }) => {
     );
   };
 
-  // Özet kartlar
   const renderSummary = () => (
     <View style={styles.summaryContainer}>
       <View style={styles.summaryRow}>
@@ -259,30 +841,30 @@ const CompaniesScreen = ({ navigation }) => {
           label="Toplam"
           value={data.summary.total || 0}
           icon="business"
-          color={COLORS.primary}
+          color={COLORS.PRIMARY}
         />
         <SummaryCard
           label="Aktif"
           value={data.summary.by_status?.active || 0}
           icon="checkmark-circle"
-          color={COLORS.success}
+          color={COLORS.SUCCESS}
         />
         <SummaryCard
           label="Trial"
           value={data.summary.by_status?.trial || 0}
           icon="time"
-          color={COLORS.warning}
+          color={COLORS.WARNING}
         />
         <SummaryCard
           label="Askıda"
           value={data.summary.by_status?.suspended || 0}
           icon="pause-circle"
-          color={COLORS.danger}
+          color={COLORS.ERROR}
         />
       </View>
 
       <View style={styles.revenueCard}>
-        <Ionicons name="wallet" size={24} color={COLORS.success} />
+        <Ionicons name="wallet" size={24} color={COLORS.SUCCESS} />
         <Text style={styles.revenueLabel}>Aylık Gelir</Text>
         <Text style={styles.revenueValue}>
           €{(data.summary.monthly_revenue || 0).toLocaleString()}
@@ -291,30 +873,27 @@ const CompaniesScreen = ({ navigation }) => {
     </View>
   );
 
-  // Acil aksiyonlar
   const renderUrgent = () => {
     const { payment_overdue = [], trial_ending = [] } = data.urgent || {};
+    if (payment_overdue.length === 0 && trial_ending.length === 0) return null;
 
-    if (payment_overdue.length === 0 && trial_ending.length === 0) {
-      return null;
-    }
+    const totalUrgent = payment_overdue.length + trial_ending.length;
 
     return (
       <View style={styles.urgentContainer}>
         <TouchableOpacity
           style={styles.urgentHeader}
           onPress={() => setShowUrgent(!showUrgent)}
+          activeOpacity={0.85}
         >
           <View style={styles.urgentHeaderLeft}>
-            <Ionicons name="warning" size={20} color={COLORS.danger} />
-            <Text style={styles.urgentTitle}>
-              Acil Aksiyon ({payment_overdue.length + trial_ending.length})
-            </Text>
+            <Ionicons name="warning" size={20} color={COLORS.ERROR} />
+            <Text style={styles.urgentTitle}>Acil Aksiyon ({totalUrgent})</Text>
           </View>
           <Ionicons
             name={showUrgent ? "chevron-up" : "chevron-down"}
             size={20}
-            color={COLORS.muted}
+            color={COLORS.MUTED}
           />
         </TouchableOpacity>
 
@@ -324,8 +903,13 @@ const CompaniesScreen = ({ navigation }) => {
               <View key={`overdue-${company.id}`} style={styles.urgentCard}>
                 <View style={styles.urgentCardHeader}>
                   <Text style={styles.urgentCompanyName}>{company.name}</Text>
-                  <View style={[styles.badge, { backgroundColor: "#FFEBEE" }]}>
-                    <Text style={[styles.badgeText, { color: COLORS.danger }]}>
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: withAlpha(COLORS.ERROR, 0.14) },
+                    ]}
+                  >
+                    <Text style={[styles.badgeText, { color: COLORS.ERROR }]}>
                       {company.days_overdue} gün gecikmiş
                     </Text>
                   </View>
@@ -333,6 +917,7 @@ const CompaniesScreen = ({ navigation }) => {
                 <Text style={styles.urgentInfo}>
                   Tutar: €{company.amount_due}
                 </Text>
+
                 <View style={styles.urgentActions}>
                   <TouchableOpacity
                     style={[styles.actionBtn, styles.successBtn]}
@@ -343,15 +928,18 @@ const CompaniesScreen = ({ navigation }) => {
                       setSelectedCompany(fullCompany);
                       setShowPaymentModal(true);
                     }}
+                    activeOpacity={0.85}
                   >
-                    <Ionicons name="checkmark" size={16} color="#FFF" />
+                    <Ionicons name="checkmark" size={16} color={COLORS.WHITE} />
                     <Text style={styles.actionBtnText}>Ödeme Geldi</Text>
                   </TouchableOpacity>
+
                   <TouchableOpacity
                     style={[styles.actionBtn, styles.dangerBtn]}
                     onPress={() => handleSuspend(company)}
+                    activeOpacity={0.85}
                   >
-                    <Ionicons name="pause" size={16} color="#FFF" />
+                    <Ionicons name="pause" size={16} color={COLORS.WHITE} />
                     <Text style={styles.actionBtnText}>Askıya Al</Text>
                   </TouchableOpacity>
                 </View>
@@ -362,8 +950,13 @@ const CompaniesScreen = ({ navigation }) => {
               <View key={`trial-${company.id}`} style={styles.urgentCard}>
                 <View style={styles.urgentCardHeader}>
                   <Text style={styles.urgentCompanyName}>{company.name}</Text>
-                  <View style={[styles.badge, { backgroundColor: "#FFF3E0" }]}>
-                    <Text style={[styles.badgeText, { color: COLORS.warning }]}>
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: withAlpha(COLORS.WARNING, 0.14) },
+                    ]}
+                  >
+                    <Text style={[styles.badgeText, { color: COLORS.WARNING }]}>
                       {company.days_left} gün kaldı
                     </Text>
                   </View>
@@ -371,6 +964,7 @@ const CompaniesScreen = ({ navigation }) => {
                 <Text style={styles.urgentInfo}>
                   {company.vehicle_count} araç
                 </Text>
+
                 <View style={styles.urgentActions}>
                   <TouchableOpacity
                     style={[styles.actionBtn, styles.successBtn]}
@@ -381,15 +975,18 @@ const CompaniesScreen = ({ navigation }) => {
                       setSelectedCompany(fullCompany);
                       setShowPaymentModal(true);
                     }}
+                    activeOpacity={0.85}
                   >
-                    <Ionicons name="checkmark" size={16} color="#FFF" />
+                    <Ionicons name="checkmark" size={16} color={COLORS.WHITE} />
                     <Text style={styles.actionBtnText}>Abonelik Başlat</Text>
                   </TouchableOpacity>
+
                   <TouchableOpacity
                     style={[styles.actionBtn, styles.warningBtn]}
                     onPress={() => handleExtendTrial(company)}
+                    activeOpacity={0.85}
                   >
-                    <Ionicons name="time" size={16} color="#FFF" />
+                    <Ionicons name="time" size={16} color={COLORS.WHITE} />
                     <Text style={styles.actionBtnText}>Süre Uzat</Text>
                   </TouchableOpacity>
                 </View>
@@ -401,12 +998,11 @@ const CompaniesScreen = ({ navigation }) => {
     );
   };
 
-  // Filtre tabları
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {[
-          { key: "all", label: "Tümü", count: data.companies.length },
+          { key: "all", label: "Tümü", count: (data.companies || []).length },
           {
             key: "active",
             label: "Aktif",
@@ -430,6 +1026,7 @@ const CompaniesScreen = ({ navigation }) => {
               activeFilter === filter.key && styles.filterTabActive,
             ]}
             onPress={() => setActiveFilter(filter.key)}
+            activeOpacity={0.85}
           >
             <Text
               style={[
@@ -445,7 +1042,6 @@ const CompaniesScreen = ({ navigation }) => {
     </View>
   );
 
-  // Şirket kartı
   const renderCompanyCard = ({ item }) => {
     const status =
       STATUS_COLORS[item.subscription_status] || STATUS_COLORS.active;
@@ -458,6 +1054,7 @@ const CompaniesScreen = ({ navigation }) => {
           setSelectedCompany(item);
           setShowDetailModal(true);
         }}
+        activeOpacity={0.85}
       >
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -465,10 +1062,15 @@ const CompaniesScreen = ({ navigation }) => {
               <Text style={styles.companyIconText}>🏢</Text>
             </View>
             <View style={styles.companyInfo}>
-              <Text style={styles.companyName}>{item.name}</Text>
-              <Text style={styles.companySlug}>@{item.slug}</Text>
+              <Text style={styles.companyName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.companySlug} numberOfLines={1}>
+                @{item.slug}
+              </Text>
             </View>
           </View>
+
           <View style={[styles.badge, { backgroundColor: status.bg }]}>
             <Text style={[styles.badgeText, { color: status.text }]}>
               {status.label}
@@ -505,7 +1107,7 @@ const CompaniesScreen = ({ navigation }) => {
                   styles.cardSubInfo,
                   {
                     color:
-                      item.trial_days_left <= 3 ? COLORS.danger : COLORS.muted,
+                      item.trial_days_left <= 3 ? COLORS.ERROR : COLORS.MUTED,
                   },
                 ]}
               >
@@ -534,20 +1136,19 @@ const CompaniesScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.cardFooter}>
-          <Text style={styles.cardFooterText}>
+          <Text style={styles.cardFooterText} numberOfLines={1}>
             {item.city || item.admin_email || "-"}
           </Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
+          <Ionicons name="chevron-forward" size={20} color={COLORS.MUTED} />
         </View>
       </TouchableOpacity>
     );
   };
 
-  // Loading
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Yükleniyor...</Text>
       </View>
     );
@@ -557,24 +1158,27 @@ const CompaniesScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={COLORS.muted} />
+        <Ionicons name="search" size={20} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
           placeholder="Şirket ara..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.MUTED}
         />
         {searchQuery ? (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={20} color={COLORS.muted} />
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="close-circle" size={20} color={COLORS.MUTED} />
           </TouchableOpacity>
         ) : null}
       </View>
 
       <FlatList
         data={filteredCompanies}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderCompanyCard}
         ListHeaderComponent={
           <>
@@ -584,7 +1188,12 @@ const CompaniesScreen = ({ navigation }) => {
           </>
         }
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.PRIMARY}
+            colors={[COLORS.PRIMARY]}
+          />
         }
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
@@ -593,20 +1202,24 @@ const CompaniesScreen = ({ navigation }) => {
             <Text style={styles.emptyText}>Şirket bulunamadı</Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
 
       {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate("CreateCompany")}
+        activeOpacity={0.85}
       >
-        <Ionicons name="add" size={28} color="#FFF" />
+        <Ionicons name="add" size={28} color={COLORS.WHITE} />
       </TouchableOpacity>
 
       {/* Detail Modal */}
       <CompanyDetailModal
         visible={showDetailModal}
         company={selectedCompany}
+        STATUS_COLORS={STATUS_COLORS}
+        TIER_COLORS={TIER_COLORS}
         onClose={() => {
           setShowDetailModal(false);
           setSelectedCompany(null);
@@ -630,6 +1243,7 @@ const CompaniesScreen = ({ navigation }) => {
       <PaymentModal
         visible={showPaymentModal}
         company={selectedCompany}
+        TIER_COLORS={TIER_COLORS}
         onClose={() => {
           setShowPaymentModal(false);
           setSelectedCompany(null);
@@ -644,14 +1258,21 @@ const CompaniesScreen = ({ navigation }) => {
   );
 };
 
-// Özet kart komponenti
-const SummaryCard = ({ label, value, icon, color }) => (
-  <View style={styles.summaryCard}>
-    <Ionicons name={icon} size={20} color={color} />
-    <Text style={styles.summaryValue}>{value}</Text>
-    <Text style={styles.summaryLabel}>{label}</Text>
-  </View>
-);
+// ------------------------------------
+// SUB COMPONENTS (theme-aware)
+// ------------------------------------
+const SummaryCard = ({ label, value, icon, color }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  return (
+    <View style={styles.summaryCard}>
+      <Ionicons name={icon} size={20} color={color || COLORS.PRIMARY} />
+      <Text style={styles.summaryValue}>{value}</Text>
+      <Text style={styles.summaryLabel}>{label}</Text>
+    </View>
+  );
+};
 
 // ============================================
 // CompanyDetailModal
@@ -659,23 +1280,31 @@ const SummaryCard = ({ label, value, icon, color }) => (
 const CompanyDetailModal = ({
   visible,
   company,
+  STATUS_COLORS,
+  TIER_COLORS,
   onClose,
   onPayment,
   onSuspend,
   onDelete,
   onRefresh,
 }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [activeTab, setActiveTab] = useState("general");
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (visible && company) {
+      setActiveTab("general");
       loadDetail();
     }
-  }, [visible, company]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, company?.id]);
 
   const loadDetail = async () => {
+    if (!company?.id) return;
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("accessToken");
@@ -702,20 +1331,27 @@ const CompanyDetailModal = ({
   if (!company) return null;
 
   const status =
-    STATUS_COLORS[company.subscription_status] || STATUS_COLORS.active;
-  const tier = TIER_COLORS[company.subscription_tier] || TIER_COLORS.starter;
+    STATUS_COLORS?.[company.subscription_status] || STATUS_COLORS?.active;
+  const tier = TIER_COLORS?.[company.subscription_tier] || TIER_COLORS?.starter;
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      onRequestClose={onClose}
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>{company.name}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color={COLORS.dark} />
+          <Text style={styles.modalTitle} numberOfLines={1}>
+            {company.name}
+          </Text>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.85}>
+            <Ionicons
+              name="close"
+              size={24}
+              color={COLORS.TEXT ?? COLORS.DEFAULT}
+            />
           </TouchableOpacity>
         </View>
 
@@ -731,6 +1367,7 @@ const CompanyDetailModal = ({
               key={tab.key}
               style={[styles.tab, activeTab === tab.key && styles.tabActive]}
               onPress={() => setActiveTab(tab.key)}
+              activeOpacity={0.85}
             >
               <Text
                 style={[
@@ -744,11 +1381,14 @@ const CompanyDetailModal = ({
           ))}
         </View>
 
-        <ScrollView style={styles.modalContent}>
+        <ScrollView
+          style={styles.modalContent}
+          showsVerticalScrollIndicator={false}
+        >
           {loading ? (
             <ActivityIndicator
               size="large"
-              color={COLORS.primary}
+              color={COLORS.PRIMARY}
               style={{ marginTop: 40 }}
             />
           ) : (
@@ -772,7 +1412,7 @@ const CompanyDetailModal = ({
                         label="Ad"
                         value={
                           detail.admin.first_name
-                            ? `${detail.admin.first_name} ${detail.admin.last_name}`
+                            ? `${detail.admin.first_name} ${detail.admin.last_name || ""}`.trim()
                             : "-"
                         }
                       />
@@ -801,6 +1441,7 @@ const CompanyDetailModal = ({
               {activeTab === "subscription" && (
                 <View style={styles.tabContent}>
                   <Text style={styles.sectionTitle}>Paket & Durum</Text>
+
                   <View style={styles.infoRowWithBadge}>
                     <Text style={styles.infoLabel}>Paket</Text>
                     <View style={[styles.badge, { backgroundColor: tier.bg }]}>
@@ -809,6 +1450,7 @@ const CompanyDetailModal = ({
                       </Text>
                     </View>
                   </View>
+
                   <View style={styles.infoRowWithBadge}>
                     <Text style={styles.infoLabel}>Durum</Text>
                     <View
@@ -819,6 +1461,7 @@ const CompanyDetailModal = ({
                       </Text>
                     </View>
                   </View>
+
                   <InfoRow
                     label="Araç Ücreti"
                     value={`€${company.per_vehicle_fee || 0}/araç`}
@@ -860,7 +1503,7 @@ const CompanyDetailModal = ({
                           <Ionicons
                             name="checkmark-circle"
                             size={16}
-                            color={COLORS.success}
+                            color={COLORS.SUCCESS}
                           />
                         </View>
                       ))}
@@ -875,43 +1518,37 @@ const CompanyDetailModal = ({
                   <Text style={styles.sectionTitle}>
                     Atanmış Cihazlar ({detail?.devices?.length || 0})
                   </Text>
-                  {detail?.devices?.map((device) => (
-                    <View key={device.id} style={styles.deviceRow}>
-                      <View>
-                        <Text style={styles.deviceCode}>
-                          {device.serial || device.device_code}
-                        </Text>
-                        <Text style={styles.devicePlate}>
-                          {device.plate_no || "Atanmamış"}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.badge,
-                          {
-                            backgroundColor:
-                              device.status === "active"
-                                ? "#E8F5E9"
-                                : "#FFEBEE",
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.badgeText,
-                            {
-                              color:
-                                device.status === "active"
-                                  ? COLORS.success
-                                  : COLORS.danger,
-                            },
-                          ]}
+
+                  {detail?.devices?.map((device) => {
+                    const isActive = device.status === "active";
+                    const chipBg = withAlpha(
+                      isActive ? COLORS.SUCCESS : COLORS.ERROR,
+                      0.14
+                    );
+                    const chipText = isActive ? COLORS.SUCCESS : COLORS.ERROR;
+
+                    return (
+                      <View key={device.id} style={styles.deviceRow}>
+                        <View style={{ flex: 1, paddingRight: 12 }}>
+                          <Text style={styles.deviceCode}>
+                            {device.serial || device.device_code}
+                          </Text>
+                          <Text style={styles.devicePlate}>
+                            {device.plate_no || "Atanmamış"}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={[styles.badge, { backgroundColor: chipBg }]}
                         >
-                          {device.status === "active" ? "Online" : "Offline"}
-                        </Text>
+                          <Text style={[styles.badgeText, { color: chipText }]}>
+                            {isActive ? "Online" : "Offline"}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                  ))}
+                    );
+                  })}
+
                   {(!detail?.devices || detail.devices.length === 0) && (
                     <Text style={styles.emptyText}>Cihaz bulunamadı</Text>
                   )}
@@ -922,6 +1559,7 @@ const CompanyDetailModal = ({
               {activeTab === "history" && (
                 <View style={styles.tabContent}>
                   <Text style={styles.sectionTitle}>Değişiklik Geçmişi</Text>
+
                   {detail?.audit_logs?.map((log) => (
                     <View key={log.id} style={styles.auditRow}>
                       <View style={styles.auditDot} />
@@ -933,12 +1571,13 @@ const CompanyDetailModal = ({
                           {formatDate(log.created_at)} •{" "}
                           {log.changed_by_name || "Sistem"}
                         </Text>
-                        {log.reason && (
+                        {log.reason ? (
                           <Text style={styles.auditReason}>{log.reason}</Text>
-                        )}
+                        ) : null}
                       </View>
                     </View>
                   ))}
+
                   {(!detail?.audit_logs || detail.audit_logs.length === 0) && (
                     <Text style={styles.emptyText}>Geçmiş bulunamadı</Text>
                   )}
@@ -953,26 +1592,31 @@ const CompanyDetailModal = ({
           <TouchableOpacity
             style={[styles.modalBtn, styles.successBtn]}
             onPress={onPayment}
+            activeOpacity={0.85}
           >
-            <Ionicons name="card" size={18} color="#FFF" />
+            <Ionicons name="card" size={18} color={COLORS.WHITE} />
             <Text style={styles.modalBtnText}>Ödeme</Text>
           </TouchableOpacity>
 
-          {company.subscription_status !== "suspended" && (
+          {company.subscription_status !== "suspended" ? (
             <TouchableOpacity
               style={[styles.modalBtn, styles.warningBtn]}
               onPress={onSuspend}
+              activeOpacity={0.85}
             >
-              <Ionicons name="pause" size={18} color="#FFF" />
+              <Ionicons name="pause" size={18} color={COLORS.WHITE} />
               <Text style={styles.modalBtnText}>Askıya Al</Text>
             </TouchableOpacity>
+          ) : (
+            <View style={{ flex: 1 }} />
           )}
 
           <TouchableOpacity
             style={[styles.modalBtn, styles.dangerBtn]}
             onPress={onDelete}
+            activeOpacity={0.85}
           >
-            <Ionicons name="trash" size={18} color="#FFF" />
+            <Ionicons name="trash" size={18} color={COLORS.WHITE} />
             <Text style={styles.modalBtnText}>Sil</Text>
           </TouchableOpacity>
         </View>
@@ -984,7 +1628,16 @@ const CompanyDetailModal = ({
 // ============================================
 // PaymentModal
 // ============================================
-const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
+const PaymentModal = ({
+  visible,
+  company,
+  TIER_COLORS,
+  onClose,
+  onSuccess,
+}) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
   const [periodStart, setPeriodStart] = useState("");
@@ -1001,6 +1654,9 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       setPeriodStart(formatDateISO(firstDay));
       setPeriodEnd(formatDateISO(lastDay));
+      setInvoiceNumber("");
+      setNotes("");
+      setPaymentMethod("bank_transfer");
     }
   }, [visible, company]);
 
@@ -1048,23 +1704,31 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
 
   if (!company) return null;
 
-  const tier = TIER_COLORS[company.subscription_tier] || TIER_COLORS.starter;
+  const tier = TIER_COLORS?.[company.subscription_tier] || TIER_COLORS?.starter;
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      onRequestClose={onClose}
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Ödeme Kaydet</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color={COLORS.dark} />
+          <TouchableOpacity onPress={onClose} activeOpacity={0.85}>
+            <Ionicons
+              name="close"
+              size={24}
+              color={COLORS.TEXT ?? COLORS.DEFAULT}
+            />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.modalContent}>
+        <ScrollView
+          style={styles.modalContent}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.paymentCompanyName}>{company.name}</Text>
 
           <View style={styles.calculatedFee}>
@@ -1083,6 +1747,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
             onChangeText={setAmount}
             keyboardType="decimal-pad"
             placeholder="0.00"
+            placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
           <Text style={styles.inputLabel}>Ödeme Yöntemi</Text>
@@ -1099,6 +1764,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
                   paymentMethod === method.key && styles.methodBtnActive,
                 ]}
                 onPress={() => setPaymentMethod(method.key)}
+                activeOpacity={0.85}
               >
                 <Text
                   style={[
@@ -1120,6 +1786,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
                 value={periodStart}
                 onChangeText={setPeriodStart}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
             <View style={styles.periodField}>
@@ -1129,6 +1796,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
                 value={periodEnd}
                 onChangeText={setPeriodEnd}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
           </View>
@@ -1139,6 +1807,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
             value={invoiceNumber}
             onChangeText={setInvoiceNumber}
             placeholder="INV-2026-001"
+            placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
           <Text style={styles.inputLabel}>Not (Opsiyonel)</Text>
@@ -1147,6 +1816,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
             value={notes}
             onChangeText={setNotes}
             placeholder="Ek notlar..."
+            placeholderTextColor={COLORS.PLACEHOLDER}
             multiline
             numberOfLines={3}
           />
@@ -1156,6 +1826,7 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
           <TouchableOpacity
             style={[styles.modalBtn, styles.cancelBtn]}
             onPress={onClose}
+            activeOpacity={0.85}
           >
             <Text style={styles.cancelBtnText}>İptal</Text>
           </TouchableOpacity>
@@ -1168,12 +1839,13 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
             ]}
             onPress={handleSubmit}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color="#FFF" size="small" />
+              <ActivityIndicator color={COLORS.WHITE} size="small" />
             ) : (
               <>
-                <Ionicons name="checkmark" size={18} color="#FFF" />
+                <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
                 <Text style={styles.modalBtnText}>Kaydet</Text>
               </>
             )}
@@ -1185,21 +1857,27 @@ const PaymentModal = ({ visible, company, onClose, onSuccess }) => {
 };
 
 // Helper components
-const InfoRow = ({ label, value }) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value || "-"}</Text>
-  </View>
-);
+const InfoRow = ({ label, value }) => {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value || "-"}</Text>
+    </View>
+  );
+};
 
 const UsageBar = ({ label, current, max }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const percentage = max > 0 ? Math.min((current / max) * 100, 100) : 0;
-  const color =
+  const barColor =
     percentage > 80
-      ? COLORS.danger
+      ? COLORS.ERROR
       : percentage > 50
-      ? COLORS.warning
-      : COLORS.success;
+        ? COLORS.WARNING
+        : COLORS.SUCCESS;
 
   return (
     <View style={styles.usageContainer}>
@@ -1213,7 +1891,7 @@ const UsageBar = ({ label, current, max }) => {
         <View
           style={[
             styles.usageBarFill,
-            { width: `${percentage}%`, backgroundColor: color },
+            { width: `${percentage}%`, backgroundColor: barColor },
           ]}
         />
       </View>
@@ -1228,9 +1906,7 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString("tr-TR");
 };
 
-const formatDateISO = (date) => {
-  return date.toISOString().split("T")[0];
-};
+const formatDateISO = (date) => date.toISOString().split("T")[0];
 
 const formatAction = (action) => {
   const actions = {
@@ -1243,370 +1919,5 @@ const formatAction = (action) => {
   };
   return actions[action] || action;
 };
-
-// ============================================
-// Styles
-// ============================================
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F4F5F7" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 10, color: COLORS.muted },
-
-  // Search
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    margin: 15,
-    marginBottom: 0,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    height: 48,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.dark },
-
-  // Summary
-  summaryContainer: { padding: 15 },
-  summaryRow: { flexDirection: "row", gap: 8 },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    elevation: 1,
-  },
-  summaryValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.dark,
-    marginTop: 4,
-  },
-  summaryLabel: { fontSize: 11, color: COLORS.muted },
-  revenueCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 10,
-    gap: 12,
-    elevation: 1,
-  },
-  revenueLabel: { flex: 1, fontSize: 15, color: COLORS.dark },
-  revenueValue: { fontSize: 22, fontWeight: "bold", color: COLORS.success },
-
-  // Urgent
-  urgentContainer: {
-    marginHorizontal: 15,
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    overflow: "hidden",
-    elevation: 1,
-  },
-  urgentHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  urgentHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  urgentTitle: { fontSize: 15, fontWeight: "600", color: COLORS.dark },
-  urgentContent: { padding: 15, gap: 12 },
-  urgentCard: { backgroundColor: "#F8F9FA", borderRadius: 8, padding: 12 },
-  urgentCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  urgentCompanyName: { fontSize: 15, fontWeight: "600", color: COLORS.dark },
-  urgentInfo: { fontSize: 13, color: COLORS.muted, marginTop: 4 },
-  urgentActions: { flexDirection: "row", gap: 8, marginTop: 12 },
-
-  // Action buttons
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    gap: 6,
-  },
-  successBtn: { backgroundColor: COLORS.success },
-  warningBtn: { backgroundColor: COLORS.warning },
-  dangerBtn: { backgroundColor: COLORS.danger },
-  actionBtnText: { color: COLORS.white, fontWeight: "600", fontSize: 13 },
-
-  // Filters
-  filtersContainer: { paddingHorizontal: 15, paddingVertical: 12 },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    marginRight: 8,
-  },
-  filterTabActive: { backgroundColor: COLORS.primary },
-  filterTabText: { color: COLORS.dark, fontWeight: "500", fontSize: 13 },
-  filterTabTextActive: { color: COLORS.white },
-
-  // Company card
-  listContent: { paddingHorizontal: 15, paddingBottom: 100 },
-  companyCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  cardHeaderLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
-  companyIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: "#EEF2FF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  companyIconText: { fontSize: 22 },
-  companyInfo: { flex: 1, marginLeft: 12 },
-  companyName: { fontSize: 16, fontWeight: "bold", color: COLORS.dark },
-  companySlug: { fontSize: 12, color: COLORS.muted, marginTop: 2 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { fontSize: 11, fontWeight: "600" },
-  cardBody: { marginTop: 12 },
-  cardInfoRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  cardInfoText: { fontSize: 13, color: COLORS.muted },
-  cardSubInfo: { fontSize: 12, color: COLORS.muted, marginTop: 6 },
-  statsRow: {
-    flexDirection: "row",
-    marginTop: 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#E9ECEF",
-  },
-  statItem: { flex: 1, alignItems: "center" },
-  statValue: { fontSize: 18, fontWeight: "bold", color: COLORS.dark },
-  statLabel: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#E9ECEF",
-  },
-  cardFooterText: { fontSize: 13, color: COLORS.muted },
-
-  // Empty
-  emptyContainer: { alignItems: "center", paddingVertical: 40 },
-  emptyIcon: { fontSize: 48, marginBottom: 10 },
-  emptyText: { color: COLORS.muted, fontSize: 15 },
-
-  // FAB
-  fab: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
-
-  // Modal
-  modalContainer: { flex: 1, backgroundColor: COLORS.white },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  modalTitle: { fontSize: 18, fontWeight: "600", color: COLORS.dark },
-  modalContent: { flex: 1 },
-  modalActions: {
-    flexDirection: "row",
-    padding: 16,
-    gap: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E5E5",
-  },
-  modalBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 8,
-    gap: 6,
-  },
-  modalBtnText: { color: COLORS.white, fontWeight: "600", fontSize: 15 },
-  cancelBtn: { backgroundColor: "#F0F0F0" },
-  cancelBtnText: { color: COLORS.dark, fontWeight: "600", fontSize: 15 },
-  disabledBtn: { opacity: 0.6 },
-
-  // Tabs
-  tabsContainer: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  tab: { flex: 1, paddingVertical: 14, alignItems: "center" },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: COLORS.primary },
-  tabText: { fontSize: 13, color: COLORS.muted },
-  tabTextActive: { color: COLORS.primary, fontWeight: "600" },
-  tabContent: { padding: 16 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginBottom: 12,
-  },
-
-  // Info rows
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  infoRowWithBadge: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  infoLabel: { fontSize: 14, color: COLORS.muted },
-  infoValue: { fontSize: 14, color: COLORS.dark, fontWeight: "500" },
-
-  // Usage bar
-  usageContainer: { marginBottom: 15 },
-  usageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  usageLabel: { fontSize: 14, color: COLORS.dark },
-  usageValue: { fontSize: 14, color: COLORS.muted },
-  usageBarBg: {
-    height: 8,
-    backgroundColor: "#E5E5E5",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  usageBarFill: { height: "100%", borderRadius: 4 },
-
-  // Payment modal
-  paymentCompanyName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.dark,
-    padding: 16,
-    textAlign: "center",
-  },
-  calculatedFee: {
-    backgroundColor: "#F8F9FA",
-    padding: 16,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  calculatedFeeText: { fontSize: 16, fontWeight: "600", color: COLORS.dark },
-  calculatedFeeTier: { fontSize: 13, color: COLORS.muted, marginTop: 4 },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginTop: 16,
-    marginBottom: 8,
-    paddingHorizontal: 16,
-  },
-  input: {
-    backgroundColor: "#F8F9FA",
-    borderRadius: 8,
-    padding: 14,
-    marginHorizontal: 16,
-    fontSize: 15,
-    color: COLORS.dark,
-  },
-  textArea: { minHeight: 80, textAlignVertical: "top" },
-  methodContainer: { flexDirection: "row", paddingHorizontal: 16, gap: 8 },
-  methodBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#F0F0F0",
-    alignItems: "center",
-  },
-  methodBtnActive: { backgroundColor: COLORS.primary },
-  methodBtnText: { fontSize: 13, color: COLORS.dark },
-  methodBtnTextActive: { color: COLORS.white, fontWeight: "600" },
-  periodContainer: { flexDirection: "row", paddingHorizontal: 16, gap: 10 },
-  periodField: { flex: 1 },
-
-  // Payment & Device rows
-  paymentRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    gap: 12,
-  },
-  paymentDate: { flex: 1, fontSize: 14, color: COLORS.dark },
-  paymentAmount: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
-  deviceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  deviceCode: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
-  devicePlate: { fontSize: 13, color: COLORS.muted },
-
-  // Audit
-  auditRow: { flexDirection: "row", paddingVertical: 12 },
-  auditDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.primary,
-    marginTop: 6,
-    marginRight: 12,
-  },
-  auditContent: { flex: 1 },
-  auditAction: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
-  auditMeta: { fontSize: 12, color: COLORS.muted, marginTop: 2 },
-  auditReason: { fontSize: 13, color: COLORS.dark, marginTop: 4 },
-});
 
 export default CompaniesScreen;

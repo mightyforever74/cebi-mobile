@@ -1,9 +1,10 @@
 // src/screens/superadmin/DevicesScreen.js
 // TulipFleet - ESP32 Cihaz Yönetimi
 // Updated: 26 Aralık 2025 - Token from AuthContext
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği (Rehbere uygun)
 
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,17 +16,288 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { API_URL } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
+
+// --- helper: #RRGGBB => #RRGGBBAA (rgba/hardcode olmadan) ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+
+    // Loading
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: 10,
+      color: COLORS.MUTED,
+      fontWeight: "500",
+    },
+
+    // Stats
+    statsContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 10,
+      paddingVertical: 15,
+      gap: 10,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 10,
+      padding: 12,
+      alignItems: "center",
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    statCardActive: {
+      borderWidth: 2,
+      borderColor: COLORS.PRIMARY,
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: "bold",
+    },
+    statLabel: {
+      fontSize: 11,
+      color: COLORS.MUTED,
+      marginTop: 2,
+      fontWeight: "600",
+    },
+
+    // Search
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      marginHorizontal: 15,
+      marginBottom: 10,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    // Filter
+    filterContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 15,
+      marginBottom: 10,
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    filterButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      elevation: 1,
+    },
+    filterButtonActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    filterText: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      fontWeight: "600",
+    },
+    filterTextActive: {
+      color: COLORS.WHITE,
+    },
+
+    // Summary
+    summaryBar: {
+      paddingHorizontal: 15,
+      paddingBottom: 10,
+    },
+    summaryText: {
+      color: COLORS.MUTED,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    // Device Card
+    listContainer: {
+      paddingHorizontal: 15,
+      paddingBottom: 20,
+    },
+    deviceCard: {
+      flexDirection: "row",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 12,
+      marginBottom: 12,
+      overflow: "hidden",
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    statusBar: {
+      width: 4,
+    },
+    deviceContent: {
+      flex: 1,
+      padding: 15,
+    },
+    deviceHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10,
+      gap: 10,
+    },
+    deviceCodeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      minWidth: 150,
+    },
+    deviceCode: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginLeft: 8,
+      flex: 1,
+    },
+    onlineBadge: {
+      backgroundColor: COLORS.SUCCESS,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+      marginLeft: 8,
+    },
+    onlineText: {
+      color: COLORS.WHITE,
+      fontSize: 9,
+      fontWeight: "800",
+    },
+    firmwareVersion: {
+      fontSize: 11,
+      color: COLORS.MUTED,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.14) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    deviceInfo: {
+      marginTop: 4,
+    },
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+      flexWrap: "wrap",
+    },
+    infoLabel: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      width: 80,
+      fontWeight: "700",
+    },
+    infoValue: {
+      fontSize: 12,
+      color: COLORS.HEADER ?? COLORS.TEXT ?? COLORS.DEFAULT,
+      flex: 1,
+      fontWeight: "600",
+    },
+
+    // Empty
+    emptyState: {
+      alignItems: "center",
+      padding: 50,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 15,
+      marginBottom: 8,
+    },
+    emptyText: {
+      color: COLORS.MUTED,
+      textAlign: "center",
+      fontWeight: "500",
+    },
+  });
 
 const DevicesScreen = ({ navigation }) => {
-  const { token } = useAuth(); // Artık çalışıyor!
+  const { token } = useAuth();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [devices, setDevices] = useState([]);
   const [stats, setStats] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
+
+  const STATUS_COLORS = useMemo(
+    () => ({
+      online: COLORS.SUCCESS,
+      active: COLORS.INFO,
+      pending: COLORS.WARNING,
+      faulty: COLORS.ERROR,
+      offline: COLORS.MUTED,
+      default: COLORS.MUTED,
+    }),
+    [COLORS]
+  );
 
   const fetchDevices = async () => {
     try {
@@ -73,38 +345,34 @@ const DevicesScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchDevices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchDevices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   // Filtrelenmiş cihazlar
-  const filteredDevices = devices.filter((device) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      device.device_code?.toLowerCase().includes(query) ||
-      device.mac_address?.toLowerCase().includes(query) ||
-      device.company_name?.toLowerCase().includes(query) ||
-      device.vehicle_plate?.toLowerCase().includes(query)
-    );
-  });
+  const filteredDevices = useMemo(() => {
+    return devices.filter((device) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        device.device_code?.toLowerCase().includes(query) ||
+        device.mac_address?.toLowerCase().includes(query) ||
+        device.company_name?.toLowerCase().includes(query) ||
+        device.vehicle_plate?.toLowerCase().includes(query)
+      );
+    });
+  }, [devices, searchQuery]);
 
-  // Durum rengi
+  // Durum rengi (token tabanlı)
   const getStatusColor = (status, isOnline) => {
-    if (isOnline) return "#2DCE89";
-    switch (status) {
-      case "active":
-        return "#11CDEF";
-      case "pending":
-        return "#FB6340";
-      case "faulty":
-        return "#F5365C";
-      default:
-        return "#8898AA";
-    }
+    if (isOnline) return STATUS_COLORS.online;
+    if (status && STATUS_COLORS[status]) return STATUS_COLORS[status];
+    return STATUS_COLORS.default;
   };
 
   // Zaman farkı
@@ -124,6 +392,7 @@ const DevicesScreen = ({ navigation }) => {
     <TouchableOpacity
       style={[styles.statCard, filter === filterKey && styles.statCardActive]}
       onPress={() => setFilter(filterKey)}
+      activeOpacity={0.85}
     >
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={styles.statLabel}>{title}</Text>
@@ -138,6 +407,7 @@ const DevicesScreen = ({ navigation }) => {
       <TouchableOpacity
         style={styles.deviceCard}
         onPress={() => navigation.navigate("DeviceDetail", { device: item })}
+        activeOpacity={0.85}
       >
         {/* Sol renk çubuğu */}
         <View style={[styles.statusBar, { backgroundColor: statusColor }]} />
@@ -147,13 +417,17 @@ const DevicesScreen = ({ navigation }) => {
           <View style={styles.deviceHeader}>
             <View style={styles.deviceCodeContainer}>
               <Ionicons name="hardware-chip" size={20} color={statusColor} />
-              <Text style={styles.deviceCode}>{item.device_code}</Text>
+              <Text style={styles.deviceCode} numberOfLines={1}>
+                {item.device_code}
+              </Text>
+
               {item.is_online && (
                 <View style={styles.onlineBadge}>
                   <Text style={styles.onlineText}>ONLINE</Text>
                 </View>
               )}
             </View>
+
             <Text style={styles.firmwareVersion}>
               v{item.firmware_version || "?"}
             </Text>
@@ -169,17 +443,24 @@ const DevicesScreen = ({ navigation }) => {
             {item.company_name ? (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Şirket:</Text>
-                <Text style={[styles.infoValue, { color: "#5E72E4" }]}>
+                <Text
+                  style={[styles.infoValue, { color: COLORS.PRIMARY }]}
+                  numberOfLines={1}
+                >
                   {item.company_name}
                 </Text>
               </View>
             ) : (
               <View style={styles.infoRow}>
-                <Ionicons name="alert-circle" size={14} color="#FB6340" />
+                <Ionicons
+                  name="alert-circle"
+                  size={14}
+                  color={COLORS.WARNING}
+                />
                 <Text
                   style={[
                     styles.infoValue,
-                    { color: "#FB6340", marginLeft: 4 },
+                    { color: COLORS.WARNING, marginLeft: 4 },
                   ]}
                 >
                   Atanmamış
@@ -190,7 +471,7 @@ const DevicesScreen = ({ navigation }) => {
             {item.vehicle_plate && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Araç:</Text>
-                <Text style={[styles.infoValue, { color: "#2DCE89" }]}>
+                <Text style={[styles.infoValue, { color: COLORS.SUCCESS }]}>
                   {item.vehicle_plate}
                 </Text>
               </View>
@@ -211,7 +492,7 @@ const DevicesScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E72E4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Cihazlar yükleniyor...</Text>
       </View>
     );
@@ -224,42 +505,45 @@ const DevicesScreen = ({ navigation }) => {
         <StatCard
           title="Toplam"
           value={stats.total || 0}
-          color="#5E72E4"
+          color={COLORS.PRIMARY}
           filterKey="all"
         />
         <StatCard
           title="Online"
           value={stats.online_now || 0}
-          color="#2DCE89"
+          color={COLORS.SUCCESS}
           filterKey="active"
         />
         <StatCard
           title="Bekleyen"
           value={stats.pending || 0}
-          color="#FB6340"
+          color={COLORS.WARNING}
           filterKey="pending"
         />
         <StatCard
           title="Arızalı"
           value={stats.faulty || 0}
-          color="#F5365C"
+          color={COLORS.ERROR}
           filterKey="faulty"
         />
       </View>
 
       {/* Arama */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={18} color="#8898AA" />
+        <Ionicons name="search" size={18} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
           placeholder="Cihaz kodu, MAC, şirket ara..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#8898AA"
+          placeholderTextColor={COLORS.MUTED}
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={18} color="#8898AA" />
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="close-circle" size={18} color={COLORS.MUTED} />
           </TouchableOpacity>
         )}
       </View>
@@ -280,6 +564,7 @@ const DevicesScreen = ({ navigation }) => {
               filter === f.key && styles.filterButtonActive,
             ]}
             onPress={() => setFilter(f.key)}
+            activeOpacity={0.85}
           >
             <Text
               style={[
@@ -303,232 +588,38 @@ const DevicesScreen = ({ navigation }) => {
       {/* Cihaz Listesi */}
       <FlatList
         data={filteredDevices}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderDeviceItem}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.PRIMARY}
+            colors={[COLORS.PRIMARY]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="hardware-chip-outline" size={64} color="#DEE2E6" />
+            <Ionicons
+              name="hardware-chip-outline"
+              size={64}
+              color={withAlpha(COLORS.MUTED, 0.35) || COLORS.MUTED}
+            />
             <Text style={styles.emptyTitle}>Cihaz Bulunamadı</Text>
             <Text style={styles.emptyText}>
               {searchQuery
                 ? "Arama kriterlerine uygun cihaz yok"
                 : filter !== "all"
-                ? `${filter} durumunda cihaz yok`
-                : "ESP32 cihazlar otomatik olarak kaydedilir"}
+                  ? `${filter} durumunda cihaz yok`
+                  : "ESP32 cihazlar otomatik olarak kaydedilir"}
             </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F5F7",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    color: "#8898AA",
-  },
-
-  // Stats
-  statsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 10,
-    paddingVertical: 15,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 12,
-    marginHorizontal: 5,
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  statCardActive: {
-    borderWidth: 2,
-    borderColor: "#5E72E4",
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#8898AA",
-    marginTop: 2,
-  },
-
-  // Search
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    marginHorizontal: 15,
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    fontSize: 14,
-    color: "#32325D",
-  },
-
-  // Filter
-  filterContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: "#FFF",
-    marginRight: 8,
-    elevation: 1,
-  },
-  filterButtonActive: {
-    backgroundColor: "#5E72E4",
-  },
-  filterText: {
-    fontSize: 12,
-    color: "#8898AA",
-    fontWeight: "500",
-  },
-  filterTextActive: {
-    color: "#FFF",
-  },
-
-  // Summary
-  summaryBar: {
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-  },
-  summaryText: {
-    color: "#8898AA",
-    fontSize: 13,
-  },
-
-  // Device Card
-  listContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
-  },
-  deviceCard: {
-    flexDirection: "row",
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    marginBottom: 12,
-    overflow: "hidden",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  statusBar: {
-    width: 4,
-  },
-  deviceContent: {
-    flex: 1,
-    padding: 15,
-  },
-  deviceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  deviceCodeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  deviceCode: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginLeft: 8,
-  },
-  onlineBadge: {
-    backgroundColor: "#2DCE89",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    marginLeft: 8,
-  },
-  onlineText: {
-    color: "#FFF",
-    fontSize: 9,
-    fontWeight: "700",
-  },
-  firmwareVersion: {
-    fontSize: 11,
-    color: "#8898AA",
-    backgroundColor: "#F6F9FC",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  deviceInfo: {
-    marginTop: 4,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: "#8898AA",
-    width: 80,
-  },
-  infoValue: {
-    fontSize: 12,
-    color: "#525F7F",
-    flex: 1,
-  },
-
-  // Empty
-  emptyState: {
-    alignItems: "center",
-    padding: 50,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginTop: 15,
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: "#8898AA",
-    textAlign: "center",
-  },
-});
 
 export default DevicesScreen;

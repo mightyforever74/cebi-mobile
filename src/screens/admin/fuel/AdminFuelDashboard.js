@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   RefreshControl,
   ScrollView,
@@ -21,9 +22,9 @@ import api from "../../../services/api";
 // Components
 import CarbonSummaryCards from "../../../components/admin/fuel/CarbonSummaryCards";
 import CarbonTrendChart from "../../../components/admin/fuel/CarbonTrendChart";
-import CarbonVehicleChart from "../../../components/admin/fuel/CarbonVehicleChart";
+import CarbonVehicleChart, { EUComplianceCard } from "../../../components/admin/fuel/CarbonVehicleChart";
 import CostAnalysisChart from "../../../components/admin/fuel/CostAnalysisChart";
-import EUComplianceCard from "../../../components/admin/fuel/EUComplianceCard";
+
 import FuelSummaryCards from "../../../components/admin/fuel/FuelSummaryCards";
 import FuelTrendChart from "../../../components/admin/fuel/FuelTrendChart";
 import RecentFuelRecords from "../../../components/admin/fuel/RecentFuelRecords";
@@ -192,7 +193,7 @@ const AdminFuelDashboard = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.downloadButton}>
+        <TouchableOpacity style={styles.downloadButton} onPress={() => Alert.alert(t("common.info"), t("fuelDashboard.reports.comingSoon"))}>
           <Ionicons name="download-outline" size={20} color={COLORS.white} />
           <Text style={styles.downloadText}>
             PDF {t("fuelDashboard.reports.download")}
@@ -212,7 +213,7 @@ const AdminFuelDashboard = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity onPress={() => Alert.alert(t("common.info"), t("fuelDashboard.reports.comingSoon"))}
           style={[styles.downloadButton, { backgroundColor: "#10B981" }]}
         >
           <Ionicons name="download-outline" size={20} color={COLORS.white} />
@@ -234,7 +235,7 @@ const AdminFuelDashboard = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity onPress={() => Alert.alert(t("common.info"), t("fuelDashboard.reports.comingSoon"))}
           style={[styles.downloadButton, { backgroundColor: "#F59E0B" }]}
         >
           <Ionicons name="download-outline" size={20} color={COLORS.white} />
@@ -256,7 +257,7 @@ const AdminFuelDashboard = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity onPress={() => Alert.alert(t("common.info"), t("fuelDashboard.reports.comingSoon"))}
           style={[styles.downloadButton, { backgroundColor: "#8B5CF6" }]}
         >
           <Ionicons name="send-outline" size={20} color={COLORS.white} />

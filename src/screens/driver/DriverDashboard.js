@@ -1,6 +1,6 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 21 Ocak 2026 - Aracım kartı yakıt girişine yönlendirir, İstatistikler sadeleştirildi
+// Updated: 22 Ocak 2026 - Dark Mode Migration (DÜZGÜN)
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -17,9 +17,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/config";
+// ❌ KALDIRILDI: import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI } from "../../services/api";
 
@@ -63,7 +65,325 @@ const FUEL_TYPE_LABELS = {
   },
 };
 
+// ============================================
+// makeStyles - BÜYÜK HARF TOKEN'LAR
+// ============================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    header: {
+      backgroundColor: COLORS.PRIMARY,
+      paddingTop: 60,
+      paddingBottom: 24,
+      paddingHorizontal: 20,
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    greetingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    greetingEmoji: {
+      fontSize: 32,
+      marginRight: 12,
+    },
+    greeting: {
+      fontSize: 14,
+      color: "rgba(255,255,255,0.8)",
+    },
+    userName: {
+      fontSize: 22,
+      fontWeight: "bold",
+      color: COLORS.WHITE,
+    },
+    headerButtons: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    headerButton: {
+      backgroundColor: "rgba(255,255,255,0.2)",
+      padding: 10,
+      borderRadius: 12,
+    },
+    langFlag: {
+      fontSize: 20,
+    },
+    errorCard: {
+      backgroundColor: COLORS.INPUT_ERROR,
+      margin: 16,
+      padding: 12,
+      borderRadius: 8,
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.ERROR,
+    },
+    errorText: {
+      color: COLORS.ERROR,
+      fontSize: 14,
+    },
+    offersCard: {
+      backgroundColor: COLORS.SUCCESS,
+      margin: 16,
+      marginBottom: 0,
+      padding: 16,
+      borderRadius: 12,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    offersContent: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    offersIcon: {
+      fontSize: 32,
+      marginRight: 12,
+    },
+    offersText: {
+      flex: 1,
+    },
+    offersTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.WHITE,
+    },
+    offersSubtitle: {
+      fontSize: 13,
+      color: "rgba(255,255,255,0.8)",
+      marginTop: 2,
+    },
+    card: {
+      backgroundColor: COLORS.CARD,
+      margin: 16,
+      padding: 16,
+      borderRadius: 12,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    cardTitleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+    },
+    noDataText: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      paddingVertical: 20,
+    },
+    vehicleInfo: {
+      marginBottom: 16,
+    },
+    vehiclePlate: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.PRIMARY,
+    },
+    vehicleModel: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 4,
+    },
+    fuelEntryHint: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      gap: 4,
+    },
+    fuelEntryHintText: {
+      fontSize: 12,
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    vehicleDetailsRow: {
+      flexDirection: "row",
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: 8,
+      padding: 12,
+    },
+    vehicleDetailItem: {
+      flex: 1,
+      alignItems: "center",
+    },
+    vehicleDetailLabel: {
+      fontSize: 11,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 4,
+    },
+    vehicleDetailValue: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+      marginTop: 2,
+    },
+    vehicleDetailDivider: {
+      width: 1,
+      backgroundColor: COLORS.BORDER,
+      marginHorizontal: 8,
+    },
+    taskCard: {
+      backgroundColor: COLORS.BACKGROUND,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 12,
+    },
+    taskHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    taskTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+    },
+    statusText: {
+      color: COLORS.WHITE,
+      fontSize: 10,
+      fontWeight: "600",
+    },
+    taskDescription: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: 4,
+    },
+    taskTime: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    seeAllText: {
+      fontSize: 14,
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    statsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    statItemLarge: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 16,
+    },
+    statNumberLarge: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: COLORS.PRIMARY,
+    },
+    statTextLarge: {
+      fontSize: 13,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 4,
+      textAlign: "center",
+    },
+    statDivider: {
+      width: 1,
+      height: 50,
+      backgroundColor: COLORS.BORDER,
+    },
+    langModalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    langModalContent: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      maxHeight: "70%",
+    },
+    langModalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    langItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 8,
+      backgroundColor: COLORS.SECONDARY,
+    },
+    langItemActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    langItemFlag: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+    langItemName: {
+      fontSize: 16,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    langItemNameActive: {
+      color: COLORS.WHITE,
+      fontWeight: "600",
+    },
+    langCloseBtn: {
+      backgroundColor: COLORS.MUTED,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    langCloseBtnText: {
+      color: COLORS.WHITE,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+  });
+
+// ============================================
+// COMPONENT
+// ============================================
 const DriverDashboard = () => {
+  // ✅ Themed styles hook
+  const styles = useThemedStyles(makeStyles);
+  // ✅ COLORS for inline styles
+  const { COLORS } = useTheme();
+
   const navigation = useNavigation();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
@@ -193,20 +513,17 @@ const DriverDashboard = () => {
     }
   };
 
-  // Görev kartına tıklanınca Görevlerim'e git
   const handleTaskPress = (task) => {
     console.log("Task pressed:", task.id);
     navigation.navigate("MyTasks");
   };
 
-  // Aracım kartına tıklanınca Yakıt Girişi'ne git
   const handleVehiclePress = () => {
     if (vehicle) {
       navigation.navigate("FuelEntry");
     }
   };
 
-  // Yakıt tipi label
   const getFuelTypeLabel = (fuelType) => {
     const labels = FUEL_TYPE_LABELS[fuelType];
     if (labels) {
@@ -215,7 +532,6 @@ const DriverDashboard = () => {
     return fuelType || "Dizel";
   };
 
-  // Dil değiştir
   const changeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
     setLangModalVisible(false);
@@ -228,7 +544,7 @@ const DriverDashboard = () => {
   if (checkingDevice) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>{t("dashboard.checkingDevice")}</Text>
       </View>
     );
@@ -238,7 +554,7 @@ const DriverDashboard = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
@@ -248,7 +564,12 @@ const DriverDashboard = () => {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={COLORS.PRIMARY}
+          colors={[COLORS.PRIMARY]}
+        />
       }
     >
       {/* Header with Greeting + Language + Logout */}
@@ -265,16 +586,14 @@ const DriverDashboard = () => {
           </View>
         </View>
         <View style={styles.headerButtons}>
-          {/* Language Button */}
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => setLangModalVisible(true)}
           >
             <Text style={styles.langFlag}>{currentLang.flag}</Text>
           </TouchableOpacity>
-          {/* Logout Button */}
           <TouchableOpacity style={styles.headerButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+            <Ionicons name="log-out-outline" size={20} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -301,11 +620,11 @@ const DriverDashboard = () => {
               {t("dashboard.viewPendingOffers")}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+          <Ionicons name="chevron-forward" size={24} color={COLORS.WHITE} />
         </View>
       </TouchableOpacity>
 
-      {/* Vehicle Card - Tıklanınca Yakıt Girişi'ne git */}
+      {/* Vehicle Card */}
       {vehicle ? (
         <TouchableOpacity
           style={styles.card}
@@ -315,19 +634,18 @@ const DriverDashboard = () => {
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
             <View style={styles.fuelEntryHint}>
-              <Ionicons name="flame-outline" size={16} color={COLORS.primary} />
+              <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
               <Text style={styles.fuelEntryHintText}>
                 {t("dashboard.fuelEntry", "Yakıt Girişi")}
               </Text>
               <Ionicons
                 name="chevron-forward"
                 size={16}
-                color={COLORS.primary}
+                color={COLORS.PRIMARY}
               />
             </View>
           </View>
 
-          {/* Araç Bilgileri */}
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
             <Text style={styles.vehicleModel}>
@@ -335,10 +653,9 @@ const DriverDashboard = () => {
             </Text>
           </View>
 
-          {/* Yakıt Tipi ve Depo Kapasitesi */}
           <View style={styles.vehicleDetailsRow}>
             <View style={styles.vehicleDetailItem}>
-              <Ionicons name="water-outline" size={20} color={COLORS.info} />
+              <Ionicons name="water-outline" size={20} color={COLORS.INFO} />
               <Text style={styles.vehicleDetailLabel}>
                 {t("fuel.fuelType", "Yakıt")}
               </Text>
@@ -348,7 +665,7 @@ const DriverDashboard = () => {
             </View>
             <View style={styles.vehicleDetailDivider} />
             <View style={styles.vehicleDetailItem}>
-              <Ionicons name="cube-outline" size={20} color={COLORS.success} />
+              <Ionicons name="cube-outline" size={20} color={COLORS.SUCCESS} />
               <Text style={styles.vehicleDetailLabel}>
                 {t("fuel.tankCapacity", "Depo")}
               </Text>
@@ -393,10 +710,10 @@ const DriverDashboard = () => {
                     {
                       backgroundColor:
                         task.status === "in_progress"
-                          ? COLORS.warning
+                          ? COLORS.WARNING
                           : task.status === "completed"
-                          ? COLORS.success
-                          : COLORS.info,
+                            ? COLORS.SUCCESS
+                            : COLORS.INFO,
                     },
                   ]}
                 >
@@ -422,7 +739,7 @@ const DriverDashboard = () => {
         )}
       </View>
 
-      {/* Stats Card - Sadeleştirildi */}
+      {/* Stats Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>📊 {t("dashboard.myStats")}</Text>
         <View style={styles.statsRow}>
@@ -480,7 +797,7 @@ const DriverDashboard = () => {
                     {item.name}
                   </Text>
                   {item.code === i18n.language && (
-                    <Ionicons name="checkmark" size={20} color={COLORS.white} />
+                    <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
                   )}
                 </TouchableOpacity>
               )}
@@ -499,317 +816,6 @@ const DriverDashboard = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-  },
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  greetingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  greetingEmoji: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  greeting: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.white,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  headerButton: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    padding: 10,
-    borderRadius: 12,
-  },
-  langFlag: {
-    fontSize: 20,
-  },
-  errorCard: {
-    backgroundColor: "#FEE",
-    margin: 16,
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.danger,
-  },
-  errorText: {
-    color: COLORS.danger,
-    fontSize: 14,
-  },
-  // Task Offers Card
-  offersCard: {
-    backgroundColor: COLORS.success,
-    margin: 16,
-    marginBottom: 0,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  offersContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  offersIcon: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  offersText: {
-    flex: 1,
-  },
-  offersTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.white,
-  },
-  offersSubtitle: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 2,
-  },
-  // Card
-  card: {
-    backgroundColor: COLORS.white,
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-  },
-  noDataText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    paddingVertical: 20,
-  },
-  // Vehicle Card
-  vehicleInfo: {
-    marginBottom: 16,
-  },
-  vehiclePlate: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  vehicleModel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  fuelEntryHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f3ff",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  fuelEntryHintText: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  // Vehicle Details Row (Yakıt Tipi + Depo)
-  vehicleDetailsRow: {
-    flexDirection: "row",
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    padding: 12,
-  },
-  vehicleDetailItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  vehicleDetailLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  vehicleDetailValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginTop: 2,
-  },
-  vehicleDetailDivider: {
-    width: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 8,
-  },
-  // Task Card
-  taskCard: {
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-    flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  statusText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  taskDescription: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  taskTime: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  seeAllText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  // Stats - Sadeleştirilmiş (2 kutu)
-  statsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statItemLarge: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  statNumberLarge: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  statTextLarge: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  statDivider: {
-    width: 1,
-    height: 50,
-    backgroundColor: COLORS.border,
-  },
-  // Language Modal
-  langModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  langModalContent: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: "70%",
-  },
-  langModalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#32325D",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  langItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: "#F7FAFC",
-  },
-  langItemActive: {
-    backgroundColor: COLORS.primary,
-  },
-  langItemFlag: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  langItemName: {
-    fontSize: 16,
-    color: "#32325D",
-    flex: 1,
-  },
-  langItemNameActive: {
-    color: "#FFF",
-    fontWeight: "600",
-  },
-  langCloseBtn: {
-    backgroundColor: "#8898AA",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  langCloseBtnText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverDashboard;

@@ -1,6 +1,6 @@
 // src/screens/driver/DriverTasks.js
 // TulipFleet - Sürücü Görevlerim Ekranı
-// Updated: 17 Ocak 2026 - Full i18n Support
+// Updated: 22 Ocak 2026 - Dark Mode Migration
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -16,76 +16,63 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverTaskAPI, taskOffersAPI } from "../../services/api";
 
-// Theme colors
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-  carbon: "#10B981",
-  fuel: "#F59E0B",
-  safety: "#8B5CF6",
-};
+// ❌ KALDIRILDI: Local COLORS objesi - artık ThemeContext'ten geliyor
 
-// Status config (colors and icons only - labels come from i18n)
-const STATUS_CONFIG = {
+// Status config - renkleri dinamik yapmak için fonksiyon
+const getStatusConfig = (COLORS) => ({
   pending_review: {
-    color: COLORS.warning,
-    bg: "#FFF5F3",
+    color: COLORS.WARNING,
+    bg: COLORS.INPUT_ERROR, // Soft orange background
     icon: "notifications",
     key: "pending_review",
   },
   accepted: {
-    color: COLORS.info,
-    bg: "#E8FAFC",
+    color: COLORS.INFO,
+    bg: COLORS.SECONDARY,
     icon: "checkmark-circle",
     key: "accepted",
   },
   in_progress: {
-    color: COLORS.primary,
-    bg: "#F0F2FF",
+    color: COLORS.PRIMARY,
+    bg: COLORS.SECONDARY,
     icon: "navigate",
     key: "in_progress",
   },
   completed: {
-    color: COLORS.success,
-    bg: "#E8FCF1",
+    color: COLORS.SUCCESS,
+    bg: COLORS.INPUT_SUCCESS,
     icon: "checkmark-done",
     key: "completed",
   },
   rejected: {
-    color: COLORS.danger,
-    bg: "#FFF0F3",
+    color: COLORS.ERROR,
+    bg: COLORS.INPUT_ERROR,
     icon: "close-circle",
     key: "rejected",
   },
   pending: {
-    color: COLORS.warning,
-    bg: "#FFF5F3",
+    color: COLORS.WARNING,
+    bg: COLORS.INPUT_ERROR,
     icon: "time",
     key: "pending",
   },
   assigned: {
-    color: COLORS.info,
-    bg: "#E8FAFC",
+    color: COLORS.INFO,
+    bg: COLORS.SECONDARY,
     icon: "person",
     key: "assigned",
   },
   cancelled: {
-    color: COLORS.danger,
-    bg: "#FFF0F3",
+    color: COLORS.ERROR,
+    bg: COLORS.INPUT_ERROR,
     icon: "close-circle",
     key: "cancelled",
   },
-};
+});
 
 const CO2_FACTORS = {
   diesel: 0.27,
@@ -96,6 +83,7 @@ const CO2_FACTORS = {
   hybrid: 0.15,
   default: 0.25,
 };
+
 const FUEL_CONSUMPTION = {
   diesel: 8.5,
   gasoline: 9.5,
@@ -106,8 +94,582 @@ const FUEL_CONSUMPTION = {
   default: 9.0,
 };
 
+// ============================================
+// makeStyles - BÜYÜK HARF TOKEN'LAR
+// ============================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    tabContainer: {
+      flexDirection: "row",
+      backgroundColor: COLORS.SURFACE,
+      padding: 6,
+      marginHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 8,
+      borderRadius: 12,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderRadius: 8,
+      gap: 6,
+    },
+    activeTab: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.TEXT_SECONDARY,
+    },
+    activeTabText: {
+      color: COLORS.WHITE,
+    },
+    tabBadge: {
+      backgroundColor: COLORS.SECONDARY,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+      minWidth: 24,
+      alignItems: "center",
+    },
+    activeTabBadge: {
+      backgroundColor: "rgba(255,255,255,0.2)",
+    },
+    tabBadgeText: {
+      color: COLORS.WHITE,
+      fontSize: 12,
+      fontWeight: "bold",
+    },
+    listContent: {
+      padding: 16,
+      paddingTop: 8,
+    },
+    analyticsContainer: {
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: 16,
+      marginBottom: 16,
+      overflow: "hidden",
+    },
+    analyticsHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    analyticsHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    analyticsTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    summaryCard: {
+      padding: 16,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+    },
+    summaryItem: {
+      alignItems: "center",
+      flex: 1,
+    },
+    summaryIconBg: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    summaryValue: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    summaryLabel: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    summaryDivider: {
+      width: 1,
+      height: 60,
+      backgroundColor: COLORS.DIVIDER,
+    },
+    expandedAnalytics: {
+      padding: 16,
+      paddingTop: 0,
+    },
+    analyticsSection: {
+      marginBottom: 16,
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      padding: 12,
+      backgroundColor: COLORS.SURFACE,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.TEXT,
+    },
+    sectionContent: {
+      padding: 12,
+    },
+    metricRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
+    metricItem: {
+      alignItems: "center",
+      flex: 1,
+    },
+    metricValue: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    metricLabel: {
+      fontSize: 11,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    progressContainer: {
+      gap: 8,
+    },
+    progressLabels: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    progressLabel: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    progressBar: {
+      flexDirection: "row",
+      height: 8,
+      borderRadius: 4,
+      overflow: "hidden",
+      backgroundColor: COLORS.DIVIDER,
+    },
+    progressFill: {
+      height: "100%",
+    },
+    progressValues: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    progressValue: {
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    scoreContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    scoreValue: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    energyRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
+    energyItem: {
+      alignItems: "center",
+      gap: 4,
+    },
+    energyValue: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT,
+    },
+    energyLabel: {
+      fontSize: 11,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    distanceDetails: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      paddingTop: 12,
+    },
+    distanceItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    distanceText: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      fontWeight: "500",
+    },
+    pendingReviewAlert: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.WARNING,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 12,
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.WARNING,
+      opacity: 0.9,
+    },
+    pendingReviewAlertContent: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    pendingReviewAlertTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: COLORS.WHITE,
+    },
+    pendingReviewAlertSubtitle: {
+      fontSize: 12,
+      color: "rgba(255,255,255,0.8)",
+      marginTop: 2,
+    },
+    offersCard: {
+      backgroundColor: COLORS.PRIMARY,
+      borderRadius: 12,
+      marginBottom: 16,
+      padding: 16,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    offersContent: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    offersIconContainer: {
+      position: "relative",
+      marginRight: 14,
+    },
+    offersBadge: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      backgroundColor: COLORS.ERROR,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 5,
+    },
+    offersBadgeText: {
+      color: COLORS.WHITE,
+      fontSize: 11,
+      fontWeight: "bold",
+    },
+    offersTextContainer: {
+      flex: 1,
+    },
+    offersTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: COLORS.WHITE,
+    },
+    offersSubtitle: {
+      fontSize: 13,
+      color: "rgba(255,255,255,0.8)",
+      marginTop: 2,
+    },
+    card: {
+      backgroundColor: COLORS.CARD,
+      borderRadius: 12,
+      marginBottom: 12,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 3,
+      overflow: "hidden",
+    },
+    cardPendingReview: {
+      borderWidth: 2,
+      borderColor: COLORS.WARNING,
+    },
+    newTaskBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.WARNING,
+      paddingVertical: 8,
+      gap: 6,
+    },
+    newTaskBannerText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 13,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    taskIdContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    taskId: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+      marginLeft: 8,
+    },
+    completedDate: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: 8,
+      backgroundColor: COLORS.BACKGROUND,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 8,
+    },
+    statusText: {
+      fontSize: 11,
+      fontWeight: "600",
+      marginLeft: 4,
+    },
+    cardBody: {
+      padding: 14,
+    },
+    taskTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: COLORS.TEXT,
+      marginBottom: 10,
+    },
+    locationContainer: {
+      marginBottom: 12,
+    },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    locationDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 10,
+    },
+    locationLine: {
+      width: 2,
+      height: 15,
+      backgroundColor: COLORS.MUTED,
+      marginLeft: 3,
+      marginVertical: 2,
+    },
+    locationText: {
+      fontSize: 13,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    metaRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+    },
+    metaItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: 15,
+      marginTop: 4,
+    },
+    metaText: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: 4,
+    },
+    actionButtonsContainer: {
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      padding: 12,
+    },
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    actionButtons: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    actionButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 6,
+    },
+    rejectButton: {
+      backgroundColor: COLORS.ERROR,
+    },
+    acceptButton: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    actionButtonText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    goToNavButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 8,
+    },
+    goToNavButtonText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    continueNavButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.INFO,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 8,
+    },
+    continueNavButtonText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    acceptedButtonsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginHorizontal: 12,
+      marginBottom: 12,
+      gap: 10,
+    },
+    acceptedButton: {
+      flex: 0.4,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 8,
+    },
+    withdrawButton: {
+      backgroundColor: COLORS.ERROR,
+    },
+    acceptedButtonText: {
+      color: COLORS.WHITE,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: 60,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+      marginTop: 16,
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      marginTop: 8,
+      paddingHorizontal: 20,
+    },
+    errorTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.ERROR,
+      marginTop: 16,
+    },
+    errorText: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 8,
+    },
+    retryButton: {
+      marginTop: 20,
+      backgroundColor: COLORS.PRIMARY,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      color: COLORS.WHITE,
+      fontWeight: "600",
+    },
+    loadingText: {
+      marginTop: 12,
+      color: COLORS.TEXT_SECONDARY,
+    },
+  });
+
+// ============================================
+// COMPONENT
+// ============================================
 const DriverTasks = ({ navigation }) => {
   const { t, i18n } = useTranslation();
+  const styles = useThemedStyles(makeStyles);
+  const { COLORS } = useTheme();
+
+  // Status config'i COLORS ile oluştur
+  const STATUS_CONFIG = getStatusConfig(COLORS);
+
   const [activeTab, setActiveTab] = useState("active");
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -122,9 +684,12 @@ const DriverTasks = ({ navigation }) => {
   const navigateToMap = (task) => {
     if (!task?.vehicle_id) {
       Alert.alert(
-        "Araç Atanmamış",
-        "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
-        [{ text: "Tamam" }]
+        t("tasks.noVehicleAssigned", "Araç Atanmamış"),
+        t(
+          "tasks.contactAdmin",
+          "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin."
+        ),
+        [{ text: t("common.ok", "Tamam") }]
       );
       return;
     }
@@ -175,6 +740,7 @@ const DriverTasks = ({ navigation }) => {
     fetchTasks();
     fetchPendingOffers();
   }, [activeTab]);
+
   useEffect(() => {
     fetchTasks();
   }, [activeTab]);
@@ -332,6 +898,7 @@ const DriverTasks = ({ navigation }) => {
             "assigned",
           ].includes(task.status || "pending")
         );
+
   const activeCount = tasks.filter((t) =>
     [
       "pending_review",
@@ -341,6 +908,7 @@ const DriverTasks = ({ navigation }) => {
       "assigned",
     ].includes(t.status)
   ).length;
+
   const completedCount = completedTasks.length;
   const pendingReviewCount = tasks.filter(
     (t) => t.status === "pending_review"
@@ -518,7 +1086,7 @@ const DriverTasks = ({ navigation }) => {
           onPress={() => setExpandedAnalytics(!expandedAnalytics)}
         >
           <View style={styles.analyticsHeaderLeft}>
-            <Ionicons name="analytics" size={22} color={COLORS.primary} />
+            <Ionicons name="analytics" size={22} color={COLORS.PRIMARY} />
             <Text style={styles.analyticsTitle}>
               {t("tasks.performanceAnalysis")}
             </Text>
@@ -526,19 +1094,22 @@ const DriverTasks = ({ navigation }) => {
           <Ionicons
             name={expandedAnalytics ? "chevron-up" : "chevron-down"}
             size={22}
-            color={COLORS.secondary}
+            color={COLORS.TEXT_SECONDARY}
           />
         </TouchableOpacity>
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
               <View
-                style={[styles.summaryIconBg, { backgroundColor: "#E8FCF1" }]}
+                style={[
+                  styles.summaryIconBg,
+                  { backgroundColor: COLORS.INPUT_SUCCESS },
+                ]}
               >
                 <Ionicons
                   name="checkmark-done"
                   size={22}
-                  color={COLORS.success}
+                  color={COLORS.SUCCESS}
                 />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalTasks}</Text>
@@ -547,9 +1118,12 @@ const DriverTasks = ({ navigation }) => {
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
               <View
-                style={[styles.summaryIconBg, { backgroundColor: "#F0F2FF" }]}
+                style={[
+                  styles.summaryIconBg,
+                  { backgroundColor: COLORS.SECONDARY },
+                ]}
               >
-                <Ionicons name="speedometer" size={22} color={COLORS.primary} />
+                <Ionicons name="speedometer" size={22} color={COLORS.PRIMARY} />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalKm}</Text>
               <Text style={styles.summaryLabel}>{t("tasks.totalKm")}</Text>
@@ -557,9 +1131,12 @@ const DriverTasks = ({ navigation }) => {
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
               <View
-                style={[styles.summaryIconBg, { backgroundColor: "#ECFDF5" }]}
+                style={[
+                  styles.summaryIconBg,
+                  { backgroundColor: COLORS.INPUT_SUCCESS },
+                ]}
               >
-                <Ionicons name="leaf" size={22} color={COLORS.carbon} />
+                <Ionicons name="leaf" size={22} color={COLORS.SUCCESS} />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalCO2kg}</Text>
               <Text style={styles.summaryLabel}>kg CO₂</Text>
@@ -568,9 +1145,10 @@ const DriverTasks = ({ navigation }) => {
         </View>
         {expandedAnalytics && (
           <View style={styles.expandedAnalytics}>
+            {/* Time Analysis */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="time" size={18} color={COLORS.info} />
+                <Ionicons name="time" size={18} color={COLORS.INFO} />
                 <Text style={styles.sectionTitle}>
                   {t("tasks.timeAnalysis")}
                 </Text>
@@ -587,7 +1165,7 @@ const DriverTasks = ({ navigation }) => {
                   </View>
                   <View style={styles.metricItem}>
                     <Text
-                      style={[styles.metricValue, { color: COLORS.success }]}
+                      style={[styles.metricValue, { color: COLORS.SUCCESS }]}
                     >
                       %{analytics.onTimePercent}
                     </Text>
@@ -595,7 +1173,7 @@ const DriverTasks = ({ navigation }) => {
                   </View>
                   <View style={styles.metricItem}>
                     <Text
-                      style={[styles.metricValue, { color: COLORS.warning }]}
+                      style={[styles.metricValue, { color: COLORS.WARNING }]}
                     >
                       %{analytics.latePercent}
                     </Text>
@@ -604,9 +1182,10 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
+            {/* Fuel & Emission */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="car" size={18} color={COLORS.fuel} />
+                <Ionicons name="car" size={18} color={COLORS.WARNING} />
                 <Text style={styles.sectionTitle}>
                   {t("tasks.fuelEmission")}
                 </Text>
@@ -634,9 +1213,10 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
+            {/* Route Distribution */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="map" size={18} color={COLORS.primary} />
+                <Ionicons name="map" size={18} color={COLORS.PRIMARY} />
                 <Text style={styles.sectionTitle}>
                   {t("tasks.routeDistribution")}
                 </Text>
@@ -655,7 +1235,7 @@ const DriverTasks = ({ navigation }) => {
                         styles.progressFill,
                         {
                           width: `${analytics.cityPercent}%`,
-                          backgroundColor: COLORS.info,
+                          backgroundColor: COLORS.INFO,
                         },
                       ]}
                     />
@@ -664,19 +1244,19 @@ const DriverTasks = ({ navigation }) => {
                         styles.progressFill,
                         {
                           width: `${analytics.highwayPercent}%`,
-                          backgroundColor: COLORS.success,
+                          backgroundColor: COLORS.SUCCESS,
                         },
                       ]}
                     />
                   </View>
                   <View style={styles.progressValues}>
                     <Text
-                      style={[styles.progressValue, { color: COLORS.info }]}
+                      style={[styles.progressValue, { color: COLORS.INFO }]}
                     >
                       %{analytics.cityPercent}
                     </Text>
                     <Text
-                      style={[styles.progressValue, { color: COLORS.success }]}
+                      style={[styles.progressValue, { color: COLORS.SUCCESS }]}
                     >
                       %{analytics.highwayPercent}
                     </Text>
@@ -684,12 +1264,13 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
+            {/* Safety */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
                 <Ionicons
                   name="shield-checkmark"
                   size={18}
-                  color={COLORS.safety}
+                  color={COLORS.PRIMARY}
                 />
                 <Text style={styles.sectionTitle}>{t("tasks.safety")}</Text>
               </View>
@@ -697,7 +1278,7 @@ const DriverTasks = ({ navigation }) => {
                 <View style={styles.metricRow}>
                   <View style={styles.metricItem}>
                     <View style={styles.scoreContainer}>
-                      <Ionicons name="star" size={16} color="#F59E0B" />
+                      <Ionicons name="star" size={16} color={COLORS.WARNING} />
                       <Text style={styles.scoreValue}>
                         {analytics.safetyScore}
                       </Text>
@@ -706,7 +1287,7 @@ const DriverTasks = ({ navigation }) => {
                   </View>
                   <View style={styles.metricItem}>
                     <Text
-                      style={[styles.metricValue, { color: COLORS.success }]}
+                      style={[styles.metricValue, { color: COLORS.SUCCESS }]}
                     >
                       {analytics.accidentCount}
                     </Text>
@@ -716,7 +1297,7 @@ const DriverTasks = ({ navigation }) => {
                   </View>
                   <View style={styles.metricItem}>
                     <Text
-                      style={[styles.metricValue, { color: COLORS.warning }]}
+                      style={[styles.metricValue, { color: COLORS.WARNING }]}
                     >
                       {analytics.hardBrakeCount}
                     </Text>
@@ -727,9 +1308,10 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
+            {/* Energy Source */}
             <View style={styles.analyticsSection}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="flash" size={18} color={COLORS.carbon} />
+                <Ionicons name="flash" size={18} color={COLORS.SUCCESS} />
                 <Text style={styles.sectionTitle}>
                   {t("tasks.energySource")}
                 </Text>
@@ -737,7 +1319,7 @@ const DriverTasks = ({ navigation }) => {
               <View style={styles.sectionContent}>
                 <View style={styles.energyRow}>
                   <View style={styles.energyItem}>
-                    <Ionicons name="leaf" size={20} color={COLORS.carbon} />
+                    <Ionicons name="leaf" size={20} color={COLORS.SUCCESS} />
                     <Text style={styles.energyValue}>
                       %{analytics.electricPercent}
                     </Text>
@@ -746,7 +1328,7 @@ const DriverTasks = ({ navigation }) => {
                     </Text>
                   </View>
                   <View style={styles.energyItem}>
-                    <Ionicons name="flame" size={20} color={COLORS.fuel} />
+                    <Ionicons name="flame" size={20} color={COLORS.WARNING} />
                     <Text style={styles.energyValue}>
                       %{analytics.fossilPercent}
                     </Text>
@@ -755,21 +1337,26 @@ const DriverTasks = ({ navigation }) => {
                 </View>
               </View>
             </View>
+            {/* Distance Details */}
             <View style={styles.distanceDetails}>
               <View style={styles.distanceItem}>
-                <Ionicons name="analytics" size={16} color={COLORS.secondary} />
+                <Ionicons
+                  name="analytics"
+                  size={16}
+                  color={COLORS.TEXT_SECONDARY}
+                />
                 <Text style={styles.distanceText}>
                   {t("tasks.avg")}: {analytics.avgKm} km
                 </Text>
               </View>
               <View style={styles.distanceItem}>
-                <Ionicons name="arrow-up" size={16} color={COLORS.success} />
+                <Ionicons name="arrow-up" size={16} color={COLORS.SUCCESS} />
                 <Text style={styles.distanceText}>
                   {t("tasks.max")}: {analytics.maxKm} km
                 </Text>
               </View>
               <View style={styles.distanceItem}>
-                <Ionicons name="arrow-down" size={16} color={COLORS.info} />
+                <Ionicons name="arrow-down" size={16} color={COLORS.INFO} />
                 <Text style={styles.distanceText}>
                   {t("tasks.min")}: {analytics.minKm} km
                 </Text>
@@ -791,7 +1378,7 @@ const DriverTasks = ({ navigation }) => {
       >
         <View style={styles.offersContent}>
           <View style={styles.offersIconContainer}>
-            <Ionicons name="mail-unread" size={24} color={COLORS.white} />
+            <Ionicons name="mail-unread" size={24} color={COLORS.WHITE} />
             {pendingOffersCount > 0 && (
               <View style={styles.offersBadge}>
                 <Text style={styles.offersBadgeText}>{pendingOffersCount}</Text>
@@ -804,7 +1391,7 @@ const DriverTasks = ({ navigation }) => {
               {t("tasks.newOffersWaiting", { count: pendingOffersCount })}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+          <Ionicons name="chevron-forward" size={24} color={COLORS.WHITE} />
         </View>
       </TouchableOpacity>
     );
@@ -814,7 +1401,7 @@ const DriverTasks = ({ navigation }) => {
     if (pendingReviewCount === 0 || activeTab !== "active") return null;
     return (
       <View style={styles.pendingReviewAlert}>
-        <Ionicons name="alert-circle" size={24} color="#D97706" />
+        <Ionicons name="alert-circle" size={24} color={COLORS.WHITE} />
         <View style={styles.pendingReviewAlertContent}>
           <Text style={styles.pendingReviewAlertTitle}>
             {t("tasks.tasksWaitingApproval", { count: pendingReviewCount })}
@@ -847,7 +1434,7 @@ const DriverTasks = ({ navigation }) => {
       <View style={[styles.card, isPendingReview && styles.cardPendingReview]}>
         {isPendingReview && (
           <View style={styles.newTaskBanner}>
-            <Ionicons name="notifications" size={16} color="#fff" />
+            <Ionicons name="notifications" size={16} color={COLORS.WHITE} />
             <Text style={styles.newTaskBannerText}>
               {t("tasks.newTaskOffer")}
             </Text>
@@ -860,7 +1447,7 @@ const DriverTasks = ({ navigation }) => {
         >
           <View style={styles.cardHeader}>
             <View style={styles.taskIdContainer}>
-              <Ionicons name="document-text" size={18} color={COLORS.primary} />
+              <Ionicons name="document-text" size={18} color={COLORS.PRIMARY} />
               <Text style={styles.taskId}>{getShortTaskNo()}</Text>
               {isCompleted && item.completed_at && (
                 <Text style={styles.completedDate}>
@@ -884,7 +1471,7 @@ const DriverTasks = ({ navigation }) => {
                     <View
                       style={[
                         styles.locationDot,
-                        { backgroundColor: COLORS.success },
+                        { backgroundColor: COLORS.SUCCESS },
                       ]}
                     />
                     <Text style={styles.locationText} numberOfLines={1}>
@@ -898,7 +1485,7 @@ const DriverTasks = ({ navigation }) => {
                     <View
                       style={[
                         styles.locationDot,
-                        { backgroundColor: COLORS.danger },
+                        { backgroundColor: COLORS.ERROR },
                       ]}
                     />
                     <Text style={styles.locationText} numberOfLines={1}>
@@ -911,7 +1498,11 @@ const DriverTasks = ({ navigation }) => {
             <View style={styles.metaRow}>
               {item.vehicle_plate && (
                 <View style={styles.metaItem}>
-                  <Ionicons name="car" size={14} color={COLORS.secondary} />
+                  <Ionicons
+                    name="car"
+                    size={14}
+                    color={COLORS.TEXT_SECONDARY}
+                  />
                   <Text style={styles.metaText}>{item.vehicle_plate}</Text>
                 </View>
               )}
@@ -920,14 +1511,14 @@ const DriverTasks = ({ navigation }) => {
                   <Ionicons
                     name="speedometer"
                     size={14}
-                    color={COLORS.secondary}
+                    color={COLORS.TEXT_SECONDARY}
                   />
                   <Text style={styles.metaText}>{distance} km</Text>
                 </View>
               )}
               {isCompleted && distance > 0 && (
                 <View style={styles.metaItem}>
-                  <Ionicons name="leaf" size={14} color={COLORS.carbon} />
+                  <Ionicons name="leaf" size={14} color={COLORS.SUCCESS} />
                   <Text style={styles.metaText}>
                     {(
                       distance *
@@ -944,7 +1535,7 @@ const DriverTasks = ({ navigation }) => {
           <View style={styles.actionButtonsContainer}>
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={COLORS.primary} />
+                <ActivityIndicator size="small" color={COLORS.PRIMARY} />
                 <Text style={styles.loadingText}>{t("tasks.processing")}</Text>
               </View>
             ) : (
@@ -953,7 +1544,7 @@ const DriverTasks = ({ navigation }) => {
                   style={[styles.actionButton, styles.rejectButton]}
                   onPress={() => handleRejectTask(item)}
                 >
-                  <Ionicons name="close" size={20} color="#fff" />
+                  <Ionicons name="close" size={20} color={COLORS.WHITE} />
                   <Text style={styles.actionButtonText}>
                     {t("tasks.reject")}
                   </Text>
@@ -962,7 +1553,7 @@ const DriverTasks = ({ navigation }) => {
                   style={[styles.actionButton, styles.acceptButton]}
                   onPress={() => handleAcceptTask(item)}
                 >
-                  <Ionicons name="checkmark" size={20} color="#fff" />
+                  <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
                   <Text style={styles.actionButtonText}>
                     {t("tasks.accept")}
                   </Text>
@@ -976,7 +1567,7 @@ const DriverTasks = ({ navigation }) => {
             style={styles.goToNavButton}
             onPress={() => navigateToMap(item)}
           >
-            <Ionicons name="navigate" size={18} color="#fff" />
+            <Ionicons name="navigate" size={18} color={COLORS.WHITE} />
             <Text style={styles.goToNavButtonText}>
               {t("tasks.goToMapStart")}
             </Text>
@@ -990,10 +1581,10 @@ const DriverTasks = ({ navigation }) => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
                 <>
-                  <Ionicons name="arrow-undo" size={18} color="#fff" />
+                  <Ionicons name="arrow-undo" size={18} color={COLORS.WHITE} />
                   <Text style={styles.acceptedButtonText}>
                     {t("tasks.withdraw")}
                   </Text>
@@ -1003,11 +1594,11 @@ const DriverTasks = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 styles.acceptedButton,
-                { backgroundColor: COLORS.info, flex: 0.6 },
+                { backgroundColor: COLORS.INFO, flex: 0.6 },
               ]}
               onPress={() => navigation.navigate("Navigation", { task: item })}
             >
-              <Ionicons name="navigate" size={18} color="#fff" />
+              <Ionicons name="navigate" size={18} color={COLORS.WHITE} />
               <Text style={styles.acceptedButtonText}>
                 {t("tasks.continueToMap")}
               </Text>
@@ -1027,7 +1618,7 @@ const DriverTasks = ({ navigation }) => {
             : "checkmark-done-outline"
         }
         size={64}
-        color={COLORS.muted}
+        color={COLORS.MUTED}
       />
       <Text style={styles.emptyTitle}>
         {activeTab === "active"
@@ -1045,14 +1636,15 @@ const DriverTasks = ({ navigation }) => {
   if (loading && !refreshing)
     return (
       <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>{t("tasks.loadingTasks")}</Text>
       </View>
     );
+
   if (error && !refreshing)
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="alert-circle" size={64} color={COLORS.danger} />
+        <Ionicons name="alert-circle" size={64} color={COLORS.ERROR} />
         <Text style={styles.errorTitle}>{t("tasks.error")}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchTasks}>
@@ -1086,7 +1678,7 @@ const DriverTasks = ({ navigation }) => {
               <Text
                 style={[
                   styles.tabBadgeText,
-                  activeTab !== "active" && { color: COLORS.primary },
+                  activeTab !== "active" && { color: COLORS.PRIMARY },
                 ]}
               >
                 {activeCount}
@@ -1098,19 +1690,13 @@ const DriverTasks = ({ navigation }) => {
           style={[styles.tab, activeTab === "completed" && styles.activeTab]}
           onPress={() => handleTabChange("completed")}
         >
-          <Ionicons
-            name="analytics"
-            size={16}
-            color={activeTab === "completed" ? COLORS.white : COLORS.secondary}
-            style={{ marginRight: 6 }}
-          />
           <Text
             style={[
               styles.tabText,
               activeTab === "completed" && styles.activeTabText,
             ]}
           >
-            {t("tasks.history")}
+            {t("tasks.completed")}
           </Text>
           {completedCount > 0 && (
             <View
@@ -1122,7 +1708,7 @@ const DriverTasks = ({ navigation }) => {
               <Text
                 style={[
                   styles.tabBadgeText,
-                  activeTab !== "completed" && { color: COLORS.primary },
+                  activeTab !== "completed" && { color: COLORS.PRIMARY },
                 ]}
               >
                 {completedCount}
@@ -1131,25 +1717,26 @@ const DriverTasks = ({ navigation }) => {
           )}
         </TouchableOpacity>
       </View>
+
       <FlatList
         data={filteredTasks}
+        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
         renderItem={renderTaskCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <>
-            {activeTab === "active" && renderOffersCard()}
+            {renderOffersCard()}
             {renderPendingReviewAlert()}
             {renderAnalyticsCards()}
           </>
         }
         ListEmptyComponent={renderEmpty}
+        contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
+            tintColor={COLORS.PRIMARY}
+            colors={[COLORS.PRIMARY]}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -1158,356 +1745,6 @@ const DriverTasks = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginHorizontal: 4,
-  },
-  activeTab: { backgroundColor: COLORS.primary },
-  tabText: { fontSize: 14, fontWeight: "600", color: COLORS.secondary },
-  activeTabText: { color: COLORS.white },
-  tabBadge: {
-    marginLeft: 8,
-    backgroundColor: "#E8EAFF",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  activeTabBadge: { backgroundColor: "rgba(255,255,255,0.3)" },
-  tabBadgeText: { fontSize: 12, fontWeight: "bold", color: COLORS.white },
-  listContainer: { padding: 12, paddingBottom: 24 },
-  analyticsContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: "hidden",
-  },
-  analyticsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.background,
-  },
-  analyticsHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  analyticsTitle: { fontSize: 16, fontWeight: "700", color: COLORS.dark },
-  summaryCard: { padding: 16 },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  summaryItem: { alignItems: "center", flex: 1 },
-  summaryIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  summaryValue: { fontSize: 20, fontWeight: "700", color: COLORS.dark },
-  summaryLabel: { fontSize: 12, color: COLORS.secondary, marginTop: 2 },
-  summaryDivider: { width: 1, height: 60, backgroundColor: "#E5E7EB" },
-  expandedAnalytics: { padding: 16, paddingTop: 0 },
-  analyticsSection: {
-    marginBottom: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    padding: 12,
-    backgroundColor: COLORS.white,
-  },
-  sectionTitle: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
-  sectionContent: { padding: 12 },
-  metricRow: { flexDirection: "row", justifyContent: "space-around" },
-  metricItem: { alignItems: "center", flex: 1 },
-  metricValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
-  metricLabel: { fontSize: 11, color: COLORS.secondary, marginTop: 2 },
-  progressContainer: { gap: 8 },
-  progressLabels: { flexDirection: "row", justifyContent: "space-between" },
-  progressLabel: { fontSize: 12, color: COLORS.secondary },
-  progressBar: {
-    flexDirection: "row",
-    height: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-    backgroundColor: "#E5E7EB",
-  },
-  progressFill: { height: "100%" },
-  progressValues: { flexDirection: "row", justifyContent: "space-between" },
-  progressValue: { fontSize: 14, fontWeight: "600" },
-  scoreContainer: { flexDirection: "row", alignItems: "center", gap: 4 },
-  scoreValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
-  energyRow: { flexDirection: "row", justifyContent: "space-around" },
-  energyItem: { alignItems: "center", gap: 4 },
-  energyValue: { fontSize: 18, fontWeight: "700", color: COLORS.dark },
-  energyLabel: { fontSize: 11, color: COLORS.secondary },
-  distanceDetails: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-    paddingTop: 12,
-  },
-  distanceItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  distanceText: { fontSize: 12, color: COLORS.secondary, fontWeight: "500" },
-  pendingReviewAlert: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FEF3C7",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#D97706",
-  },
-  pendingReviewAlertContent: { flex: 1, marginLeft: 12 },
-  pendingReviewAlertTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#92400E",
-  },
-  pendingReviewAlertSubtitle: { fontSize: 12, color: "#B45309", marginTop: 2 },
-  offersCard: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    marginBottom: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  offersContent: { flexDirection: "row", alignItems: "center" },
-  offersIconContainer: { position: "relative", marginRight: 14 },
-  offersBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: COLORS.danger,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 5,
-  },
-  offersBadgeText: { color: COLORS.white, fontSize: 11, fontWeight: "bold" },
-  offersTextContainer: { flex: 1 },
-  offersTitle: { fontSize: 16, fontWeight: "bold", color: COLORS.white },
-  offersSubtitle: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 2,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: "hidden",
-  },
-  cardPendingReview: { borderWidth: 2, borderColor: COLORS.warning },
-  newTaskBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.warning,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  newTaskBannerText: { color: "#fff", fontWeight: "700", fontSize: 13 },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.background,
-  },
-  taskIdContainer: { flexDirection: "row", alignItems: "center", flex: 1 },
-  taskId: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: COLORS.dark,
-    marginLeft: 8,
-  },
-  completedDate: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginLeft: 8,
-    backgroundColor: "#F3F4F6",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  statusText: { fontSize: 11, fontWeight: "600", marginLeft: 4 },
-  cardBody: { padding: 14 },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginBottom: 10,
-  },
-  locationContainer: { marginBottom: 12 },
-  locationRow: { flexDirection: "row", alignItems: "center" },
-  locationDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
-  locationLine: {
-    width: 2,
-    height: 15,
-    backgroundColor: COLORS.muted,
-    marginLeft: 3,
-    marginVertical: 2,
-  },
-  locationText: { fontSize: 13, color: COLORS.dark, flex: 1 },
-  metaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 15,
-    marginTop: 4,
-  },
-  metaText: { fontSize: 12, color: COLORS.secondary, marginLeft: 4 },
-  actionButtonsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.background,
-    padding: 12,
-  },
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  actionButtons: { flexDirection: "row", gap: 10 },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 6,
-  },
-  rejectButton: { backgroundColor: COLORS.danger },
-  acceptButton: { backgroundColor: COLORS.success },
-  actionButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  goToNavButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 12,
-    marginBottom: 12,
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
-  },
-  goToNavButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  continueNavButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.info,
-    marginHorizontal: 12,
-    marginBottom: 12,
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
-  },
-  continueNavButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  acceptedButtonsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginHorizontal: 12,
-    marginBottom: 12,
-    gap: 10,
-  },
-  acceptedButton: {
-    flex: 0.4,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
-  },
-  withdrawButton: { backgroundColor: COLORS.danger },
-  acceptedButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.dark,
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    textAlign: "center",
-    marginTop: 8,
-    paddingHorizontal: 20,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.danger,
-    marginTop: 16,
-  },
-  errorText: { fontSize: 14, color: COLORS.secondary, marginTop: 8 },
-  retryButton: {
-    marginTop: 20,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: { color: COLORS.white, fontWeight: "600" },
-  loadingText: { marginTop: 12, color: COLORS.secondary },
-});
+// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverTasks;

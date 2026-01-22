@@ -2,19 +2,23 @@
  * CreateTaskScreen.js - User-Friendly Date/Time Picker (v2)
  * TulipFleet - Task Creation with Modern DateTime Selection
  *
- * v2 Fixes:
+ * v2 Fixes (korundu):
  * - iOS DateTimePicker Modal wrapper + Done button
  * - Modal overlay propagation fix
  * - End time validation (same day check)
  * - Timezone handling (UTC aware)
  * - i18n keys for all strings
  * - Removed unused imports
+ *
+ * Dark Mode Regen:
+ * - Migration Rehberi pattern: makeStyles + useThemedStyles + useTheme
+ * - Hardcoded HEX kaldırıldı (token + withAlpha)
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Text } from "galio-framework";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -29,48 +33,52 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driversAPI, taskAPI, vehicleAPI } from "../../services/api";
 
-// Tema Renkleri (Admin = Blue Theme)
-const COLORS = {
-  primary: "#2563EB",
-  primaryDark: "#1D4ED8",
-  primaryLight: "#3B82F6",
-  background: "#F8FAFC",
-  card: "#FFFFFF",
-  text: "#1E293B",
-  textSecondary: "#64748B",
-  border: "#E2E8F0",
-  success: "#10B981",
-  warning: "#F59E0B",
-  error: "#EF4444",
-  inputBg: "#F1F5F9",
+// --- helper: #RRGGBB => #RRGGBBAA (soft bg/overlay için) ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
 };
 
-// Öncelik seçenekleri
+// Öncelik seçenekleri (renkler token ile component içinde çözülür)
 const PRIORITY_OPTIONS = [
   {
     value: "low",
     labelKey: "priority_low",
-    color: "#10B981",
+    colorToken: "SUCCESS",
     icon: "chevron-down-circle",
   },
   {
     value: "normal",
     labelKey: "priority_normal",
-    color: "#3B82F6",
+    colorToken: "PRIMARY",
     icon: "remove-circle",
   },
   {
     value: "high",
     labelKey: "priority_high",
-    color: "#F59E0B",
+    colorToken: "WARNING",
     icon: "chevron-up-circle",
   },
   {
     value: "urgent",
     labelKey: "priority_urgent",
-    color: "#EF4444",
+    colorToken: "ERROR",
     icon: "alert-circle",
   },
 ];
@@ -78,14 +86,385 @@ const PRIORITY_OPTIONS = [
 // i18n fallback helper
 const getText = (t, key, fallbackTr, fallbackEn, isEn) => {
   const translated = t(key);
-  // Eğer key döndüyse (çeviri yoksa) fallback kullan
-  if (translated === key) {
-    return isEn ? fallbackEn : fallbackTr;
-  }
+  if (translated === key) return isEn ? fallbackEn : fallbackTr;
   return translated;
 };
 
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      color: COLORS.MUTED,
+    },
+
+    // Header
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingTop: Platform.OS === "ios" ? 50 : 16,
+      paddingBottom: 16,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    // Content
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+
+    // Section
+    section: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.35) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginBottom: 16,
+    },
+
+    // Input
+    inputGroup: {
+      marginBottom: 16,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.MUTED,
+      marginBottom: 8,
+    },
+    textInput: {
+      backgroundColor:
+        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    textArea: {
+      minHeight: 80,
+      paddingTop: 14,
+    },
+
+    // Select Button
+    selectButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor:
+        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    selectContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      flex: 1,
+      paddingRight: 10,
+    },
+    selectText: {
+      fontSize: 16,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      flex: 1,
+    },
+    selectPlaceholder: {
+      color: COLORS.MUTED,
+    },
+
+    // DateTime
+    dateTimeSection: {
+      marginBottom: 16,
+    },
+    dateTimeGroupLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginBottom: 10,
+    },
+    dateTimeRow: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    dateTimeButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor:
+        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    dateTimeIconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    dateTimeContent: {
+      flex: 1,
+      marginLeft: 10,
+    },
+    dateTimeLabel: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+    },
+    dateTimeValue: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 2,
+    },
+
+    // Duration Info
+    durationInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
+      borderRadius: 10,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: withAlpha(COLORS.PRIMARY, 0.18),
+    },
+    durationText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: COLORS.PRIMARY,
+    },
+
+    // Location
+    locationInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor:
+        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+      paddingHorizontal: 12,
+    },
+    locationIcon: {
+      marginRight: 10,
+    },
+    locationInput: {
+      flex: 1,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    // Route Line
+    routeLine: {
+      paddingVertical: 8,
+      paddingLeft: 28,
+    },
+    routeDots: {
+      alignItems: "center",
+      height: 40,
+    },
+    routeDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+    },
+    routeLineVertical: {
+      width: 2,
+      flex: 1,
+      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      marginVertical: 2,
+    },
+
+    // Submit Button
+    submitButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      borderRadius: 14,
+      paddingVertical: 16,
+      marginTop: 8,
+      gap: 10,
+      shadowColor: COLORS.PRIMARY,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    submitButtonDisabled: {
+      backgroundColor: COLORS.MUTED,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    submitButtonText: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: COLORS.WHITE,
+    },
+
+    // Modal
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: withAlpha(COLORS.BLACK, 0.5),
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      maxHeight: "70%",
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    modalList: {
+      padding: 12,
+    },
+    modalItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 14,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    modalItemSelected: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
+    },
+    modalItemContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      flex: 1,
+      paddingRight: 12,
+    },
+    avatarCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalItemTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    modalItemSubtitle: {
+      fontSize: 13,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    emptyText: {
+      textAlign: "center",
+      color: COLORS.MUTED,
+      fontSize: 15,
+      paddingVertical: 30,
+    },
+
+    // iOS DateTime Picker Modal
+    iosPickerModal: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    iosPickerHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    iosPickerTitle: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    iosPickerCancel: {
+      fontSize: 16,
+      color: COLORS.MUTED,
+    },
+    iosPickerDone: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.PRIMARY,
+    },
+    iosPicker: {
+      height: 216,
+    },
+  });
+
 export default function CreateTaskScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { COLORS } = useTheme();
+
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === "en";
 
@@ -103,7 +482,7 @@ export default function CreateTaskScreen({ navigation }) {
   const [startTime, setStartTime] = useState(new Date());
   const [endDate, setEndDate] = useState(
     new Date(Date.now() + 2 * 60 * 60 * 1000)
-  ); // +2 saat
+  );
   const [endTime, setEndTime] = useState(
     new Date(Date.now() + 2 * 60 * 60 * 1000)
   );
@@ -131,9 +510,19 @@ export default function CreateTaskScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
+  // Priority colors from theme
+  const PRIORITY_RESOLVED = useMemo(() => {
+    const tokenToColor = (token) => COLORS[token] || COLORS.PRIMARY;
+    return PRIORITY_OPTIONS.map((p) => ({
+      ...p,
+      color: tokenToColor(p.colorToken),
+    }));
+  }, [COLORS]);
+
   // Fetch drivers and vehicles
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -163,87 +552,51 @@ export default function CreateTaskScreen({ navigation }) {
   };
 
   // Format date for display
-  const formatDate = (date) => {
-    return date.toLocaleDateString(isEn ? "en-GB" : "tr-TR", {
+  const formatDate = (date) =>
+    date.toLocaleDateString(isEn ? "en-GB" : "tr-TR", {
       weekday: "short",
       day: "numeric",
       month: "short",
       year: "numeric",
     });
-  };
 
   // Format time for display
-  const formatTime = (time) => {
-    return time.toLocaleTimeString(isEn ? "en-GB" : "tr-TR", {
+  const formatTime = (time) =>
+    time.toLocaleTimeString(isEn ? "en-GB" : "tr-TR", {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  // ============================================
-  // FIX #1: iOS DateTimePicker handlers - always close
-  // ============================================
 
   // Android: Direct selection closes picker
-  // iOS: We use Modal wrapper with Done button
+  // iOS: Modal wrapper + Done button
 
   const onStartDateChange = (event, selectedDate) => {
     if (Platform.OS === "android") {
       setShowStartDatePicker(false);
       if (event.type === "set" && selectedDate) {
         setStartDate(selectedDate);
-        // Auto-update end date if start is after end
-        if (selectedDate > endDate) {
-          setEndDate(selectedDate);
-        }
+        if (selectedDate > endDate) setEndDate(selectedDate);
       }
     } else {
-      // iOS: Update temp value, user will press Done
-      if (selectedDate) {
-        setTempStartDate(selectedDate);
-      }
+      if (selectedDate) setTempStartDate(selectedDate);
     }
   };
 
   const onStartTimeChange = (event, selectedTime) => {
     if (Platform.OS === "android") {
       setShowStartTimePicker(false);
-      if (event.type === "set" && selectedTime) {
-        setStartTime(selectedTime);
-      }
+      if (event.type === "set" && selectedTime) setStartTime(selectedTime);
     } else {
-      if (selectedTime) {
-        setTempStartTime(selectedTime);
-      }
+      if (selectedTime) setTempStartTime(selectedTime);
     }
   };
 
   const onEndDateChange = (event, selectedDate) => {
     if (Platform.OS === "android") {
       setShowEndDatePicker(false);
-      if (event.type === "set" && selectedDate) {
-        setEndDate(selectedDate);
-      }
+      if (event.type === "set" && selectedDate) setEndDate(selectedDate);
     } else {
-      if (selectedDate) {
-        setTempEndDate(selectedDate);
-      }
-    }
-  };
-
-  // ============================================
-  // FIX #3: End time validation for same day
-  // ============================================
-  const onEndTimeChange = (event, selectedTime) => {
-    if (Platform.OS === "android") {
-      setShowEndTimePicker(false);
-      if (event.type === "set" && selectedTime) {
-        validateAndSetEndTime(selectedTime);
-      }
-    } else {
-      if (selectedTime) {
-        setTempEndTime(selectedTime);
-      }
+      if (selectedDate) setTempEndDate(selectedDate);
     }
   };
 
@@ -265,6 +618,16 @@ export default function CreateTaskScreen({ navigation }) {
       return;
     }
     setEndTime(newTime);
+  };
+
+  const onEndTimeChange = (event, selectedTime) => {
+    if (Platform.OS === "android") {
+      setShowEndTimePicker(false);
+      if (event.type === "set" && selectedTime)
+        validateAndSetEndTime(selectedTime);
+    } else {
+      if (selectedTime) setTempEndTime(selectedTime);
+    }
   };
 
   // iOS Done button handlers
@@ -313,17 +676,14 @@ export default function CreateTaskScreen({ navigation }) {
     setTempStartDate(startDate);
     setShowStartDatePicker(true);
   };
-
   const openStartTimePicker = () => {
     setTempStartTime(startTime);
     setShowStartTimePicker(true);
   };
-
   const openEndDatePicker = () => {
     setTempEndDate(endDate);
     setShowEndDatePicker(true);
   };
-
   const openEndTimePicker = () => {
     setTempEndTime(endTime);
     setShowEndTimePicker(true);
@@ -391,9 +751,7 @@ export default function CreateTaskScreen({ navigation }) {
     return true;
   };
 
-  // ============================================
-  // FIX #4: Timezone handling - UTC to backend
-  // ============================================
+  // Timezone handling - UTC to backend
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
@@ -403,8 +761,6 @@ export default function CreateTaskScreen({ navigation }) {
     try {
       setLoading(true);
 
-      // Backend expects UTC timestamps (toISOString converts to UTC)
-      // Backend stores in TIMESTAMPTZ which handles timezone correctly
       const taskData = {
         title: title.trim(),
         description: description.trim(),
@@ -464,9 +820,7 @@ export default function CreateTaskScreen({ navigation }) {
       return getText(t, "select_vehicle", "Araç Seç", "Select Vehicle", isEn);
     const vehicle = vehicles.find((v) => v.id === vehicleId);
     return vehicle
-      ? `${vehicle.plate_no} - ${vehicle.brand || ""} ${
-          vehicle.model || ""
-        }`.trim()
+      ? `${vehicle.plate_no} - ${vehicle.brand || ""} ${vehicle.model || ""}`.trim()
       : "";
   };
 
@@ -479,48 +833,49 @@ export default function CreateTaskScreen({ navigation }) {
       p.value === "low"
         ? "Düşük"
         : p.value === "normal"
-        ? "Normal"
-        : p.value === "high"
-        ? "Yüksek"
-        : "Acil",
+          ? "Normal"
+          : p.value === "high"
+            ? "Yüksek"
+            : "Acil",
       p.value === "low"
         ? "Low"
         : p.value === "normal"
-        ? "Normal"
-        : p.value === "high"
-        ? "High"
-        : "Urgent",
+          ? "Normal"
+          : p.value === "high"
+            ? "High"
+            : "Urgent",
       isEn
     );
   };
 
-  // Render DateTime Picker Button
   const DateTimeButton = ({
     icon,
     label,
     value,
     onPress,
-    color = COLORS.primary,
+    color = COLORS.PRIMARY,
   }) => (
     <TouchableOpacity
       style={styles.dateTimeButton}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.dateTimeIconBox, { backgroundColor: color + "15" }]}>
+      <View
+        style={[
+          styles.dateTimeIconBox,
+          { backgroundColor: withAlpha(color, 0.12) },
+        ]}
+      >
         <Ionicons name={icon} size={20} color={color} />
       </View>
       <View style={styles.dateTimeContent}>
         <Text style={styles.dateTimeLabel}>{label}</Text>
         <Text style={styles.dateTimeValue}>{value}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+      <Ionicons name="chevron-forward" size={18} color={COLORS.MUTED} />
     </TouchableOpacity>
   );
 
-  // ============================================
-  // FIX #1: iOS DateTime Picker Modal
-  // ============================================
   const IOSDateTimePickerModal = ({
     visible,
     onClose,
@@ -568,9 +923,6 @@ export default function CreateTaskScreen({ navigation }) {
     </Modal>
   );
 
-  // ============================================
-  // FIX #2: Selection Modal with propagation fix
-  // ============================================
   const SelectionModal = ({
     visible,
     onClose,
@@ -587,12 +939,15 @@ export default function CreateTaskScreen({ navigation }) {
       onRequestClose={onClose}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        {/* FIX #2: Inner Pressable prevents propagation */}
         <Pressable style={styles.modalContent} onPress={() => {}}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={COLORS.text} />
+              <Ionicons
+                name="close"
+                size={24}
+                color={COLORS.TEXT ?? COLORS.DEFAULT}
+              />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.modalList}>
@@ -625,7 +980,7 @@ export default function CreateTaskScreen({ navigation }) {
                     <Ionicons
                       name="checkmark-circle"
                       size={22}
-                      color={COLORS.primary}
+                      color={COLORS.PRIMARY}
                     />
                   )}
                 </TouchableOpacity>
@@ -640,13 +995,19 @@ export default function CreateTaskScreen({ navigation }) {
   if (dataLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>
           {getText(t, "loading", "Yükleniyor...", "Loading...", isEn)}
         </Text>
       </View>
     );
   }
+
+  const priorityIcon =
+    PRIORITY_OPTIONS.find((p) => p.value === priority)?.icon || "remove-circle";
+  const priorityColor =
+    PRIORITY_RESOLVED.find((p) => p.value === priority)?.color ||
+    COLORS.PRIMARY;
 
   return (
     <View style={styles.container}>
@@ -656,7 +1017,11 @@ export default function CreateTaskScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {getText(t, "new_task", "Yeni Görev", "New Task", isEn)}
@@ -671,7 +1036,7 @@ export default function CreateTaskScreen({ navigation }) {
             <Ionicons
               name="clipboard-outline"
               size={18}
-              color={COLORS.primary}
+              color={COLORS.PRIMARY}
             />
             {"  "}
             {getText(
@@ -699,7 +1064,7 @@ export default function CreateTaskScreen({ navigation }) {
                 "Enter task title",
                 isEn
               )}
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={COLORS.PLACEHOLDER}
             />
           </View>
 
@@ -719,7 +1084,7 @@ export default function CreateTaskScreen({ navigation }) {
                 "Task description (optional)",
                 isEn
               )}
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={COLORS.PLACEHOLDER}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
@@ -736,24 +1101,10 @@ export default function CreateTaskScreen({ navigation }) {
               onPress={() => setShowPriorityPicker(true)}
             >
               <View style={styles.selectContent}>
-                <Ionicons
-                  name={
-                    PRIORITY_OPTIONS.find((p) => p.value === priority)?.icon ||
-                    "remove-circle"
-                  }
-                  size={20}
-                  color={
-                    PRIORITY_OPTIONS.find((p) => p.value === priority)?.color ||
-                    COLORS.primary
-                  }
-                />
+                <Ionicons name={priorityIcon} size={20} color={priorityColor} />
                 <Text style={styles.selectText}>{getPriorityLabel()}</Text>
               </View>
-              <Ionicons
-                name="chevron-down"
-                size={18}
-                color={COLORS.textSecondary}
-              />
+              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
             </TouchableOpacity>
           </View>
         </View>
@@ -764,7 +1115,7 @@ export default function CreateTaskScreen({ navigation }) {
             <Ionicons
               name="calendar-outline"
               size={18}
-              color={COLORS.primary}
+              color={COLORS.PRIMARY}
             />
             {"  "}
             {getText(t, "schedule", "Zamanlama", "Schedule", isEn)}
@@ -781,14 +1132,14 @@ export default function CreateTaskScreen({ navigation }) {
                 label={getText(t, "date", "Tarih", "Date", isEn)}
                 value={formatDate(startDate)}
                 onPress={openStartDatePicker}
-                color="#10B981"
+                color={COLORS.SUCCESS}
               />
               <DateTimeButton
                 icon="time"
                 label={getText(t, "time", "Saat", "Time", isEn)}
                 value={formatTime(startTime)}
                 onPress={openStartTimePicker}
-                color="#10B981"
+                color={COLORS.SUCCESS}
               />
             </View>
           </View>
@@ -804,25 +1155,21 @@ export default function CreateTaskScreen({ navigation }) {
                 label={getText(t, "date", "Tarih", "Date", isEn)}
                 value={formatDate(endDate)}
                 onPress={openEndDatePicker}
-                color="#EF4444"
+                color={COLORS.ERROR}
               />
               <DateTimeButton
                 icon="time"
                 label={getText(t, "time", "Saat", "Time", isEn)}
                 value={formatTime(endTime)}
                 onPress={openEndTimePicker}
-                color="#EF4444"
+                color={COLORS.ERROR}
               />
             </View>
           </View>
 
           {/* Duration Info */}
           <View style={styles.durationInfo}>
-            <Ionicons
-              name="hourglass-outline"
-              size={16}
-              color={COLORS.textSecondary}
-            />
+            <Ionicons name="hourglass-outline" size={16} color={COLORS.MUTED} />
             <Text style={styles.durationText}>
               {getText(t, "duration", "Süre", "Duration", isEn)}:{" "}
               {(() => {
@@ -835,15 +1182,12 @@ export default function CreateTaskScreen({ navigation }) {
                 const minutes = Math.floor(
                   (diff % (1000 * 60 * 60)) / (1000 * 60)
                 );
-                if (hours > 0 && minutes > 0) {
+                if (hours > 0 && minutes > 0)
                   return isEn
                     ? `${hours}h ${minutes}m`
                     : `${hours} saat ${minutes} dk`;
-                } else if (hours > 0) {
-                  return isEn ? `${hours} hours` : `${hours} saat`;
-                } else {
-                  return isEn ? `${minutes} minutes` : `${minutes} dakika`;
-                }
+                if (hours > 0) return isEn ? `${hours} hours` : `${hours} saat`;
+                return isEn ? `${minutes} minutes` : `${minutes} dakika`;
               })()}
             </Text>
           </View>
@@ -852,7 +1196,7 @@ export default function CreateTaskScreen({ navigation }) {
         {/* Assignment Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            <Ionicons name="people-outline" size={18} color={COLORS.primary} />
+            <Ionicons name="people-outline" size={18} color={COLORS.PRIMARY} />
             {"  "}
             {getText(t, "assignment", "Atama", "Assignment", isEn)}
           </Text>
@@ -867,7 +1211,7 @@ export default function CreateTaskScreen({ navigation }) {
               onPress={() => setShowDriverPicker(true)}
             >
               <View style={styles.selectContent}>
-                <Ionicons name="person" size={20} color={COLORS.primary} />
+                <Ionicons name="person" size={20} color={COLORS.PRIMARY} />
                 <Text
                   style={[
                     styles.selectText,
@@ -877,11 +1221,7 @@ export default function CreateTaskScreen({ navigation }) {
                   {getDriverName()}
                 </Text>
               </View>
-              <Ionicons
-                name="chevron-down"
-                size={18}
-                color={COLORS.textSecondary}
-              />
+              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
             </TouchableOpacity>
           </View>
 
@@ -895,7 +1235,7 @@ export default function CreateTaskScreen({ navigation }) {
               onPress={() => setShowVehiclePicker(true)}
             >
               <View style={styles.selectContent}>
-                <Ionicons name="car" size={20} color={COLORS.primary} />
+                <Ionicons name="car" size={20} color={COLORS.PRIMARY} />
                 <Text
                   style={[
                     styles.selectText,
@@ -905,11 +1245,7 @@ export default function CreateTaskScreen({ navigation }) {
                   {getVehicleName()}
                 </Text>
               </View>
-              <Ionicons
-                name="chevron-down"
-                size={18}
-                color={COLORS.textSecondary}
-              />
+              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
             </TouchableOpacity>
           </View>
         </View>
@@ -920,7 +1256,7 @@ export default function CreateTaskScreen({ navigation }) {
             <Ionicons
               name="navigate-outline"
               size={18}
-              color={COLORS.primary}
+              color={COLORS.PRIMARY}
             />
             {"  "}
             {getText(t, "route", "Rota", "Route", isEn)}
@@ -942,7 +1278,7 @@ export default function CreateTaskScreen({ navigation }) {
               <Ionicons
                 name="location"
                 size={20}
-                color="#10B981"
+                color={COLORS.SUCCESS}
                 style={styles.locationIcon}
               />
               <TextInput
@@ -956,7 +1292,7 @@ export default function CreateTaskScreen({ navigation }) {
                   "Enter start address",
                   isEn
                 )}
-                placeholderTextColor={COLORS.textSecondary}
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
           </View>
@@ -964,9 +1300,13 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Route Line */}
           <View style={styles.routeLine}>
             <View style={styles.routeDots}>
-              <View style={[styles.routeDot, { backgroundColor: "#10B981" }]} />
+              <View
+                style={[styles.routeDot, { backgroundColor: COLORS.SUCCESS }]}
+              />
               <View style={styles.routeLineVertical} />
-              <View style={[styles.routeDot, { backgroundColor: "#EF4444" }]} />
+              <View
+                style={[styles.routeDot, { backgroundColor: COLORS.ERROR }]}
+              />
             </View>
           </View>
 
@@ -979,7 +1319,7 @@ export default function CreateTaskScreen({ navigation }) {
               <Ionicons
                 name="flag"
                 size={20}
-                color="#EF4444"
+                color={COLORS.ERROR}
                 style={styles.locationIcon}
               />
               <TextInput
@@ -993,7 +1333,7 @@ export default function CreateTaskScreen({ navigation }) {
                   "Enter destination address",
                   isEn
                 )}
-                placeholderTextColor={COLORS.textSecondary}
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
           </View>
@@ -1007,10 +1347,14 @@ export default function CreateTaskScreen({ navigation }) {
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={COLORS.WHITE} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={22} color="#FFF" />
+              <Ionicons
+                name="checkmark-circle"
+                size={22}
+                color={COLORS.WHITE}
+              />
               <Text style={styles.submitButtonText}>
                 {getText(
                   t,
@@ -1026,10 +1370,6 @@ export default function CreateTaskScreen({ navigation }) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* ============================================ */}
-      {/* Date/Time Pickers - Platform specific */}
-      {/* ============================================ */}
 
       {/* Android Pickers - Native UI */}
       {Platform.OS === "android" && showStartDatePicker && (
@@ -1048,7 +1388,7 @@ export default function CreateTaskScreen({ navigation }) {
           mode="time"
           display="clock"
           onChange={onStartTimeChange}
-          is24Hour={true}
+          is24Hour
         />
       )}
 
@@ -1068,7 +1408,7 @@ export default function CreateTaskScreen({ navigation }) {
           mode="time"
           display="clock"
           onChange={onEndTimeChange}
-          is24Hour={true}
+          is24Hour
         />
       )}
 
@@ -1154,15 +1494,14 @@ export default function CreateTaskScreen({ navigation }) {
         renderItem={(driver) => (
           <View style={styles.modalItemContent}>
             <View style={styles.avatarCircle}>
-              <Ionicons name="person" size={20} color={COLORS.primary} />
+              <Ionicons name="person" size={20} color={COLORS.PRIMARY} />
             </View>
-            <View>
-              <Text style={styles.modalItemTitle}>
-                {`${driver.first_name || ""} ${
-                  driver.last_name || ""
-                }`.trim() || driver.email}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalItemTitle} numberOfLines={1}>
+                {`${driver.first_name || ""} ${driver.last_name || ""}`.trim() ||
+                  driver.email}
               </Text>
-              <Text style={styles.modalItemSubtitle}>
+              <Text style={styles.modalItemSubtitle} numberOfLines={1}>
                 {driver.license_no || driver.email}
               </Text>
             </View>
@@ -1179,17 +1518,14 @@ export default function CreateTaskScreen({ navigation }) {
         onSelect={setVehicleId}
         renderItem={(vehicle) => (
           <View style={styles.modalItemContent}>
-            <View
-              style={[
-                styles.avatarCircle,
-                { backgroundColor: COLORS.primary + "15" },
-              ]}
-            >
-              <Ionicons name="car" size={20} color={COLORS.primary} />
+            <View style={styles.avatarCircle}>
+              <Ionicons name="car" size={20} color={COLORS.PRIMARY} />
             </View>
-            <View>
-              <Text style={styles.modalItemTitle}>{vehicle.plate_no}</Text>
-              <Text style={styles.modalItemSubtitle}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalItemTitle} numberOfLines={1}>
+                {vehicle.plate_no}
+              </Text>
+              <Text style={styles.modalItemSubtitle} numberOfLines={1}>
                 {`${vehicle.brand || ""} ${vehicle.model || ""}`.trim() || "-"}
               </Text>
             </View>
@@ -1207,34 +1543,40 @@ export default function CreateTaskScreen({ navigation }) {
           "Select Priority",
           isEn
         )}
-        data={PRIORITY_OPTIONS}
+        data={PRIORITY_RESOLVED}
         selectedId={priority}
         onSelect={setPriority}
         renderItem={(p) => (
           <View style={styles.modalItemContent}>
             <View
-              style={[styles.avatarCircle, { backgroundColor: p.color + "20" }]}
+              style={[
+                styles.avatarCircle,
+                { backgroundColor: withAlpha(p.color, 0.12) },
+              ]}
             >
               <Ionicons name={p.icon} size={20} color={p.color} />
             </View>
-            <Text style={[styles.modalItemTitle, { color: p.color }]}>
+            <Text
+              style={[styles.modalItemTitle, { color: p.color }]}
+              numberOfLines={1}
+            >
               {getText(
                 t,
                 p.labelKey,
                 p.value === "low"
                   ? "Düşük"
                   : p.value === "normal"
-                  ? "Normal"
-                  : p.value === "high"
-                  ? "Yüksek"
-                  : "Acil",
+                    ? "Normal"
+                    : p.value === "high"
+                      ? "Yüksek"
+                      : "Acil",
                 p.value === "low"
                   ? "Low"
                   : p.value === "normal"
-                  ? "Normal"
-                  : p.value === "high"
-                  ? "High"
-                  : "Urgent",
+                    ? "Normal"
+                    : p.value === "high"
+                      ? "High"
+                      : "Urgent",
                 isEn
               )}
             </Text>
@@ -1244,355 +1586,3 @@ export default function CreateTaskScreen({ navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-  },
-
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === "ios" ? 50 : 16,
-    paddingBottom: 16,
-    backgroundColor: COLORS.card,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.inputBg,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-
-  // Content
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-
-  // Section
-  section: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginBottom: 16,
-  },
-
-  // Input
-  inputGroup: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  textArea: {
-    minHeight: 80,
-    paddingTop: 14,
-  },
-
-  // Select Button
-  selectButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  selectContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  selectText: {
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  selectPlaceholder: {
-    color: COLORS.textSecondary,
-  },
-
-  // DateTime
-  dateTimeSection: {
-    marginBottom: 16,
-  },
-  dateTimeGroupLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 10,
-  },
-  dateTimeRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  dateTimeButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  dateTimeIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dateTimeContent: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  dateTimeLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  dateTimeValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginTop: 2,
-  },
-
-  // Duration Info
-  durationInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.primary + "10",
-    borderRadius: 10,
-    gap: 8,
-  },
-  durationText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.primary,
-  },
-
-  // Location
-  locationInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-  },
-  locationIcon: {
-    marginRight: 10,
-  },
-  locationInput: {
-    flex: 1,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-
-  // Route Line
-  routeLine: {
-    paddingVertical: 8,
-    paddingLeft: 28,
-  },
-  routeDots: {
-    alignItems: "center",
-    height: 40,
-  },
-  routeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  routeLineVertical: {
-    width: 2,
-    flex: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 2,
-  },
-
-  // Submit Button
-  submitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 16,
-    marginTop: 8,
-    gap: 10,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  submitButtonDisabled: {
-    backgroundColor: COLORS.textSecondary,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  submitButtonText: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#FFF",
-  },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: COLORS.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "70%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  modalList: {
-    padding: 12,
-  },
-  modalItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  modalItemSelected: {
-    backgroundColor: COLORS.primary + "10",
-  },
-  modalItemContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.inputBg,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalItemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  modalItemSubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  emptyText: {
-    textAlign: "center",
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    paddingVertical: 30,
-  },
-
-  // iOS DateTime Picker Modal
-  iosPickerModal: {
-    backgroundColor: COLORS.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  iosPickerHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  iosPickerTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  iosPickerCancel: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-  },
-  iosPickerDone: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.primary,
-  },
-  iosPicker: {
-    height: 216,
-  },
-});

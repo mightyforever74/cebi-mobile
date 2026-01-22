@@ -1,6 +1,7 @@
 ﻿// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Updated: 21 Ocak 2026 - Hardcoded labels (no i18n prefixes)
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
+// Updated: 21 Ocak 2026 - Hardcoded labels (no i18n prefixes) (korundu)
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -14,7 +15,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { useThemedStyles } from "../hooks/useThemedStyles";
 
 // ============================================================================
 // SUPER ADMIN SCREENS
@@ -46,6 +50,7 @@ import EditDriverScreen from "../screens/admin/EditDriverScreen";
 import EditTaskScreen from "../screens/admin/EditTaskScreen";
 import EditVehicleScreen from "../screens/admin/EditVehicleScreen";
 import FleetMapScreen from "../screens/admin/FleetMapScreen";
+import AdminFuelDashboard from "../screens/admin/fuel/AdminFuelDashboard";
 import VehicleTrackScreen from "../screens/admin/VehicleTrackScreen";
 
 // ============================================================================
@@ -78,13 +83,181 @@ import ChangePasswordScreen from "../screens/shared/ChangePasswordScreen";
 import EditProfileScreen from "../screens/shared/EditProfileScreen";
 
 // ============================================================================
-// PLACEHOLDER SCREENS
+// HELPERS
+// ============================================================================
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
+// ============================================================================
+// THEMED STYLES (Rehber Pattern)
+// ============================================================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    // Placeholder
+    placeholderContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      padding: 20,
+    },
+    placeholderTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 16,
+      textAlign: "center",
+    },
+    placeholderDesc: {
+      fontSize: 14,
+      color: COLORS.MUTED,
+      marginTop: 8,
+      textAlign: "center",
+    },
+
+    // Drawer
+    drawerContainer: {
+      flex: 1,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    drawerHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 20,
+      paddingTop: 50,
+      paddingBottom: 20,
+    },
+    avatarContainer: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: withAlpha(COLORS.WHITE, 0.25),
+    },
+    avatarText: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.WHITE,
+    },
+    userInfo: {
+      marginLeft: 14,
+      flex: 1,
+    },
+    userName: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: COLORS.WHITE,
+    },
+    roleBadge: {
+      alignSelf: "flex-start",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+      marginTop: 6,
+      backgroundColor: withAlpha(COLORS.WHITE, 0.25),
+    },
+    roleText: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: COLORS.WHITE,
+    },
+    companyName: {
+      fontSize: 12,
+      color: withAlpha(COLORS.WHITE, 0.8),
+      marginTop: 4,
+    },
+    menuContainer: {
+      flex: 1,
+      paddingTop: 10,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      marginHorizontal: 10,
+      marginVertical: 2,
+      borderRadius: 8,
+    },
+    menuItemActive: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
+    },
+    menuText: {
+      fontSize: 15,
+      color: COLORS.HEADER ?? COLORS.MUTED ?? COLORS.SECONDARY,
+      marginLeft: 14,
+      fontWeight: "500",
+      flex: 1,
+    },
+    menuTextActive: {
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      marginHorizontal: 20,
+      marginVertical: 16,
+    },
+    logoutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 20,
+      marginBottom: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      backgroundColor: COLORS.ERROR,
+      shadowColor: COLORS.ERROR,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    logoutText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: COLORS.WHITE,
+      marginLeft: 12,
+    },
+    versionText: {
+      textAlign: "center",
+      color: COLORS.MUTED,
+      fontSize: 11,
+      marginBottom: 20,
+      marginTop: 10,
+    },
+  });
+
+// ============================================================================
+// PLACEHOLDER SCREENS (THEMED)
 // ============================================================================
 const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
   const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   return (
     <View style={styles.placeholderContainer}>
-      <Ionicons name={icon || "construct-outline"} size={64} color="#5E72E4" />
+      <Ionicons
+        name={icon || "construct-outline"}
+        size={64}
+        color={COLORS.PRIMARY}
+      />
       <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
       <Text style={styles.placeholderDesc}>
         {t(descriptionKey) || "Yakında..."}
@@ -100,6 +273,7 @@ const PlatformReportsScreen = () => (
     descriptionKey="Platform istatistikleri"
   />
 );
+
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
     titleKey="Platform Ayarları"
@@ -117,11 +291,12 @@ const DriverSOSScreen = () => (
 );
 
 // ============================================================================
-// CUSTOM DRAWER CONTENT
+// CUSTOM DRAWER CONTENT (THEMED)
 // ============================================================================
 const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const handleLogout = () => {
     Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
@@ -156,7 +331,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
       <View
         style={[
           styles.drawerHeader,
-          { backgroundColor: headerColor || "#5E72E4" },
+          { backgroundColor: headerColor || COLORS.PRIMARY },
         ]}
       >
         <View style={styles.avatarContainer}>
@@ -166,25 +341,23 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
               "U"}
           </Text>
         </View>
+
         <View style={styles.userInfo}>
           <Text style={styles.userName} numberOfLines={1}>
             {user?.first_name && user?.last_name
               ? `${user.first_name} ${user.last_name}`
               : user?.email?.split("@")[0] || "Kullanıcı"}
           </Text>
-          <View
-            style={[
-              styles.roleBadge,
-              { backgroundColor: "rgba(255,255,255,0.25)" },
-            ]}
-          >
+
+          <View style={styles.roleBadge}>
             <Text style={styles.roleText}>{getRoleDisplayName()}</Text>
           </View>
-          {user?.company?.name && (
+
+          {user?.company?.name ? (
             <Text style={styles.companyName} numberOfLines={1}>
               {user.company.name}
             </Text>
-          )}
+          ) : null}
         </View>
       </View>
 
@@ -203,7 +376,9 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
               <Ionicons
                 name={isActive ? item.icon.replace("-outline", "") : item.icon}
                 size={22}
-                color={isActive ? "#5E72E4" : "#525F7F"}
+                color={
+                  isActive ? COLORS.PRIMARY : (COLORS.HEADER ?? COLORS.MUTED)
+                }
               />
               <Text
                 style={[styles.menuText, isActive && styles.menuTextActive]}
@@ -217,7 +392,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
         <View style={styles.divider} />
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
+          <Ionicons name="log-out-outline" size={22} color={COLORS.WHITE} />
           <Text style={styles.logoutText}>Çıkış Yap</Text>
         </TouchableOpacity>
 
@@ -256,6 +431,9 @@ const SADevicesStack = () => (
 // SUPER ADMIN NAVIGATOR
 // ============================================================================
 const SuperAdminNavigator = () => {
+  const { COLORS } = useTheme();
+
+  const headerColor = COLORS.ERROR; // önce #F5365C
   const menuItems = [
     { name: "SADashboard", label: "Dashboard", icon: "speedometer-outline" },
     { name: "Companies", label: "Şirketler", icon: "business-outline" },
@@ -270,7 +448,7 @@ const SuperAdminNavigator = () => {
         <CustomDrawerContent
           {...props}
           menuItems={menuItems}
-          headerColor="#F5365C"
+          headerColor={headerColor}
         />
       )}
       screenOptions={({ route }) => {
@@ -284,8 +462,8 @@ const SuperAdminNavigator = () => {
           PlatformSettings: "Ayarlar",
         };
         return {
-          headerStyle: { backgroundColor: "#F5365C", elevation: 4 },
-          headerTintColor: "#FFFFFF",
+          headerStyle: { backgroundColor: headerColor, elevation: 4 },
+          headerTintColor: COLORS.WHITE,
           headerTitleStyle: { fontWeight: "600" },
           drawerType: "front",
           swipeEnabled: true,
@@ -346,6 +524,9 @@ const AdminFleetMapStack = () => (
 // COMPANY ADMIN NAVIGATOR
 // ============================================================================
 const CompanyAdminNavigator = () => {
+  const { COLORS } = useTheme();
+
+  const headerColor = COLORS.WARNING; // önce #FB6340
   const menuItems = [
     { name: "AdminDashboard", label: "Dashboard", icon: "speedometer-outline" },
     { name: "Vehicles", label: "Araçlar", icon: "car-sport-outline" },
@@ -353,6 +534,11 @@ const CompanyAdminNavigator = () => {
     { name: "Tasks", label: "Görevler", icon: "clipboard-outline" },
     { name: "FleetMap", label: "Canlı Harita", icon: "map-outline" },
     { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
+    {
+      name: "FuelDashboard",
+      label: "Yakıt Analizi",
+      icon: "analytics-outline",
+    },
     { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
     { name: "Settings", label: "Ayarlar", icon: "settings-outline" },
   ];
@@ -363,7 +549,7 @@ const CompanyAdminNavigator = () => {
         <CustomDrawerContent
           {...props}
           menuItems={menuItems}
-          headerColor="#FB6340"
+          headerColor={headerColor}
         />
       )}
       screenOptions={({ route }) => {
@@ -374,12 +560,13 @@ const CompanyAdminNavigator = () => {
           Tasks: "Görevler",
           FleetMap: "Canlı Harita",
           Reports: "Raporlar",
+          FuelDashboard: "Yakıt Analizi",
           Alerts: "Uyarılar",
           Settings: "Ayarlar",
         };
         return {
-          headerStyle: { backgroundColor: "#FB6340", elevation: 4 },
-          headerTintColor: "#FFFFFF",
+          headerStyle: { backgroundColor: headerColor, elevation: 4 },
+          headerTintColor: COLORS.WHITE,
           headerTitleStyle: { fontWeight: "600" },
           drawerType: "front",
           swipeEnabled: true,
@@ -394,6 +581,7 @@ const CompanyAdminNavigator = () => {
       <Drawer.Screen name="Tasks" component={AdminTasksStack} />
       <Drawer.Screen name="FleetMap" component={AdminFleetMapStack} />
       <Drawer.Screen name="Reports" component={AdminReportsScreen} />
+      <Drawer.Screen name="FuelDashboard" component={AdminFuelDashboard} />
       <Drawer.Screen name="Alerts" component={AdminAlerts} />
       <Drawer.Screen name="Settings" component={AdminSettings} />
     </Drawer.Navigator>
@@ -438,6 +626,9 @@ const SettingsStack = () => (
 // DRIVER NAVIGATOR
 // ============================================================================
 const DriverNavigator = () => {
+  const { COLORS } = useTheme();
+
+  const headerColor = COLORS.SUCCESS; // önce #2DCE89
   const menuItems = [
     {
       name: "DriverDashboard",
@@ -460,7 +651,7 @@ const DriverNavigator = () => {
         <CustomDrawerContent
           {...props}
           menuItems={menuItems}
-          headerColor="#2DCE89"
+          headerColor={headerColor}
         />
       )}
       screenOptions={({ route }) => {
@@ -476,8 +667,8 @@ const DriverNavigator = () => {
           SOS: "Acil Durum",
         };
         return {
-          headerStyle: { backgroundColor: "#2DCE89", elevation: 4 },
-          headerTintColor: "#FFFFFF",
+          headerStyle: { backgroundColor: headerColor, elevation: 4 },
+          headerTintColor: COLORS.WHITE,
           headerTitleStyle: { fontWeight: "600" },
           drawerType: "front",
           swipeEnabled: true,
@@ -537,141 +728,5 @@ const AppNavigator = () => {
       return <DriverNavigator />;
   }
 };
-
-// ============================================================================
-// STYLES
-// ============================================================================
-const styles = StyleSheet.create({
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F4F5F7",
-    padding: 20,
-  },
-  placeholderTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginTop: 16,
-  },
-  placeholderDesc: {
-    fontSize: 14,
-    color: "#8898AA",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  drawerContainer: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  drawerHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-  },
-  avatarContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  userInfo: {
-    marginLeft: 14,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  roleBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 6,
-  },
-  roleText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  companyName: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 4,
-  },
-  menuContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginHorizontal: 10,
-    marginVertical: 2,
-    borderRadius: 8,
-  },
-  menuItemActive: {
-    backgroundColor: "#F6F9FC",
-  },
-  menuText: {
-    fontSize: 15,
-    color: "#525F7F",
-    marginLeft: 14,
-    fontWeight: "500",
-    flex: 1,
-  },
-  menuTextActive: {
-    color: "#5E72E4",
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#E9ECEF",
-    marginHorizontal: 20,
-    marginVertical: 16,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    backgroundColor: "#F5365C",
-    borderRadius: 8,
-    shadowColor: "#F5365C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoutText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginLeft: 12,
-  },
-  versionText: {
-    textAlign: "center",
-    color: "#ADB5BD",
-    fontSize: 11,
-    marginBottom: 20,
-    marginTop: 10,
-  },
-});
 
 export default AppNavigator;

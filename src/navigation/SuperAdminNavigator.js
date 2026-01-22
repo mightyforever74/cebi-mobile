@@ -1,6 +1,14 @@
 // src/navigation/SuperAdminNavigator.js
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
+// Note: Yapı korundu (CompaniesStack, DevicesStack + Drawer)
+
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
+import { StyleSheet } from "react-native";
+
+import { useTheme } from "../context/ThemeContext";
+import { useThemedStyles } from "../hooks/useThemedStyles";
 
 // Super Admin Screens
 import CompaniesScreen from "../screens/superadmin/CompaniesScreen";
@@ -15,65 +23,97 @@ import SuperAdminDashboard from "../screens/superadmin/SuperAdminDashboard";
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    // Şu dosyada View style yok ama rehbere uyum için şablon bırakıyoruz
+    // (ileride custom drawer content vs eklersen kullanırsın)
+    noop: {},
+  });
+
+/**
+ * Super Admin tarafında header rengi olarak:
+ * - PRIMARY kullanılabilir (Argon default)
+ * - ya da "SuperAdmin = ERROR" gibi bir convention varsa onu kullan
+ * Burada, orijinalde PRIMARY (#5E72E4) kullanıldığı için PRIMARY ile devam ettim.
+ */
+const useHeaderOptions = () => {
+  const { COLORS } = useTheme();
+
+  return React.useMemo(
+    () => ({
+      headerStyle: {
+        backgroundColor: COLORS.PRIMARY,
+      },
+      headerTintColor: COLORS.WHITE,
+      headerTitleStyle: {
+        fontWeight: "bold",
+      },
+    }),
+    [COLORS]
+  );
+};
+
 // Companies Stack (CompanyDetail now handled as modal elsewhere)
-const CompaniesStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: { backgroundColor: "#5E72E4" },
-      headerTintColor: "#FFF",
-      headerTitleStyle: { fontWeight: "bold" },
-    }}
-  >
-    <Stack.Screen
-      name="CompaniesList"
-      component={CompaniesScreen}
-      options={{ title: "🏢 Şirketler" }}
-    />
-    <Stack.Screen
-      name="CreateCompany"
-      component={CreateCompanyScreen}
-      options={{ title: "➕ Yeni Şirket" }}
-    />
-  </Stack.Navigator>
-);
+const CompaniesStack = () => {
+  const headerOptions = useHeaderOptions();
+
+  return (
+    <Stack.Navigator screenOptions={headerOptions}>
+      <Stack.Screen
+        name="CompaniesList"
+        component={CompaniesScreen}
+        options={{ title: "🏢 Şirketler" }}
+      />
+      <Stack.Screen
+        name="CreateCompany"
+        component={CreateCompanyScreen}
+        options={{ title: "➕ Yeni Şirket" }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 // Devices Stack
-const DevicesStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: { backgroundColor: "#5E72E4" },
-      headerTintColor: "#FFF",
-      headerTitleStyle: { fontWeight: "bold" },
-    }}
-  >
-    <Stack.Screen
-      name="DevicesList"
-      component={DevicesScreen}
-      options={{ title: "📦 Cihazlar" }}
-    />
-    <Stack.Screen
-      name="DeviceDetail"
-      component={DeviceDetailScreen}
-      options={{ title: "🔎 Cihaz Detayı" }}
-    />
-    <Stack.Screen
-      name="DeviceQRManagement"
-      component={DeviceQRManagement}
-      options={{ title: "🧾 QR Yönetimi" }}
-    />
-  </Stack.Navigator>
-);
+const DevicesStack = () => {
+  const headerOptions = useHeaderOptions();
+
+  return (
+    <Stack.Navigator screenOptions={headerOptions}>
+      <Stack.Screen
+        name="DevicesList"
+        component={DevicesScreen}
+        options={{ title: "📦 Cihazlar" }}
+      />
+      <Stack.Screen
+        name="DeviceDetail"
+        component={DeviceDetailScreen}
+        options={{ title: "🔎 Cihaz Detayı" }}
+      />
+      <Stack.Screen
+        name="DeviceQRManagement"
+        component={DeviceQRManagement}
+        options={{ title: "🧾 QR Yönetimi" }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default function SuperAdminNavigator() {
+  const { COLORS } = useTheme();
+  useThemedStyles(makeStyles); // rehber standardı: themed styles hook'u (şu an noop)
+
+  const drawerScreenOptions = React.useMemo(
+    () => ({
+      headerStyle: { backgroundColor: COLORS.PRIMARY },
+      headerTintColor: COLORS.WHITE,
+      headerTitleStyle: { fontWeight: "bold" },
+      drawerType: "front",
+    }),
+    [COLORS]
+  );
+
   return (
-    <Drawer.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: "#5E72E4" },
-        headerTintColor: "#FFF",
-        headerTitleStyle: { fontWeight: "bold" },
-        drawerType: "front",
-      }}
-    >
+    <Drawer.Navigator screenOptions={drawerScreenOptions}>
       {/* Ana ekranlar */}
       <Drawer.Screen
         name="Dashboard"

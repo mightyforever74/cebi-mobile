@@ -1,6 +1,6 @@
 // src/screens/driver/DriverProfile.js
 // TulipFleet - Sürücü Profil Ekranı
-// Updated: 17 Ocak 2026 - Full i18n Support
+// Updated: 22 Ocak 2026 - Dark Mode Migration
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -16,79 +16,243 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-  border: "#E9ECEF",
-};
+// ❌ KALDIRILDI: Local COLORS objesi
 
-// Setting Item Component
-const SettingItem = ({
-  icon,
-  iconColor,
-  title,
-  subtitle,
-  onPress,
-  rightElement,
-  showArrow = true,
-}) => (
-  <TouchableOpacity
-    style={styles.settingItem}
-    onPress={onPress}
-    activeOpacity={onPress ? 0.7 : 1}
-    disabled={!onPress}
-  >
-    <View
-      style={[
-        styles.settingIcon,
-        { backgroundColor: `${iconColor || COLORS.primary}15` },
-      ]}
-    >
-      <Ionicons name={icon} size={20} color={iconColor || COLORS.primary} />
-    </View>
-    <View style={styles.settingContent}>
-      <Text style={styles.settingTitle}>{title}</Text>
-      {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
-    </View>
-    {rightElement}
-    {showArrow && onPress && (
-      <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
-    )}
-  </TouchableOpacity>
-);
+// ============================================
+// makeStyles - BÜYÜK HARF TOKEN'LAR
+// ============================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    profileCard: {
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      paddingVertical: 30,
+      paddingHorizontal: 20,
+    },
+    avatarLarge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: COLORS.WHITE,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    avatarText: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: COLORS.PRIMARY,
+    },
+    profileName: {
+      fontSize: 22,
+      fontWeight: "bold",
+      color: COLORS.WHITE,
+      marginBottom: 4,
+    },
+    profileEmail: {
+      fontSize: 14,
+      color: "rgba(255,255,255,0.8)",
+      marginBottom: 12,
+    },
+    roleBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(255,255,255,0.2)",
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 20,
+    },
+    roleText: {
+      color: COLORS.WHITE,
+      fontSize: 12,
+      fontWeight: "600",
+      marginLeft: 6,
+    },
+    statsContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 12,
+      marginTop: -20,
+      marginBottom: 8,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: COLORS.CARD,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 4,
+      alignItems: "center",
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    statIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+    },
+    statLabel: {
+      fontSize: 11,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    sectionHeader: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: COLORS.TEXT_SECONDARY,
+      letterSpacing: 1,
+    },
+    settingGroup: {
+      backgroundColor: COLORS.CARD,
+      marginHorizontal: 12,
+      borderRadius: 12,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    settingItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    settingIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: COLORS.TEXT,
+    },
+    settingSubtitle: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: COLORS.DIVIDER,
+      marginLeft: 68,
+    },
+    footer: {
+      alignItems: "center",
+      paddingVertical: 30,
+    },
+    footerText: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      fontWeight: "500",
+    },
+    footerSubtext: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      marginTop: 4,
+    },
+  });
 
-// Section Header Component
-const SectionHeader = ({ title }) => (
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-  </View>
-);
-
-// Stat Card Component
-const StatCard = ({ icon, iconColor, value, label }) => (
-  <View style={styles.statCard}>
-    <View style={[styles.statIcon, { backgroundColor: `${iconColor}15` }]}>
-      <Ionicons name={icon} size={20} color={iconColor} />
-    </View>
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
-
+// ============================================
+// COMPONENT
+// ============================================
 const DriverProfile = ({ navigation }) => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
+  const styles = useThemedStyles(makeStyles);
+  const { COLORS } = useTheme();
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+
+  // ============================================
+  // Nested Components (COLORS erişimi için içeride)
+  // ============================================
+
+  // Setting Item Component
+  const SettingItem = ({
+    icon,
+    iconColor,
+    title,
+    subtitle,
+    onPress,
+    rightElement,
+    showArrow = true,
+  }) => (
+    <TouchableOpacity
+      style={styles.settingItem}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      disabled={!onPress}
+    >
+      <View
+        style={[
+          styles.settingIcon,
+          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
+        ]}
+      >
+        <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
+      </View>
+      <View style={styles.settingContent}>
+        <Text style={styles.settingTitle}>{title}</Text>
+        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+      </View>
+      {rightElement}
+      {showArrow && onPress && (
+        <Ionicons name="chevron-forward" size={20} color={COLORS.MUTED} />
+      )}
+    </TouchableOpacity>
+  );
+
+  // Section Header Component
+  const SectionHeader = ({ title }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+
+  // Stat Card Component
+  const StatCard = ({ icon, iconColor, value, label }) => (
+    <View style={styles.statCard}>
+      <View style={[styles.statIcon, { backgroundColor: `${iconColor}15` }]}>
+        <Ionicons name={icon} size={20} color={iconColor} />
+      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+
+  // ============================================
+  // Handlers
+  // ============================================
 
   const handleLogout = () => {
     Alert.alert(t("profile.logout"), t("profile.logoutConfirm"), [
@@ -106,6 +270,7 @@ const DriverProfile = ({ navigation }) => {
   const handleEditProfile = () => {
     navigation.navigate("EditProfile");
   };
+
   const handleChangePassword = () => {
     navigation.navigate("ChangePassword");
   };
@@ -126,6 +291,10 @@ const DriverProfile = ({ navigation }) => {
     ]);
   };
 
+  // ============================================
+  // Render
+  // ============================================
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Card */}
@@ -142,7 +311,7 @@ const DriverProfile = ({ navigation }) => {
         </Text>
         <Text style={styles.profileEmail}>{user?.email || "-"}</Text>
         <View style={styles.roleBadge}>
-          <Ionicons name="car" size={14} color={COLORS.white} />
+          <Ionicons name="car" size={14} color={COLORS.WHITE} />
           <Text style={styles.roleText}>{t("profile.driver")}</Text>
         </View>
       </View>
@@ -151,19 +320,19 @@ const DriverProfile = ({ navigation }) => {
       <View style={styles.statsContainer}>
         <StatCard
           icon="checkmark-circle"
-          iconColor={COLORS.success}
+          iconColor={COLORS.SUCCESS}
           value="0"
           label={t("profile.completed")}
         />
         <StatCard
           icon="navigate"
-          iconColor={COLORS.info}
+          iconColor={COLORS.INFO}
           value="0"
           label={t("profile.totalKm")}
         />
         <StatCard
           icon="star"
-          iconColor={COLORS.warning}
+          iconColor={COLORS.WARNING}
           value="-"
           label={t("profile.score")}
         />
@@ -174,7 +343,7 @@ const DriverProfile = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="person-outline"
-          iconColor={COLORS.primary}
+          iconColor={COLORS.PRIMARY}
           title={t("profile.editProfile")}
           subtitle={t("profile.editProfileSubtitle")}
           onPress={handleEditProfile}
@@ -182,7 +351,7 @@ const DriverProfile = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="lock-closed-outline"
-          iconColor={COLORS.warning}
+          iconColor={COLORS.WARNING}
           title={t("profile.changePassword")}
           subtitle={t("profile.changePasswordSubtitle")}
           onPress={handleChangePassword}
@@ -194,7 +363,7 @@ const DriverProfile = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
-          iconColor={COLORS.info}
+          iconColor={COLORS.INFO}
           title={t("profile.notificationsTitle")}
           subtitle={t("profile.notificationsSubtitle")}
           showArrow={false}
@@ -202,15 +371,15 @@ const DriverProfile = ({ navigation }) => {
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: COLORS.MUTED, true: COLORS.PRIMARY }}
+              thumbColor={COLORS.WHITE}
             />
           }
         />
         <View style={styles.divider} />
         <SettingItem
           icon="location-outline"
-          iconColor={COLORS.success}
+          iconColor={COLORS.SUCCESS}
           title={t("profile.locationSharing")}
           subtitle={t("profile.locationSubtitle")}
           showArrow={false}
@@ -218,8 +387,8 @@ const DriverProfile = ({ navigation }) => {
             <Switch
               value={locationEnabled}
               onValueChange={setLocationEnabled}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: COLORS.MUTED, true: COLORS.PRIMARY }}
+              thumbColor={COLORS.WHITE}
             />
           }
         />
@@ -230,7 +399,7 @@ const DriverProfile = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="help-circle-outline"
-          iconColor={COLORS.info}
+          iconColor={COLORS.INFO}
           title={t("profile.help")}
           subtitle={t("profile.helpSubtitle")}
           onPress={handleSupport}
@@ -238,7 +407,7 @@ const DriverProfile = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="chatbubble-outline"
-          iconColor={COLORS.success}
+          iconColor={COLORS.SUCCESS}
           title={t("profile.contactUs")}
           subtitle="support@tulipfleet.com"
           onPress={handleSupport}
@@ -246,7 +415,7 @@ const DriverProfile = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="information-circle-outline"
-          iconColor={COLORS.secondary}
+          iconColor={COLORS.TEXT_SECONDARY}
           title={t("profile.about")}
           subtitle={`${t("profile.version")} 1.0.0`}
           onPress={handleAbout}
@@ -257,7 +426,7 @@ const DriverProfile = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="log-out-outline"
-          iconColor={COLORS.danger}
+          iconColor={COLORS.ERROR}
           title={t("profile.logout")}
           subtitle={t("profile.logoutSubtitle")}
           onPress={handleLogout}
@@ -273,116 +442,6 @@ const DriverProfile = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  profileCard: {
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-  },
-  avatarLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.white,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  avatarText: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
-  profileName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.white,
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-    marginBottom: 12,
-  },
-  roleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  roleText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 12,
-    marginTop: -20,
-    marginBottom: 8,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statValue: { fontSize: 18, fontWeight: "bold", color: COLORS.dark },
-  statLabel: { fontSize: 11, color: COLORS.secondary, marginTop: 2 },
-  sectionHeader: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 8 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.secondary,
-    letterSpacing: 1,
-  },
-  settingGroup: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: 12,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  settingContent: { flex: 1 },
-  settingTitle: { fontSize: 15, fontWeight: "500", color: COLORS.dark },
-  settingSubtitle: { fontSize: 12, color: COLORS.secondary, marginTop: 2 },
-  divider: { height: 1, backgroundColor: COLORS.border, marginLeft: 68 },
-  footer: { alignItems: "center", paddingVertical: 30 },
-  footerText: { fontSize: 14, color: COLORS.secondary, fontWeight: "500" },
-  footerSubtext: { fontSize: 12, color: COLORS.muted, marginTop: 4 },
-});
+// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverProfile;

@@ -1,10 +1,11 @@
 // src/screens/superadmin/PlatformUsersScreen.js
 // TulipFleet - Platform Kullanıcıları Ekranı
 // Created: 27 Aralık 2025
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,9 +17,228 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { API_URL } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
+
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+
+    // Loading
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: 10,
+      color: COLORS.MUTED,
+      fontWeight: "500",
+    },
+
+    // Stats
+    statsContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 10,
+      paddingVertical: 15,
+      gap: 10,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 10,
+      padding: 12,
+      alignItems: "center",
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    statCardActive: {
+      borderWidth: 2,
+      borderColor: COLORS.PRIMARY,
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: "bold",
+    },
+    statLabel: {
+      fontSize: 10,
+      color: COLORS.MUTED,
+      marginTop: 2,
+      fontWeight: "600",
+    },
+
+    // Search
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      marginHorizontal: 15,
+      marginBottom: 10,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+
+    // Summary
+    summaryBar: {
+      paddingHorizontal: 15,
+      paddingBottom: 10,
+    },
+    summaryText: {
+      color: COLORS.MUTED,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    // List
+    listContainer: {
+      paddingHorizontal: 15,
+      paddingBottom: 20,
+    },
+
+    // User Card
+    userCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 12,
+      padding: 15,
+      marginBottom: 10,
+      elevation: 2,
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    avatarText: {
+      color: COLORS.WHITE,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+      gap: 8,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      flex: 1,
+    },
+    roleBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+    },
+    roleText: {
+      color: COLORS.WHITE,
+      fontSize: 10,
+      fontWeight: "700",
+    },
+    userEmail: {
+      fontSize: 13,
+      color: COLORS.MUTED,
+      marginBottom: 4,
+    },
+    companyRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 2,
+      gap: 4,
+    },
+    companyName: {
+      fontSize: 12,
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    createdAt: {
+      fontSize: 11,
+      color: COLORS.MUTED,
+      fontWeight: "600",
+    },
+
+    // Empty
+    emptyState: {
+      alignItems: "center",
+      padding: 50,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 15,
+      marginBottom: 8,
+    },
+    emptyText: {
+      color: COLORS.MUTED,
+      textAlign: "center",
+      fontWeight: "500",
+    },
+  });
 
 const PlatformUsersScreen = ({ navigation }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState([]);
@@ -74,22 +294,25 @@ const PlatformUsersScreen = ({ navigation }) => {
     fetchUsers();
   }, []);
 
-  // Rol rengi
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "super_admin":
-        return "#F5365C";
-      case "company_admin":
-        return "#5E72E4";
-      case "driver":
-        return "#2DCE89";
-      default:
-        return "#8898AA";
-    }
-  };
+  // Rol rengi (token tabanlı)
+  const getRoleColor = useCallback(
+    (role) => {
+      switch (role) {
+        case "super_admin":
+          return COLORS.ERROR;
+        case "company_admin":
+          return COLORS.PRIMARY;
+        case "driver":
+          return COLORS.SUCCESS;
+        default:
+          return COLORS.MUTED;
+      }
+    },
+    [COLORS]
+  );
 
   // Rol etiketi
-  const getRoleLabel = (role) => {
+  const getRoleLabel = useCallback((role) => {
     switch (role) {
       case "super_admin":
         return "Super Admin";
@@ -100,31 +323,34 @@ const PlatformUsersScreen = ({ navigation }) => {
       default:
         return role;
     }
-  };
+  }, []);
 
   // Filtrelenmiş kullanıcılar
-  const filteredUsers = users.filter((user) => {
-    // Rol filtresi
-    if (filter !== "all" && user.role !== filter) return false;
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      if (filter !== "all" && user.role !== filter) return false;
 
-    // Arama filtresi
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      user.email?.toLowerCase().includes(query) ||
-      user.first_name?.toLowerCase().includes(query) ||
-      user.last_name?.toLowerCase().includes(query) ||
-      user.company_name?.toLowerCase().includes(query)
-    );
-  });
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        user.email?.toLowerCase().includes(query) ||
+        user.first_name?.toLowerCase().includes(query) ||
+        user.last_name?.toLowerCase().includes(query) ||
+        user.company_name?.toLowerCase().includes(query)
+      );
+    });
+  }, [users, filter, searchQuery]);
 
   // İstatistikler
-  const stats = {
-    total: users.length,
-    super_admin: users.filter((u) => u.role === "super_admin").length,
-    company_admin: users.filter((u) => u.role === "company_admin").length,
-    driver: users.filter((u) => u.role === "driver").length,
-  };
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      super_admin: users.filter((u) => u.role === "super_admin").length,
+      company_admin: users.filter((u) => u.role === "company_admin").length,
+      driver: users.filter((u) => u.role === "driver").length,
+    }),
+    [users]
+  );
 
   // Kullanıcı kartı
   const renderUserItem = ({ item }) => {
@@ -132,10 +358,10 @@ const PlatformUsersScreen = ({ navigation }) => {
     const initials =
       item.first_name && item.last_name
         ? `${item.first_name[0]}${item.last_name[0]}`.toUpperCase()
-        : item.email[0].toUpperCase();
+        : item.email?.[0]?.toUpperCase() || "U";
 
     return (
-      <TouchableOpacity style={styles.userCard}>
+      <TouchableOpacity style={styles.userCard} activeOpacity={0.85}>
         {/* Avatar */}
         <View style={[styles.avatar, { backgroundColor: roleColor }]}>
           <Text style={styles.avatarText}>{initials}</Text>
@@ -144,22 +370,31 @@ const PlatformUsersScreen = ({ navigation }) => {
         {/* Bilgiler */}
         <View style={styles.userInfo}>
           <View style={styles.userHeader}>
-            <Text style={styles.userName}>
+            <Text style={styles.userName} numberOfLines={1}>
               {item.first_name && item.last_name
                 ? `${item.first_name} ${item.last_name}`
-                : item.email.split("@")[0]}
+                : item.email?.split?.("@")?.[0] || "-"}
             </Text>
+
             <View style={[styles.roleBadge, { backgroundColor: roleColor }]}>
               <Text style={styles.roleText}>{getRoleLabel(item.role)}</Text>
             </View>
           </View>
 
-          <Text style={styles.userEmail}>{item.email}</Text>
+          <Text style={styles.userEmail} numberOfLines={1}>
+            {item.email}
+          </Text>
 
           {item.company_name && (
             <View style={styles.companyRow}>
-              <Ionicons name="business-outline" size={12} color="#8898AA" />
-              <Text style={styles.companyName}>{item.company_name}</Text>
+              <Ionicons
+                name="business-outline"
+                size={12}
+                color={COLORS.MUTED}
+              />
+              <Text style={styles.companyName} numberOfLines={1}>
+                {item.company_name}
+              </Text>
             </View>
           )}
 
@@ -169,7 +404,11 @@ const PlatformUsersScreen = ({ navigation }) => {
         </View>
 
         {/* Ok */}
-        <Ionicons name="chevron-forward" size={20} color="#DEE2E6" />
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={withAlpha(COLORS.MUTED, 0.35) || COLORS.MUTED}
+        />
       </TouchableOpacity>
     );
   };
@@ -177,7 +416,7 @@ const PlatformUsersScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E72E4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Kullanıcılar yükleniyor...</Text>
       </View>
     );
@@ -190,8 +429,9 @@ const PlatformUsersScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[styles.statCard, filter === "all" && styles.statCardActive]}
           onPress={() => setFilter("all")}
+          activeOpacity={0.85}
         >
-          <Text style={[styles.statValue, { color: "#5E72E4" }]}>
+          <Text style={[styles.statValue, { color: COLORS.PRIMARY }]}>
             {stats.total}
           </Text>
           <Text style={styles.statLabel}>Toplam</Text>
@@ -203,8 +443,9 @@ const PlatformUsersScreen = ({ navigation }) => {
             filter === "super_admin" && styles.statCardActive,
           ]}
           onPress={() => setFilter("super_admin")}
+          activeOpacity={0.85}
         >
-          <Text style={[styles.statValue, { color: "#F5365C" }]}>
+          <Text style={[styles.statValue, { color: COLORS.ERROR }]}>
             {stats.super_admin}
           </Text>
           <Text style={styles.statLabel}>Super</Text>
@@ -216,8 +457,9 @@ const PlatformUsersScreen = ({ navigation }) => {
             filter === "company_admin" && styles.statCardActive,
           ]}
           onPress={() => setFilter("company_admin")}
+          activeOpacity={0.85}
         >
-          <Text style={[styles.statValue, { color: "#5E72E4" }]}>
+          <Text style={[styles.statValue, { color: COLORS.PRIMARY }]}>
             {stats.company_admin}
           </Text>
           <Text style={styles.statLabel}>Admin</Text>
@@ -229,8 +471,9 @@ const PlatformUsersScreen = ({ navigation }) => {
             filter === "driver" && styles.statCardActive,
           ]}
           onPress={() => setFilter("driver")}
+          activeOpacity={0.85}
         >
-          <Text style={[styles.statValue, { color: "#2DCE89" }]}>
+          <Text style={[styles.statValue, { color: COLORS.SUCCESS }]}>
             {stats.driver}
           </Text>
           <Text style={styles.statLabel}>Sürücü</Text>
@@ -239,17 +482,20 @@ const PlatformUsersScreen = ({ navigation }) => {
 
       {/* Arama */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={18} color="#8898AA" />
+        <Ionicons name="search" size={18} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
           placeholder="İsim, email veya şirket ara..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#8898AA"
+          placeholderTextColor={COLORS.MUTED}
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={18} color="#8898AA" />
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="close-circle" size={18} color={COLORS.MUTED} />
           </TouchableOpacity>
         )}
       </View>
@@ -265,15 +511,24 @@ const PlatformUsersScreen = ({ navigation }) => {
       {/* Kullanıcı Listesi */}
       <FlatList
         data={filteredUsers}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderUserItem}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.PRIMARY}
+            colors={[COLORS.PRIMARY]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={64} color="#DEE2E6" />
+            <Ionicons
+              name="people-outline"
+              size={64}
+              color={withAlpha(COLORS.MUTED, 0.35) || COLORS.MUTED}
+            />
             <Text style={styles.emptyTitle}>Kullanıcı Bulunamadı</Text>
             <Text style={styles.emptyText}>
               {searchQuery
@@ -282,183 +537,10 @@ const PlatformUsersScreen = ({ navigation }) => {
             </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F5F7",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    color: "#8898AA",
-  },
-
-  // Stats
-  statsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 10,
-    paddingVertical: 15,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 12,
-    marginHorizontal: 5,
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  statCardActive: {
-    borderWidth: 2,
-    borderColor: "#5E72E4",
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  statLabel: {
-    fontSize: 10,
-    color: "#8898AA",
-    marginTop: 2,
-  },
-
-  // Search
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    marginHorizontal: 15,
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    fontSize: 14,
-    color: "#32325D",
-  },
-
-  // Summary
-  summaryBar: {
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-  },
-  summaryText: {
-    color: "#8898AA",
-    fontSize: 13,
-  },
-
-  // User Card
-  listContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
-  },
-  userCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  avatarText: {
-    color: "#FFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#32325D",
-    marginRight: 8,
-  },
-  roleBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  roleText: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  userEmail: {
-    fontSize: 13,
-    color: "#8898AA",
-    marginBottom: 4,
-  },
-  companyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  companyName: {
-    fontSize: 12,
-    color: "#5E72E4",
-    marginLeft: 4,
-  },
-  createdAt: {
-    fontSize: 11,
-    color: "#ADB5BD",
-  },
-
-  // Empty
-  emptyState: {
-    alignItems: "center",
-    padding: 50,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginTop: 15,
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: "#8898AA",
-    textAlign: "center",
-  },
-});
 
 export default PlatformUsersScreen;

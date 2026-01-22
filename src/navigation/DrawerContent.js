@@ -1,8 +1,9 @@
 // src/navigation/DrawerContent.js
 // TulipFleet - Custom Drawer Content
-// Updated: 17 Ocak 2026 - i18n + Language selector in header
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
+// Updated: 17 Ocak 2026 - i18n + Language selector in header (korundu)
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -14,15 +15,269 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/config";
+
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { useThemedStyles } from "../hooks/useThemedStyles";
 import { LANGUAGES } from "../locales/i18n";
 import { taskOffersAPI } from "../services/api";
+
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+    },
+    header: {
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    headerTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    logo: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.PRIMARY,
+    },
+    langButton: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
+      padding: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: withAlpha(COLORS.PRIMARY, 0.18),
+    },
+    langFlag: {
+      fontSize: 24,
+    },
+    subtitle: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      marginTop: 4,
+    },
+
+    userSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    superAdminAvatar: {
+      backgroundColor: COLORS.GRADIENT_START ?? COLORS.LABEL ?? COLORS.PRIMARY,
+    },
+    avatarText: {
+      color: COLORS.WHITE,
+      fontSize: 20,
+      fontWeight: "bold",
+    },
+    userInfo: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    userRole: {
+      fontSize: 12,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    superAdminRole: {
+      color: COLORS.GRADIENT_START ?? COLORS.LABEL ?? COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+
+    divider: {
+      height: 1,
+      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      marginHorizontal: 20,
+    },
+
+    menuContainer: {
+      flex: 1,
+      paddingTop: 8,
+      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      marginHorizontal: 8,
+      borderRadius: 8,
+    },
+    menuItemFocused: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
+    },
+    menuIcon: {
+      fontSize: 20,
+      width: 32,
+    },
+    menuText: {
+      fontSize: 15,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "500",
+    },
+    menuTextFocused: {
+      color: COLORS.PRIMARY,
+      fontWeight: "600",
+    },
+    badge: {
+      marginLeft: "auto",
+      backgroundColor: COLORS.ERROR,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+      minWidth: 24,
+      alignItems: "center",
+    },
+    badgeText: {
+      color: COLORS.WHITE,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    footer: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+    },
+    logoutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+    },
+    logoutIcon: {
+      fontSize: 20,
+      marginRight: 12,
+    },
+    logoutText: {
+      fontSize: 15,
+      color: COLORS.ERROR,
+      fontWeight: "500",
+    },
+    version: {
+      fontSize: 11,
+      color: COLORS.MUTED,
+      textAlign: "center",
+      marginTop: 8,
+    },
+
+    // Language Modal Styles
+    langModalOverlay: {
+      flex: 1,
+      backgroundColor: withAlpha(COLORS.BLACK, 0.5),
+      justifyContent: "flex-end",
+    },
+    langModalContent: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      maxHeight: "70%",
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+    },
+    langModalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    langItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 8,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.25) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    langItemActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    langItemFlag: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+    langItemName: {
+      fontSize: 16,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      flex: 1,
+    },
+    langItemNameActive: {
+      color: COLORS.WHITE,
+      fontWeight: "600",
+    },
+    checkmark: {
+      fontSize: 18,
+      color: COLORS.WHITE,
+      fontWeight: "bold",
+    },
+    langCloseBtn: {
+      backgroundColor: COLORS.MUTED,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    langCloseBtnText: {
+      color: COLORS.WHITE,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+  });
 
 // ============================================
 // MENU ITEM COMPONENT
 // ============================================
-const DrawerMenuItem = ({ title, icon, focused, onPress, badgeCount }) => {
+const DrawerMenuItem = ({
+  title,
+  icon,
+  focused,
+  onPress,
+  badgeCount,
+  styles,
+}) => {
   return (
     <TouchableOpacity
       style={[styles.menuItem, focused && styles.menuItemFocused]}
@@ -33,6 +288,7 @@ const DrawerMenuItem = ({ title, icon, focused, onPress, badgeCount }) => {
       <Text style={[styles.menuText, focused && styles.menuTextFocused]}>
         {title}
       </Text>
+
       {badgeCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badgeCount}</Text>
@@ -49,9 +305,10 @@ const DrawerContent = ({ navigation, state }) => {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
-  const [offersCount, setOffersCount] = useState(0);
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
-  // Language Modal State
+  const [offersCount, setOffersCount] = useState(0);
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   // Get current route name (Drawer level)
@@ -82,18 +339,20 @@ const DrawerContent = ({ navigation, state }) => {
     try {
       const res = await taskOffersAPI.getOffers("pending");
       let count = 0;
+
       if (Array.isArray(res)) {
         count = res.length;
       } else if (res) {
         const list = Array.isArray(res.offers)
           ? res.offers
           : Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.items)
-          ? res.items
-          : [];
+            ? res.data
+            : Array.isArray(res.items)
+              ? res.items
+              : [];
         count = list.length || (typeof res.total === "number" ? res.total : 0);
       }
+
       setOffersCount(count);
     } catch (e) {
       // Silent fail; keep badge hidden
@@ -108,6 +367,7 @@ const DrawerContent = ({ navigation, state }) => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ============================================
@@ -130,7 +390,7 @@ const DrawerContent = ({ navigation, state }) => {
   // ============================================
   // MENU ITEMS - Role-based with i18n
   // ============================================
-  const getMenuItems = () => {
+  const menuItems = useMemo(() => {
     if (isSuperAdmin) {
       return [
         {
@@ -181,35 +441,30 @@ const DrawerContent = ({ navigation, state }) => {
       { title: t("navigation.profile"), icon: "👤", screen: "Profile" },
       { title: t("navigation.settings"), icon: "⚙️", screen: "Settings" },
     ];
-  };
+  }, [isAdmin, isSuperAdmin, offersCount, t]);
 
   // ============================================
   // CHECK IF MENU ITEM IS FOCUSED
   // ============================================
   const isItemFocused = (item) => {
-    if (currentStackRoute) {
-      return currentStackRoute === item.screen;
-    }
+    if (currentStackRoute) return currentStackRoute === item.screen;
 
     if (isAdmin) {
       return (
         item.screen === "AdminDashboard" && currentDrawerRoute === "AdminHome"
       );
-    } else {
-      return (
-        item.screen === "DriverDashboard" && currentDrawerRoute === "DriverHome"
-      );
     }
+    return (
+      item.screen === "DriverDashboard" && currentDrawerRoute === "DriverHome"
+    );
   };
 
   const handleLogout = async () => {
     const result = await logout();
-    if (result.success) {
+    if (result?.success) {
       console.log("✅ Logged out");
     }
   };
-
-  const menuItems = getMenuItems();
 
   // Get role display text
   const getRoleText = () => {
@@ -224,7 +479,6 @@ const DrawerContent = ({ navigation, state }) => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.logo}>🚛 TulipFleet</Text>
-          {/* Language Button */}
           <TouchableOpacity
             style={styles.langButton}
             onPress={() => setLangModalVisible(true)}
@@ -242,6 +496,7 @@ const DrawerContent = ({ navigation, state }) => {
             {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
           </Text>
         </View>
+
         <View style={styles.userInfo}>
           <Text style={styles.userName}>
             {user?.firstName || user?.email?.split("@")[0] || t("drawer.user")}
@@ -254,7 +509,6 @@ const DrawerContent = ({ navigation, state }) => {
         </View>
       </View>
 
-      {/* Divider */}
       <View style={styles.divider} />
 
       {/* Menu Items */}
@@ -270,6 +524,7 @@ const DrawerContent = ({ navigation, state }) => {
             focused={isItemFocused(item)}
             onPress={() => handleMenuPress(item)}
             badgeCount={item.badgeCount || 0}
+            styles={styles}
           />
         ))}
       </ScrollView>
@@ -306,6 +561,7 @@ const DrawerContent = ({ navigation, state }) => {
                     item.code === i18n.language && styles.langItemActive,
                   ]}
                   onPress={() => changeLanguage(item.code)}
+                  activeOpacity={0.8}
                 >
                   <Text style={styles.langItemFlag}>{item.flag}</Text>
                   <Text
@@ -335,218 +591,5 @@ const DrawerContent = ({ navigation, state }) => {
     </View>
   );
 };
-
-// ============================================
-// STYLES
-// ============================================
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  logo: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  langButton: {
-    backgroundColor: COLORS.background,
-    padding: 8,
-    borderRadius: 8,
-  },
-  langFlag: {
-    fontSize: 24,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  userSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  superAdminAvatar: {
-    backgroundColor: "#8b5cf6",
-  },
-  avatarText: {
-    color: COLORS.white,
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  userInfo: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  userRole: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  superAdminRole: {
-    color: "#8b5cf6",
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 20,
-  },
-  menuContainer: {
-    flex: 1,
-    paddingTop: 8,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginHorizontal: 8,
-    borderRadius: 8,
-  },
-  menuItemFocused: {
-    backgroundColor: `${COLORS.primary}15`,
-  },
-  menuIcon: {
-    fontSize: 20,
-    width: 32,
-  },
-  menuText: {
-    fontSize: 15,
-    color: COLORS.text,
-    fontWeight: "500",
-  },
-  menuTextFocused: {
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  badge: {
-    marginLeft: "auto",
-    backgroundColor: COLORS.danger,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 24,
-    alignItems: "center",
-  },
-  badgeText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  logoutIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  logoutText: {
-    fontSize: 15,
-    color: COLORS.danger,
-    fontWeight: "500",
-  },
-  version: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  // Language Modal Styles
-  langModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  langModalContent: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: "70%",
-  },
-  langModalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#32325D",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  langItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: "#F7FAFC",
-  },
-  langItemActive: {
-    backgroundColor: COLORS.primary,
-  },
-  langItemFlag: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  langItemName: {
-    fontSize: 16,
-    color: "#32325D",
-    flex: 1,
-  },
-  langItemNameActive: {
-    color: "#FFF",
-    fontWeight: "600",
-  },
-  checkmark: {
-    fontSize: 18,
-    color: "#FFF",
-    fontWeight: "bold",
-  },
-  langCloseBtn: {
-    backgroundColor: "#8898AA",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  langCloseBtnText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
 
 export default DrawerContent;

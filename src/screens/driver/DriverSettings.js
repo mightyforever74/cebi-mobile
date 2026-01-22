@@ -1,6 +1,6 @@
 // src/screens/driver/DriverSettings.js
 // TulipFleet - Sürücü Ayarlar Ekranı
-// Updated: 21 Ocak 2026 - Tam çalışan ayarlar (AsyncStorage, permissions, cache)
+// Updated: 22 Ocak 2026 - Dark Mode v3 (makeStyles pattern)
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,86 +22,123 @@ import {
 } from "react-native";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-// Storage keys
+// Storage keys (Dark mode hariç - o ThemeContext'te)
 const STORAGE_KEYS = {
   NOTIFICATIONS_ENABLED: "@settings_notifications",
   TASK_NOTIFICATIONS: "@settings_task_notifications",
   SOUND_ENABLED: "@settings_sound",
   VIBRATION_ENABLED: "@settings_vibration",
   LOCATION_ENABLED: "@settings_location",
-  DARK_MODE: "@settings_dark_mode",
 };
 
-// Theme colors
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-  border: "#E9ECEF",
-};
-
-// Base URL (dil parametresi fonksiyonlarda eklenir)
+// Base URL
 const BASE_URL = "https://tulipfleet.com";
 
-// Ayar Öğesi
-const SettingItem = ({
-  icon,
-  iconColor,
-  title,
-  subtitle,
-  onPress,
-  rightElement,
-  showArrow = true,
-  loading = false,
-}) => (
-  <TouchableOpacity
-    style={styles.settingItem}
-    onPress={onPress}
-    activeOpacity={onPress ? 0.7 : 1}
-    disabled={!onPress || loading}
-  >
-    <View
-      style={[
-        styles.settingIcon,
-        { backgroundColor: `${iconColor || COLORS.primary}15` },
-      ]}
-    >
-      <Ionicons name={icon} size={20} color={iconColor || COLORS.primary} />
-    </View>
-    <View style={styles.settingContent}>
-      <Text style={styles.settingTitle}>{title}</Text>
-      {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
-    </View>
-    {loading ? (
-      <ActivityIndicator size="small" color={COLORS.primary} />
-    ) : (
-      rightElement
-    )}
-    {showArrow && onPress && !loading && (
-      <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
-    )}
-  </TouchableOpacity>
-);
+// ============================================
+// makeStyles - BÜYÜK HARF TOKEN'LAR
+// ============================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    sectionHeader: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 12,
+      fontWeight: "600",
+      letterSpacing: 1,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    settingGroup: {
+      marginHorizontal: 12,
+      borderRadius: 12,
+      backgroundColor: COLORS.SURFACE,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    settingItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: COLORS.SURFACE,
+    },
+    settingIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: COLORS.TEXT,
+    },
+    settingSubtitle: {
+      fontSize: 12,
+      marginTop: 2,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    divider: {
+      height: 1,
+      marginLeft: 68,
+      backgroundColor: COLORS.DIVIDER,
+    },
+    footer: {
+      alignItems: "center",
+      paddingVertical: 30,
+      paddingHorizontal: 20,
+    },
+    footerText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: COLORS.TEXT_SECONDARY,
+    },
+    footerSubtext: {
+      fontSize: 12,
+      marginTop: 4,
+      color: COLORS.MUTED,
+    },
+    footerEmail: {
+      fontSize: 11,
+      marginTop: 8,
+      color: COLORS.MUTED,
+    },
+  });
 
-// Bölüm Başlığı
-const SectionHeader = ({ title }) => (
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-  </View>
-);
-
+// ============================================
+// Main Component
+// ============================================
 const DriverSettings = ({ navigation }) => {
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "en";
+
+  // Theme context
+  const { COLORS, isDark, setTheme } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -117,8 +154,60 @@ const DriverSettings = ({ navigation }) => {
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [locationPermission, setLocationPermission] = useState(null);
 
-  // Karanlık mod
-  const [darkMode, setDarkMode] = useState(false);
+  // ============================================
+  // Nested Components (COLORS erişimi için içeride)
+  // ============================================
+
+  // Ayar Öğesi
+  const SettingItem = ({
+    icon,
+    iconColor,
+    title,
+    subtitle,
+    onPress,
+    rightElement,
+    showArrow = true,
+    loading = false,
+  }) => (
+    <TouchableOpacity
+      style={styles.settingItem}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      disabled={!onPress || loading}
+    >
+      <View
+        style={[
+          styles.settingIcon,
+          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
+        ]}
+      >
+        <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
+      </View>
+      <View style={styles.settingContent}>
+        <Text style={styles.settingTitle}>{title}</Text>
+        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+      </View>
+      {loading ? (
+        <ActivityIndicator size="small" color={COLORS.PRIMARY} />
+      ) : (
+        rightElement
+      )}
+      {showArrow && onPress && !loading && (
+        <Ionicons name="chevron-forward" size={20} color={COLORS.MUTED} />
+      )}
+    </TouchableOpacity>
+  );
+
+  // Bölüm Başlığı
+  const SectionHeader = ({ title }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+
+  // ============================================
+  // Settings Logic
+  // ============================================
 
   // Ayarları yükle
   const loadSettings = useCallback(async () => {
@@ -133,7 +222,6 @@ const DriverSettings = ({ navigation }) => {
         }
       });
 
-      // State'leri güncelle
       if (settings[STORAGE_KEYS.NOTIFICATIONS_ENABLED] !== undefined) {
         setNotificationsEnabled(settings[STORAGE_KEYS.NOTIFICATIONS_ENABLED]);
       }
@@ -149,11 +237,7 @@ const DriverSettings = ({ navigation }) => {
       if (settings[STORAGE_KEYS.LOCATION_ENABLED] !== undefined) {
         setLocationEnabled(settings[STORAGE_KEYS.LOCATION_ENABLED]);
       }
-      if (settings[STORAGE_KEYS.DARK_MODE] !== undefined) {
-        setDarkMode(settings[STORAGE_KEYS.DARK_MODE]);
-      }
 
-      // Konum izni kontrolü
       const { status } = await Location.getForegroundPermissionsAsync();
       setLocationPermission(status);
     } catch (error) {
@@ -181,7 +265,6 @@ const DriverSettings = ({ navigation }) => {
   // Push bildirimleri toggle
   const handleNotificationsToggle = async (value) => {
     if (value) {
-      // Bildirim izni iste
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -221,28 +304,23 @@ const DriverSettings = ({ navigation }) => {
     }
   };
 
-  // Task notifications toggle
   const handleTaskNotificationsToggle = async (value) => {
     setTaskNotifications(value);
     await saveSetting(STORAGE_KEYS.TASK_NOTIFICATIONS, value);
   };
 
-  // Sound toggle
   const handleSoundToggle = async (value) => {
     setSoundEnabled(value);
     await saveSetting(STORAGE_KEYS.SOUND_ENABLED, value);
   };
 
-  // Vibration toggle
   const handleVibrationToggle = async (value) => {
     setVibrationEnabled(value);
     await saveSetting(STORAGE_KEYS.VIBRATION_ENABLED, value);
   };
 
-  // Konum servisi toggle
   const handleLocationToggle = async (value) => {
     if (value) {
-      // Konum izni iste
       const { status } = await Location.requestForegroundPermissionsAsync();
       setLocationPermission(status);
 
@@ -267,7 +345,6 @@ const DriverSettings = ({ navigation }) => {
     await saveSetting(STORAGE_KEYS.LOCATION_ENABLED, value);
   };
 
-  // GPS Accuracy ayarları
   const handleGPSAccuracy = () => {
     Alert.alert(
       t("settings.gpsAccuracy"),
@@ -289,19 +366,11 @@ const DriverSettings = ({ navigation }) => {
     );
   };
 
-  // Karanlık mod toggle
+  // Dark Mode toggle - ThemeContext kullanarak
   const handleDarkModeToggle = async (value) => {
-    setDarkMode(value);
-    await saveSetting(STORAGE_KEYS.DARK_MODE, value);
-
-    // TODO: Global theme context ile entegre edilecek
-    Alert.alert(
-      t("settings.darkMode"),
-      value ? t("settings.darkModeEnabled") : t("settings.darkModeDisabled")
-    );
+    await setTheme(value);
   };
 
-  // Önbellek temizle - GERÇEK
   const handleClearCache = () => {
     Alert.alert(
       t("settings.clearCacheTitle"),
@@ -314,7 +383,6 @@ const DriverSettings = ({ navigation }) => {
           onPress: async () => {
             setClearingCache(true);
             try {
-              // AsyncStorage'dan geçici verileri temizle (ayarları koruyarak)
               const allKeys = await AsyncStorage.getAllKeys();
               const cacheKeys = allKeys.filter(
                 (key) =>
@@ -328,10 +396,6 @@ const DriverSettings = ({ navigation }) => {
               if (cacheKeys.length > 0) {
                 await AsyncStorage.multiRemove(cacheKeys);
               }
-
-              // Image cache temizleme (eğer expo-image kullanılıyorsa)
-              // await Image.clearDiskCache();
-              // await Image.clearMemoryCache();
 
               Alert.alert(
                 t("common.success"),
@@ -353,74 +417,63 @@ const DriverSettings = ({ navigation }) => {
     );
   };
 
-  // Destek
+  const handleHelpCenter = () => {
+    const url = `${BASE_URL}/${currentLang}/help`;
+    Linking.openURL(url).catch((err) =>
+      console.error("Error opening help center:", err)
+    );
+  };
+
   const handleSupport = () => {
-    Alert.alert(t("settings.supportTitle"), t("settings.supportMessage"), [
+    const subject = encodeURIComponent("TulipFleet Mobile App - Destek Talebi");
+    const body = encodeURIComponent(
+      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
+    );
+    Linking.openURL(
+      `mailto:support@tulipfleet.com?subject=${subject}&body=${body}`
+    );
+  };
+
+  const handlePrivacyPolicy = () => {
+    const url = `${BASE_URL}/${currentLang}/privacy`;
+    Linking.openURL(url).catch((err) =>
+      console.error("Error opening privacy policy:", err)
+    );
+  };
+
+  const handleAbout = () => {
+    Alert.alert(
+      "TulipFleet",
+      `${t("settings.version")} 1.0.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır."}\n\n© 2025 TulipFleet`,
+      [{ text: t("common.ok") }]
+    );
+  };
+
+  const handleLogout = () => {
+    Alert.alert(t("settings.logout"), t("settings.logoutConfirm"), [
       { text: t("common.cancel"), style: "cancel" },
       {
-        text: t("settings.sendEmail"),
-        onPress: () =>
-          Linking.openURL(
-            "mailto:support@tulipfleet.com?subject=TulipFleet%20Destek"
-          ),
+        text: t("settings.logout"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error("Logout error:", error);
+          }
+        },
       },
     ]);
   };
 
-  // Yardım Merkezi - yeni ekrana git
-  const handleHelpCenter = () => {
-    navigation.navigate("HelpCenterScreen");
-  };
+  // ============================================
+  // Render
+  // ============================================
 
-  // Gizlilik Politikası - URL aç (dil destekli)
-  const handlePrivacyPolicy = async () => {
-    const privacyUrl = `${BASE_URL}/privacy?lang=${currentLang}`;
-    try {
-      const canOpen = await Linking.canOpenURL(privacyUrl);
-      if (canOpen) {
-        await Linking.openURL(privacyUrl);
-      } else {
-        Alert.alert(
-          t("settings.privacyPolicy"),
-          t("settings.privacyPolicyText") ||
-            "Gizlilik politikamız web sitemizde mevcuttur: tulipfleet.com/privacy"
-        );
-      }
-    } catch (error) {
-      Alert.alert(t("common.error"), "Link açılamadı");
-    }
-  };
-
-  // Hakkında
-  const handleAbout = () => {
-    Alert.alert(t("settings.aboutTitle"), t("settings.aboutMessage"), [
-      { text: t("common.ok") },
-    ]);
-  };
-
-  // Çıkış yap
-  const handleLogout = () => {
-    Alert.alert(
-      t("settings.logoutConfirmTitle"),
-      t("settings.logoutConfirmMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("settings.logout"),
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
-    );
-  };
-
-  // Loading durumu
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
@@ -432,27 +485,26 @@ const DriverSettings = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
-          iconColor={COLORS.info}
+          iconColor={COLORS.PRIMARY}
           title={t("settings.pushNotifications")}
-          subtitle={t("settings.allNotifications")}
+          subtitle={t("settings.receiveAlerts")}
           showArrow={false}
           rightElement={
             <Switch
               value={notificationsEnabled}
               onValueChange={handleNotificationsToggle}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: COLORS.SWITCH_OFF, true: COLORS.PRIMARY }}
+              thumbColor={COLORS.WHITE}
             />
           }
         />
 
-        {/* Push açıkken alt seçenekleri göster */}
         {notificationsEnabled && (
           <>
             <View style={styles.divider} />
             <SettingItem
               icon="clipboard-outline"
-              iconColor={COLORS.warning}
+              iconColor={COLORS.WARNING}
               title={t("settings.taskNotifications")}
               subtitle={t("settings.newTaskAssignments")}
               showArrow={false}
@@ -460,15 +512,18 @@ const DriverSettings = ({ navigation }) => {
                 <Switch
                   value={taskNotifications}
                   onValueChange={handleTaskNotificationsToggle}
-                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  trackColor={{
+                    false: COLORS.SWITCH_OFF,
+                    true: COLORS.PRIMARY,
+                  }}
+                  thumbColor={COLORS.WHITE}
                 />
               }
             />
             <View style={styles.divider} />
             <SettingItem
               icon="volume-high-outline"
-              iconColor={COLORS.success}
+              iconColor={COLORS.SUCCESS}
               title={t("settings.sound")}
               subtitle={t("settings.notificationSounds")}
               showArrow={false}
@@ -476,15 +531,18 @@ const DriverSettings = ({ navigation }) => {
                 <Switch
                   value={soundEnabled}
                   onValueChange={handleSoundToggle}
-                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  trackColor={{
+                    false: COLORS.SWITCH_OFF,
+                    true: COLORS.PRIMARY,
+                  }}
+                  thumbColor={COLORS.WHITE}
                 />
               }
             />
             <View style={styles.divider} />
             <SettingItem
               icon="phone-portrait-outline"
-              iconColor={COLORS.secondary}
+              iconColor={COLORS.TEXT_SECONDARY}
               title={t("settings.vibration")}
               subtitle={t("settings.notificationVibration")}
               showArrow={false}
@@ -492,8 +550,11 @@ const DriverSettings = ({ navigation }) => {
                 <Switch
                   value={vibrationEnabled}
                   onValueChange={handleVibrationToggle}
-                  trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  trackColor={{
+                    false: COLORS.SWITCH_OFF,
+                    true: COLORS.PRIMARY,
+                  }}
+                  thumbColor={COLORS.WHITE}
                 />
               }
             />
@@ -506,7 +567,7 @@ const DriverSettings = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="location-outline"
-          iconColor={COLORS.success}
+          iconColor={COLORS.SUCCESS}
           title={t("settings.locationService")}
           subtitle={
             locationPermission === "granted"
@@ -518,15 +579,15 @@ const DriverSettings = ({ navigation }) => {
             <Switch
               value={locationEnabled && locationPermission === "granted"}
               onValueChange={handleLocationToggle}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: COLORS.SWITCH_OFF, true: COLORS.PRIMARY }}
+              thumbColor={COLORS.WHITE}
             />
           }
         />
         <View style={styles.divider} />
         <SettingItem
           icon="navigate-outline"
-          iconColor={COLORS.info}
+          iconColor={COLORS.INFO}
           title={t("settings.gpsAccuracy")}
           subtitle={t("settings.highAccuracy")}
           onPress={handleGPSAccuracy}
@@ -536,31 +597,31 @@ const DriverSettings = ({ navigation }) => {
       {/* Uygulama Ayarları */}
       <SectionHeader title={t("settings.sections.app")} />
       <View style={styles.settingGroup}>
-        {/* Language Selector */}
         <LanguageSelector />
         <View style={styles.divider} />
+
         {/* Karanlık Mod */}
         <SettingItem
           icon="moon-outline"
-          iconColor={COLORS.dark}
+          iconColor={isDark ? COLORS.WARNING : COLORS.TEXT}
           title={t("settings.darkMode")}
           subtitle={
-            darkMode ? t("settings.darkModeOn") : t("settings.darkModeOff")
+            isDark ? t("settings.darkModeOn") : t("settings.darkModeOff")
           }
           showArrow={false}
           rightElement={
             <Switch
-              value={darkMode}
+              value={isDark}
               onValueChange={handleDarkModeToggle}
-              trackColor={{ false: COLORS.muted, true: COLORS.primary }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: COLORS.SWITCH_OFF, true: COLORS.PRIMARY }}
+              thumbColor={COLORS.WHITE}
             />
           }
         />
         <View style={styles.divider} />
         <SettingItem
           icon="trash-outline"
-          iconColor={COLORS.danger}
+          iconColor={COLORS.ERROR}
           title={t("settings.clearCache")}
           subtitle={t("settings.clearCacheSubtitle")}
           onPress={handleClearCache}
@@ -574,7 +635,7 @@ const DriverSettings = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="help-circle-outline"
-          iconColor={COLORS.info}
+          iconColor={COLORS.INFO}
           title={t("settings.helpCenter")}
           subtitle={t("settings.helpCenterSubtitle")}
           onPress={handleHelpCenter}
@@ -582,7 +643,7 @@ const DriverSettings = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="chatbubble-outline"
-          iconColor={COLORS.success}
+          iconColor={COLORS.SUCCESS}
           title={t("settings.contactUs")}
           subtitle="support@tulipfleet.com"
           onPress={handleSupport}
@@ -590,7 +651,7 @@ const DriverSettings = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="document-text-outline"
-          iconColor={COLORS.secondary}
+          iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.privacyPolicy")}
           subtitle={t("settings.usageTerms")}
           onPress={handlePrivacyPolicy}
@@ -598,7 +659,7 @@ const DriverSettings = ({ navigation }) => {
         <View style={styles.divider} />
         <SettingItem
           icon="information-circle-outline"
-          iconColor={COLORS.secondary}
+          iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.aboutApp")}
           subtitle={t("settings.version") + " 1.0.0"}
           onPress={handleAbout}
@@ -609,7 +670,7 @@ const DriverSettings = ({ navigation }) => {
       <View style={styles.settingGroup}>
         <SettingItem
           icon="log-out-outline"
-          iconColor={COLORS.danger}
+          iconColor={COLORS.ERROR}
           title={t("settings.logout")}
           subtitle={t("settings.logoutSubtitle")}
           onPress={handleLogout}
@@ -626,100 +687,6 @@ const DriverSettings = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-
-  // Section Header
-  sectionHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.secondary,
-    letterSpacing: 1,
-  },
-
-  // Setting Group
-  settingGroup: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: 12,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-
-  // Setting Item
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: COLORS.dark,
-  },
-  settingSubtitle: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-
-  // Divider
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginLeft: 68,
-  },
-
-  // Footer
-  footer: {
-    alignItems: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    fontWeight: "500",
-  },
-  footerSubtext: {
-    fontSize: 12,
-    color: COLORS.muted,
-    marginTop: 4,
-  },
-  footerEmail: {
-    fontSize: 11,
-    color: COLORS.muted,
-    marginTop: 8,
-  },
-});
+// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverSettings;
