@@ -552,6 +552,7 @@
     "min": "min"
   },
   "navigator": {
+    "fuelManagement": "Brandstofbeheer",
     "logout": "Uitloggen",
     "logoutConfirm": "Weet u zeker dat u wilt uitloggen?",
     "cancel": "Annuleren",

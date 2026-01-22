@@ -674,6 +674,7 @@
     "min": "min"
   },
   "navigator": {
+    "fuelManagement": "Fuel Management",
     "logout": "Logout",
     "logoutConfirm": "Are you sure you want to logout?",
     "cancel": "Cancel",

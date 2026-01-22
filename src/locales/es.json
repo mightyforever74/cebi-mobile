@@ -363,6 +363,7 @@
     "retry": "Reintentar"
   },
   "navigator": {
+    "fuelManagement": "Gestión de Combustible",
     "logout": "Cerrar Sesión",
     "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?",
     "cancel": "Cancelar",

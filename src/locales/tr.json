@@ -671,6 +671,7 @@
     "min": "dk"
   },
   "navigator": {
+    "fuelManagement": "Yakıt Yönetimi",
     "logout": "Çıkış Yap",
     "logoutConfirm": "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
     "cancel": "İptal",

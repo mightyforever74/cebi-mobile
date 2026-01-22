@@ -355,6 +355,7 @@
     "retry": "Riprova"
   },
   "navigator": {
+    "fuelManagement": "Gestione Carburante",
     "logout": "Esci",
     "logoutConfirm": "Sei sicuro di voler uscire?",
     "cancel": "Annulla",
