@@ -21,6 +21,14 @@
     "all": "Hemû",
     "none": "Tu yek"
   },
+  "dashboard": {
+    "addDevice": "Amûrê Nû Zêde Bike",
+    "enterSerial": "Hejmara Serial a Amûrê",
+    "enterSerialMessage": "Hejmara serial ji koda QR binivîse (mînak: TF-2025-00008-5)",
+    "serialEmpty": "Hejmara serial nabe vala be",
+    "deviceNotFound": "Amûr nehat dîtin",
+    "deviceCheckFailed": "Kontrola amûrê têk çû"
+  },
   "profile": {
     "title": "Profîl",
     "driver": "Ajokar",
@@ -398,7 +406,6 @@
     "title": "Sazkirina Amûrê",
     "scan": "QR Bişkîne",
     "scanSubtitle": "QR kodê bişkîne an bi hejmara rêzê bigere",
-    "connect": "Amûrê Girêde",
     "connectSubtitle": "Bi Bluetooth ve amûrê girêde",
     "configure": "WiFi Saz Bike",
     "configureSubtitle": "Agahiyên WiFi bike amûrê",

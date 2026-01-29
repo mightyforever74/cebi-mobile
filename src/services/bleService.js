@@ -257,6 +257,14 @@ class BLEService {
         autoConnect: false,
       });
 
+      // ✅ Connection priority: High (connection'ı stabil tut)
+      try {
+        await this.device.requestConnectionPriority(1); // 1 = High priority
+        console.log("[BLE] Connection priority set to HIGH");
+      } catch (e) {
+        console.log("[BLE] Connection priority not supported:", e.message);
+      }
+
       console.log("[BLE] Connected, discovering services...");
       await this.device.discoverAllServicesAndCharacteristics();
 
@@ -484,6 +492,54 @@ class BLEService {
    * @param {string} ssid - WiFi ağ adı
    * @param {string} password - WiFi şifresi
    * @returns {Promise<boolean>}
+  // ════════════════════════════════════════════════════════════
+  // 7. WIFI SCAN (Phase 3 - WiFiPicker için)
+  // ════════════════════════════════════════════════════════════
+  async scanWifiNetworks() {
+    if (!this.device) {
+      throw new Error("Cihaz bağlı değil");
+    }
+
+    try {
+      console.log("[BLE] WiFi scan başlatılıyor...");
+
+      // WiFi Scan characteristic UUID (ESP32'de tanımlı olmalı)
+      const WIFI_SCAN_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26ad";
+
+      // Characteristic'i bul
+      const characteristics = await this.device.characteristicsForService(
+        BLE_CONFIG.SERVICE_UUID
+      );
+
+      const scanChar = characteristics.find(
+        (c) => c.uuid.toLowerCase() === WIFI_SCAN_UUID.toLowerCase()
+      );
+
+      if (!scanChar) {
+        throw new Error("WiFi Scan characteristic bulunamadı");
+      }
+
+      // ESP32'den WiFi listesini oku
+      const value = await scanChar.read();
+      const jsonString = base64.decode(value.value);
+      
+      console.log("[BLE] WiFi scan response:", jsonString);
+
+      // JSON parse et
+      const networks = JSON.parse(jsonString);
+
+      if (!Array.isArray(networks)) {
+        throw new Error("Geçersiz WiFi scan response");
+      }
+
+      console.log(`[BLE] ${networks.length} WiFi ağı bulundu`);
+      return networks;
+
+    } catch (error) {
+      console.error("[BLE] WiFi scan error:", error);
+      throw error;
+    }
+  }
    */
   async writeWifiCredentials(ssid, password) {
     if (!this.device) throw new Error("NOT_CONNECTED");
@@ -605,7 +661,16 @@ class BLEService {
               resolved = true;
               clearTimeout(timeout);
               this.cleanupWifiSubscription();
-              resolve("OK");
+              console.log("[BLE] OK alındı, disconnect ediliyor...");
+              this.disconnect()
+                .then(() => {
+                  console.log("[BLE] Disconnect tamamlandı");
+                  resolve("OK");
+                })
+                .catch((e) => {
+                  console.log("[BLE] Disconnect hatası (normal):", e.message);
+                  resolve("OK");
+                });
             } else if (status.startsWith("ERR_")) {
               resolved = true;
               clearTimeout(timeout);

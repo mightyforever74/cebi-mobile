@@ -373,6 +373,25 @@ const makeStyles = (COLORS) =>
       fontSize: 16,
       fontWeight: "600",
     },
+    fab: {
+      position: "absolute",
+      bottom: 20,
+      right: 20,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: "#FF6B35",
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+    fabIcon: {
+      fontSize: 28,
+    },
   });
 
 // ============================================
@@ -398,6 +417,50 @@ const DriverDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
+
+  // Yeni Cihaz Ekle handler
+  const handleAddDevice = async () => {
+    Alert.prompt(
+      t("dashboard.enterSerial"),
+      t("dashboard.enterSerialMessage"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.continue"),
+          onPress: async (serial) => {
+            if (!serial || serial.trim().length === 0) {
+              Alert.alert(t("common.error"), t("dashboard.serialEmpty"));
+              return;
+            }
+            try {
+              // Backend'de validate et
+              const response = await driverProvisionAPI.validateSerial(
+                serial.trim()
+              );
+              if (response.valid) {
+                // VehiclePicker'a yönlendir
+                navigation.navigate("VehiclePicker", {
+                  serial: serial.trim(),
+                  deviceInfo: response.device,
+                });
+              } else {
+                Alert.alert(
+                  t("common.error"),
+                  response.message || t("dashboard.deviceNotFound")
+                );
+              }
+            } catch (error) {
+              Alert.alert(
+                t("common.error"),
+                t("dashboard.deviceCheckFailed") + ": " + error.message
+              );
+            }
+          },
+        },
+      ],
+      "plain-text"
+    );
+  };
 
   // Gate Logic State
   const [deviceCheckDone, setDeviceCheckDone] = useState(false);
@@ -812,6 +875,14 @@ const DriverDashboard = () => {
           </View>
         </View>
       </Modal>
+      {/* Floating Action Button - Yeni Cihaz Ekle */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleAddDevice}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>📱</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };

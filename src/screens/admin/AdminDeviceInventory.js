@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { BarCodeScanner } from "expo-barcode-scanner";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { theme } from "../../constants";
-import { adminAPI, deviceAPI } from "../../services/api";
+import { adminAPI } from "../../services/api";
 
 const { COLORS, SIZES } = theme;
 
@@ -31,25 +31,13 @@ const AdminDeviceInventory = () => {
   const [searchModal, setSearchModal] = useState(false);
   const [searchSerial, setSearchSerial] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [filterAssigned, setFilterAssigned] = useState("all");
-
-  // ✅ FIX: Permission isteğini lazy yapalım
-  useEffect(() => {
-    if (scannerModal && hasPermission === null) {
-      requestCameraPermission();
-    }
-  }, [scannerModal]);
 
   // ✅ Filter değişince otomatik fetch
   useEffect(() => {
     fetchDevices();
   }, [filterAssigned]);
-
-  const requestCameraPermission = async () => {
-    const { status } = await BarCodeScanner.requestPermissionsAsync();
-    setHasPermission(status === "granted");
-  };
 
   const fetchDevices = async () => {
     try {
@@ -58,8 +46,8 @@ const AdminDeviceInventory = () => {
         filterAssigned === "all"
           ? undefined
           : filterAssigned === "assigned"
-          ? "true"
-          : "false";
+            ? "true"
+            : "false";
 
       const data = await adminAPI.getDevices(assigned);
       const list = Array.isArray(data) ? data : data?.devices || [];
@@ -90,28 +78,29 @@ const AdminDeviceInventory = () => {
     scanLock.current = true;
 
     try {
-      const token = extractToken(data);
       setScannerModal(false);
 
-      const validate = await deviceAPI.validateClaimToken(token);
-      if (validate?.valid) {
+      const serial = (data || "").trim().toUpperCase();
+
+      const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
+      if (!serialRegex.test(serial)) {
         Alert.alert(
-          "QR Valid",
-          `Device: ${validate.device.serial}\nExpires in: ${validate.expires_in_hours} hours`,
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Add to Stock",
-              onPress: () => handleAddToStock(token),
-            },
-          ]
+          "Invalid Serial",
+          "QR code must contain a valid serial number (TF-XXXX-XXXXX-X)"
         );
+        return;
       }
-    } catch (err) {
+
       Alert.alert(
-        "Invalid QR",
-        err.response?.data?.error || "QR code is invalid or expired"
+        "Add to Stock",
+        `Serial: ${serial}\n\nAdd this device to stock?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Add to Stock", onPress: () => handleAddToStock(serial) },
+        ]
       );
+    } catch (err) {
+      Alert.alert("Error", err.message || "Failed to scan QR code");
     } finally {
       setTimeout(() => {
         scanLock.current = false;
@@ -120,14 +109,25 @@ const AdminDeviceInventory = () => {
   };
 
   // ✅ QR claim (Add to Stock)
-  const handleAddToStock = async (token) => {
+  const handleAddToStock = async (serial) => {
     try {
       setLoadingActionDeviceId("qr");
-      const result = await deviceAPI.claimByToken(token, "add_to_stock");
-      Alert.alert("Success", `Device ${result.device.serial} added to stock!`);
-      fetchDevices();
+      const result = await adminAPI.addToStockBySerial(serial);
+
+      if (result?.success) {
+        Alert.alert(
+          "Success",
+          result.message || `Device ${serial} added to stock!`
+        );
+        fetchDevices();
+      } else {
+        Alert.alert("Error", result?.error || "Failed to add device");
+      }
     } catch (err) {
-      Alert.alert("Error", err.response?.data?.error || "Failed to add device");
+      Alert.alert(
+        "Error",
+        err.response?.data?.error || "Failed to add device to stock"
+      );
     } finally {
       setLoadingActionDeviceId(null);
     }
@@ -157,18 +157,38 @@ const AdminDeviceInventory = () => {
   const handleAddDeviceToStock = async (deviceId) => {
     try {
       setLoadingActionDeviceId(deviceId);
-      await adminAPI.claimDevice(deviceId, "add_to_stock");
 
-      Alert.alert("Success", "Device added to stock!");
-      setSearchModal(false);
-      setSearchResults([]);
-      setSearchSerial("");
-      fetchDevices();
+      // DeviceId'den serial'ı bul
+      const device = searchResults.find((d) => d.id === deviceId);
+      if (!device || !device.serial) {
+        Alert.alert("Error", "Device serial not found");
+        return;
+      }
+
+      const result = await adminAPI.addToStockBySerial(device.serial);
+
+      if (result?.success) {
+        Alert.alert("Success", result.message || "Device added to stock!");
+        setSearchModal(false);
+        setSearchResults([]);
+        setSearchSerial("");
+        fetchDevices();
+      } else {
+        Alert.alert("Error", result?.error || "Failed to add device");
+      }
     } catch (err) {
       Alert.alert("Error", err.response?.data?.error || "Failed to add device");
     } finally {
       setLoadingActionDeviceId(null);
     }
+  };
+
+  // Scanner modal açma - permission ile
+  const openScanner = async () => {
+    if (!permission?.granted) {
+      await requestPermission();
+    }
+    setScannerModal(true);
   };
 
   // ✅ useMemo ile grouping
@@ -268,8 +288,9 @@ const AdminDeviceInventory = () => {
           ]}
           onPress={() => setFilterAssigned("all")}
         >
-          <Text style={styles.filterBtnText}>All</Text>
+          <Text style={styles.filterBtnText}>All Devices</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[
             styles.filterBtn,
@@ -279,6 +300,7 @@ const AdminDeviceInventory = () => {
         >
           <Text style={styles.filterBtnText}>Assigned</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[
             styles.filterBtn,
@@ -290,29 +312,20 @@ const AdminDeviceInventory = () => {
         </TouchableOpacity>
       </View>
 
-      {/* ✅ FIX 5: Action buttons'ı disable et */}
+      {/* Action Buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            styles.actionBtnPrimary,
-            loadingActionDeviceId === "qr" && styles.btnDisabled,
-          ]}
-          onPress={() => setScannerModal(true)}
-          disabled={loadingActionDeviceId === "qr"}
+          style={[styles.actionBtn, styles.actionBtnPrimary]}
+          onPress={openScanner}
         >
-          <Text style={styles.actionBtnText}>📷 QR Scan</Text>
+          <Text style={styles.actionBtnText}>📷 Scan QR</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            styles.actionBtnSecondary,
-            loadingAction && styles.btnDisabled,
-          ]}
+          style={[styles.actionBtn, styles.actionBtnSecondary]}
           onPress={() => setSearchModal(true)}
-          disabled={loadingAction}
         >
-          <Text style={styles.actionBtnText}>🔍 Serial No</Text>
+          <Text style={styles.actionBtnText}>🔍 Search</Text>
         </TouchableOpacity>
       </View>
 
@@ -325,78 +338,92 @@ const AdminDeviceInventory = () => {
           <Text style={styles.sectionTitle}>{title}</Text>
         )}
         contentContainerStyle={styles.list}
+        refreshing={loadingList}
+        onRefresh={fetchDevices}
+        ListEmptyComponent={
+          <View style={styles.center}>
+            <Text style={styles.value}>No devices found</Text>
+          </View>
+        }
       />
 
       {/* QR Scanner Modal */}
       <Modal visible={scannerModal} animationType="slide">
         <View style={styles.scannerContainer}>
-          {hasPermission === null ? (
+          {!permission ? (
             <View style={styles.permissionContainer}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
               <Text style={styles.permissionText}>
                 Requesting camera permission...
               </Text>
             </View>
-          ) : hasPermission === false ? (
+          ) : !permission.granted ? (
             <View style={styles.permissionContainer}>
-              <Text style={styles.errorText}>❌ Camera permission denied</Text>
+              <Text style={styles.errorText}>✗ Camera permission denied</Text>
               <Text style={styles.permissionText}>
                 Please enable camera in settings
               </Text>
               <TouchableOpacity
-                style={[styles.btn, styles.btnPrimary]}
-                onPress={() => setScannerModal(false)}
+                style={[
+                  styles.btn,
+                  styles.btnPrimary,
+                  { marginTop: SIZES.BASE },
+                ]}
+                onPress={requestPermission}
               >
-                <Text style={styles.btnText}>Close</Text>
+                <Text style={styles.btnText}>Request Permission</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <>
-              <BarCodeScanner
-                onBarCodeScanned={
-                  scannerModal ? handleBarCodeScanned : undefined
-                }
-                style={styles.scanner}
-              />
-              <TouchableOpacity
-                style={[styles.btn, styles.btnDanger]}
-                onPress={() => setScannerModal(false)}
-              >
-                <Text style={styles.btnText}>Cancel</Text>
-              </TouchableOpacity>
-            </>
+            <CameraView
+              style={styles.scanner}
+              facing="back"
+              onBarcodeScanned={handleBarCodeScanned}
+              barcodeScannerSettings={{
+                barcodeTypes: ["qr"],
+              }}
+            />
           )}
+
+          <TouchableOpacity
+            style={[styles.btn, styles.btnDanger, { margin: SIZES.BASE }]}
+            onPress={() => setScannerModal(false)}
+          >
+            <Text style={styles.btnText}>Close</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
       {/* Serial Search Modal */}
-      <Modal visible={searchModal} transparent animationType="fade">
+      <Modal
+        visible={searchModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSearchModal(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Search by Serial</Text>
+            <Text style={styles.modalTitle}>Search Device by Serial</Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Serial (e.g. TFL-2025-001)"
               value={searchSerial}
               onChangeText={setSearchSerial}
-              autoCapitalize="characters"
+              placeholder="Enter serial number (TF-XXXX-XXXXX-X)"
               placeholderTextColor={COLORS.MUTED}
+              autoCapitalize="characters"
+              autoCorrect={false}
             />
 
             <TouchableOpacity
-              style={[
-                styles.btn,
-                styles.btnPrimary,
-                loadingAction && styles.btnDisabled,
-              ]}
+              style={[styles.btn, styles.btnPrimary]}
               onPress={handleSearchSerial}
               disabled={loadingAction}
             >
               {loadingAction ? (
                 <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
-                <Text style={styles.btnText}>Search</Text>
+                <Text style={styles.btnText}>🔍 Search</Text>
               )}
             </TouchableOpacity>
 

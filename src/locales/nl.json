@@ -343,7 +343,13 @@
     "totalDistance": "Totale Afstand",
     "avgScore": "Gem. Score",
     "activeTasksCount": "Actief",
-    "fuelEntry": "Tankregistratie"
+    "fuelEntry": "Tankregistratie",
+    "addDevice": "Nieuw Apparaat Toevoegen",
+    "enterSerial": "Serienummer van Apparaat",
+    "enterSerialMessage": "Voer het serienummer van de QR-code in (bijv. TF-2025-00008-5)",
+    "serialEmpty": "Serienummer mag niet leeg zijn",
+    "deviceNotFound": "Apparaat niet gevonden",
+    "deviceCheckFailed": "Apparaatcontrole mislukt"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -592,7 +598,7 @@
     },
     "placeholder": {
       "taskHistory": "Taakgeschiedenis",
-      "completedTasks": "Voltooide taken",
+      "completedTasks": "Voltooid",
       "emergency": "Noodgeval",
       "sendSOS": "SOS verzenden",
       "platformReports": "Platform Rapporten",

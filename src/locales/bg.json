@@ -150,7 +150,13 @@
     "completedTasks": "Завършени",
     "totalDistance": "Общо разстояние",
     "avgScore": "Средна оценка",
-    "activeTasksCount": "Активни"
+    "activeTasksCount": "Активни",
+    "addDevice": "Добави ново устройство",
+    "enterSerial": "Сериен номер на устройството",
+    "enterSerialMessage": "Въведете серийния номер от QR кода (напр. TF-2025-00008-5)",
+    "serialEmpty": "Серийният номер не може да бъде празен",
+    "deviceNotFound": "Устройството не е намерено",
+    "deviceCheckFailed": "Проверката на устройството е неуспешна"
   },
   "vehicle": {
     "title": "Моето превозно средство",

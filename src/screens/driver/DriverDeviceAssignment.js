@@ -3,8 +3,7 @@
 // Version: 2.0 - Full i18n Support
 
 import { useRoute } from "@react-navigation/native";
-import { BarCodeScanner } from "expo-barcode-scanner";
-import * as Linking from "expo-linking";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -44,7 +43,7 @@ const DriverDeviceAssignment = () => {
   // Form states
   const [searchSerial, setSearchSerial] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
 
   const hasVehicle = Boolean(vehicleId);
 
@@ -81,19 +80,6 @@ const DriverDeviceAssignment = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicleId]);
 
-  // Lazy permission request
-  useEffect(() => {
-    if (scannerModal && hasPermission === null) {
-      requestCameraPermission();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scannerModal]);
-
-  const requestCameraPermission = async () => {
-    const { status } = await BarCodeScanner.requestPermissionsAsync();
-    setHasPermission(status === "granted");
-  };
-
   const handleFetchAssignableDevices = async () => {
     try {
       setLoadingList(true);
@@ -111,8 +97,13 @@ const DriverDeviceAssignment = () => {
   };
 
   const handleValidateQR = async (token) => {
-    const res = await deviceAPI.validateClaimToken(token);
-    return res?.data ?? res; // { valid, device, expires_in_hours }
+    // Validation artık backend'de scanQR sırasında yapılıyor
+    // Token formatını kontrol et (64 char)
+    const tokenRegex = /^[A-Za-z0-9]{64}$/;
+    if (!tokenRegex.test(token)) {
+      throw new Error("Invalid token format");
+    }
+    return { valid: true, token };
   };
 
   const handleBarCodeScanned = async ({ data }) => {
@@ -127,34 +118,34 @@ const DriverDeviceAssignment = () => {
       setScannerModal(false);
 
       const token = extractToken(data);
-      const qrData = await handleValidateQR(token);
 
-      if (qrData?.valid) {
-        Alert.alert(
-          t("deviceAssignment.qrValid"),
-          `${t("deviceAssignment.device")}: ${qrData?.device?.serial}\n${t(
-            "deviceAssignment.expiresIn"
-          )}: ${qrData?.expires_in_hours} ${t("deviceAssignment.hours")}`,
-          [
-            { text: t("deviceAssignment.cancel"), style: "cancel" },
-            {
-              text: t("deviceAssignment.assignToVehicle"),
-              onPress: () => handleClaimByToken(token),
+      // Token format validation
+      await handleValidateQR(token);
+
+      // Direkt atama onayı iste
+      Alert.alert(
+        t("deviceAssignment.qrValid"),
+        t("deviceAssignment.confirmAssignment"),
+        [
+          {
+            text: t("deviceAssignment.cancel"),
+            style: "cancel",
+            onPress: () => {
+              scanLock.current = false;
             },
-          ]
-        );
-      } else {
-        Alert.alert(
-          t("deviceAssignment.invalidQR"),
-          t("deviceAssignment.qrExpired")
-        );
-      }
+          },
+          {
+            text: t("deviceAssignment.assignToVehicle"),
+            onPress: () => handleClaimByToken(token),
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (err) {
       Alert.alert(
         t("deviceAssignment.invalidQR"),
-        err?.response?.data?.error || t("deviceAssignment.qrExpired")
+        err?.message || t("deviceAssignment.qrExpired")
       );
-    } finally {
       setTimeout(() => {
         scanLock.current = false;
       }, 1000);
@@ -169,17 +160,27 @@ const DriverDeviceAssignment = () => {
 
     try {
       setLoadingActionDeviceId("qr");
-      await deviceAPI.claimByToken(token, {
-        action: "assign_to_vehicle",
-        vehicleId,
-      });
 
-      Alert.alert(
-        t("deviceAssignment.success"),
-        t("deviceAssignment.deviceAssigned")
+      // YENİ API: scanQR
+      const result = await deviceAPI.scanQR(
+        token,
+        "assign_to_vehicle",
+        vehicleId
       );
-      await handleFetchAssignableDevices();
-      setScannerModal(false);
+
+      if (result.success) {
+        Alert.alert(
+          t("deviceAssignment.success"),
+          t("deviceAssignment.deviceAssigned")
+        );
+        await handleFetchAssignableDevices();
+        setScannerModal(false);
+      } else {
+        Alert.alert(
+          t("deviceAssignment.error"),
+          result.message || t("deviceAssignment.assignFailed")
+        );
+      }
     } catch (err) {
       Alert.alert(
         t("deviceAssignment.error"),
@@ -188,6 +189,7 @@ const DriverDeviceAssignment = () => {
       throw err;
     } finally {
       setLoadingActionDeviceId(null);
+      scanLock.current = false;
     }
   };
 
@@ -246,6 +248,14 @@ const DriverDeviceAssignment = () => {
     }
   };
 
+  // Scanner modal açma - permission ile
+  const openScanner = async () => {
+    if (!permission?.granted) {
+      await requestPermission();
+    }
+    setScannerModal(true);
+  };
+
   const renderAssignableDeviceItem = ({ item }) => (
     <View style={styles.deviceCard}>
       <View style={styles.cardHeader}>
@@ -296,7 +306,9 @@ const DriverDeviceAssignment = () => {
           {loadingActionDeviceId === item.id ? (
             <ActivityIndicator size="small" color={COLORS.WHITE} />
           ) : (
-            <Text style={styles.btnText}>{t("deviceAssignment.assign")}</Text>
+            <Text style={styles.btnText}>
+              📱 {t("deviceAssignment.assign")}
+            </Text>
           )}
         </TouchableOpacity>
       ) : (
@@ -326,57 +338,48 @@ const DriverDeviceAssignment = () => {
       </View>
 
       {/* Vehicle Info */}
-      <View style={[styles.infoCard, !hasVehicle && styles.infoCardWarning]}>
-        <Text style={styles.infoLabel}>{t("deviceAssignment.vehicleId")}:</Text>
-        <Text style={styles.infoValue}>
-          {vehicleId || t("deviceAssignment.notSelected")}
-        </Text>
-        {!hasVehicle && (
+      {hasVehicle ? (
+        <View style={styles.infoCard}>
+          <Text style={styles.infoLabel}>{t("deviceAssignment.vehicle")}</Text>
+          <Text style={styles.infoValue}>ID: {vehicleId}</Text>
+        </View>
+      ) : (
+        <View style={[styles.infoCard, styles.infoCardWarning]}>
           <Text style={styles.warningText}>
-            {t("deviceAssignment.vehicleRequired")}
+            {t("deviceAssignment.noVehicle")}
           </Text>
-        )}
+        </View>
+      )}
+
+      {/* Hint */}
+      <View style={styles.hintCard}>
+        <Text style={styles.hintText}>{t("deviceAssignment.hint")}</Text>
       </View>
 
       {/* Action Buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            styles.actionBtnPrimary,
-            (!hasVehicle || loadingActionDeviceId === "qr") &&
-              styles.btnDisabled,
-          ]}
-          onPress={() => setScannerModal(true)}
-          disabled={!hasVehicle || loadingActionDeviceId === "qr"}
-        >
-          <Text style={styles.actionBtnText}>
-            📷 {t("deviceAssignment.qrScan")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            styles.actionBtnSecondary,
-            (!hasVehicle || loadingAction) && styles.btnDisabled,
-          ]}
-          onPress={() => setSearchModal(true)}
-          disabled={!hasVehicle || loadingAction}
-        >
-          <Text style={styles.actionBtnText}>
-            🔍 {t("deviceAssignment.serial")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            styles.actionBtnTertiary,
-            !hasVehicle && styles.btnDisabled,
-          ]}
-          onPress={() => setDeviceListModal(true)}
+          style={[styles.actionBtn, styles.actionBtnPrimary]}
+          onPress={openScanner}
           disabled={!hasVehicle}
+        >
+          <Text style={styles.actionBtnText}>
+            📷 {t("deviceAssignment.scanQR")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnSecondary]}
+          onPress={() => setSearchModal(true)}
+        >
+          <Text style={styles.actionBtnText}>
+            🔍 {t("deviceAssignment.search")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnTertiary]}
+          onPress={() => setDeviceListModal(true)}
         >
           <Text style={styles.actionBtnText}>
             📋 {t("deviceAssignment.list")}
@@ -384,72 +387,75 @@ const DriverDeviceAssignment = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Optional hint */}
-      {!hasVehicle && (
-        <View style={styles.hintCard}>
-          <Text style={styles.hintText}>{t("deviceAssignment.hint")}</Text>
-        </View>
-      )}
+      {/* Assignable Devices List */}
+      <Text style={[styles.title, { paddingHorizontal: SIZES.BASE }]}>
+        {t("deviceAssignment.availableDevices")} ({assignableDevices.length})
+      </Text>
+
+      <FlatList
+        data={assignableDevices}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderAssignableDeviceItem}
+        contentContainerStyle={{ paddingHorizontal: SIZES.BASE }}
+        ListEmptyComponent={
+          <View style={styles.center}>
+            <Text style={styles.value}>
+              {t("deviceAssignment.noDevicesAvailable")}
+            </Text>
+          </View>
+        }
+        refreshing={loadingList}
+        onRefresh={handleFetchAssignableDevices}
+      />
 
       {/* QR Scanner Modal */}
-      <Modal
-        visible={scannerModal}
-        animationType="slide"
-        onRequestClose={() => setScannerModal(false)}
-      >
+      <Modal visible={scannerModal} animationType="slide">
         <View style={styles.scannerContainer}>
-          {hasPermission === null ? (
+          {!permission ? (
             <View style={styles.permissionContainer}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
               <Text style={styles.permissionText}>
-                {t("deviceAssignment.requestingCamera")}
+                {t("camera.requestingPermission")}
               </Text>
             </View>
-          ) : hasPermission === false ? (
+          ) : !permission.granted ? (
             <View style={styles.permissionContainer}>
               <Text style={styles.errorText}>
-                ❌ {t("deviceAssignment.cameraPermissionDenied")}
+                {t("camera.permissionDenied")}
               </Text>
               <Text style={styles.permissionText}>
-                {t("deviceAssignment.enableCameraPermission")}
+                {t("camera.enableInSettings")}
               </Text>
-
               <TouchableOpacity
-                style={[styles.btn, styles.btnPrimary]}
-                onPress={() => Linking.openSettings()}
+                style={[
+                  styles.btn,
+                  styles.btnPrimary,
+                  { marginTop: SIZES.BASE },
+                ]}
+                onPress={requestPermission}
               >
                 <Text style={styles.btnText}>
-                  {t("deviceAssignment.openSettings")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.btn, styles.btnDanger]}
-                onPress={() => setScannerModal(false)}
-              >
-                <Text style={styles.btnText}>
-                  {t("deviceAssignment.close")}
+                  {t("camera.grantPermission")}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <>
-              <BarCodeScanner
-                onBarCodeScanned={
-                  scannerModal ? handleBarCodeScanned : undefined
-                }
-                style={styles.scanner}
-              />
-              <TouchableOpacity
-                style={[styles.btn, styles.btnDanger]}
-                onPress={() => setScannerModal(false)}
-              >
-                <Text style={styles.btnText}>
-                  {t("deviceAssignment.cancel")}
-                </Text>
-              </TouchableOpacity>
-            </>
+            <CameraView
+              style={styles.scanner}
+              facing="back"
+              onBarcodeScanned={handleBarCodeScanned}
+              barcodeScannerSettings={{
+                barcodeTypes: ["qr"],
+              }}
+            />
           )}
+
+          <TouchableOpacity
+            style={[styles.btn, styles.btnDanger, { margin: SIZES.BASE }]}
+            onPress={() => setScannerModal(false)}
+          >
+            <Text style={styles.btnText}>{t("deviceAssignment.close")}</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
@@ -468,19 +474,16 @@ const DriverDeviceAssignment = () => {
 
             <TextInput
               style={styles.input}
-              placeholder={t("deviceAssignment.serialPlaceholder")}
               value={searchSerial}
               onChangeText={setSearchSerial}
-              autoCapitalize="characters"
+              placeholder={t("deviceAssignment.enterSerial")}
               placeholderTextColor={COLORS.MUTED}
+              autoCapitalize="characters"
+              autoCorrect={false}
             />
 
             <TouchableOpacity
-              style={[
-                styles.btn,
-                styles.btnPrimary,
-                loadingAction && styles.btnDisabled,
-              ]}
+              style={[styles.btn, styles.btnPrimary]}
               onPress={handleSearchSerial}
               disabled={loadingAction}
             >
@@ -488,25 +491,18 @@ const DriverDeviceAssignment = () => {
                 <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
                 <Text style={styles.btnText}>
-                  {t("deviceAssignment.search")}
+                  🔍 {t("deviceAssignment.search")}
                 </Text>
               )}
             </TouchableOpacity>
 
-            {searchResults.length > 0 ? (
+            {searchResults.length > 0 && (
               <FlatList
                 data={searchResults}
                 keyExtractor={(d) => String(d.id)}
                 style={styles.searchList}
-                contentContainerStyle={{ paddingBottom: SIZES.BASE }}
                 renderItem={renderSearchResultItem}
-                refreshing={loadingList}
-                onRefresh={handleFetchAssignableDevices}
               />
-            ) : (
-              <Text style={styles.emptyText}>
-                {t("deviceAssignment.noResultsYet")}
-              </Text>
             )}
 
             <TouchableOpacity

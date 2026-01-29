@@ -274,6 +274,14 @@ export const adminAPI = {
     const response = await api.post("/api/admin/devices/claim", body);
     return response.data;
   },
+  // YENİ METOD BURAYA EKLENDİ ↓↓↓
+  addToStockBySerial: async (serial) => {
+    const response = await api.post(
+      "/api/admin/devices/add-to-stock-by-serial",
+      { serial }
+    );
+    return response.data;
+  },
 
   // Delegate to canonical APIs
   getVehicles: async () => vehicleAPI.getList(),
@@ -402,11 +410,33 @@ export const superAdminAPI = {
     return response.data;
   },
 
+  getDeviceQRCodes: async (deviceId) => {
+    const response = await api.get(
+      `/api/superadmin/devices/${deviceId}/qr-codes`
+    );
+    return response.data;
+  },
+
+  deleteDevice: async (deviceId) => {
+    const response = await api.delete(`/api/superadmin/devices/${deviceId}`);
+    return response.data;
+  },
+
   // ============================================
   // KULLANICILAR & SİSTEM
   // ============================================
   getUsers: async () => {
     const response = await api.get("/api/superadmin/users");
+    return response.data;
+  },
+
+  scanQR: async (token, action, vehicleId, force = false) => {
+    const response = await api.post("/api/devices/scan-qr", {
+      token,
+      action,
+      vehicleId,
+      force,
+    });
     return response.data;
   },
 
@@ -421,22 +451,22 @@ export const superAdminAPI = {
 // ============================================
 
 export const deviceAPI = {
-  validateClaimToken: async (token) => {
-    const response = await api.get("/api/device/claim/validate", {
-      params: { token },
-    });
-    return response.data;
-  },
+  // ESKİ - ARTIK KULLANILMIYOR (Backend'de endpoint yok)
+  // validateClaimToken: async (token) => {
+  //   const response = await api.get("/api/device/claim/validate", {
+  //     params: { token },
+  //   });
+  //   return response.data;
+  // },
 
-  claimByToken: async (token, actionOrBody = "add_to_stock") => {
-    const body =
-      typeof actionOrBody === "string"
-        ? { token, action: actionOrBody }
-        : { token, ...(actionOrBody || {}) };
-
-    const response = await api.post("/api/device/claim", body);
-    return response.data;
-  },
+  // claimByToken: async (token, actionOrBody = "add_to_stock") => {
+  //   const body =
+  //     typeof actionOrBody === "string"
+  //       ? { token, action: actionOrBody }
+  //       : { token, ...(actionOrBody || {}) };
+  //   const response = await api.post("/api/device/claim", body);
+  //   return response.data;
+  // },
 
   validateSerial: async (serial) => {
     const response = await api.post("/api/devices/validate-serial", { serial });
@@ -445,6 +475,12 @@ export const deviceAPI = {
 
   activate: async (data) => {
     const response = await api.post("/api/devices/activate", data);
+    return response.data;
+  },
+
+  // ✅ YENİ
+  provisioningComplete: async (data) => {
+    const response = await api.post("/api/devices/provisioning-complete", data);
     return response.data;
   },
 
@@ -939,4 +975,31 @@ export const fuelAPI = {
   },
 };
 
+
+// ===========================================================
+// Driver Provisioning API - Phase 2 (A+B+C Implementation)
+// ===========================================================
+export const driverProvisionAPI = {
+  validateSerial: async (serial) => {
+    const response = await api.post("/api/driver/validate-serial", { serial });
+    return response.data;
+  },
+  
+  getAvailableVehicles: async () => {
+    const response = await api.get("/api/driver/available-vehicles");
+    return response.data;
+  },
+  
+  assignDevice: async (payload) => {
+    const response = await api.post("/api/driver/assign-device", payload);
+    return response.data;
+  },
+  
+  completeSetup: async (payload) => {
+    const response = await api.post("/api/driver/complete-setup", payload);
+    return response.data;
+  },
+};
+
 export default api;
+

@@ -1,21 +1,28 @@
 /*
- * Fleet Tracker ESP32 v4.3.3 STABLE (BLE Boot Window)
+ * Fleet Tracker ESP32 v4.3.4 PRODUCTION (Clean)
  * 
- * DEĞİŞİKLİKLER (v4.3.2'den):
- *  - BLE BOOT WINDOW: Aktif cihazlar boot'ta 60sn BLE açık kalır
- *  - RE-PROVISIONING: Çalışan cihazlarda WiFi değişikliği mümkün
- *  - MQTT COMMAND: REPROVISION komutu ile uzaktan BLE tetikleme
- *  - LED FEEDBACK: Boot window sırasında mavi LED yanıp söner
+ * DEĞİŞİKLİKLER (v4.3.3'ten):
+ *  - TEST_MODE KALDIRILDI: Production için temiz kod
+ *  - Hardcoded credentials kaldırıldı
+ *  - Sadece BLE üzerinden WiFi provisioning
  * 
- * YENİ AKIŞ:
+ * AKIŞ:
  *  Boot → isActivated?
  *    ├─ HAYIR → BLE aç → Sonsuz provision bekleme
- *    └─ EVET → BLE aç (60sn) → Yeni WiFi bekle
- *                ├─ Geldi → Kaydet → Restart  
+ *    │           ├─ Serial + WiFi al (BLE)
+ *    │           ├─ WiFi'ye bağlan
+ *    │           ├─ Backend'e POST /api/devices/activate
+ *    │           └─ NVS'e kaydet → Restart
+ *    └─ EVET → BLE aç (60sn) → Re-provision bekleme
+ *                ├─ Yeni WiFi geldi → Kaydet → Restart  
  *                └─ Timeout → BLE kapat → Normal çalışma
  * 
- * 19 Ocak 2026
+ * 29 Ocak 2026 - Production Ready
  */
+// ========================================
+// PRODUCTION MODE - Test mode kaldırıldı
+// ========================================
+
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -35,7 +42,8 @@
 // YAPILANDIRMA
 // ============================================
 
-const char* FIRMWARE_VERSION = "4.3.3";
+const char* FIRMWARE_VERSION = "4.3.4";
+const char* DEVICE_SERIAL = "TF-2026-DEMO-1";  // ← EKLE!
 
 // Backend
 const char* API_ACTIVATE_URL = "https://api.tulipfleet.com/api/devices/activate";
@@ -72,7 +80,9 @@ bool bleReprovisionMode = false;  // MQTT komutu ile tetiklendi mi?
 #define CHAR_STATUS_UUID    "beb5483e-36e1-4688-b7f5-ea07361b26a9"
 #define CHAR_RESULT_UUID    "beb5483e-36e1-4688-b7f5-ea07361b26aa"
 #define CHAR_WIFI_CRED_UUID "beb5483e-36e1-4688-b7f5-ea07361b26ab"
+
 #define CHAR_WIFI_STAT_UUID "beb5483e-36e1-4688-b7f5-ea07361b26ac"
+#define CHAR_WIFI_SCAN_UUID "beb5483e-36e1-4688-b7f5-ea07361b26ad"  // YENİ
 
 // WiFi Status
 const char* WIFI_STAT_IDLE        = "IDLE";
@@ -88,6 +98,8 @@ NimBLECharacteristic* pStatusChar = NULL;
 NimBLECharacteristic* pResultChar = NULL;
 NimBLECharacteristic* pWifiCredChar = NULL;
 NimBLECharacteristic* pWifiStatusChar = NULL;
+
+NimBLECharacteristic* pWifiScanChar = NULL;  // YENİ
 
 bool bleConnected = false;
 bool bleInitialized = false;  // YENİ - BLE başlatıldı mı?
@@ -154,7 +166,7 @@ float THRESHOLD_IMPACT = 2.00;
 HardwareSerial gpsSerial(2);
 #define GPS_RX 16
 #define GPS_TX 17
-#define GPS_BAUD 9600
+#define GPS_BAUD 115200
 
 #define LED_WIFI_PIN 4
 #define LED_GPS_PIN  5
@@ -318,6 +330,30 @@ class SerialCharCallbacks : public NimBLECharacteristicCallbacks {
         pStatusChar->notify();
       }
     }
+  }
+};
+
+// WiFi Scan Callback - Mobile app okuyunca WiFi listesi döndür
+class WiFiScanCharCallbacks : public NimBLECharacteristicCallbacks {
+  void onRead(NimBLECharacteristic* pChar) {
+    Serial.println("[BLE] WiFi scan istendi");
+    // WiFi scan yap
+    int n = WiFi.scanNetworks();
+    // JSON array oluştur
+    String json = "[";
+    for (int i = 0; i < n && i < 10; i++) { // Max 10 network
+      if (i > 0) json += ",";
+      json += "{";
+      json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
+      json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
+      json += "\"channel\":" + String(WiFi.channel(i)) + ",";
+      json += "\"encryption\":" + String(WiFi.encryptionType(i));
+      json += "}";
+    }
+    json += "]";
+    // BLE'ye gönder
+    pChar->setValue(json.c_str());
+    Serial.println("[BLE] WiFi listesi gönderildi: " + String(n) + " network");
   }
 };
 
@@ -498,12 +534,22 @@ void initBLE() {
   );
   pWifiCredChar->setCallbacks(new WifiCredCallbacks());
 
+
   // WiFi Status
   pWifiStatusChar = svc->createCharacteristic(
     CHAR_WIFI_STAT_UUID,
     NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
   );
   pWifiStatusChar->setValue(WIFI_STAT_IDLE);
+
+  // WiFi Scan (YENİ)
+  pWifiScanChar = svc->createCharacteristic(
+    CHAR_WIFI_SCAN_UUID,
+    NIMBLE_PROPERTY::READ
+  );
+  pWifiScanChar->setCallbacks(new WiFiScanCharCallbacks());
+  pWifiScanChar->setValue("[]"); // Başlangıçta boş array
+  Serial.println("[BLE] WiFi Scan characteristic oluşturuldu");
 
   svc->start();
 
@@ -831,9 +877,14 @@ void setup() {
   Serial.println("[INFO] Chip ID: " + espChipId);
   Serial.println("[INFO] Device: " + deviceName);
   
+  //loadNVS();
+  
+ 
   // NVS'den yükle
   loadFromNvs();
   
+  // Test mode kaldırıldı - Production için temiz başlangıç
+
   // I2C
   Wire.begin(I2C_SDA, I2C_SCL);
   
@@ -847,7 +898,7 @@ void setup() {
   }
   
   // GPS
-  gpsSerial.begin(GPS_BAUD, SERIAL_8N1, GPS_RX, GPS_TX);
+  gpsSerial.begin(115200, SERIAL_8N1, GPS_RX, GPS_TX);  // 9600 → 115200
   Serial.println("[OK] GPS başlatıldı");
   
   // ============================================
@@ -910,12 +961,19 @@ void setup() {
           saveWifiToNvs();
           saveActivationToNvs();
           
+          // ✅ WiFi Status'e başarı gönder (Mobile app bunu dinliyor!)
+          if(pWifiStatusChar) {
+            pWifiStatusChar->setValue(WIFI_STAT_OK);
+            pWifiStatusChar->notify();
+            Serial.println("[BLE] WiFi Status: OK gönderildi");
+          }
+          
           if(pStatusChar) {
             pStatusChar->setValue("COMPLETE");
             pStatusChar->notify();
           }
           
-          delay(500);
+          delay(1000); // Mobile app'in alması için 1 saniye bekle
           stopBLE();
           
           Serial.println("[SYS] Rebooting...");
@@ -1073,6 +1131,8 @@ long getPublishInterval() {
   return INTERVAL_FAST;
 }
 
+
+
 // ============================================
 // MAIN LOOP
 // ============================================
@@ -1081,10 +1141,7 @@ void loop() {
   if(!isActivated) {
     ESP.restart();
   }
-  
-  // ============================================
-  // YENİ: Re-provision mode aktifse özel işlem
-  // ============================================
+
   if(bleReprovisionMode) {
     handleReprovisionMode();
     delay(100);

@@ -142,3 +142,48 @@ Senaryo 1: Araç yeni lokasyona taşındı
     🖥️ Backend → Node.js + PostgreSQL + TimescaleDB
     ☁️ Infrastructure → Docker + NGINX + SSL + EMQX
     🚀 Deployment → Play Store + TestFlight
+
+Güvenlik uyarısı (önemli)
+
+Paylaştığın compose çıktısında DB/Redis şifreleri ve JWT secret açıkça var:
+
+DB_PASSWORD: FleetPass2024!
+
+REDIS_PASSWORD: RedisPass2024!
+
+JWT_SECRET: ...CHANGE_IN_PRODUCTION
+
+Bunları prod’da mutlaka:
+
+.env / secrets mekanizmasına taşı
+
+JWT_SECRET gerçekten değiştir
+
+bu chat log’u bir yerde saklanıyorsa da dikkat (şifreler ifşa olmuş sayılır)
+
+📊 BarCodeScanner Kullanılan Dosyalar
+
+AdminDeviceInventory.js (Admin - Serial okuma)
+DeviceSetupScreen.js (Driver - QR token okuma)
+DriverDeviceAssignment.js (Driver - Cihaz atama)
+🔐 TulipFleet - Profesyonel Cihaz Provisioning Sistemi v2Tarih: 29 Ocak 2026
+Durum: PRODUCTION READY
+Güvenlik: Multi-Layer Security ✅🎯 SİSTEM FELSEFESİTemel Prensipler
+Zero Trust Security 🛡️
+
+Hiçbir cihaz "güvenilir" değildir
+Her adımda authorization kontrolü
+Kayıtsız cihaz = Sisteme giremez
+
+Minimal Admin Müdahalesi 👨‍💼
+
+Admin sadece ilk kurulumda (şirket + araç + sürücü)
+Günlük kullanımda sürücü self-service
+WiFi credentials otomatik hatırlanır (ESP32 NVS)
+
+User-Friendly UX 🎨
+
+QR scan (hızlı)
+Manuel serial giriş (QR eskidiyse)
+Sürücü kendi araçlarını görür
+Tek tıkla bağlantı (WiFi kaydedilmişse)

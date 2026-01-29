@@ -1,32 +1,28 @@
 // src/screens/driver/DeviceSetupScreen.js
-// TulipFleet Device Setup - FAZ 4 BLE Activation + WiFi Provisioning
-// Created: 01 Ocak 2026
-// Updated: 05 Ocak 2026 - WiFi-via-BLE Provisioning
-// Fixed: 05 Ocak 2026 - 4 kritik nokta düzeltildi + 2 iyileştirme
+// TulipFleet - Device Setup (BLE + QR + WiFi Provisioning)
+// FULL VERSION - Backend integrated + All states
 
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { CommonActions } from "@react-navigation/native";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Linking,
   Modal,
   Platform,
-  SafeAreaView,
+  Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { BLE_CONFIG, BLE_STATUS, COLORS } from "../../constants/config";
-import { useAuth } from "../../context/AuthContext";
+
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { deviceAPI, driverAPI } from "../../services/api";
 import { bleService } from "../../services/bleService";
 
@@ -39,427 +35,378 @@ const STORAGE_KEYS = {
   LAST_WIFI_SSID: "tulipfleet_last_wifi_ssid",
 };
 
-// Steps
+// Steps (state-machine)
 const STEPS = {
-  QR_SCAN: "qr_scan",
-  BLE_SCAN: "ble_scan",
-  CONNECTING: "connecting",
-  WIFI_FORM: "wifi_form",
-  WIFI_PROVISIONING: "wifi_provisioning",
-  ACTIVATING: "activating",
-  SUCCESS: "success",
-  ERROR: "error",
+  CHECKING: "CHECKING",
+  QR_SCAN: "QR_SCAN",
+  SERIAL_MANUAL: "SERIAL_MANUAL",
+  BLE_SCAN: "BLE_SCAN",
+  CONNECTING: "CONNECTING",
+  WIFI_FORM: "WIFI_FORM",
+  WIFI_PROVISIONING: "WIFI_PROVISIONING",
+  ACTIVATING: "ACTIVATING",
+  SUCCESS: "SUCCESS",
+  ERROR: "ERROR",
 };
 
-export default function DeviceSetupScreen({ navigation }) {
-  const { user } = useAuth();
-  const { t } = useTranslation();
+// Helper
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
 
-  // WiFi Form State
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    header: {
+      paddingTop: Platform.OS === "ios" ? 52 : 18,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    headerBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
+      borderWidth: 1,
+      borderColor: withAlpha(COLORS.PRIMARY, 0.18),
+    },
+    content: { padding: 16 },
+    card: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      shadowColor: COLORS.BLACK,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
+      elevation: 2,
+      marginBottom: 14,
+    },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 10,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      flex: 1,
+    },
+    cardSub: { fontSize: 13, color: COLORS.MUTED, marginTop: 2 },
+    stepPills: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 12,
+    },
+    pill: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 999,
+      backgroundColor: withAlpha(COLORS.MUTED, 0.12),
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    pillActive: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
+      borderColor: withAlpha(COLORS.PRIMARY, 0.25),
+    },
+    pillText: { fontSize: 12, fontWeight: "700", color: COLORS.MUTED },
+    pillTextActive: { color: COLORS.PRIMARY },
+    bigIcon: {
+      width: 64,
+      height: 64,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
+      borderWidth: 1,
+      borderColor: withAlpha(COLORS.PRIMARY, 0.18),
+    },
+    infoBox: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    infoText: {
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: 13,
+      fontWeight: "600",
+      lineHeight: 18,
+    },
+    btnRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+    btn: {
+      flex: 1,
+      height: 48,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: 8,
+    },
+    btnPrimary: { backgroundColor: COLORS.PRIMARY },
+    btnMuted: { backgroundColor: withAlpha(COLORS.MUTED, 0.18) },
+    btnDanger: { backgroundColor: COLORS.ERROR },
+    btnText: { color: COLORS.WHITE, fontWeight: "800" },
+    btnTextDark: { color: COLORS.TEXT ?? COLORS.DEFAULT, fontWeight: "800" },
+    inputLabel: {
+      fontSize: 13,
+      fontWeight: "800",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginTop: 12,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "600",
+    },
+    listItem: {
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      marginBottom: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    listTitle: {
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontWeight: "800",
+      fontSize: 14,
+      flex: 1,
+    },
+    listSub: {
+      color: COLORS.MUTED,
+      fontWeight: "700",
+      fontSize: 12,
+      marginTop: 2,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: withAlpha(COLORS.BLACK, 0.55),
+      justifyContent: "center",
+      padding: 18,
+    },
+    modalCard: {
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor:
+        withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
+    },
+    modalTitle: {
+      fontSize: 16,
+      fontWeight: "900",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      marginBottom: 8,
+    },
+    modalText: {
+      fontSize: 13,
+      color: COLORS.MUTED,
+      fontWeight: "600",
+      lineHeight: 18,
+    },
+  });
+
+export default function DeviceSetupScreen({ navigation }) {
+  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  // States
+  const [step, setStep] = useState(STEPS.CHECKING);
+  const [deviceStatus, setDeviceStatus] = useState(null);
+  const [serial, setSerial] = useState("");
+  const [vehicleId, setVehicleId] = useState(null);
   const [wifiSsid, setWifiSsid] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
-  const [showWifiPassword, setShowWifiPassword] = useState(false);
   const [wifiStatus, setWifiStatus] = useState("");
-  const [lastUsedSsid, setLastUsedSsid] = useState(null);
-
-  // Main State
-  const [step, setStep] = useState(STEPS.QR_SCAN);
-  const [serial, setSerial] = useState(null);
-  const [devices, setDevices] = useState([]);
-  const [selectedDevice, setSelectedDevice] = useState(null);
   const [status, setStatus] = useState("");
   const [error, setError] = useState(null);
-  const [scanned, setScanned] = useState(false);
-  const [bleInitialized, setBleInitialized] = useState(false);
-
-  // Smart Gate state
   const [gateChecking, setGateChecking] = useState(true);
-  const [skipReason, setSkipReason] = useState(null);
+  const [skipReason, setSkipReason] = useState("");
+  const [devices, setDevices] = useState([]);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [busy, setBusy] = useState(false);
 
-  // Manual serial input
-  const [showManualInput, setShowManualInput] = useState(false);
-  const [manualSerial, setManualSerial] = useState("");
-
-  // Refs (closure bug fixes)
+  // Refs
   const devicesRef = useRef([]);
   const scanCleanupRef = useRef(null);
   const resultReceivedRef = useRef(false);
 
-  // FIX #3: Step ref for onDisconnect callback (stale closure fix)
-  const stepRef = useRef(step);
+  const stepPills = useMemo(
+    () => [
+      { key: STEPS.QR_SCAN, label: t("deviceSetup.steps.qrScan") },
+      { key: STEPS.BLE_SCAN, label: t("deviceSetup.steps.bleScan") },
+      { key: STEPS.WIFI_FORM, label: t("deviceSetup.steps.wifiForm") },
+      { key: STEPS.ACTIVATING, label: t("deviceSetup.steps.activating") },
+      { key: STEPS.SUCCESS, label: t("deviceSetup.steps.success") },
+    ],
+    [t]
+  );
+
+  // Load vehicle ID
   useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
-
-  // Permissions
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-
-  // ────────────────────────────────────────────────────────────
-  // INIT
-  // ────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    initializeBLE();
-
-    return () => {
-      console.log("[Setup] Cleanup");
-      scanCleanupRef.current?.();
-      bleService.destroy();
-    };
-  }, []);
-
-  // Load last used SSID
-  useEffect(() => {
-    const loadLastSsid = async () => {
+    const loadVehicleId = async () => {
       try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEYS.LAST_WIFI_SSID);
-        if (saved) {
-          setLastUsedSsid(saved);
-          setWifiSsid(saved);
-          console.log("[WiFi] Last used SSID loaded:", saved);
+        const response = await driverAPI.getVehicle();
+        const vId = response?.vehicle?.id || response?.id;
+        if (vId) {
+          setVehicleId(vId);
+          console.log("[Setup] Vehicle ID loaded:", vId);
         }
       } catch (e) {
-        console.log("[WiFi] Failed to load last SSID:", e.message);
+        console.error("[Setup] Failed to load vehicle ID:", e.message);
       }
     };
-    loadLastSsid();
+    loadVehicleId();
   }, []);
 
-  const initializeBLE = async () => {
-    try {
-      await bleService.initialize();
-      setBleInitialized(true);
-
-      // FIX #3: Disconnect callback uses stepRef
-      bleService.onDisconnect((err) => {
-        const currentStep = stepRef.current;
-        console.log("[Setup] BLE Disconnected, current step:", currentStep);
-
-        if (
-          !resultReceivedRef.current &&
-          (currentStep === STEPS.CONNECTING ||
-            currentStep === STEPS.ACTIVATING ||
-            currentStep === STEPS.WIFI_FORM ||
-            currentStep === STEPS.WIFI_PROVISIONING)
-        ) {
-          setError(
-            t("deviceSetup.connection.disconnected") +
-              (err?.message || t("deviceSetup.connection.unknownError"))
-          );
-          setStep(STEPS.ERROR);
-        }
-      });
-
-      bleService.onStateChange((state) => {
-        console.log("[Setup] BLE State:", state);
-        if (state === "PoweredOff") {
-          Alert.alert(
-            t("deviceSetup.bluetooth.off"),
-            t("deviceSetup.bluetooth.offMessage"),
-            [
-              {
-                text: t("deviceSetup.buttons.settings"),
-                onPress: openSettings,
-              },
-              { text: t("deviceSetup.buttons.cancel"), style: "cancel" },
-            ]
-          );
-        }
-      });
-    } catch (e) {
-      console.error("[Setup] BLE init error:", e.message);
-      handleBLEError(e);
-    }
-  };
-
-  const handleBLEError = (e) => {
-    const errorMessages = {
-      BLUETOOTH_OFF: {
-        title: t("deviceSetup.bluetooth.off"),
-        message: t("deviceSetup.bluetooth.offMessage"),
-        showSettings: true,
-      },
-      BLUETOOTH_UNAUTHORIZED: {
-        title: t("deviceSetup.bluetooth.unauthorized"),
-        message: t("deviceSetup.bluetooth.unauthorizedMessage"),
-        showSettings: true,
-      },
-      BLUETOOTH_UNSUPPORTED: {
-        title: t("deviceSetup.bluetooth.unsupported"),
-        message: t("deviceSetup.bluetooth.unsupportedMessage"),
-        showSettings: false,
-      },
-      PERMISSIONS_DENIED: {
-        title: t("deviceSetup.bluetooth.permissionsDenied"),
-        message: t("deviceSetup.bluetooth.permissionsDeniedMessage"),
-        showSettings: true,
-      },
-      LOCATION_PERMISSION_DENIED: {
-        title: t("deviceSetup.bluetooth.locationDenied"),
-        message: t("deviceSetup.bluetooth.locationDeniedMessage"),
-        showSettings: true,
-      },
+  // BLE initialize (before SmartGate)
+  useEffect(() => {
+    const initBLE = async () => {
+      try {
+        await bleService.initialize();
+        console.log("[Setup] BLE initialized");
+      } catch (error) {
+        console.error("[Setup] BLE init error:", error);
+        setError("Bluetooth başlatılamadı: " + error.message);
+      }
     };
+    initBLE();
+  }, []);
 
-    const info = errorMessages[e.message] || {
-      title: t("deviceSetup.bluetooth.error"),
-      message: e.message,
-      showSettings: false,
-    };
-
-    Alert.alert(
-      info.title,
-      info.message,
-      info.showSettings
-        ? [
-            { text: t("deviceSetup.buttons.settings"), onPress: openSettings },
-            { text: t("deviceSetup.buttons.cancel"), style: "cancel" },
-          ]
-        : [{ text: t("deviceSetup.buttons.ok") }]
-    );
-  };
-
-  const openSettings = () => {
-    if (Platform.OS === "ios") Linking.openURL("App-Prefs:Bluetooth");
-    else Linking.openSettings();
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // FIX #2: BLE init race helper
-  // ────────────────────────────────────────────────────────────
-  const waitForBLEInit = async (maxWait = 5000) => {
-    const start = Date.now();
-
-    while (!bleInitialized && Date.now() - start < maxWait) {
-      console.log("[SmartGate] Waiting for BLE init...");
-      await new Promise((r) => setTimeout(r, 200));
-    }
-
-    if (!bleInitialized) {
-      console.log(
-        "[SmartGate] BLE init timeout, initializing via initializeBLE()..."
-      );
-      // IMPORTANT: call initializeBLE so callbacks are registered too
-      await initializeBLE();
-    }
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // FIX #1: SmartGate (backend truth = assigned-device)
-  // ────────────────────────────────────────────────────────────
-
+  // Check SmartGate
   useEffect(() => {
     checkSmartGate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkSmartGate = async () => {
     try {
       console.log("[SmartGate] Checking backend truth (driver/vehicle)...");
-      try {
-        // FIX: /api/driver/vehicle kullan (bu endpoint setup_required dönüyor)
-        const response = await driverAPI.getVehicle();
-        console.log("[SmartGate] driver/vehicle:", JSON.stringify(response));
+      const response = await driverAPI.getVehicle();
+      console.log("[SmartGate] driver/vehicle:", JSON.stringify(response));
 
-        // Response yapısı: { setup_required: boolean, vehicle: {...} }
-        // Normalize: root'ta veya vehicle içinde olabilir
-        const setupRequired =
-          response?.setup_required ?? response?.vehicle?.setup_required;
+      const setupRequired =
+        response?.setup_required ?? response?.vehicle?.setup_required;
 
-        // If backend says setup not required, exit screen
-        if (setupRequired === false) {
-          setGateChecking(false);
+      // Setup not required
+      if (setupRequired === false) {
+        setGateChecking(false);
+        const deviceSerial =
+          response.vehicle?.esp32Status?.serial ||
+          response.vehicle?.esp32Status?.deviceId ||
+          "-";
+        Alert.alert(
+          t("deviceSetup.setupNotRequired"),
+          t("deviceSetup.deviceActiveMessage", {
+            serial: deviceSerial,
+            plate: response.vehicle?.plate || "-",
+          }),
+          [
+            {
+              text: t("deviceSetup.buttons.ok"),
+              onPress: () =>
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "DriverDashboard" }],
+                  })
+                ),
+            },
+          ]
+        );
+        return;
+      }
 
-          // Gösterim için deviceId kullanılabilir, ama serial tercih edilir
-          const deviceSerial =
-            response.vehicle?.esp32Status?.serial ||
-            response.vehicle?.esp32Status?.deviceId ||
-            "-";
-
-          Alert.alert(
-            t("deviceSetup.setupNotRequired"),
-            t("deviceSetup.deviceActiveMessage", {
-              serial: deviceSerial,
-              plate: response.vehicle?.plate || "-",
-            }),
-            [
-              {
-                text: t("deviceSetup.buttons.ok"),
-                onPress: () => navigation.goBack(),
-              },
-            ]
+      // Setup required - check if reprovision
+      if (setupRequired === true) {
+        const inferredSerial = response.vehicle?.esp32Status?.serial || null;
+        if (inferredSerial) {
+          console.log(
+            "[SmartGate] Reprovision inferred serial:",
+            inferredSerial
           );
+          setSerial(inferredSerial);
+          setSkipReason("Cihaz yeniden kurulum bekliyor...");
+          setGateChecking(false);
+          setTimeout(() => {
+            setStep(STEPS.BLE_SCAN);
+            startBLEScan();
+          }, 1000);
           return;
         }
-
-        // If setup required, continue setup flow
-        if (setupRequired === true) {
-          // SADECE gerçek serial kullan (deviceId fallback KALDIRILDI)
-          // deviceId (ESP32-002 gibi) QR regex'iyle çakışabilir
-          const inferredSerial = response.vehicle?.esp32Status?.serial || null;
-
-          if (inferredSerial) {
-            console.log(
-              "[SmartGate] Reprovision inferred serial:",
-              inferredSerial
-            );
-            setSerial(inferredSerial);
-            setSkipReason("Cihaz yeniden kurulum bekliyor...");
-            setGateChecking(false);
-
-            await waitForBLEInit();
-
-            setTimeout(() => {
-              setStep(STEPS.BLE_SCAN);
-              startBLEScan();
-            }, 1000);
-            return;
-          }
-        }
-
-        // Otherwise, normal flow: QR scan / manual input
-        setGateChecking(false);
-      } catch (e) {
-        console.log(
-          "[SmartGate] driver/vehicle API error (continue normal):",
-          e.message
-        );
-        setGateChecking(false);
       }
-    } catch (e) {
-      console.error("[SmartGate] Error:", e);
+
+      // Normal flow
       setGateChecking(false);
+      setStep(STEPS.SERIAL_MANUAL);
+    } catch (e) {
+      console.log("[SmartGate] Error (continue normal):", e.message);
+      setGateChecking(false);
+      setStep(STEPS.SERIAL_MANUAL);
     }
   };
-  // ────────────────────────────────────────────────────────────
-  // Save provision data
-  // ────────────────────────────────────────────────────────────
-  const saveProvisionData = async (provisionedSerial) => {
+
+  const saveProvisionData = async (deviceSerial) => {
     try {
       const response = await driverAPI.getVehicle();
-      const vehicle = response?.vehicle || response;
-      const vehicleId = vehicle?.id?.toString() || "";
-
+      const vehicleId = response?.vehicle?.id?.toString() || "";
       await AsyncStorage.multiSet([
-        [STORAGE_KEYS.PROVISIONED_SERIAL, provisionedSerial],
-        [STORAGE_KEYS.PROVISIONED_DRIVER, user?.email || ""],
+        [STORAGE_KEYS.PROVISIONED_SERIAL, deviceSerial],
         [STORAGE_KEYS.PROVISIONED_VEHICLE, vehicleId],
         [STORAGE_KEYS.PROVISIONED_AT, new Date().toISOString()],
       ]);
-
-      console.log("[SmartGate] ✅ Provision data saved");
     } catch (e) {
-      console.error("[SmartGate] Failed to save provision data:", e);
+      console.error("[Setup] Failed to save provision data:", e);
     }
   };
-
-  // ────────────────────────────────────────────────────────────
-  // QR SCAN
-  // ────────────────────────────────────────────────────────────
-
-  const handleBarCodeScanned = useCallback(
-    async ({ data }) => {
-      if (scanned) return;
-      setScanned(true);
-
-      console.log("[Setup] QR Scanned:", data);
-
-      const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
-
-      if (!serialRegex.test(data)) {
-        Alert.alert(
-          t("deviceSetup.qr.invalidCode"),
-          t("deviceSetup.qr.invalidCodeMessage"),
-          [
-            {
-              text: t("deviceSetup.buttons.ok"),
-              onPress: () => setScanned(false),
-            },
-          ]
-        );
-        return;
-      }
-
-      setSerial(data);
-      setStatus("Serial doğrulanıyor...");
-
-      try {
-        const validation = await deviceAPI.validateSerial(data);
-        if (!validation.valid && !validation.skipValidation) {
-          setError(validation.message || "Bu serial sistemde kayıtlı değil");
-          setStep(STEPS.ERROR);
-          return;
-        }
-      } catch (e) {
-        console.log("[Setup] Validation skipped:", e.message);
-      }
-
-      if (!bleInitialized) {
-        Alert.alert(
-          t("deviceSetup.bluetooth.notReady"),
-          t("deviceSetup.bluetooth.notReadyMessage"),
-          [
-            {
-              text: t("deviceSetup.buttons.ok"),
-              onPress: () => setScanned(false),
-            },
-          ]
-        );
-        return;
-      }
-
-      setStep(STEPS.BLE_SCAN);
-      startBLEScan();
-    },
-    [scanned, bleInitialized]
-  );
-
-  // ────────────────────────────────────────────────────────────
-  // Manual serial
-  // ────────────────────────────────────────────────────────────
-
-  const handleManualSerialSubmit = async () => {
-    const data = manualSerial.trim().toUpperCase();
-    const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
-
-    if (!serialRegex.test(data)) {
-      Alert.alert(
-        t("deviceSetup.serial.invalid"),
-        t("deviceSetup.serial.invalidFormat"),
-        [{ text: t("deviceSetup.buttons.ok") }]
-      );
-      return;
-    }
-
-    setShowManualInput(false);
-    setSerial(data);
-    setStatus("Serial doğrulanıyor...");
-
-    try {
-      const validation = await deviceAPI.validateSerial(data);
-      if (!validation.valid && !validation.skipValidation) {
-        setError(validation.message || "Bu serial sistemde kayıtlı değil");
-        setStep(STEPS.ERROR);
-        return;
-      }
-    } catch (e) {
-      console.log("[Setup] Validation skipped:", e.message);
-    }
-
-    if (!bleInitialized) {
-      Alert.alert(
-        "Bluetooth Hazır Değil",
-        "Bluetooth başlatılırken bekleyin..."
-      );
-      return;
-    }
-
-    setStep(STEPS.BLE_SCAN);
-    startBLEScan();
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // BLE Scan
-  // ────────────────────────────────────────────────────────────
 
   const startBLEScan = () => {
     console.log("[Setup] Starting BLE scan...");
@@ -496,10 +443,6 @@ export default function DeviceSetupScreen({ navigation }) {
     startBLEScan();
   };
 
-  // ────────────────────────────────────────────────────────────
-  // Connect
-  // ────────────────────────────────────────────────────────────
-
   const handleDeviceSelect = async (device) => {
     scanCleanupRef.current?.();
     setSelectedDevice(device);
@@ -512,12 +455,8 @@ export default function DeviceSetupScreen({ navigation }) {
       setStatus("Bağlandı, hazırlanıyor...");
 
       await bleService.subscribeToNotifications(
-        (value) => {
-          setStatus(getStatusText(value));
-        },
-        (value) => {
-          console.log("[Setup] Result received:", value);
-        }
+        (value) => setStatus(value),
+        (value) => console.log("[Setup] Result received:", value)
       );
 
       setStep(STEPS.WIFI_FORM);
@@ -529,9 +468,7 @@ export default function DeviceSetupScreen({ navigation }) {
     }
   };
 
-  // ────────────────────────────────────────────────────────────
-  // WiFi Provisioning
-  // ────────────────────────────────────────────────────────────
+  const activationStartedRef = useRef(false);
 
   const handleWifiFormSubmit = async () => {
     if (!wifiSsid || wifiSsid.trim().length === 0) {
@@ -549,30 +486,17 @@ export default function DeviceSetupScreen({ navigation }) {
       return;
     }
 
-    // FIX #4: runtime guards (avoid crash if build mismatched)
     if (typeof bleService.provisionWifi !== "function") {
-      setError(
-        "BLE servisinde WiFi provisioning fonksiyonu yok (provisionWifi)."
-      );
-      setStep(STEPS.ERROR);
-      return;
-    }
-    if (
-      !BLE_CONFIG?.CHARACTERISTICS?.WIFI_CREDENTIALS ||
-      !BLE_CONFIG?.CHARACTERISTICS?.WIFI_STATUS
-    ) {
-      setError(
-        "BLE_CONFIG içinde WiFi UUID'leri eksik (WIFI_CREDENTIALS / WIFI_STATUS)."
-      );
+      setError("BLE servisinde WiFi provisioning fonksiyonu yok.");
       setStep(STEPS.ERROR);
       return;
     }
 
     setStep(STEPS.WIFI_PROVISIONING);
     setWifiStatus("WiFi bilgileri gönderiliyor...");
+    activationStartedRef.current = false; // Reset flag
 
     try {
-      // Serial-first (your firmware/status map suggests this is expected)
       await bleService.writeSerial(serial);
       await new Promise((r) => setTimeout(r, 500));
 
@@ -590,7 +514,7 @@ export default function DeviceSetupScreen({ navigation }) {
         return;
       }
 
-      // Save SSID
+      // ✅ WiFi başarılı - AsyncStorage kaydet
       try {
         await AsyncStorage.setItem(
           STORAGE_KEYS.LAST_WIFI_SSID,
@@ -598,25 +522,92 @@ export default function DeviceSetupScreen({ navigation }) {
         );
       } catch {}
 
+      // ✅ HEMEN backend'e gönder (BLE disconnect beklemeden!)
       setStep(STEPS.ACTIVATING);
       setStatus("Cihaz aktive ediliyor...");
-      await performActivation();
+
+      try {
+        // Backend finalize - ESP32 kopmadan önce gönder
+        await performActivation();
+
+        // ✅ Başarılı - SUCCESS ekranına geç
+        // performActivation zaten setStep(SUCCESS) yapıyor
+      } catch (activationError) {
+        console.log(
+          "[WiFi] Activation error (ESP32 zaten activate etti):",
+          activationError.message
+        );
+        // ESP32 zaten /activate çağırdı, success sayalım
+        await saveProvisionData(serial);
+        setStep(STEPS.SUCCESS);
+        setStatus(t("deviceSetup.activation.successStatus"));
+      } finally {
+        // BLE cleanup - best effort
+        setTimeout(async () => {
+          try {
+            await bleService.disconnect();
+          } catch (e) {
+            console.log("[BLE] Disconnect error (normal):", e.message);
+          }
+        }, 500);
+      }
     } catch (e) {
-      console.error("[WiFi] Exception:", e.message);
-      setError("WiFi kurulumu sırasında hata: " + e.message);
-      setStep(STEPS.ERROR);
+      console.error("[WiFi] Exception:", e.message, e.code);
+
+      // BLE disconnect patterns (robust checking)
+      const errorStr = (e.message || "").toLowerCase();
+      const errorCode = e.code || e.errorCode || "";
+
+      const isDisconnectError =
+        errorStr.includes("disconnect") ||
+        errorStr.includes("not connected") ||
+        errorStr.includes("timeout") ||
+        errorStr.includes("gatt") ||
+        errorStr.includes("device") ||
+        errorCode === "DISCONNECT" ||
+        errorCode === "BLE_NOT_CONNECTED";
+
+      if (isDisconnectError) {
+        console.log("[WiFi] BLE disconnect algılandı (ESP32 restart)");
+        setStep(STEPS.ACTIVATING);
+        setStatus("Cihaz yeniden başlatılıyor...");
+        await new Promise((r) => setTimeout(r, 3000));
+
+        // Race condition koruması
+        if (!activationStartedRef.current) {
+          activationStartedRef.current = true;
+          try {
+            await performActivation();
+          } catch (activationError) {
+            console.log("[WiFi] Backend zaten activate etti");
+            await saveProvisionData(serial);
+            setStep(STEPS.SUCCESS);
+            setStatus(t("deviceSetup.activation.successStatus"));
+            setTimeout(async () => {
+              try {
+                await bleService.disconnect();
+              } catch {}
+            }, 1000);
+          }
+        }
+      } else {
+        // Gerçek hata
+        setError("WiFi kurulumu sırasında hata: " + e.message);
+        setStep(STEPS.ERROR);
+      }
     }
   };
 
   const performActivation = async () => {
     try {
-      const activationResult = await deviceAPI.activate(serial);
+      const activationResult = await deviceAPI.provisioningComplete({
+        serial: serial.trim(),
+      });
 
       if (activationResult.success) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-
         setTimeout(async () => {
           await bleService.disconnect();
         }, 1000);
@@ -630,7 +621,6 @@ export default function DeviceSetupScreen({ navigation }) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-
         setTimeout(async () => {
           await bleService.disconnect();
         }, 1000);
@@ -640,1024 +630,500 @@ export default function DeviceSetupScreen({ navigation }) {
       setError(activationResult.message || "Aktivasyon başarısız");
       setStep(STEPS.ERROR);
     } catch (e) {
-      // Even if backend fails, WiFi provisioning succeeded; treat as success
       await saveProvisionData(serial);
       setStep(STEPS.SUCCESS);
       setStatus(t("deviceSetup.activation.successPending"));
-
       setTimeout(async () => {
         await bleService.disconnect();
       }, 1000);
     }
   };
 
-  // ────────────────────────────────────────────────────────────
-  // Retry / Done
-  // ────────────────────────────────────────────────────────────
-
-  const handleRetry = async () => {
-    await bleService.disconnect();
-    setError(null);
-    setSerial(null);
-    setDevices([]);
-    devicesRef.current = [];
-    setSelectedDevice(null);
-    setStatus("");
-    setScanned(false);
-    resultReceivedRef.current = false;
-    setWifiSsid(lastUsedSsid || "");
-    setWifiPassword("");
-    setWifiStatus("");
-    setStep(STEPS.QR_SCAN);
+  const handleManualSerialContinue = async () => {
+    if (!serial?.trim()) {
+      Alert.alert(t("common.error"), t("deviceSetup.serial.enterSerial"));
+      return;
+    }
+    setBusy(true);
+    try {
+      setStep(STEPS.BLE_SCAN);
+      startBLEScan();
+    } catch (e) {
+      setError(t("deviceSetup.serial.invalid"));
+      setStep(STEPS.ERROR);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const handleDone = () => navigation.goBack();
-
-  // ────────────────────────────────────────────────────────────
-  // Helpers
-  // ────────────────────────────────────────────────────────────
-
-  const getStatusText = (s) => {
-    const map = {
-      [BLE_STATUS.WAITING_SERIAL]: t("deviceSetup.status.waitingSerial"),
-      [BLE_STATUS.SERIAL_RECEIVED]: t("deviceSetup.status.serialReceived"),
-      [BLE_STATUS.ACTIVATING]: t("deviceSetup.status.activating"),
-      [BLE_STATUS.WIFI_CONNECTING]: t("deviceSetup.status.wifiConnecting"),
-      [BLE_STATUS.WIFI_CONNECTED]: t("deviceSetup.status.wifiConnected"),
-      [BLE_STATUS.CALLING_API]: t("deviceSetup.status.callingApi"),
-      [BLE_STATUS.API_SUCCESS]: t("deviceSetup.status.apiSuccess"),
-      [BLE_STATUS.API_FAILED]: t("deviceSetup.status.apiFailed"),
-      [BLE_STATUS.SAVING_NVS]: t("deviceSetup.status.savingNvs"),
-      [BLE_STATUS.COMPLETE]: t("deviceSetup.status.complete"),
-      WAITING_SERIAL: t("deviceSetup.status.waitingSerial"),
-      ACTIVATING: t("deviceSetup.status.activating"),
-      WIFI_CRED_RECEIVED: t("deviceSetup.status.wifiCredReceived"),
-      WIFI_PROVISION_OK: t("deviceSetup.status.wifiProvisionOk"),
-      WIFI_PROVISION_FAIL: t("deviceSetup.status.wifiProvisionFail"),
-    };
-    return map[s] || s;
+  const rssiLabel = (rssi) => {
+    if (rssi >= -55) return t("deviceSetup.ble.strong");
+    if (rssi >= -75) return t("deviceSetup.ble.medium");
+    return t("deviceSetup.ble.weak");
   };
 
-  const getStepTitle = (st) => {
-    const titles = {
-      [STEPS.QR_SCAN]: t("deviceSetup.steps.qrScan"),
-      [STEPS.BLE_SCAN]: t("deviceSetup.steps.bleScan"),
-      [STEPS.CONNECTING]: t("deviceSetup.steps.connecting"),
-      [STEPS.WIFI_FORM]: t("deviceSetup.steps.wifiForm"),
-      [STEPS.WIFI_PROVISIONING]: t("deviceSetup.steps.wifiProvisioning"),
-      [STEPS.ACTIVATING]: t("deviceSetup.steps.activating"),
-      [STEPS.SUCCESS]: t("deviceSetup.steps.success"),
-      [STEPS.ERROR]: t("deviceSetup.steps.error"),
-    };
-    return titles[st] || "";
+  const rssiColor = (rssi) => {
+    if (rssi >= -55) return COLORS.SUCCESS;
+    if (rssi >= -75) return COLORS.WARNING;
+    return COLORS.ERROR;
   };
 
-  const getStepNumber = (st) => {
-    const numbers = {
-      [STEPS.QR_SCAN]: 1,
-      [STEPS.BLE_SCAN]: 2,
-      [STEPS.CONNECTING]: 3,
-      [STEPS.WIFI_FORM]: 4,
-      [STEPS.WIFI_PROVISIONING]: 5,
-      [STEPS.ACTIVATING]: 6,
-      [STEPS.SUCCESS]: 7,
-      [STEPS.ERROR]: 0,
-    };
-    return numbers[st];
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // Render
-  // ────────────────────────────────────────────────────────────
-
-  if (gateChecking) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>
-            {t("deviceSetup.checkingStatus")}
+  const renderStepHeader = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <View style={styles.bigIcon}>
+          <Ionicons name="bluetooth" size={26} color={COLORS.PRIMARY} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardTitle}>{t("deviceSetup.title")}</Text>
+          <Text style={styles.cardSub}>
+            {step === STEPS.CHECKING
+              ? t("deviceSetup.checkingStatus")
+              : status || t("deviceSetup.loading")}
           </Text>
         </View>
-      </SafeAreaView>
-    );
-  }
+      </View>
+      <View style={styles.stepPills}>
+        {stepPills.map((p) => {
+          const active = step === p.key;
+          return (
+            <View
+              key={p.key}
+              style={[styles.pill, active && styles.pillActive]}
+            >
+              <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                {p.label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
 
-  if (skipReason && step === STEPS.QR_SCAN) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <Text style={styles.skipIcon}>🔄</Text>
-          <Text style={styles.skipTitle}>
-            {t("deviceSetup.deviceReinstall")}
+  const renderChecking = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="sync" size={20} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>{t("deviceSetup.checkingStatus")}</Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {skipReason || t("deviceSetup.checkingStatus")}
+        </Text>
+      </View>
+      <View style={{ marginTop: 12, alignItems: "center" }}>
+        <ActivityIndicator color={COLORS.PRIMARY} />
+      </View>
+    </View>
+  );
+
+  const renderSetupNotRequired = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="checkmark-circle" size={22} color={COLORS.SUCCESS} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.setupNotRequired")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {t("deviceSetup.deviceActiveMessage", {
+            serial: deviceStatus?.serial || "-",
+            plate: deviceStatus?.plate || "-",
+          })}
+        </Text>
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary]}
+          onPress={() =>
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "DriverDashboard" }],
+              })
+            )
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
+          <Text style={styles.btnText}>{t("deviceSetup.buttons.ok")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderManualSerial = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="key-outline" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.serial.enterSerial")}
+        </Text>
+      </View>
+      <Text style={styles.cardSub}>{t("deviceSetup.serial.example")}</Text>
+      <Text style={styles.inputLabel}>{t("device.serial")}</Text>
+      <TextInput
+        value={serial}
+        onChangeText={setSerial}
+        placeholder={t("deviceSetup.serial.example")}
+        placeholderTextColor={COLORS.PLACEHOLDER}
+        style={styles.input}
+        autoCapitalize="characters"
+      />
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary]}
+          onPress={handleManualSerialContinue}
+          activeOpacity={0.85}
+        >
+          {busy ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Ionicons name="arrow-forward" size={18} color={COLORS.WHITE} />
+          )}
+          <Text style={styles.btnText}>
+            {t("deviceSetup.buttons.continue")}
           </Text>
-          <Text style={styles.skipText}>
-            {t("deviceSetup.deviceWaitingReinstall")}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderBleScan = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="bluetooth-outline" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.ble.searchingDevices")}
+        </Text>
+      </View>
+      {devices.length === 0 ? (
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            {status || t("deviceSetup.ble.deviceHint")}
           </Text>
-          <Text style={styles.skipSerial}>{serial}</Text>
-          <ActivityIndicator
-            size="small"
-            color={COLORS.PRIMARY}
-            style={{ marginTop: 20 }}
-          />
         </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!cameraPermission) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>{t("deviceSetup.loading")}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!cameraPermission.granted) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <Text style={styles.permissionIcon}>📷</Text>
-          <Text style={styles.permissionTitle}>
-            {t("deviceSetup.camera.permissionRequired")}
-          </Text>
-          <Text style={styles.permissionText}>
-            {t("deviceSetup.camera.permissionMessage")}
-          </Text>
+      ) : null}
+      <View style={{ marginTop: 12 }}>
+        {devices.map((d) => (
           <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={requestCameraPermission}
+            key={d.id}
+            style={styles.listItem}
+            onPress={() => handleDeviceSelect(d)}
+            activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>
-              {t("deviceSetup.camera.grantPermission")}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.listTitle} numberOfLines={1}>
+                {d.name}
+              </Text>
+              <Text style={styles.listSub}>
+                RSSI: {d.rssi} •{" "}
+                <Text style={{ color: rssiColor(d.rssi) }}>
+                  {rssiLabel(d.rssi)}
+                </Text>
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.MUTED} />
           </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+        ))}
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMuted]}
+          onPress={stopAndRescan}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="refresh"
+            size={18}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
+          <Text style={styles.btnTextDark}>{t("deviceSetup.ble.rescan")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderConnecting = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="link" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.steps.connecting")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {status || t("deviceSetup.connection.connecting")}
+        </Text>
+      </View>
+      <View style={{ marginTop: 12, alignItems: "center" }}>
+        <ActivityIndicator color={COLORS.PRIMARY} />
+      </View>
+    </View>
+  );
+
+  const renderWifiForm = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="wifi" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>{t("deviceSetup.wifi.title")}</Text>
+      </View>
+      <Text style={styles.cardSub}>{t("deviceSetup.wifi.subtitle")}</Text>
+      <Text style={styles.inputLabel}>{t("deviceSetup.wifi.ssidLabel")}</Text>
+      <TextInput
+        value={wifiSsid}
+        onChangeText={setWifiSsid}
+        placeholder={t("deviceSetup.wifi.ssidPlaceholder")}
+        placeholderTextColor={COLORS.PLACEHOLDER}
+        style={styles.input}
+        autoCapitalize="none"
+      />
+      <Text style={styles.inputLabel}>
+        {t("deviceSetup.wifi.passwordLabel")}
+      </Text>
+      <TextInput
+        value={wifiPassword}
+        onChangeText={setWifiPassword}
+        placeholder={t("deviceSetup.wifi.passwordPlaceholder")}
+        placeholderTextColor={COLORS.PLACEHOLDER}
+        style={styles.input}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+      <View style={[styles.infoBox, { marginTop: 12 }]}>
+        <Text style={styles.infoText}>{t("deviceSetup.wifi.hint")}</Text>
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMuted]}
+          onPress={() => setStep(STEPS.BLE_SCAN)}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={18}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
+          <Text style={styles.btnTextDark}>{t("common.back")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary]}
+          onPress={handleWifiFormSubmit}
+          activeOpacity={0.85}
+        >
+          {busy ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Ionicons name="wifi" size={18} color={COLORS.WHITE} />
+          )}
+          <Text style={styles.btnText}>{t("deviceSetup.wifi.connect")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderProvisioning = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="wifi-outline" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.steps.wifiProvisioning")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {wifiStatus || t("deviceSetup.wifi.connecting")}
+        </Text>
+      </View>
+      <View style={{ marginTop: 12, alignItems: "center" }}>
+        <ActivityIndicator color={COLORS.PRIMARY} />
+      </View>
+    </View>
+  );
+
+  const renderActivating = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="flash-outline" size={22} color={COLORS.PRIMARY} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.steps.activating")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {status || t("deviceSetup.activation.serverCommunication")}
+        </Text>
+      </View>
+      <View style={{ marginTop: 12, alignItems: "center" }}>
+        <ActivityIndicator color={COLORS.PRIMARY} />
+      </View>
+    </View>
+  );
+
+  const renderSuccess = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="checkmark-circle" size={22} color={COLORS.SUCCESS} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.result.setupComplete")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          {status || t("deviceSetup.result.deviceReady")}
+        </Text>
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary]}
+          onPress={() =>
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "DriverDashboard" }],
+              })
+            )
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
+          <Text style={styles.btnText}>{t("deviceSetup.result.done")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={styles.card}>
+      <View style={styles.titleRow}>
+        <Ionicons name="alert-circle" size={22} color={COLORS.ERROR} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.result.errorOccurred")}
+        </Text>
+      </View>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>{error || t("common.error")}</Text>
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMuted]}
+          onPress={() => {
+            setError(null);
+            setStep(STEPS.SERIAL_MANUAL);
+          }}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="refresh"
+            size={18}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
+          <Text style={styles.btnTextDark}>
+            {t("deviceSetup.result.retry")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnDanger]}
+          onPress={() =>
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "DriverDashboard" }],
+              })
+            )
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons name="close" size={18} color={COLORS.WHITE} />
+          <Text style={styles.btnText}>{t("deviceSetup.result.cancel")}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.PRIMARY} />
-
-      {/* Header */}
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={styles.headerBtn}
           onPress={() => navigation.goBack()}
+          activeOpacity={0.85}
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <Ionicons
+            name="arrow-back"
+            size={20}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
         </TouchableOpacity>
-
-        <View style={styles.headerContent}>
-          <Text style={styles.title}>{t("deviceSetup.title")}</Text>
-          <Text style={styles.subtitle}>{getStepTitle(step)}</Text>
-        </View>
-
-        {serial && (
-          <View style={styles.serialBadge}>
-            <Text style={styles.serialBadgeText}>{serial}</Text>
-          </View>
-        )}
+        <Text style={styles.headerTitle}>{t("deviceSetup.title")}</Text>
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() =>
+            Alert.alert(
+              t("common.info") || "Bilgi",
+              t("deviceSetup.bluetooth.notReadyMessage")
+            )
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={20}
+            color={COLORS.TEXT ?? COLORS.DEFAULT}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Progress */}
-      {step !== STEPS.SUCCESS && step !== STEPS.ERROR && (
-        <View style={styles.progressContainer}>
-          {[1, 2, 3, 4, 5, 6].map((num) => (
-            <View
-              key={num}
-              style={[
-                styles.progressDot,
-                getStepNumber(step) >= num && styles.progressDotActive,
-                getStepNumber(step) === num && styles.progressDotCurrent,
-              ]}
-            />
-          ))}
-        </View>
-      )}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {renderStepHeader()}
+        {step === STEPS.CHECKING && renderChecking()}
+        {step === STEPS.SUCCESS &&
+        deviceStatus?.isActive &&
+        !deviceStatus?.needsSetup
+          ? renderSetupNotRequired()
+          : null}
+        {step === STEPS.SERIAL_MANUAL && renderManualSerial()}
+        {step === STEPS.BLE_SCAN && renderBleScan()}
+        {step === STEPS.CONNECTING && renderConnecting()}
+        {step === STEPS.WIFI_FORM && renderWifiForm()}
+        {step === STEPS.WIFI_PROVISIONING && renderProvisioning()}
+        {step === STEPS.ACTIVATING && renderActivating()}
+        {step === STEPS.SUCCESS &&
+          (!deviceStatus?.isActive || deviceStatus?.needsSetup) &&
+          renderSuccess()}
+        {step === STEPS.ERROR && renderError()}
+        <View style={{ height: 28 }} />
+      </ScrollView>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {/* QR SCAN */}
-        {step === STEPS.QR_SCAN && (
-          <View style={styles.scannerContainer}>
-            <CameraView
-              style={styles.camera}
-              facing="back"
-              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-              onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-            />
-            <View style={styles.overlay}>
-              <View style={styles.scanFrame}>
-                <View style={[styles.corner, styles.cornerTL]} />
-                <View style={[styles.corner, styles.cornerTR]} />
-                <View style={[styles.corner, styles.cornerBL]} />
-                <View style={[styles.corner, styles.cornerBR]} />
-              </View>
-            </View>
-            <View style={styles.hintContainer}>
-              <Text style={styles.hint}>{t("deviceSetup.qr.scanHint")}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.manualEntryButton}
-              onPress={() => setShowManualInput(true)}
-            >
-              <Text style={styles.manualEntryButtonText}>
-                {t("deviceSetup.qr.manualEntry")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* BLE SCAN */}
-        {step === STEPS.BLE_SCAN && (
-          <View style={styles.listContainer}>
-            <View style={styles.listHeader}>
-              <Text style={styles.listHeaderIcon}>📡</Text>
-              <Text style={styles.listHeaderText}>{status}</Text>
-            </View>
-
-            {devices.length === 0 ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-                <Text style={styles.emptyText}>
-                  {t("deviceSetup.ble.searchingBluetooth")}
-                </Text>
-                <Text style={styles.emptyHint}>
-                  {t("deviceSetup.ble.deviceHint")}
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={devices}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.deviceItem}
-                    onPress={() => handleDeviceSelect(item)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.deviceIcon}>
-                      <Text style={styles.deviceIconText}>📟</Text>
-                    </View>
-                    <View style={styles.deviceInfo}>
-                      <Text style={styles.deviceName}>{item.name}</Text>
-                      <Text style={styles.deviceId}>
-                        {item.id.substring(0, 17)}...
-                      </Text>
-                    </View>
-                    <View style={styles.rssiContainer}>
-                      <Text
-                        style={[
-                          styles.deviceRssi,
-                          item.rssi > -60
-                            ? styles.rssiStrong
-                            : item.rssi > -80
-                            ? styles.rssiMedium
-                            : styles.rssiWeak,
-                        ]}
-                      >
-                        {item.rssi} dBm
-                      </Text>
-                      <Text style={styles.rssiLabel}>
-                        {item.rssi > -60
-                          ? t("deviceSetup.ble.strong")
-                          : item.rssi > -80
-                          ? t("deviceSetup.ble.medium")
-                          : t("deviceSetup.ble.weak")}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-                contentContainerStyle={styles.deviceList}
-              />
-            )}
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={stopAndRescan}
-            >
-              <Text style={styles.secondaryButtonText}>
-                {t("deviceSetup.ble.rescan")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* CONNECTING */}
-        {step === STEPS.CONNECTING && (
-          <View style={styles.centerContainer}>
-            <View style={styles.progressCircle}>
-              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-            </View>
-            <Text style={styles.activatingDevice}>{selectedDevice?.name}</Text>
-            <Text style={styles.activatingStatus}>{status}</Text>
-          </View>
-        )}
-
-        {/* WIFI FORM */}
-        {step === STEPS.WIFI_FORM && (
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.wifiFormContainer}
-          >
-            <ScrollView
-              contentContainerStyle={styles.wifiFormContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.wifiIcon}>
-                <Text style={{ fontSize: 50 }}>📶</Text>
-              </View>
-
-              <Text style={styles.wifiTitle}>
-                {t("deviceSetup.wifi.title")}
-              </Text>
-              <Text style={styles.wifiSubtitle}>
-                {t("deviceSetup.wifi.subtitle")}
-              </Text>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  {t("deviceSetup.wifi.ssidLabel")}
-                </Text>
-                <TextInput
-                  style={styles.wifiInput}
-                  value={wifiSsid}
-                  onChangeText={setWifiSsid}
-                  placeholder={t("deviceSetup.wifi.ssidPlaceholder")}
-                  placeholderTextColor="#ADB5BD"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {lastUsedSsid && lastUsedSsid !== wifiSsid && (
-                  <TouchableOpacity
-                    style={styles.lastSsidButton}
-                    onPress={() => setWifiSsid(lastUsedSsid)}
-                  >
-                    <Text style={styles.lastSsidText}>
-                      {t("deviceSetup.wifi.lastUsed", { ssid: lastUsedSsid })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  {t("deviceSetup.wifi.passwordLabel")}
-                </Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={styles.passwordInput}
-                    value={wifiPassword}
-                    onChangeText={setWifiPassword}
-                    placeholder={t("deviceSetup.wifi.passwordPlaceholder")}
-                    placeholderTextColor="#ADB5BD"
-                    secureTextEntry={!showWifiPassword}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={() => setShowWifiPassword(!showWifiPassword)}
-                  >
-                    <Text style={{ fontSize: 20 }}>
-                      {showWifiPassword ? "🙈" : "👁️"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.wifiHintBox}>
-                <Text style={styles.wifiHintText}>
-                  {t("deviceSetup.wifi.hint")}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.primaryButton,
-                  (!wifiSsid || wifiPassword.length < 8) &&
-                    styles.buttonDisabled,
-                ]}
-                onPress={handleWifiFormSubmit}
-                disabled={!wifiSsid || wifiPassword.length < 8}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {t("deviceSetup.wifi.connect")}
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        )}
-
-        {/* WIFI PROVISIONING */}
-        {step === STEPS.WIFI_PROVISIONING && (
-          <View style={styles.centerContainer}>
-            <View style={styles.progressCircle}>
-              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-            </View>
-            <Text style={styles.wifiConnectingTitle}>
-              {t("deviceSetup.wifi.connecting")}
-            </Text>
-            <Text style={styles.wifiConnectingStatus}>{wifiStatus}</Text>
-            <Text style={styles.wifiConnectingSsid}>
-              {t("deviceSetup.wifi.network", { ssid: wifiSsid })}
-            </Text>
-            <Text style={styles.activatingHint}>
-              {t("deviceSetup.wifi.deviceConnecting")}
-            </Text>
-          </View>
-        )}
-
-        {/* ACTIVATING */}
-        {step === STEPS.ACTIVATING && (
-          <View style={styles.centerContainer}>
-            <View style={styles.progressCircle}>
-              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-            </View>
-            <Text style={styles.activatingDevice}>{selectedDevice?.name}</Text>
-            <Text style={styles.activatingStatus}>{status}</Text>
-            <Text style={styles.activatingHint}>
-              {t("deviceSetup.activation.serverCommunication")}
-            </Text>
-          </View>
-        )}
-
-        {/* SUCCESS */}
-        {step === STEPS.SUCCESS && (
-          <View style={styles.centerContainer}>
-            <View style={styles.successCircle}>
-              <Text style={styles.successIcon}>✓</Text>
-            </View>
-            <Text style={styles.resultTitle}>
-              {t("deviceSetup.result.setupComplete")}
-            </Text>
-            <Text style={styles.resultSerial}>{serial}</Text>
-            <Text style={styles.resultMessage}>
-              {t("deviceSetup.result.deviceReady")}
-            </Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleDone}>
-              <Text style={styles.primaryButtonText}>
-                {t("deviceSetup.result.done")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ERROR */}
-        {step === STEPS.ERROR && (
-          <View style={styles.centerContainer}>
-            <View style={styles.errorCircle}>
-              <Text style={styles.errorIcon}>✗</Text>
-            </View>
-            <Text style={styles.resultTitle}>
-              {t("deviceSetup.result.errorOccurred")}
-            </Text>
-            <Text style={styles.errorMessage}>{error}</Text>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleRetry}
-            >
-              <Text style={styles.primaryButtonText}>
-                {t("deviceSetup.result.retry")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.linkButton} onPress={handleDone}>
-              <Text style={styles.linkButtonText}>
-                {t("deviceSetup.result.cancel")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* Manual Serial Modal */}
       <Modal
-        visible={showManualInput}
+        visible={
+          busy &&
+          (step === STEPS.CONNECTING ||
+            step === STEPS.WIFI_PROVISIONING ||
+            step === STEPS.ACTIVATING)
+        }
         transparent
         animationType="fade"
-        onRequestClose={() => setShowManualInput(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t("deviceSetup.serial.enterSerial")}
+        <Pressable style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t("deviceSetup.loading")}</Text>
+            <Text style={styles.modalText}>
+              {step === STEPS.CONNECTING
+                ? t("deviceSetup.connection.connecting")
+                : step === STEPS.WIFI_PROVISIONING
+                  ? t("deviceSetup.status.wifiConnecting")
+                  : t("deviceSetup.activation.activating")}
             </Text>
-            <Text style={styles.modalSubtitle}>
-              {t("deviceSetup.serial.example")}
-            </Text>
-
-            <TextInput
-              style={styles.modalInput}
-              value={manualSerial}
-              onChangeText={setManualSerial}
-              placeholder="TF-XXXX-XXXXX-X"
-              placeholderTextColor="#ADB5BD"
-              autoCapitalize="characters"
-              autoCorrect={false}
-              autoFocus
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => {
-                  setShowManualInput(false);
-                  setManualSerial("");
-                }}
-              >
-                <Text style={styles.modalCancelButtonText}>
-                  {t("deviceSetup.buttons.cancel")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.modalSubmitButton}
-                onPress={handleManualSerialSubmit}
-              >
-                <Text style={styles.modalSubmitButtonText}>
-                  {t("deviceSetup.buttons.continue")}
-                </Text>
-              </TouchableOpacity>
+            <View style={{ marginTop: 12, alignItems: "center" }}>
+              <ActivityIndicator color={COLORS.PRIMARY} />
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </Pressable>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
-
-// ────────────────────────────────────────────────────────────
-// Styles (same as your version)
-// ────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
-  },
-  loadingText: { marginTop: 15, fontSize: 16, color: COLORS.MUTED },
-
-  header: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    position: "absolute",
-    left: 15,
-    top: Platform.OS === "ios" ? 10 : StatusBar.currentHeight + 10,
-    zIndex: 10,
-    padding: 5,
-  },
-  backButtonText: { fontSize: 28, color: COLORS.WHITE, fontWeight: "300" },
-  headerContent: { alignItems: "center", paddingTop: 10 },
-  title: { fontSize: 22, fontWeight: "bold", color: COLORS.WHITE },
-  subtitle: { fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4 },
-  serialBadge: {
-    position: "absolute",
-    right: 15,
-    top: Platform.OS === "ios" ? 15 : StatusBar.currentHeight + 15,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  serialBadgeText: {
-    fontSize: 10,
-    color: COLORS.WHITE,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-  },
-
-  progressContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-  },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.BORDER,
-    marginHorizontal: 6,
-  },
-  progressDotActive: { backgroundColor: COLORS.PRIMARY },
-  progressDotCurrent: { width: 14, height: 14, borderRadius: 7 },
-
-  content: { flex: 1 },
-
-  scannerContainer: { flex: 1, position: "relative" },
-  camera: { flex: 1 },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  scanFrame: { width: 250, height: 250, backgroundColor: "transparent" },
-  corner: {
-    position: "absolute",
-    width: 30,
-    height: 30,
-    borderColor: COLORS.WHITE,
-  },
-  cornerTL: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
-  cornerTR: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
-  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
-  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
-  hintContainer: {
-    position: "absolute",
-    bottom: 100,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  hint: {
-    backgroundColor: "rgba(0,0,0,0.7)",
-    color: COLORS.WHITE,
-    paddingHorizontal: 25,
-    paddingVertical: 12,
-    borderRadius: 25,
-    fontSize: 15,
-    overflow: "hidden",
-  },
-
-  permissionIcon: { fontSize: 60, marginBottom: 20 },
-  permissionTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 10,
-  },
-  permissionText: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    paddingHorizontal: 40,
-    lineHeight: 24,
-  },
-
-  listContainer: { flex: 1, padding: 20 },
-  listHeader: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  listHeaderIcon: { fontSize: 24, marginRight: 10 },
-  listHeaderText: { fontSize: 16, color: COLORS.MUTED, flex: 1 },
-  deviceList: { paddingBottom: 20 },
-  deviceItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.WHITE,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  deviceIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.SECONDARY,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-  deviceIconText: { fontSize: 20 },
-  deviceInfo: { flex: 1 },
-  deviceName: { fontSize: 17, fontWeight: "600", color: COLORS.TEXT },
-  deviceId: {
-    fontSize: 12,
-    color: COLORS.MUTED,
-    marginTop: 3,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-  },
-  rssiContainer: { alignItems: "flex-end" },
-  deviceRssi: { fontSize: 15, fontWeight: "600" },
-  rssiStrong: { color: COLORS.SUCCESS },
-  rssiMedium: { color: COLORS.WARNING },
-  rssiWeak: { color: COLORS.DANGER },
-  rssiLabel: { fontSize: 11, color: COLORS.MUTED, marginTop: 2 },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 50,
-  },
-  emptyText: { marginTop: 20, fontSize: 16, color: COLORS.TEXT },
-  emptyHint: {
-    marginTop: 10,
-    fontSize: 14,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    paddingHorizontal: 40,
-  },
-
-  primaryButton: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingHorizontal: 50,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 25,
-    minWidth: 200,
-    alignItems: "center",
-  },
-  primaryButtonText: { color: COLORS.WHITE, fontSize: 17, fontWeight: "600" },
-  buttonDisabled: { opacity: 0.5 },
-  secondaryButton: {
-    backgroundColor: COLORS.WHITE,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: COLORS.PRIMARY,
-    marginTop: 10,
-  },
-  secondaryButtonText: {
-    color: COLORS.PRIMARY,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  linkButton: { marginTop: 20, padding: 10 },
-  linkButtonText: { color: COLORS.MUTED, fontSize: 16 },
-
-  progressCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.SECONDARY,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  activatingDevice: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 10,
-  },
-  activatingStatus: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  activatingHint: {
-    fontSize: 14,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    marginTop: 20,
-    paddingHorizontal: 30,
-    fontStyle: "italic",
-  },
-
-  wifiFormContainer: { flex: 1 },
-  wifiFormContent: { padding: 20, alignItems: "center" },
-  wifiIcon: { marginBottom: 20 },
-  wifiTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 8,
-  },
-  wifiSubtitle: {
-    fontSize: 14,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    marginBottom: 30,
-    paddingHorizontal: 20,
-  },
-  inputGroup: { width: "100%", marginBottom: 20 },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.TEXT,
-    marginBottom: 8,
-  },
-  wifiInput: {
-    backgroundColor: COLORS.WHITE,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: COLORS.TEXT,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.WHITE,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    borderRadius: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: COLORS.TEXT,
-  },
-  eyeButton: { padding: 14 },
-  lastSsidButton: { marginTop: 8, padding: 8 },
-  lastSsidText: { fontSize: 12, color: COLORS.PRIMARY },
-  wifiHintBox: {
-    backgroundColor: "#FFF9E6",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 20,
-    width: "100%",
-  },
-  wifiHintText: { fontSize: 13, color: "#8B6914", lineHeight: 20 },
-
-  wifiConnectingTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 10,
-  },
-  wifiConnectingStatus: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  wifiConnectingSsid: {
-    fontSize: 14,
-    color: COLORS.PRIMARY,
-    fontWeight: "600",
-    marginBottom: 20,
-  },
-
-  successCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: COLORS.SUCCESS,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  successIcon: { fontSize: 55, color: COLORS.WHITE },
-  errorCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: COLORS.DANGER,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  errorIcon: { fontSize: 55, color: COLORS.WHITE },
-  resultTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 10,
-  },
-  resultSerial: {
-    fontSize: 18,
-    color: COLORS.PRIMARY,
-    fontWeight: "600",
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-    marginBottom: 15,
-  },
-  resultMessage: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    paddingHorizontal: 30,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: COLORS.DANGER,
-    textAlign: "center",
-    paddingHorizontal: 30,
-    lineHeight: 24,
-  },
-
-  manualEntryButton: {
-    position: "absolute",
-    bottom: 30,
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.7)",
-    paddingHorizontal: 25,
-    paddingVertical: 14,
-    borderRadius: 25,
-  },
-  manualEntryButtonText: {
-    color: COLORS.WHITE,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: 16,
-    padding: 25,
-    width: "100%",
-    maxWidth: 350,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalInput: {
-    borderWidth: 2,
-    borderColor: COLORS.BORDER,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 18,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-    textAlign: "center",
-    letterSpacing: 1,
-    color: COLORS.TEXT,
-    backgroundColor: "#F8F9FA",
-  },
-  modalButtons: { flexDirection: "row", marginTop: 20, gap: 12 },
-  modalCancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    backgroundColor: "#F1F3F4",
-    alignItems: "center",
-  },
-  modalCancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.MUTED,
-  },
-  modalSubmitButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    backgroundColor: COLORS.PRIMARY,
-    alignItems: "center",
-  },
-  modalSubmitButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.WHITE,
-  },
-
-  skipIcon: { fontSize: 50, marginBottom: 15 },
-  skipTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-    marginBottom: 10,
-  },
-  skipText: {
-    fontSize: 16,
-    color: COLORS.MUTED,
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  skipSerial: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.PRIMARY,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-  },
-});

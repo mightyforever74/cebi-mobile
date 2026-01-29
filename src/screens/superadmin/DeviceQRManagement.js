@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   Modal,
   StyleSheet,
   Text,
@@ -22,6 +21,7 @@ const DeviceQRManagement = () => {
   const [loadingActionDeviceId, setLoadingActionDeviceId] = useState(null);
   const [qrModal, setQrModal] = useState(false);
   const [qrData, setQrData] = useState(null);
+  const [qrCodes, setQrCodes] = useState([]); // ← YENİ SATIR EKLE
 
   useEffect(() => {
     fetchDevices();
@@ -59,13 +59,22 @@ const DeviceQRManagement = () => {
     }
   };
 
-  const handleShowQR = async (deviceId) => {
+  const handleShowQRCodes = async (deviceId) => {
     try {
-      const data = await superAdminAPI.getDeviceQR(deviceId);
-      setQrData(data);
-      setQrModal(true);
+      setLoadingActionDeviceId(deviceId);
+      const data = await superAdminAPI.getDeviceQRCodes(deviceId);
+
+      if (data.qr_codes && data.qr_codes.length > 0) {
+        setQrCodes(data.qr_codes);
+        setQrData(data.qr_codes[0]);
+        setQrModal(true);
+      } else {
+        Alert.alert("Info", "No QR codes found for this device");
+      }
     } catch (err) {
-      Alert.alert("Error", "Failed to fetch QR");
+      Alert.alert("Error", "Failed to fetch QR codes");
+    } finally {
+      setLoadingActionDeviceId(null);
     }
   };
 
@@ -131,7 +140,7 @@ const DeviceQRManagement = () => {
           <>
             <TouchableOpacity
               style={[styles.btn, styles.btnPrimary]}
-              onPress={() => handleShowQR(item.id)}
+              onPress={() => handleShowQRCodes(item.id)}
             >
               <Text style={styles.btnText}>👁 Show</Text>
             </TouchableOpacity>
@@ -180,19 +189,12 @@ const DeviceQRManagement = () => {
             <Text style={styles.modalTitle}>QR Code</Text>
 
             {/* ✅ HIBRIT: Image varsa image, yoksa QRCode component */}
-            {qrData?.qr_image_url ? (
-              <Image
-                source={{ uri: qrData.qr_image_url }}
-                style={styles.qrImage}
-              />
-            ) : (
-              <QRCode
-                size={250}
-                value={qrData?.token || ""}
-                color={COLORS.BLACK}
-                backgroundColor={COLORS.WHITE}
-              />
-            )}
+            <QRCode
+              size={250}
+              value={qrData?.token || ""}
+              color={COLORS.BLACK}
+              backgroundColor={COLORS.WHITE}
+            />
 
             <View style={styles.qrInfo}>
               <Text style={styles.infoLabel}>Device:</Text>
@@ -212,8 +214,6 @@ const DeviceQRManagement = () => {
                 minutes
               </Text>
 
-              
-
               {qrData?.used_at && (
                 <Text style={styles.usedLabel}>
                   ✅ Used at {new Date(qrData.used_at).toLocaleString()}
@@ -223,7 +223,10 @@ const DeviceQRManagement = () => {
 
             <TouchableOpacity
               style={[styles.btn, styles.btnPrimary]}
-              onPress={() => setQrModal(false)}
+              onPress={() => {
+                setQrModal(false);
+                setQrCodes([]);
+              }}
             >
               <Text style={styles.btnText}>Close</Text>
             </TouchableOpacity>

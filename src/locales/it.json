@@ -136,7 +136,13 @@
     "totalDistance": "Distanza Totale",
     "avgScore": "Punteggio Medio",
     "activeTasksCount": "Attive",
-    "fuelEntry": "Rifornimento"
+    "fuelEntry": "Rifornimento",
+    "addDevice": "Aggiungi Nuovo Dispositivo",
+    "enterSerial": "Numero di Serie del Dispositivo",
+    "enterSerialMessage": "Inserisci il numero di serie dal codice QR (es. TF-2025-00008-5)",
+    "serialEmpty": "Il numero di serie non può essere vuoto",
+    "deviceNotFound": "Dispositivo non trovato",
+    "deviceCheckFailed": "Controllo dispositivo fallito"
   },
   "vehicle": {
     "title": "Il Mio Veicolo",

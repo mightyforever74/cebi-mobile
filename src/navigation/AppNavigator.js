@@ -690,11 +690,35 @@ const DriverNavigator = () => {
       <Drawer.Screen name="Navigation" component={DriverRouteMapScreen} />
       <Drawer.Screen name="FuelEntry" component={FuelEntryScreen} />
       <Drawer.Screen name="MyVehicle" component={DriverVehicle} />
-      <Drawer.Screen
-        name="DeviceSetup"
-        component={DeviceSetupScreen}
-        options={{ headerShown: false }}
-      />
+        <Drawer.Screen
+          name="DeviceSetup"
+          component={DeviceSetupScreen}
+          options={{ headerShown: false }}
+        />
+        <Drawer.Screen
+          name="VehiclePicker"
+          component={VehiclePickerScreen}
+          options={{ 
+            headerShown: false,
+            drawerItemStyle: { display: "none" }
+          }}
+        />
+        <Drawer.Screen
+          name="WiFiPicker"
+          component={WiFiPickerScreen}
+          options={{ 
+            headerShown: false,
+            drawerItemStyle: { display: "none" }
+          }}
+        />
+        <Drawer.Screen
+          name="WiFiPassword"
+          component={WiFiPasswordScreen}
+          options={{ 
+            headerShown: false,
+            drawerItemStyle: { display: "none" }
+          }}
+        />
       <Drawer.Screen name="Profile" component={ProfileStack} />
       <Drawer.Screen name="DriverSettings" component={SettingsStack} />
       <Drawer.Screen name="SOS" component={DriverSOSScreen} />

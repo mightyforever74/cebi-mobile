@@ -1,6 +1,6 @@
 // src/context/ThemeContext.js
 // TulipFleet - Global Theme Context
-// Updated: 22 Ocak 2026 - Theme.js tek kaynak
+// Updated: 23 Ocak 2026 - String theme support ('dark'/'light')
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -29,7 +29,7 @@ const ThemeContext = createContext(null);
 // ==============================================
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setThemeState] = useState("light"); // 'light' | 'dark'
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Load saved theme preference
@@ -37,14 +37,20 @@ export const ThemeProvider = ({ children }) => {
     try {
       const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
       if (savedTheme !== null) {
-        setIsDark(JSON.parse(savedTheme));
+        const parsed = JSON.parse(savedTheme);
+        // Backward compatibility: boolean → string
+        if (typeof parsed === "boolean") {
+          setThemeState(parsed ? "dark" : "light");
+        } else {
+          setThemeState(parsed);
+        }
       } else {
         // System preference as default
-        setIsDark(systemColorScheme === "dark");
+        setThemeState(systemColorScheme === "dark" ? "dark" : "light");
       }
     } catch (error) {
       console.error("Error loading theme:", error);
-      setIsDark(false);
+      setThemeState("light");
     } finally {
       setIsHydrated(true);
     }
@@ -53,6 +59,9 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     loadTheme();
   }, [loadTheme]);
+
+  // isDark helper
+  const isDark = theme === "dark";
 
   // StatusBar otomatik güncelleme
   useEffect(() => {
@@ -69,19 +78,28 @@ export const ThemeProvider = ({ children }) => {
   // Toggle theme
   const toggleTheme = useCallback(async () => {
     try {
-      const newValue = !isDark;
-      setIsDark(newValue);
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(newValue));
+      const newTheme = theme === "dark" ? "light" : "dark";
+      setThemeState(newTheme);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(newTheme));
     } catch (error) {
       console.error("Error saving theme:", error);
     }
-  }, [isDark]);
+  }, [theme]);
 
-  // Set specific theme
-  const setTheme = useCallback(async (darkMode) => {
+  // Set specific theme (string: 'dark' | 'light' veya boolean backward compat için)
+  const setTheme = useCallback(async (newTheme) => {
     try {
-      setIsDark(darkMode);
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(darkMode));
+      let themeToSet;
+
+      // Backward compatibility: boolean → string
+      if (typeof newTheme === "boolean") {
+        themeToSet = newTheme ? "dark" : "light";
+      } else {
+        themeToSet = newTheme;
+      }
+
+      setThemeState(themeToSet);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeToSet));
     } catch (error) {
       console.error("Error saving theme:", error);
     }
@@ -106,9 +124,10 @@ export const ThemeProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       // State
+      theme, // 'light' | 'dark'
       isDark,
       isHydrated,
-      themeMode: isDark ? "dark" : "light",
+      themeMode: theme, // Alias
 
       // Actions
       toggleTheme,
@@ -120,7 +139,7 @@ export const ThemeProvider = ({ children }) => {
       // Galio/Argon için
       argonTheme,
     }),
-    [isDark, isHydrated, toggleTheme, setTheme, COLORS, argonTheme]
+    [theme, isDark, isHydrated, toggleTheme, setTheme, COLORS, argonTheme]
   );
 
   return (
