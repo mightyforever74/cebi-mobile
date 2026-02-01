@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { driverProvisionAPI } from "../../services/api";
 
 const VehiclePickerScreen = () => {
@@ -18,7 +18,7 @@ const VehiclePickerScreen = () => {
   const route = useRoute();
   const { user } = useAuth();
 
-  const { serial } = route.params;
+  const { serial, deviceId } = route.params;
 
   const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState([]);
@@ -62,8 +62,36 @@ const VehiclePickerScreen = () => {
   };
 
   const assignDevice = async (vehicle) => {
+    // ✅ deviceId double-check (ekstra güvenlik)
+    if (!deviceId) {
+      console.error("[VehiclePicker] ❌ No deviceId - cannot proceed!");
+      Alert.alert(
+        "BLE Bağlantısı Yok",
+        "WiFi kurulumu için BLE bağlantısı gerekli. Baştan başlatmak ister misiniz?",
+        [
+          { text: "İptal", style: "cancel" },
+          {
+            text: "Baştan Başlat",
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "DriverDashboard" }],
+              });
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     try {
       setAssigning(true);
+
+      console.log("[VehiclePicker] Assigning device:", {
+        serial,
+        vehicle_id: vehicle.id,
+        deviceId,
+      });
 
       const response = await driverProvisionAPI.assignDevice({
         device_serial: serial,
@@ -71,18 +99,23 @@ const VehiclePickerScreen = () => {
       });
 
       if (response.success) {
-        // WiFi Picker ekranına geç
-        navigation.navigate("WiFiPicker", {
+        console.log("[VehiclePicker] ✅ Assignment success");
+        // WiFi Picker ekranına geç (replace ile - geri dönüş engellenir)
+        navigation.replace("WiFiPickerMain", {
           serial,
           vehicle,
           assignment_id: response.assignment_id,
+          deviceId,
         });
       } else {
         Alert.alert("Hata", response.message || "Atama başarısız");
       }
     } catch (error) {
       console.error("[VehiclePicker] Assign error:", error);
-      Alert.alert("Hata", "Cihaz ataması başarısız");
+      Alert.alert(
+        "Hata",
+        "Cihaz ataması başarısız: " + (error.message || "Bilinmeyen hata")
+      );
     } finally {
       setAssigning(false);
     }

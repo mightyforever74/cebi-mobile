@@ -16,6 +16,8 @@ import {
   View,
 } from "react-native";
 
+const Stack = createStackNavigator();
+
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
@@ -75,6 +77,9 @@ import TroubleshootingScreen from "../screens/driver/TroubleshootingScreen";
 // FAZ 4: DEVICE SETUP SCREEN (BLE + QR Activation)
 // ============================================================================
 import DeviceSetupScreen from "../screens/driver/DeviceSetupScreen";
+import VehiclePickerScreen from "../screens/driver/VehiclePickerScreen";
+import WiFiPasswordScreen from "../screens/driver/WiFiPasswordScreen";
+import WiFiPickerScreen from "../screens/driver/WiFiPickerScreen";
 
 // ============================================================================
 // SHARED SCREENS
@@ -83,102 +88,62 @@ import ChangePasswordScreen from "../screens/shared/ChangePasswordScreen";
 import EditProfileScreen from "../screens/shared/EditProfileScreen";
 
 // ============================================================================
-// HELPERS
-// ============================================================================
-const withAlpha = (hex, alpha01) => {
-  if (
-    !hex ||
-    typeof hex !== "string" ||
-    !hex.startsWith("#") ||
-    hex.length !== 7
-  )
-    return hex;
-  const a = Math.max(0, Math.min(1, alpha01));
-  const alpha = Math.round(a * 255)
-    .toString(16)
-    .padStart(2, "0")
-    .toUpperCase();
-  return `${hex}${alpha}`;
-};
-
-// ============================================================================
-// THEMED STYLES (Rehber Pattern)
+// DRAWER STYLES (makeStyles)
 // ============================================================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
-    // Placeholder
-    placeholderContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-      padding: 20,
-    },
-    placeholderTitle: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginTop: 16,
-      textAlign: "center",
-    },
-    placeholderDesc: {
-      fontSize: 14,
-      color: COLORS.MUTED,
-      marginTop: 8,
-      textAlign: "center",
-    },
-
-    // Drawer
     drawerContainer: {
       flex: 1,
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      backgroundColor: COLORS.BACKGROUND || COLORS.WHITE,
     },
     drawerHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 20,
       paddingTop: 50,
       paddingBottom: 20,
+      paddingHorizontal: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.BORDER || "#E0E0E0",
     },
     avatarContainer: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: COLORS.WHITE,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: withAlpha(COLORS.WHITE, 0.25),
+      marginBottom: 12,
     },
     avatarText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: COLORS.WHITE,
+      color: COLORS.PRIMARY,
     },
     userInfo: {
-      marginLeft: 14,
-      flex: 1,
+      marginTop: 8,
     },
     userName: {
-      fontSize: 17,
-      fontWeight: "600",
+      fontSize: 18,
+      fontWeight: "bold",
       color: COLORS.WHITE,
+      marginBottom: 4,
     },
     roleBadge: {
-      alignSelf: "flex-start",
-      paddingHorizontal: 10,
+      backgroundColor: "rgba(255,255,255,0.2)",
+      paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 12,
-      marginTop: 6,
-      backgroundColor: withAlpha(COLORS.WHITE, 0.25),
+      alignSelf: "flex-start",
+      marginTop: 4,
     },
     roleText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: "600",
       color: COLORS.WHITE,
     },
     companyName: {
-      fontSize: 12,
-      color: withAlpha(COLORS.WHITE, 0.8),
-      marginTop: 4,
+      fontSize: 13,
+      color: COLORS.WHITE,
+      marginTop: 6,
+      opacity: 0.9,
     },
     menuContainer: {
       flex: 1,
@@ -194,101 +159,48 @@ const makeStyles = (COLORS) =>
       borderRadius: 8,
     },
     menuItemActive: {
-      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
+      backgroundColor: COLORS.PRIMARY + "15",
     },
     menuText: {
       fontSize: 15,
-      color: COLORS.HEADER ?? COLORS.MUTED ?? COLORS.SECONDARY,
-      marginLeft: 14,
+      marginLeft: 12,
+      color: COLORS.TEXT || COLORS.DEFAULT,
       fontWeight: "500",
-      flex: 1,
     },
     menuTextActive: {
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: "700",
     },
     divider: {
       height: 1,
-      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      backgroundColor: COLORS.BORDER || "#E0E0E0",
+      marginVertical: 10,
       marginHorizontal: 20,
-      marginVertical: 16,
     },
     logoutButton: {
       flexDirection: "row",
       alignItems: "center",
-      marginHorizontal: 20,
-      marginBottom: 10,
-      paddingVertical: 14,
+      backgroundColor: COLORS.ERROR || "#FF4444",
+      paddingVertical: 12,
       paddingHorizontal: 20,
+      marginHorizontal: 10,
+      marginVertical: 10,
       borderRadius: 8,
-      backgroundColor: COLORS.ERROR,
-      shadowColor: COLORS.ERROR,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      elevation: 4,
     },
     logoutText: {
       fontSize: 15,
-      fontWeight: "600",
+      marginLeft: 10,
       color: COLORS.WHITE,
-      marginLeft: 12,
+      fontWeight: "600",
     },
     versionText: {
+      fontSize: 12,
+      color: COLORS.MUTED || "#999",
       textAlign: "center",
-      color: COLORS.MUTED,
-      fontSize: 11,
-      marginBottom: 20,
       marginTop: 10,
+      marginBottom: 20,
     },
   });
-
-// ============================================================================
-// PLACEHOLDER SCREENS (THEMED)
-// ============================================================================
-const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
-  const { t } = useTranslation();
-  const { COLORS } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-
-  return (
-    <View style={styles.placeholderContainer}>
-      <Ionicons
-        name={icon || "construct-outline"}
-        size={64}
-        color={COLORS.PRIMARY}
-      />
-      <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
-      <Text style={styles.placeholderDesc}>
-        {t(descriptionKey) || "Yakında..."}
-      </Text>
-    </View>
-  );
-};
-
-const PlatformReportsScreen = () => (
-  <PlaceholderScreen
-    titleKey="Platform Raporları"
-    icon="bar-chart-outline"
-    descriptionKey="Platform istatistikleri"
-  />
-);
-
-const PlatformSettingsScreen = () => (
-  <PlaceholderScreen
-    titleKey="Platform Ayarları"
-    icon="settings-outline"
-    descriptionKey="Sistem konfigürasyonu"
-  />
-);
-
-const DriverSOSScreen = () => (
-  <PlaceholderScreen
-    titleKey="Acil Durum"
-    icon="warning-outline"
-    descriptionKey="SOS gönder"
-  />
-);
 
 // ============================================================================
 // CUSTOM DRAWER CONTENT (THEMED)
@@ -403,10 +315,149 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
 };
 
 // ============================================================================
+// HELPERS
+// ============================================================================
+// DRIVER NAVIGATOR
+// ============================================================================
+
+const SetupFlowStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="DeviceSetupMain" component={DeviceSetupScreen} />
+    <Stack.Screen name="VehiclePickerMain" component={VehiclePickerScreen} />
+    <Stack.Screen name="WiFiPickerMain" component={WiFiPickerScreen} />
+    <Stack.Screen name="WiFiPasswordMain" component={WiFiPasswordScreen} />
+  </Stack.Navigator>
+);
+
+const DriverNavigator = () => {
+  const { COLORS } = useTheme();
+
+  const headerColor = COLORS.SUCCESS; // önce #2DCE89
+  const menuItems = [
+    {
+      name: "DriverDashboard",
+      label: "Ana Sayfa",
+      icon: "speedometer-outline",
+    },
+    { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
+    { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
+    { name: "FuelEntry", label: "Yakıt Girişi", icon: "flame-outline" },
+    { name: "MyVehicle", label: "Aracım", icon: "car-sport-outline" },
+    { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" },
+    { name: "Profile", label: "Profil", icon: "person-outline" },
+    { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
+    { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
+  ];
+
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => (
+        <CustomDrawerContent
+          {...props}
+          menuItems={menuItems}
+          headerColor={headerColor}
+        />
+      )}
+      screenOptions={({ route }) => {
+        const titles = {
+          DriverDashboard: "Ana Sayfa",
+          MyTasks: "Görevlerim",
+          Navigation: "Navigasyon",
+          FuelEntry: "Yakıt Girişi",
+          MyVehicle: "Aracım",
+          DeviceSetup: "Cihaz Kurulumu",
+          Profile: "Profil",
+          DriverSettings: "Ayarlar",
+          SOS: "Acil Durum",
+        };
+        return {
+          headerStyle: { backgroundColor: headerColor, elevation: 4 },
+          headerTintColor: COLORS.WHITE,
+          headerTitleStyle: { fontWeight: "600" },
+          drawerType: "front",
+          swipeEnabled: true,
+          drawerStyle: { width: 280 },
+          title: titles[route.name] || route.name,
+        };
+      }}
+    >
+      <Drawer.Screen
+        name="DriverWelcome"
+        component={DriverWelcomeScreen}
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
+      <Drawer.Screen name="DriverDashboard" component={DriverDashboard} />
+      <Drawer.Screen name="MyTasks" component={TasksStack} />
+      <Drawer.Screen name="Navigation" component={DriverRouteMapScreen} />
+      <Drawer.Screen name="FuelEntry" component={FuelEntryScreen} />
+      <Drawer.Screen name="MyVehicle" component={DriverVehicle} />
+      <Drawer.Screen
+        name="DeviceSetup"
+        component={SetupFlowStack}
+        options={{ headerShown: false, drawerItemStyle: { display: "none" } }}
+      />
+      <Drawer.Screen name="Profile" component={ProfileStack} />
+      <Drawer.Screen name="DriverSettings" component={SettingsStack} />
+      <Drawer.Screen name="SOS" component={DriverSOSScreen} />
+    </Drawer.Navigator>
+  );
+};
+
+// ============================================================================
+// PLACEHOLDER SCREENS (THEMED)
+// ============================================================================
+const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
+  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  return (
+    <View style={styles.placeholderContainer}>
+      <Ionicons
+        name={icon || "construct-outline"}
+        size={64}
+        color={COLORS.PRIMARY}
+      />
+      <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
+      <Text style={styles.placeholderDesc}>
+        {t(descriptionKey) || "Yakında..."}
+      </Text>
+    </View>
+  );
+};
+
+const PlatformReportsScreen = () => (
+  <PlaceholderScreen
+    titleKey="Platform Raporları"
+    icon="bar-chart-outline"
+    descriptionKey="Platform istatistikleri"
+  />
+);
+
+const PlatformSettingsScreen = () => (
+  <PlaceholderScreen
+    titleKey="Platform Ayarları"
+    icon="settings-outline"
+    descriptionKey="Sistem konfigürasyonu"
+  />
+);
+
+const DriverSOSScreen = () => (
+  <PlaceholderScreen
+    titleKey="Acil Durum"
+    icon="warning-outline"
+    descriptionKey="SOS gönder"
+  />
+);
+
+// ============================================================================
 // NAVIGATORS
 // ============================================================================
+
 const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
 
 // ============================================================================
 // SUPER ADMIN STACK NAVIGATORS
@@ -621,110 +672,6 @@ const SettingsStack = () => (
     <Stack.Screen name="LEDIndicatorsScreen" component={LEDIndicatorsScreen} />
   </Stack.Navigator>
 );
-
-// ============================================================================
-// DRIVER NAVIGATOR
-// ============================================================================
-const DriverNavigator = () => {
-  const { COLORS } = useTheme();
-
-  const headerColor = COLORS.SUCCESS; // önce #2DCE89
-  const menuItems = [
-    {
-      name: "DriverDashboard",
-      label: "Ana Sayfa",
-      icon: "speedometer-outline",
-    },
-    { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
-    { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
-    { name: "FuelEntry", label: "Yakıt Girişi", icon: "flame-outline" },
-    { name: "MyVehicle", label: "Aracım", icon: "car-sport-outline" },
-    { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" },
-    { name: "Profile", label: "Profil", icon: "person-outline" },
-    { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
-    { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
-  ];
-
-  return (
-    <Drawer.Navigator
-      drawerContent={(props) => (
-        <CustomDrawerContent
-          {...props}
-          menuItems={menuItems}
-          headerColor={headerColor}
-        />
-      )}
-      screenOptions={({ route }) => {
-        const titles = {
-          DriverDashboard: "Ana Sayfa",
-          MyTasks: "Görevlerim",
-          Navigation: "Navigasyon",
-          FuelEntry: "Yakıt Girişi",
-          MyVehicle: "Aracım",
-          DeviceSetup: "Cihaz Kurulumu",
-          Profile: "Profil",
-          DriverSettings: "Ayarlar",
-          SOS: "Acil Durum",
-        };
-        return {
-          headerStyle: { backgroundColor: headerColor, elevation: 4 },
-          headerTintColor: COLORS.WHITE,
-          headerTitleStyle: { fontWeight: "600" },
-          drawerType: "front",
-          swipeEnabled: true,
-          drawerStyle: { width: 280 },
-          title: titles[route.name] || route.name,
-        };
-      }}
-    >
-      <Drawer.Screen
-        name="DriverWelcome"
-        component={DriverWelcomeScreen}
-        options={{
-          headerShown: false,
-          drawerItemStyle: { display: "none" },
-        }}
-      />
-      <Drawer.Screen name="DriverDashboard" component={DriverDashboard} />
-      <Drawer.Screen name="MyTasks" component={TasksStack} />
-      <Drawer.Screen name="Navigation" component={DriverRouteMapScreen} />
-      <Drawer.Screen name="FuelEntry" component={FuelEntryScreen} />
-      <Drawer.Screen name="MyVehicle" component={DriverVehicle} />
-        <Drawer.Screen
-          name="DeviceSetup"
-          component={DeviceSetupScreen}
-          options={{ headerShown: false }}
-        />
-        <Drawer.Screen
-          name="VehiclePicker"
-          component={VehiclePickerScreen}
-          options={{ 
-            headerShown: false,
-            drawerItemStyle: { display: "none" }
-          }}
-        />
-        <Drawer.Screen
-          name="WiFiPicker"
-          component={WiFiPickerScreen}
-          options={{ 
-            headerShown: false,
-            drawerItemStyle: { display: "none" }
-          }}
-        />
-        <Drawer.Screen
-          name="WiFiPassword"
-          component={WiFiPasswordScreen}
-          options={{ 
-            headerShown: false,
-            drawerItemStyle: { display: "none" }
-          }}
-        />
-      <Drawer.Screen name="Profile" component={ProfileStack} />
-      <Drawer.Screen name="DriverSettings" component={SettingsStack} />
-      <Drawer.Screen name="SOS" component={DriverSOSScreen} />
-    </Drawer.Navigator>
-  );
-};
 
 // ============================================================================
 // MAIN APP NAVIGATOR

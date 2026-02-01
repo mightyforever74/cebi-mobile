@@ -43,6 +43,8 @@ export const BLE_CONFIG = {
 
   // Device discovery (iOS cache için esnek prefix)
   DEVICE_NAME_PREFIXES: [
+    "TulipFleet",
+    "TulipFleet-",
     "TF-",
     "TF-DEVICE-",
     "TF-NEW-",

@@ -1,6 +1,6 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 22 Ocak 2026 - Dark Mode Migration (DÜZGÜN)
+// Updated: 30 Ocak 2026 - FAB Modal Fix (Android uyumlu)
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -8,22 +8,23 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-// ❌ KALDIRILDI: import { COLORS } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
-import { driverAPI } from "../../services/api";
+import { driverAPI, driverProvisionAPI } from "../../services/api";
 
 // Yakıt tipi çevirisi
 const FUEL_TYPE_LABELS = {
@@ -65,9 +66,6 @@ const FUEL_TYPE_LABELS = {
   },
 };
 
-// ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
-// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: {
@@ -272,15 +270,15 @@ const makeStyles = (COLORS) =>
     statusBadge: {
       paddingHorizontal: 8,
       paddingVertical: 4,
-      borderRadius: 4,
+      borderRadius: 6,
     },
     statusText: {
-      color: COLORS.WHITE,
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: "600",
+      color: COLORS.WHITE,
     },
     taskDescription: {
-      fontSize: 14,
+      fontSize: 13,
       color: COLORS.TEXT_SECONDARY,
       marginBottom: 4,
     },
@@ -295,15 +293,14 @@ const makeStyles = (COLORS) =>
     },
     statsRow: {
       flexDirection: "row",
-      alignItems: "center",
+      marginTop: 12,
     },
     statItemLarge: {
       flex: 1,
       alignItems: "center",
-      paddingVertical: 16,
     },
     statNumberLarge: {
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: "bold",
       color: COLORS.PRIMARY,
     },
@@ -311,39 +308,37 @@ const makeStyles = (COLORS) =>
       fontSize: 13,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 4,
-      textAlign: "center",
     },
     statDivider: {
       width: 1,
-      height: 50,
       backgroundColor: COLORS.BORDER,
+      marginHorizontal: 16,
     },
     langModalOverlay: {
       flex: 1,
-      backgroundColor: COLORS.OVERLAY,
+      backgroundColor: "rgba(0,0,0,0.5)",
       justifyContent: "flex-end",
     },
     langModalContent: {
-      backgroundColor: COLORS.SURFACE,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
+      backgroundColor: COLORS.CARD,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingTop: 16,
+      paddingBottom: 32,
       maxHeight: "70%",
     },
     langModalTitle: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: "bold",
       color: COLORS.TEXT,
-      textAlign: "center",
+      paddingHorizontal: 20,
       marginBottom: 16,
     },
     langItem: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-      backgroundColor: COLORS.SECONDARY,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
     },
     langItemActive: {
       backgroundColor: COLORS.PRIMARY,
@@ -362,17 +357,19 @@ const makeStyles = (COLORS) =>
       fontWeight: "600",
     },
     langCloseBtn: {
-      backgroundColor: COLORS.MUTED,
-      padding: 14,
-      borderRadius: 8,
+      marginHorizontal: 20,
+      marginTop: 16,
+      paddingVertical: 14,
+      backgroundColor: COLORS.BORDER,
+      borderRadius: 12,
       alignItems: "center",
-      marginTop: 12,
     },
     langCloseBtnText: {
-      color: COLORS.WHITE,
       fontSize: 16,
       fontWeight: "600",
+      color: COLORS.TEXT,
     },
+    // FAB + MODAL STYLES
     fab: {
       position: "absolute",
       bottom: 20,
@@ -392,228 +389,205 @@ const makeStyles = (COLORS) =>
     fabIcon: {
       fontSize: 28,
     },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: COLORS.CARD,
+      borderRadius: 16,
+      padding: 24,
+      width: "85%",
+      maxWidth: 400,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: COLORS.TEXT,
+      marginBottom: 8,
+    },
+    modalSubtitle: {
+      fontSize: 14,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: 20,
+    },
+    modalInput: {
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: COLORS.TEXT,
+      marginBottom: 20,
+    },
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    modalButtonCancel: {
+      backgroundColor: COLORS.BORDER,
+      marginRight: 8,
+    },
+    modalButtonSubmit: {
+      backgroundColor: "#FF6B35",
+      marginLeft: 8,
+    },
+    modalButtonTextCancel: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.TEXT,
+    },
+    modalButtonTextSubmit: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#FFF",
+    },
   });
 
-// ============================================
-// COMPONENT
-// ============================================
 const DriverDashboard = () => {
-  // ✅ Themed styles hook
-  const styles = useThemedStyles(makeStyles);
-  // ✅ COLORS for inline styles
-  const { COLORS } = useTheme();
-
-  const navigation = useNavigation();
   const { user, logout } = useAuth();
-  const { t, i18n } = useTranslation();
-  const { expoPushToken, error: pushError } = usePushNotifications();
+  const { i18n, t } = useTranslation();
+  const navigation = useNavigation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
-  const currentLangCode = i18n.language || "tr";
+  usePushNotifications();
 
-  // State
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
-
-  // Yeni Cihaz Ekle handler
-  const handleAddDevice = async () => {
-    Alert.prompt(
-      t("dashboard.enterSerial"),
-      t("dashboard.enterSerialMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.continue"),
-          onPress: async (serial) => {
-            if (!serial || serial.trim().length === 0) {
-              Alert.alert(t("common.error"), t("dashboard.serialEmpty"));
-              return;
-            }
-            try {
-              // Backend'de validate et
-              const response = await driverProvisionAPI.validateSerial(
-                serial.trim()
-              );
-              if (response.valid) {
-                // VehiclePicker'a yönlendir
-                navigation.navigate("VehiclePicker", {
-                  serial: serial.trim(),
-                  deviceInfo: response.device,
-                });
-              } else {
-                Alert.alert(
-                  t("common.error"),
-                  response.message || t("dashboard.deviceNotFound")
-                );
-              }
-            } catch (error) {
-              Alert.alert(
-                t("common.error"),
-                t("dashboard.deviceCheckFailed") + ": " + error.message
-              );
-            }
-          },
-        },
-      ],
-      "plain-text"
-    );
-  };
-
-  // Gate Logic State
-  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
-  const [checkingDevice, setCheckingDevice] = useState(true);
-
-  // Language Modal State
+  const [vehicle, setVehicle] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState({});
   const [langModalVisible, setLangModalVisible] = useState(false);
 
-  // Gate Logic - Her ekran açılışında cihaz durumu kontrol
-  useFocusEffect(
-    useCallback(() => {
-      checkDeviceStatus();
-    }, [])
-  );
+  // MODAL STATES
+  const [showSerialModal, setShowSerialModal] = useState(false);
+  const [serialInput, setSerialInput] = useState("");
+  const [validating, setValidating] = useState(false);
 
-  const checkDeviceStatus = async () => {
-    try {
-      setCheckingDevice(true);
-      console.log("[Gate] Checking device status...");
+  const currentLang =
+    LANGUAGES.find((lang) => lang.code === i18n.language) || LANGUAGES[0];
 
-      const response = await driverAPI.getVehicle();
-      console.log("[Gate] Response:", JSON.stringify(response));
-
-      const veh = response?.vehicle || null;
-      if (!veh) {
-        console.log("[Gate] No vehicle assigned");
-        setCheckingDevice(false);
-        setDeviceCheckDone(true);
-        return;
-      }
-
-      const setupRequired =
-        response?.setup_required ?? response?.vehicle?.setup_required;
-
-      if (setupRequired) {
-        console.log("[Gate] Setup required, redirecting to DeviceSetup...");
-        setCheckingDevice(false);
-        navigation.navigate("DeviceSetup", {
-          vehicle: veh,
-        });
-        return;
-      }
-
-      console.log("[Gate] All good, showing dashboard");
-      setCheckingDevice(false);
-      setDeviceCheckDone(true);
-    } catch (error) {
-      console.log("[Gate] Error:", error.message);
-      setCheckingDevice(false);
-      setDeviceCheckDone(true);
-    }
+  const getFuelTypeLabel = (fuelType) => {
+    if (!fuelType) return "N/A";
+    const labels = FUEL_TYPE_LABELS[fuelType.toLowerCase()];
+    return labels ? labels[i18n.language] || labels.en : fuelType;
   };
 
-  // Fetch data on mount - deviceCheckDone olunca çalışsın
-  useEffect(() => {
-    if (deviceCheckDone) {
-      fetchAllData();
-    }
-  }, [deviceCheckDone]);
-
-  // Debug: show push token when ready
-  useEffect(() => {
-    if (expoPushToken) {
-      console.log("🔔 Driver push token ready:", expoPushToken);
-    }
-  }, [expoPushToken]);
-
-  const fetchAllData = async () => {
+  const fetchDashboardData = async () => {
     try {
       setError(null);
-
-      const [statsData, tasksData, vehicleData] = await Promise.all([
-        driverAPI.getStats().catch((err) => ({ stats: getDefaultStats() })),
-        driverAPI.getTasks().catch((err) => ({ tasks: [] })),
-        driverAPI.getVehicle().catch((err) => ({ vehicle: null })),
+      const [vehicleRes, tasksRes, statsRes] = await Promise.all([
+        driverAPI.getMyVehicle(),
+        driverAPI.getMyTasks(),
+        driverAPI.getMyStats(),
       ]);
 
-      setStats(statsData.stats);
-      setTasks(tasksData.tasks || []);
-      setVehicle(vehicleData.vehicle);
-
-      console.log("✅ Driver data loaded:", {
-        stats: statsData.stats,
-        taskCount: tasksData.tasks?.length,
-        vehicle: vehicleData.vehicle?.plate,
-      });
-    } catch (error) {
-      console.error("❌ Error fetching driver data:", error);
-      setError(t("dashboard.loadError"));
-      setStats(getDefaultStats());
-      setTasks([]);
-      setVehicle(null);
+      setVehicle(vehicleRes.vehicle || null);
+      setTasks(tasksRes.tasks || []);
+      setStats(statsRes.stats || {});
+    } catch (err) {
+      console.error("[Dashboard] Fetch error:", err);
+      setError(t("common.error") + ": " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const getDefaultStats = () => ({
-    completed_tasks: 0,
-    active_tasks: 0,
-  });
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchAllData();
+    fetchDashboardData();
   };
 
-  const handleLogout = async () => {
-    const result = await logout();
-    if (result.success) {
-      console.log("✅ Çıkış yapıldı");
-    }
+  const handleLogout = () => {
+    Alert.alert(t("auth.logoutConfirmTitle"), t("auth.logoutConfirmMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.confirm"), onPress: logout },
+    ]);
   };
 
-  const handleTaskPress = (task) => {
-    console.log("Task pressed:", task.id);
-    navigation.navigate("MyTasks");
-  };
-
-  const handleVehiclePress = () => {
-    if (vehicle) {
-      navigation.navigate("FuelEntry");
-    }
-  };
-
-  const getFuelTypeLabel = (fuelType) => {
-    const labels = FUEL_TYPE_LABELS[fuelType];
-    if (labels) {
-      return labels[currentLangCode] || labels.en || fuelType;
-    }
-    return fuelType || "Dizel";
-  };
-
-  const changeLanguage = (langCode) => {
-    i18n.changeLanguage(langCode);
+  const changeLanguage = (code) => {
+    i18n.changeLanguage(code);
     setLangModalVisible(false);
   };
 
-  const currentLang =
-    LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+  const handleVehiclePress = () => {
+    navigation.navigate("FuelEntry");
+  };
 
-  // Device Check Loading
-  if (checkingDevice) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>{t("dashboard.checkingDevice")}</Text>
-      </View>
-    );
-  }
+  const handleTaskPress = (task) => {
+    navigation.navigate("MyTasks", {
+      screen: "DriverTaskDetailScreen",
+      params: { taskId: task.id },
+    });
+  };
 
-  // Loading state
+  // FAB HANDLER - MODAL
+  const handleAddDevice = () => {
+    setSerialInput("");
+    setShowSerialModal(true);
+  };
+
+  const handleSerialSubmit = async () => {
+    if (!serialInput || serialInput.trim().length === 0) {
+      Alert.alert(t("common.error"), t("dashboard.serialEmpty"));
+      return;
+    }
+
+    try {
+      setValidating(true);
+
+      const response = await driverProvisionAPI.validateSerial(
+        serialInput.trim()
+      );
+
+      if (response.valid) {
+        setShowSerialModal(false);
+        navigation.navigate("DeviceSetup", {
+          screen: "DeviceSetupMain",
+          params: {
+            serial: serialInput.trim(),
+            deviceInfo: response.device,
+          },
+        });
+      } else {
+        Alert.alert(
+          t("common.error"),
+          response.message || t("dashboard.deviceNotFound")
+        );
+      }
+    } catch (error) {
+      console.error("[Dashboard] Serial validation error:", error);
+      Alert.alert(
+        t("common.error"),
+        t("dashboard.deviceCheckFailed") + ": " + error.message
+      );
+    } finally {
+      setValidating(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -875,7 +849,62 @@ const DriverDashboard = () => {
           </View>
         </View>
       </Modal>
-      {/* Floating Action Button - Yeni Cihaz Ekle */}
+
+      {/* Serial Input Modal */}
+      <Modal
+        visible={showSerialModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSerialModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t("dashboard.enterSerial")}</Text>
+            <Text style={styles.modalSubtitle}>
+              {t("dashboard.enterSerialMessage")}
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              value={serialInput}
+              onChangeText={setSerialInput}
+              placeholder="TF-2025-00001-1"
+              placeholderTextColor="#999"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!validating}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowSerialModal(false)}
+                disabled={validating}
+              >
+                <Text style={styles.modalButtonTextCancel}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSubmit]}
+                onPress={handleSerialSubmit}
+                disabled={validating}
+              >
+                {validating ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={styles.modalButtonTextSubmit}>
+                    {t("common.continue")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
         onPress={handleAddDevice}
@@ -886,7 +915,5 @@ const DriverDashboard = () => {
     </ScrollView>
   );
 };
-
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverDashboard;

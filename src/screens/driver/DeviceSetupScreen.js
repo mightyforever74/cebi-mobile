@@ -4,7 +4,6 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CommonActions } from "@react-navigation/native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -253,13 +252,14 @@ const makeStyles = (COLORS) =>
     },
   });
 
-export default function DeviceSetupScreen({ navigation }) {
+export default function DeviceSetupScreen({ navigation, route }) {
   const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   // States
   const [step, setStep] = useState(STEPS.CHECKING);
+  const [busy, setBusy] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState(null);
   const [serial, setSerial] = useState("");
   const [vehicleId, setVehicleId] = useState(null);
@@ -272,12 +272,15 @@ export default function DeviceSetupScreen({ navigation }) {
   const [skipReason, setSkipReason] = useState("");
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
-  const [busy, setBusy] = useState(false);
+
+  // Guided setup flag
+  const isGuided = !!route.params?.serial;
 
   // Refs
   const devicesRef = useRef([]);
   const scanCleanupRef = useRef(null);
   const resultReceivedRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const stepPills = useMemo(
     () => [
@@ -290,6 +293,35 @@ export default function DeviceSetupScreen({ navigation }) {
     [t]
   );
 
+  // ✅ 1. Unmount cleanup
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      console.log("[DeviceSetup] Unmounting");
+    };
+  }, []);
+
+  // ✅ 2. Parametre guard
+  useEffect(() => {
+    const { serial, deviceInfo } = route.params || {};
+
+    if (isGuided && !serial) {
+      console.error("[DeviceSetup] ❌ Missing serial!");
+      Alert.alert(t("common.error"), "Seri numarası bulunamadı.", [
+        { text: t("common.ok"), onPress: () => navigation.goBack() },
+      ]);
+      return;
+    }
+
+    console.log("[DeviceSetup] ✅ Mounted:", { serial, isGuided });
+  }, []);
+
+  // ✅ 3. State debug
+  useEffect(() => {
+    console.log("[DeviceSetup] STATE:", { step, busy, isGuided });
+  }, [step, busy, isGuided]);
+
   // Load vehicle ID
   useEffect(() => {
     const loadVehicleId = async () => {
@@ -298,10 +330,10 @@ export default function DeviceSetupScreen({ navigation }) {
         const vId = response?.vehicle?.id || response?.id;
         if (vId) {
           setVehicleId(vId);
-          console.log("[Setup] Vehicle ID loaded:", vId);
+          console.log("[DeviceSetup] Vehicle ID loaded:", vId);
         }
       } catch (e) {
-        console.error("[Setup] Failed to load vehicle ID:", e.message);
+        console.error("[DeviceSetup] Failed to load vehicle ID:", e.message);
       }
     };
     loadVehicleId();
@@ -312,9 +344,9 @@ export default function DeviceSetupScreen({ navigation }) {
     const initBLE = async () => {
       try {
         await bleService.initialize();
-        console.log("[Setup] BLE initialized");
+        console.log("[DeviceSetup] BLE initialized");
       } catch (error) {
-        console.error("[Setup] BLE init error:", error);
+        console.error("[DeviceSetup] BLE init error:", error);
         setError("Bluetooth başlatılamadı: " + error.message);
       }
     };
@@ -327,71 +359,33 @@ export default function DeviceSetupScreen({ navigation }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ DEBUG: State değişimlerini logla
+  useEffect(() => {
+    console.log("[DeviceSetup] STATE:", {
+      step,
+      busy,
+      isGuided,
+      hasSerial: !!serial,
+      hasParams: !!route?.params?.serial,
+    });
+  }, [step, busy]);
+
   const checkSmartGate = async () => {
-    try {
-      console.log("[SmartGate] Checking backend truth (driver/vehicle)...");
-      const response = await driverAPI.getVehicle();
-      console.log("[SmartGate] driver/vehicle:", JSON.stringify(response));
-
-      const setupRequired =
-        response?.setup_required ?? response?.vehicle?.setup_required;
-
-      // Setup not required
-      if (setupRequired === false) {
-        setGateChecking(false);
-        const deviceSerial =
-          response.vehicle?.esp32Status?.serial ||
-          response.vehicle?.esp32Status?.deviceId ||
-          "-";
-        Alert.alert(
-          t("deviceSetup.setupNotRequired"),
-          t("deviceSetup.deviceActiveMessage", {
-            serial: deviceSerial,
-            plate: response.vehicle?.plate || "-",
-          }),
-          [
-            {
-              text: t("deviceSetup.buttons.ok"),
-              onPress: () =>
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: "DriverDashboard" }],
-                  })
-                ),
-            },
-          ]
-        );
-        return;
-      }
-
-      // Setup required - check if reprovision
-      if (setupRequired === true) {
-        const inferredSerial = response.vehicle?.esp32Status?.serial || null;
-        if (inferredSerial) {
-          console.log(
-            "[SmartGate] Reprovision inferred serial:",
-            inferredSerial
-          );
-          setSerial(inferredSerial);
-          setSkipReason("Cihaz yeniden kurulum bekliyor...");
-          setGateChecking(false);
-          setTimeout(() => {
-            setStep(STEPS.BLE_SCAN);
-            startBLEScan();
-          }, 1000);
-          return;
-        }
-      }
-
-      // Normal flow
+    // ✅ Guided flow: DriverDashboard'dan serial ile gelindiyse
+    if (isGuided) {
+      console.log("[DeviceSetup] Guided mode – skipping SmartGate");
+      console.log("[DeviceSetup] route.params:", route.params);
+      setSerial(route.params.serial);
       setGateChecking(false);
-      setStep(STEPS.SERIAL_MANUAL);
-    } catch (e) {
-      console.log("[SmartGate] Error (continue normal):", e.message);
-      setGateChecking(false);
-      setStep(STEPS.SERIAL_MANUAL);
+      setStep(STEPS.BLE_SCAN);
+      startBLEScan();
+      return;
     }
+
+    // ✅ Legacy flow: SmartGate tamamen kaldırıldı, direkt serial input
+    console.log("[DeviceSetup] Legacy mode – direct to serial input");
+    setGateChecking(false);
+    setStep(STEPS.SERIAL_MANUAL);
   };
 
   const saveProvisionData = async (deviceSerial) => {
@@ -443,28 +437,72 @@ export default function DeviceSetupScreen({ navigation }) {
     startBLEScan();
   };
 
+  // ✅ YENİ KOD
   const handleDeviceSelect = async (device) => {
-    scanCleanupRef.current?.();
+    // ✅ 1) GUARD: Double-tap/spam koruması
+    if (busy) {
+      console.log("[DeviceSetup] Already connecting, ignoring tap");
+      return;
+    }
+
+    // ✅ 2) CLEANUP: Scan + timeout temizliği
+    if (scanCleanupRef.current) {
+      scanCleanupRef.current();
+      scanCleanupRef.current = null;
+    }
+
+    // ✅ 3) UI FEEDBACK: Modal göster
+    setBusy(true);
+
+    // ✅ 4) STATE: Connecting adımına geç
     setSelectedDevice(device);
     setStep(STEPS.CONNECTING);
     setStatus("Bağlanıyor...");
-    resultReceivedRef.current = false;
 
     try {
+      // ✅ 5) BLE CONNECTION
       await bleService.connect(device.id);
-      setStatus("Bağlandı, hazırlanıyor...");
+      setStatus("Bağlandı!");
+      console.log("[DeviceSetup] ✅ BLE Connected - Bundle v2.0");
 
-      await bleService.subscribeToNotifications(
-        (value) => setStatus(value),
-        (value) => console.log("[Setup] Result received:", value)
-      );
+      // ✅ 6) GUIDED MODE: VehiclePicker'a git
+      // ✅ 6) GUIDED MODE: VehiclePicker'a git
+      if (isGuided) {
+        console.log("[DeviceSetup] ✅ isGuided=true");
+        console.log("[DeviceSetup] route.params:", route.params);
 
+        // Navigate'den ÖNCE modal kapat
+        setBusy(false);
+
+        // ✅ InteractionManager ile navigation (animasyonlar bitsin)
+        const { InteractionManager } = require("react-native");
+        InteractionManager.runAfterInteractions(() => {
+          navigation.navigate("VehiclePickerMain", {
+            serial: route.params.serial,
+            deviceInfo: route.params.deviceInfo,
+            deviceId: device.id,
+          });
+          console.log(
+            "[DeviceSetup] ✅ navigation.navigate(VehiclePickerMain) called"
+          );
+        });
+
+        return;
+      }
+
+      // ✅ 7) LEGACY MODE: WiFi form'a geç
+      console.log("[DeviceSetup] Legacy mode, showing WiFi form");
       setStep(STEPS.WIFI_FORM);
-      setStatus("WiFi bilgilerini girin");
     } catch (e) {
-      console.error("[Setup] Connection error:", e.message);
+      // ✅ 8) ERROR HANDLING
+      console.error("[DeviceSetup] Connection error:", e);
       setError("Bağlantı hatası: " + e.message);
       setStep(STEPS.ERROR);
+    } finally {
+      // ✅ isMountedRef guard ekle
+      if (!isGuided && isMountedRef.current) {
+        setBusy(false);
+      }
     }
   };
 
@@ -542,14 +580,11 @@ export default function DeviceSetupScreen({ navigation }) {
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
       } finally {
-        // BLE cleanup - best effort
-        setTimeout(async () => {
-          try {
-            await bleService.disconnect();
-          } catch (e) {
-            console.log("[BLE] Disconnect error (normal):", e.message);
-          }
-        }, 500);
+        // ✅ BLE AÇIK KALMALI - WiFiPicker kullanacak!
+        console.log(
+          "[DeviceSetup] WiFi provision complete, keeping BLE connected"
+        );
+        // Disconnect WiFiPassword ekranında SUCCESS sonrası yapılacak
       }
     } catch (e) {
       console.error("[WiFi] Exception:", e.message, e.code);
@@ -583,11 +618,11 @@ export default function DeviceSetupScreen({ navigation }) {
             await saveProvisionData(serial);
             setStep(STEPS.SUCCESS);
             setStatus(t("deviceSetup.activation.successStatus"));
-            setTimeout(async () => {
-              try {
-                await bleService.disconnect();
-              } catch {}
-            }, 1000);
+            // setTimeout(async () => {
+            //   try {
+            //     await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
+            //   } catch {}
+            // }, 1000);
           }
         }
       } else {
@@ -608,9 +643,9 @@ export default function DeviceSetupScreen({ navigation }) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-        setTimeout(async () => {
-          await bleService.disconnect();
-        }, 1000);
+        // setTimeout(async () => {
+        //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
+        // }, 1000);
         return;
       }
 
@@ -621,9 +656,9 @@ export default function DeviceSetupScreen({ navigation }) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-        setTimeout(async () => {
-          await bleService.disconnect();
-        }, 1000);
+        // setTimeout(async () => {
+        //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
+        // }, 1000);
         return;
       }
 
@@ -633,9 +668,9 @@ export default function DeviceSetupScreen({ navigation }) {
       await saveProvisionData(serial);
       setStep(STEPS.SUCCESS);
       setStatus(t("deviceSetup.activation.successPending"));
-      setTimeout(async () => {
-        await bleService.disconnect();
-      }, 1000);
+      // setTimeout(async () => {
+      //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
+      // }, 1000);
     }
   };
 
@@ -737,14 +772,7 @@ export default function DeviceSetupScreen({ navigation }) {
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
-          onPress={() =>
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "DriverDashboard" }],
-              })
-            )
-          }
+          onPress={() => navigation.navigate("VehiclePickerMain")}
           activeOpacity={0.85}
         >
           <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
@@ -979,14 +1007,7 @@ export default function DeviceSetupScreen({ navigation }) {
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
-          onPress={() =>
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "DriverDashboard" }],
-              })
-            )
-          }
+          onPress={() => navigation.navigate("DriverDashboard")}
           activeOpacity={0.85}
         >
           <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
@@ -1027,14 +1048,7 @@ export default function DeviceSetupScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.btn, styles.btnDanger]}
-          onPress={() =>
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "DriverDashboard" }],
-              })
-            )
-          }
+          onPress={() => navigation.navigate("DriverDashboard")}
           activeOpacity={0.85}
         >
           <Ionicons name="close" size={18} color={COLORS.WHITE} />
@@ -1043,6 +1057,15 @@ export default function DeviceSetupScreen({ navigation }) {
       </View>
     </View>
   );
+
+  // Cleanup: BLE bağlantısını koru, disconnect etme
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    return () => {
+      // bleService.disconnect(); // ← KALDIRILDI
+      console.log("BLE provision için korunuyor");
+    };
+  }, []);
 
   return (
     <View style={styles.container}>

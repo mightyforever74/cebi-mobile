@@ -1,12 +1,17 @@
 // src/services/bleService.js
 // TulipFleet BLE Service - FAZ 4 Device Activation + WiFi Provisioning
-// Created: 01 Ocak 2026
-// Updated: 05 Ocak 2026 - WiFi-via-BLE eklendi
+// Created: 02 Ocak 2026
+// Updated: 02 Şubat 2026 - WiFi scan v3.1 HARDENED (writeWithoutResponse + re-entrancy guard + no double base64)
 
 import { Buffer } from "buffer";
 import { PermissionsAndroid, Platform } from "react-native";
 import { BleManager, State } from "react-native-ble-plx";
 import { BLE_CONFIG } from "../constants/config";
+
+// ═══ SCAN RE-ENTRANCY GUARDS ═══
+const scanInFlight = { current: false };
+const lastScanAt = { current: 0 };
+const wifiBuffer = { current: "" };
 
 class BLEService {
   constructor() {
@@ -17,7 +22,8 @@ class BLEService {
     this.resultSubscription = null;
     this.disconnectSubscription = null;
     this.stateSubscription = null;
-    this.wifiStatusSubscription = null; // 🆕 WiFi status subscription
+    this.wifiStatusSubscription = null;
+    this.wifiScanSubscription = null; // 🆕 WiFi scan subscription
     this.onDisconnectCallback = null;
     this.onStateChangeCallback = null;
   }
@@ -126,6 +132,20 @@ class BLEService {
   // ══════════════════════════════════════════════════════════════
 
   startScan(onDeviceFound, onError, onTimeout) {
+    const now = Date.now();
+
+    // ═══ RE-ENTRANCY GUARD ═══
+    if (scanInFlight.current) {
+      console.log("[BLE] Scan already in flight, skipping");
+      return () => {};
+    }
+
+    // ═══ COOLDOWN ═══
+    if (now - lastScanAt.current < 800) {
+      console.log("[BLE] Scan cooldown active, skipping");
+      return () => {};
+    }
+
     if (this.isScanning) {
       console.log("[BLE] Already scanning");
       return () => {};
@@ -135,6 +155,10 @@ class BLEService {
       onError?.(new Error("BLE not initialized"));
       return () => {};
     }
+
+    // ═══ MARK AS IN FLIGHT ═══
+    scanInFlight.current = true;
+    lastScanAt.current = now;
 
     this.isScanning = true;
     const foundDevices = new Map();
@@ -231,6 +255,7 @@ class BLEService {
     if (this.manager && this.isScanning) {
       this.manager.stopDeviceScan();
       this.isScanning = false;
+      scanInFlight.current = false; // ═══ RESET GUARD ═══
       console.log("[BLE] Scan stopped");
     }
   }
@@ -263,6 +288,15 @@ class BLEService {
         console.log("[BLE] Connection priority set to HIGH");
       } catch (e) {
         console.log("[BLE] Connection priority not supported:", e.message);
+      }
+
+      // MTU negotiate (512 byte) - CRITICAL for WiFi scan
+      try {
+        const mtu = await this.device.requestMTU(512);
+        console.log("[BLE] MTU negotiated:", mtu);
+      } catch (e) {
+        console.log("[BLE] MTU negotiation failed:", e.message);
+        // Continue anyway, will try with default MTU
       }
 
       console.log("[BLE] Connected, discovering services...");
@@ -324,10 +358,13 @@ class BLEService {
       this.disconnectSubscription.remove();
       this.disconnectSubscription = null;
     }
-    // 🆕 WiFi subscription cleanup
     if (this.wifiStatusSubscription) {
       this.wifiStatusSubscription.remove();
       this.wifiStatusSubscription = null;
+    }
+    if (this.wifiScanSubscription) {
+      this.wifiScanSubscription.remove();
+      this.wifiScanSubscription = null;
     }
   }
 
@@ -345,13 +382,11 @@ class BLEService {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // 4. SUBSCRIBE TO NOTIFICATIONS (Önce subscribe!)
+  // 4. SUBSCRIPTIONS (Status & Result notifications)
   // ══════════════════════════════════════════════════════════════
 
   async subscribeToNotifications(onStatus, onResult) {
     if (!this.device) throw new Error("NOT_CONNECTED");
-
-    console.log("[BLE] Subscribing to notifications...");
 
     try {
       // Status subscription
@@ -360,7 +395,7 @@ class BLEService {
         BLE_CONFIG.CHARACTERISTICS.STATUS,
         (error, characteristic) => {
           if (error) {
-            console.error("[BLE] Status monitor error:", error.message);
+            console.error("[BLE] Status notification error:", error.message);
             return;
           }
           if (characteristic?.value) {
@@ -379,7 +414,7 @@ class BLEService {
         BLE_CONFIG.CHARACTERISTICS.RESULT,
         (error, characteristic) => {
           if (error) {
-            console.error("[BLE] Result monitor error:", error.message);
+            console.error("[BLE] Result notification error:", error.message);
             return;
           }
           if (characteristic?.value) {
@@ -483,63 +518,291 @@ class BLEService {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // 7. WIFI PROVISIONING (YENİ - WiFi-via-BLE)
+  // 7. WIFI PROVISIONING & SCAN (Phase 3 + Phase 4)
   // ══════════════════════════════════════════════════════════════
 
   /**
-   * WiFi credentials'ı ESP32'ye gönder
-   * Payload: JSON {"ssid":"xxx","password":"yyy"}
-   * @param {string} ssid - WiFi ağ adı
-   * @param {string} password - WiFi şifresi
-   * @returns {Promise<boolean>}
-  // ════════════════════════════════════════════════════════════
-  // 7. WIFI SCAN (Phase 3 - WiFiPicker için)
-  // ════════════════════════════════════════════════════════════
+   * WiFi scan - v3.1 HARDENED
+   * - writeWithoutResponse (non-blocking)
+   * - monitor first
+   * - single base64 decode
+   * - robust JSON detection (accepts "[]")
+   * - re-entrancy guard
+   * - proper subscription tracking (this.wifiScanSubscription)
+   * - optional read fallback
+   */
   async scanWifiNetworks() {
     if (!this.device) {
-      throw new Error("Cihaz bağlı değil");
+      throw new Error("Device not connected");
     }
+
+    // ── Re-entrancy guard ──
+    if (this._wifiScanInFlight) {
+      throw new Error("WIFI_SCAN_IN_FLIGHT");
+    }
+    this._wifiScanInFlight = true;
+
+    const WIFI_SCAN_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26ad";
+    const NOTIFY_TIMEOUT_MS = 10000; // 10s for notify
+    const SUBSCRIBE_SETTLE_MS = 250; // monitor settle delay (small)
+    const READ_RETRY_DELAY_MS = 2000;
 
     try {
-      console.log("[BLE] WiFi scan başlatılıyor...");
+      console.log("[BLE] === WiFi scan v3.1 starting ===");
 
-      // WiFi Scan characteristic UUID (ESP32'de tanımlı olmalı)
-      const WIFI_SCAN_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26ad";
-
-      // Characteristic'i bul
-      const characteristics = await this.device.characteristicsForService(
-        BLE_CONFIG.SERVICE_UUID
-      );
-
-      const scanChar = characteristics.find(
-        (c) => c.uuid.toLowerCase() === WIFI_SCAN_UUID.toLowerCase()
-      );
-
-      if (!scanChar) {
-        throw new Error("WiFi Scan characteristic bulunamadı");
+      const isConnected = await this.device.isConnected();
+      if (!isConnected) {
+        throw new Error("BLE connection lost");
       }
 
-      // ESP32'den WiFi listesini oku
-      const value = await scanChar.read();
-      const jsonString = base64.decode(value.value);
-      
-      console.log("[BLE] WiFi scan response:", jsonString);
+      // Reset buffer
+      wifiBuffer.current = "";
 
-      // JSON parse et
-      const networks = JSON.parse(jsonString);
+      return await new Promise((resolve, reject) => {
+        let done = false;
+        let notifyTimeout = null;
 
-      if (!Array.isArray(networks)) {
-        throw new Error("Geçersiz WiFi scan response");
-      }
+        const cleanup = () => {
+          if (notifyTimeout) {
+            clearTimeout(notifyTimeout);
+            notifyTimeout = null;
+          }
+          if (this.wifiScanSubscription) {
+            this.wifiScanSubscription.remove();
+            this.wifiScanSubscription = null;
+          }
+        };
 
-      console.log(`[BLE] ${networks.length} WiFi ağı bulundu`);
-      return networks;
+        const finish = (result, error) => {
+          if (done) return;
+          done = true;
+          cleanup();
+          if (error) reject(error);
+          else resolve(result);
+        };
 
+        const normalizeNetworks = (parsed) => {
+          const networks = Array.isArray(parsed)
+            ? parsed
+            : parsed?.networks || [];
+          return networks.map((net) => ({
+            ssid: net?.ssid || "",
+            rssi: typeof net?.rssi === "number" ? net.rssi : -100,
+            secure:
+              net?.secure !== undefined
+                ? !!net.secure
+                : net?.encryption !== undefined
+                  ? net.encryption !== 0
+                  : true,
+            channel: typeof net?.channel === "number" ? net.channel : 0,
+          }));
+        };
+
+        const tryParseBuffer = () => {
+          const buf = (wifiBuffer.current || "").trim();
+
+          // Must look like JSON to attempt parse
+          const looksJson = buf.startsWith("[") || buf.startsWith("{");
+          if (!looksJson) return null;
+
+          try {
+            const parsed = JSON.parse(buf);
+            return parsed;
+          } catch {
+            return null; // incomplete or invalid
+          }
+        };
+
+        // ── STEP 1: Start monitor FIRST ──
+        console.log("[BLE] Step 1: Starting notify monitor...");
+        this.wifiScanSubscription = this.device.monitorCharacteristicForService(
+          BLE_CONFIG.SERVICE_UUID,
+          WIFI_SCAN_UUID,
+          (error, characteristic) => {
+            if (done) return;
+
+            if (error) {
+              console.error("[BLE] WiFi scan monitor error:", error.message);
+              // Don't finish here; let timeout + read fallback handle it.
+              return;
+            }
+
+            if (!characteristic?.value) return;
+
+            // Decode base64 → utf8 ONCE
+            const decoded = Buffer.from(
+              characteristic.value,
+              "base64"
+            ).toString("utf8");
+
+            // Some stacks may emit non-UTF8 / empty / ACK-like frames; ignore non-JSON
+            // IMPORTANT: don't length-filter; "[]" is valid.
+            const decodedTrim = decoded.trim();
+            const looksJson =
+              decodedTrim.startsWith("[") || decodedTrim.startsWith("{");
+            if (!looksJson) {
+              console.log(
+                "[BLE] Non-JSON notify frame ignored. len:",
+                decodedTrim.length
+              );
+              return;
+            }
+
+            // Accumulate raw decoded (not trimmed) to reduce risk of breaking chunks
+            wifiBuffer.current += decoded;
+
+            const parsed = tryParseBuffer();
+            if (parsed === null) {
+              console.log(
+                "[BLE] JSON not complete yet, buffered:",
+                wifiBuffer.current.length,
+                "chars"
+              );
+              return;
+            }
+
+            // Parsed OK
+            wifiBuffer.current = "";
+            const normalized = normalizeNetworks(parsed);
+
+            console.log(
+              "[BLE] Parsed",
+              normalized.length,
+              "WiFi networks from notify"
+            );
+
+            // Accept empty list too (valid outcome)
+            finish(normalized);
+          }
+        );
+
+        // ── STEP 2: Notify timeout → read fallback ──
+        notifyTimeout = setTimeout(async () => {
+          if (done) return;
+
+          console.log(
+            "[BLE] Notify timeout after",
+            NOTIFY_TIMEOUT_MS,
+            "ms, trying direct read..."
+          );
+
+          try {
+            // Read fallback only works if characteristic has READ property.
+            const ch = await this.device.readCharacteristicForService(
+              BLE_CONFIG.SERVICE_UUID,
+              WIFI_SCAN_UUID
+            );
+
+            if (!ch?.value) {
+              finish(
+                null,
+                new Error("WiFi scan: read empty (no notify received)")
+              );
+              return;
+            }
+
+            const jsonString = Buffer.from(ch.value, "base64")
+              .toString("utf8")
+              .trim();
+            console.log("[BLE] Read fallback length:", jsonString.length);
+            console.log("[BLE] Read preview:", jsonString.substring(0, 120));
+
+            const looksJson =
+              jsonString.startsWith("[") || jsonString.startsWith("{");
+            if (!looksJson) {
+              console.log(
+                "[BLE] Read fallback not JSON, retrying in",
+                READ_RETRY_DELAY_MS,
+                "ms..."
+              );
+              await new Promise((r) => setTimeout(r, READ_RETRY_DELAY_MS));
+
+              const retry = await this.device.readCharacteristicForService(
+                BLE_CONFIG.SERVICE_UUID,
+                WIFI_SCAN_UUID
+              );
+
+              if (retry?.value) {
+                const retryStr = Buffer.from(retry.value, "base64")
+                  .toString("utf8")
+                  .trim();
+                const retryLooksJson =
+                  retryStr.startsWith("[") || retryStr.startsWith("{");
+                if (retryLooksJson) {
+                  const parsed = JSON.parse(retryStr);
+                  const normalized = normalizeNetworks(parsed);
+                  console.log(
+                    "[BLE] Parsed",
+                    normalized.length,
+                    "WiFi networks from retry read"
+                  );
+                  finish(normalized);
+                  return;
+                }
+              }
+
+              finish(
+                null,
+                new Error("WiFi scan: no valid JSON received (notify+read)")
+              );
+              return;
+            }
+
+            const parsed = JSON.parse(jsonString);
+            const normalized = normalizeNetworks(parsed);
+            console.log(
+              "[BLE] Parsed",
+              normalized.length,
+              "WiFi networks from read fallback"
+            );
+            finish(normalized);
+          } catch (e) {
+            // If READ is not supported, this is expected; provide a clearer error.
+            console.error("[BLE] Read fallback failed:", e.message);
+            finish(
+              null,
+              new Error(
+                `WiFi scan: notify timeout and read fallback failed (${e.message}). ` +
+                  `Ensure characteristic has NOTIFY and optionally READ.`
+              )
+            );
+          }
+        }, NOTIFY_TIMEOUT_MS);
+
+        // ── STEP 3: Send SCAN command (writeWithoutResponse) ──
+        setTimeout(async () => {
+          if (done) return;
+          try {
+            console.log(
+              "[BLE] Step 3: Sending SCAN command (without response)..."
+            );
+            const command = Buffer.from("SCAN", "utf8").toString("base64");
+
+            await this.device.writeCharacteristicWithoutResponseForService(
+              BLE_CONFIG.SERVICE_UUID,
+              WIFI_SCAN_UUID,
+              command
+            );
+
+            console.log("[BLE] SCAN command sent, waiting for notify...");
+          } catch (writeError) {
+            console.error("[BLE] SCAN write failed:", writeError.message);
+            // Don't finish here; device may still produce notify, or read fallback may catch it.
+          }
+        }, SUBSCRIBE_SETTLE_MS);
+      });
     } catch (error) {
-      console.error("[BLE] WiFi scan error:", error);
+      console.error("[BLE] WiFi scan error:", error.message);
       throw error;
+    } finally {
+      // release guard
+      this._wifiScanInFlight = false;
     }
   }
+
+  /**
+   * WiFi credentials'ı ESP32'ye gönder (Phase 4 - WiFiPassword için)
+   * Payload: JSON {"ssid":"xxx","password":"yyy"}
    */
   async writeWifiCredentials(ssid, password) {
     if (!this.device) throw new Error("NOT_CONNECTED");
@@ -607,22 +870,17 @@ class BLEService {
 
   /**
    * WiFi bağlantı durumunu dinle (subscribe)
-   * ESP32 şu değerleri notify eder: CONNECTING, OK, ERR_AUTH, ERR_TIMEOUT, ERR_NOT_FOUND
-   * @param {function} onStatus - Her status değişikliğinde çağrılır
-   * @returns {Promise<string>} - Final result: 'OK' | 'ERR_xxx'
    */
   subscribeToWifiStatus(onStatus) {
     if (!this.device) throw new Error("NOT_CONNECTED");
 
-    // config.js'de WIFI_STATUS tanımlı mı kontrol et
     if (!BLE_CONFIG.CHARACTERISTICS.WIFI_STATUS) {
       throw new Error("WIFI_STATUS_UUID_NOT_DEFINED");
     }
 
     return new Promise((resolve, reject) => {
-      let resolved = false; // Tek sefer resolve garantisi
+      let resolved = false;
 
-      // Timeout (config'den al, yoksa 30 saniye)
       const timeoutMs = BLE_CONFIG.TIMEOUTS?.WIFI_CONNECT || 30000;
       const timeout = setTimeout(() => {
         if (!resolved) {
@@ -634,16 +892,14 @@ class BLEService {
 
       console.log("[BLE] Subscribing to WiFi status...");
 
-      // Monitor characteristic
       this.wifiStatusSubscription = this.device.monitorCharacteristicForService(
         BLE_CONFIG.SERVICE_UUID,
         BLE_CONFIG.CHARACTERISTICS.WIFI_STATUS,
         (error, characteristic) => {
-          if (resolved) return; // Zaten resolve olduysa ignore
+          if (resolved) return;
 
           if (error) {
             console.error("[BLE] WiFi status monitor error:", error.message);
-            // Hata olsa bile devam et, timeout'a düşsün
             return;
           }
 
@@ -653,40 +909,34 @@ class BLEService {
               .trim();
             console.log("[BLE] WiFi status received:", status);
 
-            // Callback çağır
             onStatus?.(status);
 
-            // Final states - resolve once
             if (status === "OK") {
               resolved = true;
               clearTimeout(timeout);
               this.cleanupWifiSubscription();
-              console.log("[BLE] OK alındı, disconnect ediliyor...");
+              console.log("[BLE] OK received, disconnecting...");
               this.disconnect()
                 .then(() => {
-                  console.log("[BLE] Disconnect tamamlandı");
+                  console.log("[BLE] Disconnect complete");
                   resolve("OK");
                 })
                 .catch((e) => {
-                  console.log("[BLE] Disconnect hatası (normal):", e.message);
+                  console.log("[BLE] Disconnect error (normal):", e.message);
                   resolve("OK");
                 });
             } else if (status.startsWith("ERR_")) {
               resolved = true;
               clearTimeout(timeout);
               this.cleanupWifiSubscription();
-              resolve(status); // ERR_AUTH, ERR_TIMEOUT, ERR_NOT_FOUND
+              resolve(status);
             }
-            // CONNECTING gibi intermediate state'ler için devam et
           }
         }
       );
     });
   }
 
-  /**
-   * WiFi subscription temizle
-   */
   cleanupWifiSubscription() {
     if (this.wifiStatusSubscription) {
       this.wifiStatusSubscription.remove();
@@ -696,41 +946,26 @@ class BLEService {
   }
 
   /**
-   * Tam WiFi provisioning akışı (convenience method)
-   * 1. Credentials gönder
-   * 2. Sonucu bekle
-   * 3. Sonucu değerlendir
-   *
-   * @param {string} ssid
-   * @param {string} password
-   * @param {function} onProgress - Progress callback: (phase, message) => void
-   *   phase: 'sending' | 'connecting' | 'status' | 'success' | 'error'
-   * @returns {Promise<{success: boolean, error?: string, message?: string}>}
+   * Tam WiFi provisioning akışı
    */
   async provisionWifi(ssid, password, onProgress) {
     try {
-      // 1. Credentials gönder
       onProgress?.("sending", "WiFi bilgileri gönderiliyor...");
       await this.writeWifiCredentials(ssid, password);
 
-      // Kısa bekleme - ESP32'nin işlemesi için
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // 2. Sonucu bekle
       onProgress?.("connecting", "ESP32 WiFi'ye bağlanıyor...");
       const result = await this.subscribeToWifiStatus((status) => {
-        // Intermediate status updates
         if (status === "CONNECTING") {
           onProgress?.("status", "Bağlantı kuruluyor...");
         }
       });
 
-      // 3. Sonucu değerlendir
       if (result === "OK") {
         onProgress?.("success", "WiFi bağlantısı başarılı!");
         return { success: true };
       } else {
-        // Hata mesajlarını çevir
         const errorMessages = {
           ERR_AUTH: "WiFi şifresi yanlış",
           ERR_TIMEOUT: "WiFi ağına bağlanılamadı (zaman aşımı)",
@@ -744,7 +979,6 @@ class BLEService {
     } catch (error) {
       console.error("[BLE] provisionWifi error:", error.message);
 
-      // Timeout veya exception
       let message = error.message;
       if (error.message === "WIFI_TIMEOUT") {
         message = "WiFi bağlantısı zaman aşımına uğradı";
@@ -752,8 +986,6 @@ class BLEService {
         message = "Geçersiz WiFi ağ adı";
       } else if (error.message === "INVALID_PASSWORD") {
         message = "Şifre en az 8 karakter olmalı";
-      } else if (error.message === "WIFI_CREDENTIALS_UUID_NOT_DEFINED") {
-        message = "WiFi characteristic tanımlı değil (config.js güncelleyin)";
       }
 
       onProgress?.("error", message);

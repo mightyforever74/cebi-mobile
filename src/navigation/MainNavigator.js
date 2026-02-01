@@ -1,3 +1,6 @@
+// ============================================================================
+// DRAWER STYLES
+// ============================================================================
 // src/navigation/MainNavigator.js
 // TulipFleet - Professional Navigation with Stable Route Keys
 // Updated: 06 Ocak 2026 - Argon Pro compatible, stable route names
@@ -53,6 +56,9 @@ import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
 import TaskOffers from "../screens/driver/TaskOffers";
+import VehiclePickerScreen from "../screens/driver/VehiclePickerScreen"; // 🆕 EKLE
+import WiFiPasswordScreen from "../screens/driver/WiFiPasswordScreen";
+import WiFiPickerScreen from "../screens/driver/WiFiPickerScreen"; // 🆕 EKLE
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -702,13 +708,36 @@ const DriverNavigator = () => {
           ),
         }}
       />
-      {/* Hidden screen - Drawer'da görünmez */}
+      {/* 🔒 Setup Flow Screens (Hidden in drawer) */}
       <Drawer.Screen
         name="DeviceSetup"
         component={DeviceSetupScreen}
         options={{
-          ...getScreenOptions("Cihaz Kurulumu", primaryColor)(),
-          drawerLabel: () => null,
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
+      <Drawer.Screen
+        name="VehiclePicker"
+        component={VehiclePickerScreen}
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
+      <Drawer.Screen
+        name="WiFiPicker"
+        component={WiFiPickerScreen}
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
+      <Drawer.Screen
+        name="WiFiPassword"
+        component={WiFiPasswordScreen}
+        options={{
+          headerShown: false,
           drawerItemStyle: { display: "none" },
         }}
       />

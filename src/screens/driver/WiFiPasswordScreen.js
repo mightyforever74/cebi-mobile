@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { driverProvisionAPI } from "../../services/api";
+import { driverAPI, driverProvisionAPI } from "../../services/api";
 import bleService from "../../services/bleService";
 
 const STORAGE_KEY_WIFI_HISTORY = "@tulipfleet_wifi_history";
@@ -23,7 +23,8 @@ const WiFiPasswordScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { ssid, serial, vehicle, assignment_id, manual, rssi } = route.params;
+  const { ssid, serial, vehicle, assignment_id, manual, rssi, deviceId } =
+    route.params;
 
   const [wifiSsid, setWifiSsid] = useState(ssid || "");
   const [password, setPassword] = useState("");
@@ -44,11 +45,43 @@ const WiFiPasswordScreen = () => {
       return;
     }
 
+    // 🆕 BLE kontrolü EKLE
+    if (!deviceId) {
+      Alert.alert("Hata", "ESP32 bağlantısı kesildi. Lütfen baştan başlayın.", [
+        {
+          text: "Tamam",
+          onPress: () => navigation.navigate("DriverDashboard"),
+        },
+      ]);
+      return;
+    }
+
     try {
       setConnecting(true);
-      setStatus("WiFi bilgileri gönderiliyor...");
 
-      // 1. BLE ile WiFi credentials gönder
+      // 1️⃣ Serial number'ı ESP32'ye gönder (WiFi'den ÖNCE - KRİTİK!)
+      setStatus("Seri numara gönderiliyor...");
+      console.log("[WiFiPassword] Serial gönderiliyor:", serial);
+      try {
+        await bleService.writeSerial(serial);
+        console.log("[WiFiPassword] ✅ Serial başarıyla gönderildi");
+      } catch (serialError) {
+        console.error(
+          "[WiFiPassword] ❌ Serial gönderilemedi:",
+          serialError.message
+        );
+        Alert.alert(
+          "Hata",
+          "Seri numara ESP32'ye gönderilemedi. BLE bağlantısını kontrol edin.",
+          [{ text: "Tamam" }]
+        );
+        setConnecting(false);
+        setStatus("");
+        return;
+      }
+
+      // 2️⃣ BLE ile WiFi credentials gönder (serial zaten ESP32'de)
+      setStatus("WiFi bilgileri gönderiliyor...");
       const result = await bleService.provisionWifi(
         wifiSsid.trim(),
         password,
@@ -64,36 +97,122 @@ const WiFiPasswordScreen = () => {
         return;
       }
 
-      // 2. Şifreyi kaydet (opsiyonel)
+      // 3️⃣ Şifreyi kaydet (opsiyonel)
       if (savePassword) {
         await saveWifiToHistory(wifiSsid.trim(), password);
       }
 
-      // 3. Setup completion'ı bekle
+      // ✅ 4️⃣ ESP32'nin WiFi'ye bağlanmasını BEKLE
       setStatus("ESP32 WiFi'ye bağlanıyor...");
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // 4. Backend'e complete-setup gönder
-      setStatus("Kurulum tamamlanıyor...");
-      await completeSetup();
+      // ✅ 5️⃣ ESP32'nin backend'e activation yapmasını BEKLE
+      setStatus("ESP32 backend'e kaydoluyor...");
+      console.log(
+        "[WiFiPassword] ESP32'nin backend activation yapması bekleniyor..."
+      );
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // +5 saniye
+
+      // ✅ 6️⃣ Backend'den setup_required kontrol et (ESP32 zaten yaptı mı?)
+      setStatus("Durum kontrol ediliyor...");
+      console.log("[WiFiPassword] Backend durumu kontrol ediliyor...");
+
+      try {
+        const statusCheck = await driverAPI.getVehicle();
+        console.log(
+          "[WiFiPassword] Backend response:",
+          statusCheck.vehicle?.esp32Status
+        );
+
+        if (
+          statusCheck.vehicle?.esp32Status &&
+          !statusCheck.vehicle.esp32Status.setup_required
+        ) {
+          // ✅ ESP32 başarıyla backend'e kaydoldu!
+          console.log("[WiFiPassword] ✅ ESP32 backend activation başarılı!");
+          showSuccess();
+          return;
+        }
+
+        // ⚠️ Hala setup_required: true ise bir kez daha dene
+        console.log(
+          "[WiFiPassword] Setup hala gerekli, 3 saniye daha bekleniyor..."
+        );
+        setStatus("ESP32 hala çalışıyor, bekleniyor...");
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        const retryCheck = await driverAPI.getVehicle();
+        console.log(
+          "[WiFiPassword] Retry response:",
+          retryCheck.vehicle?.esp32Status
+        );
+
+        if (
+          retryCheck.vehicle?.esp32Status &&
+          !retryCheck.vehicle.esp32Status.setup_required
+        ) {
+          console.log(
+            "[WiFiPassword] ✅ ESP32 backend activation başarılı (2. kontrol)!"
+          );
+          showSuccess();
+          return;
+        }
+
+        // ❌ ESP32 backend'e ulaşamadı, mobil app fallback
+        console.log(
+          "[WiFiPassword] ⚠️ ESP32 backend'e ulaşamadı, mobil app fallback devreye giriyor"
+        );
+        setStatus("Alternatif yöntemle tamamlanıyor...");
+        await completeSetup();
+      } catch (checkError) {
+        console.error("[WiFiPassword] Backend kontrol hatası:", checkError);
+        // Backend kontrolünde hata, fallback dene
+        setStatus("Alternatif yöntemle tamamlanıyor...");
+        await completeSetup();
+      }
     } catch (error) {
       console.error("[WiFiPassword] Error:", error);
 
-      // BLE disconnect hatası mı?
+      // BLE disconnect hatası mı? (ESP32 restart etti)
       const errorStr = (error.message || "").toLowerCase();
       if (
         errorStr.includes("disconnect") ||
         errorStr.includes("timeout") ||
         errorStr.includes("not connected")
       ) {
-        // ESP32 restart etti, normal
+        // ESP32 restart etti, backend activation başarılı olabilir
+        console.log(
+          "[WiFiPassword] BLE disconnect algılandı (ESP32 restart), durum kontrol ediliyor..."
+        );
         setStatus("ESP32 yeniden başlatılıyor...");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
+        try {
+          const statusCheck = await driverAPI.getVehicle();
+          if (
+            statusCheck.vehicle?.esp32Status &&
+            !statusCheck.vehicle.esp32Status.setup_required
+          ) {
+            console.log(
+              "[WiFiPassword] ✅ ESP32 restart sonrası backend activation başarılı!"
+            );
+            showSuccess();
+            return;
+          }
+        } catch (e) {
+          console.error(
+            "[WiFiPassword] Restart sonrası backend kontrol hatası:",
+            e
+          );
+        }
+
+        // Fallback
         try {
           await completeSetup();
         } catch (completeError) {
-          // Backend zaten activate etti, success sayalım
+          console.log(
+            "[WiFiPassword] Fallback da başarısız, ama success gösteriliyor"
+          );
           showSuccess();
         }
       } else {
@@ -130,7 +249,15 @@ const WiFiPasswordScreen = () => {
       [
         {
           text: "Tamam",
-          onPress: () => {
+          onPress: async () => {
+            // ✅ BLE disconnect - Provision tamamlandı
+            try {
+              console.log("[WiFiPassword] Provision başarılı, BLE kapatılıyor");
+              await bleService.disconnect();
+            } catch (e) {
+              console.error("[WiFiPassword] BLE disconnect error:", e);
+            }
+
             // Ana ekrana dön
             navigation.reset({
               index: 0,

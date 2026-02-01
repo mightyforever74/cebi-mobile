@@ -1,6 +1,10 @@
 // src/screens/driver/WiFiPickerScreen.js
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,15 +21,66 @@ const WiFiPickerScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { serial, vehicle, assignment_id } = route.params;
+  const { serial, vehicle, assignment_id, deviceId } = route.params;
 
   const [scanning, setScanning] = useState(false);
   const [wifiList, setWifiList] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    scanWifiNetworks();
-  }, []);
+  const startedRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Zaten başlatıldıysa skip
+      if (startedRef.current) {
+        console.log("[WiFiPicker] Already started, skipping");
+        return;
+      }
+
+      // BLE kontrolü
+      if (!deviceId) {
+        Alert.alert(
+          "Hata",
+          "ESP32 bağlantısı kesildi. Lütfen tekrar deneyin.",
+          [{ text: "Tamam", onPress: () => navigation.goBack() }]
+        );
+        return;
+      }
+
+      // İlk kez başlat
+      startedRef.current = true;
+      console.log("[WiFiPicker] First mount - starting scan");
+
+      const checkBLEAndScan = async () => {
+        try {
+          const isConnected = await bleService.checkConnection();
+          console.log("[WiFiPicker] BLE isConnected:", isConnected);
+
+          if (!isConnected) {
+            Alert.alert(
+              "Bağlantı Hatası",
+              "ESP32 ile bağlantı kopmuş. Kurulumu yeniden başlatın.",
+              [{ text: "Tamam", onPress: () => navigation.goBack() }]
+            );
+            return;
+          }
+
+          // BLE bağlı, WiFi scan başlat
+          await scanWifiNetworks();
+        } catch (err) {
+          console.error("[WiFiPicker] BLE check error:", err);
+          setError("BLE bağlantı hatası: " + err.message);
+        }
+      };
+
+      checkBLEAndScan();
+
+      // Cleanup
+      return () => {
+        console.log("[WiFiPicker] Cleanup");
+      };
+    }, [deviceId])
+  );
 
   const scanWifiNetworks = async () => {
     try {
@@ -33,23 +88,49 @@ const WiFiPickerScreen = () => {
       setError(null);
 
       console.log("[WiFiPicker] Starting WiFi scan...");
+      console.log("[WiFiPicker] deviceId:", deviceId);
+
+      // ✅ EKLE: BLE durumunu logla
+      const bleState = bleService.getState();
+      console.log("[WiFiPicker] BLE State:", JSON.stringify(bleState));
+
       const networks = await bleService.scanWifiNetworks();
 
+      console.log("[WiFiPicker] Raw networks:", JSON.stringify(networks));
+
       if (networks && networks.length > 0) {
-        // Sinyal gücüne göre sırala
+        // Sinyal gücüne göre sırala ve boş SSID'leri filtrele
         const sorted = networks
           .filter((n) => n.ssid && n.ssid.trim().length > 0)
           .sort((a, b) => b.rssi - a.rssi);
 
         setWifiList(sorted);
-        console.log(`[WiFiPicker] Found ${sorted.length} networks`);
+        console.log(`[WiFiPicker] Found ${sorted.length} valid networks`);
       } else {
         setWifiList([]);
-        setError("WiFi ağı bulunamadı");
+        setError("WiFi ağı bulunamadı. ESP32'nin açık olduğundan emin olun.");
       }
     } catch (err) {
       console.error("[WiFiPicker] Scan error:", err);
-      setError("WiFi taraması başarısız: " + err.message);
+
+      // ✅ EKLE: Daha detaylı hata mesajları
+      let errorMessage = "WiFi taraması başarısız";
+
+      if (
+        err.message.includes("bağlı değil") ||
+        err.message.includes("kopmuş")
+      ) {
+        errorMessage = "ESP32 bağlantısı kopmuş. Kurulumu yeniden başlatın.";
+      } else if (err.message.includes("characteristic")) {
+        errorMessage =
+          "ESP32 firmware'i WiFi scan desteklemiyor. Firmware güncelleyin.";
+      } else if (err.message.includes("JSON")) {
+        errorMessage = "ESP32'den geçersiz veri geldi. Yeniden deneyin.";
+      } else {
+        errorMessage = "WiFi taraması başarısız: " + err.message;
+      }
+
+      setError(errorMessage);
       setWifiList([]);
     } finally {
       setScanning(false);
@@ -67,24 +148,25 @@ const WiFiPickerScreen = () => {
       return;
     }
 
-    // Şifre ekranına geç
-    navigation.navigate("WiFiPassword", {
-      ssid: network.ssid,
+    // ✅ DÜZELTİLDİ: Seçilen WiFi'nin SSID'sini geçir
+    navigation.navigate("WiFiPasswordMain", {
+      ssid: network.ssid, // ✅ Seçilen ağın SSID'si (boş değil!)
       serial,
       vehicle,
       assignment_id,
-      rssi: network.rssi,
-      encryption: network.enc || network.encryption,
+      manual: false, // ✅ Liste seçimi, manuel değil
+      deviceId, // ✅ BLE device ID
     });
   };
 
   const handleManualEntry = () => {
-    navigation.navigate("WiFiPassword", {
+    navigation.navigate("WiFiPasswordMain", {
       ssid: "",
       serial,
       vehicle,
       assignment_id,
       manual: true,
+      deviceId, // ✅ EKLE: deviceId'yi de geçir
     });
   };
 
