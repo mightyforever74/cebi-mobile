@@ -418,10 +418,7 @@ const DriverSettings = ({ navigation }) => {
   };
 
   const handleHelpCenter = () => {
-    const url = `${BASE_URL}/${currentLang}/help`;
-    Linking.openURL(url).catch((err) =>
-      console.error("Error opening help center:", err)
-    );
+    navigation.navigate("HelpCenterScreen");
   };
 
   const handleSupport = () => {

@@ -7,6 +7,10 @@
     "edit": "Edit",
     "close": "Close",
     "confirm": "Confirm",
+    "continue": "Continue",
+    "error": "Error",
+    "ok": "OK",
+    "success": "Success",
     "led": {
       "title": "LED Indicators",
       "deviceSubtitle": "LED states on your device",
@@ -33,6 +37,13 @@
     },
     "superAdmin": "Super Admin",
     "companyAdmin": "Manager",
+    "driver": "Driver"
+  },
+  "auth": {
+    "logoutConfirmTitle": "Log Out",
+    "logoutConfirmMessage": "Are you sure you want to log out?"
+  },
+  "roles": {
     "driver": "Driver"
   },
   "navigation": {
@@ -176,6 +187,36 @@
     }
   },
   "settings": {
+    "aboutDescription": "TulipFleet is a professional application designed for modern fleet management.",
+    "adminRole": "ADMINISTRATOR",
+    "alertNotifications": "Alert Notifications",
+    "allFieldsRequired": "All fields are required",
+    "change": "Change",
+    "changePasswordSubtitle": "Security settings",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your new password",
+    "criticalAlerts": "Critical Alerts",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "editProfile": "Edit Profile",
+    "editProfileSubtitle": "Update your personal information",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Enter your first name",
+    "firstNameRequired": "First name is required",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Enter your last name",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter a new password",
+    "passwordChangeFailed": "Failed to change password",
+    "passwordChanged": "Password changed successfully",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "phone": "Phone",
+    "profileUpdateFailed": "Failed to update profile",
+    "profileUpdated": "Profile updated successfully",
+    "receiveAlerts": "Receive all notifications",
+    "taskUpdates": "Task Updates",
     "title": "Settings",
     "language": "Language",
     "selectLanguage": "Select Language",
@@ -190,7 +231,8 @@
       "notifications": "NOTIFICATIONS",
       "location": "LOCATION",
       "app": "APPLICATION",
-      "support": "SUPPORT"
+      "support": "SUPPORT",
+      "account": "ACCOUNT"
     },
     "pushNotifications": "Push Notifications",
     "allNotifications": "All notifications",
@@ -262,6 +304,18 @@
     "permissionRequired": "Bluetooth permission required"
   },
   "dashboard": {
+    "safetyScore": "Safety Score",
+    "safetyExcellent": "Excellent driving",
+    "safetyGood": "Good driving",
+    "safetyAverage": "Average",
+    "safetyBelowAvg": "Needs improvement",
+    "safetyPoor": "Attention required",
+    "totalKm": "Total KM",
+    "quickAccess": "Quick Access",
+    "traffic": "Traffic",
+    "weather": "Weather",
+    "emergency": "Emergency",
+    "helpCenter": "Help",
     "hello": "Hello,",
     "checkingDevice": "Checking device status...",
     "loadError": "Error loading data",
@@ -930,18 +984,45 @@
   },
   "help": {
     "title": "Help Center",
-    "heroTitle": "How can we help you?",
-    "heroSubtitle": "FAQ and user manual",
-    "quickHelp": "QUICK HELP",
-    "troubleshooting": "Troubleshooting",
-    "ledIndicators": "LED Indicators",
-    "contactSupport": "Contact Support",
-    "userManual": "USER MANUAL",
-    "version": "Version",
-    "view": "View",
-    "hide": "Hide",
-    "loadingPdf": "Loading PDF...",
-    "needMoreHelp": "Need more help?"
+    "searchPlaceholder": "Search questions...",
+    "categories": {
+      "account": "Account Settings",
+      "vehicles": "Vehicles",
+      "tasks": "Tasks",
+      "technical": "Technical Support"
+    },
+    "faq": {
+      "account_q1": "How can I change my password?",
+      "account_a1": "Go to Settings → Change Password, enter your current password and set a new one.",
+      "account_q2": "How do I update my profile information?",
+      "account_a2": "Go to Settings → Edit Profile to update your name, surname and phone information.",
+      "account_q3": "How do I change notification settings?",
+      "account_a3": "Go to Settings → Notifications to manage push notifications, task notifications, sound and vibration settings.",
+      "vehicles_q1": "How can I see my vehicle's location?",
+      "vehicles_a1": "Tap the Live Map button on the home screen to track all your vehicles in real-time.",
+      "vehicles_q2": "How do I set up the vehicle device (ESP32)?",
+      "vehicles_a2": "Go to Device Setup, scan the QR code or enter the serial number to connect the device to a WiFi network.",
+      "vehicles_q3": "What do vehicle statuses mean?",
+      "vehicles_a3": "In Use: Vehicle is on an active task. Available: Vehicle is idle. Maintenance: Vehicle is in service or repair.",
+      "tasks_q1": "How do I accept a task assigned to me?",
+      "tasks_a1": "Go to My Tasks, view the new task and press Accept. Use the Start button to begin the task.",
+      "tasks_q2": "What should I do when I complete a task?",
+      "tasks_a2": "Press the Complete button on the task detail screen. Add required notes and photos, then confirm.",
+      "tasks_q3": "Where can I see my task history?",
+      "tasks_a3": "Go to My Tasks → Completed tab to view your past tasks with dates and statuses.",
+      "technical_q1": "GPS signal not found, what should I do?",
+      "technical_a1": "Point the GPS antenna to open sky. Initial signal acquisition may take 2-5 minutes. If parked indoors, move outside.",
+      "technical_q2": "I'm not receiving notifications, how can I fix this?",
+      "technical_a2": "Check if notification permissions are enabled in Settings → Notifications. Also check phone settings to make sure TulipFleet notifications are not blocked.",
+      "technical_q3": "The app is freezing or crashing, what should I do?",
+      "technical_a3": "First try closing and reopening the app. If the problem persists, use Settings → Clear Cache option or reinstall the app."
+    },
+    "contact": {
+      "title": "Still need help?",
+      "subtitle": "If your question is not listed here, contact our support team",
+      "button": "Contact Support Team"
+    },
+    "footer": "© 2025 TulipFleet - All rights reserved"
   },
   "troubleshooting": {
     "title": "Troubleshooting",
@@ -1074,6 +1155,68 @@
       "download": "Download",
       "send": "Send",
       "comingSoon": "This feature will be added as app usage accumulates data."
+    }
+  },
+  "admin": {
+    "welcome": "Welcome,",
+    "commandCenter": "Command Center",
+    "vehicle": "Vehicle",
+    "driver": "Driver",
+    "onlineVehicle": "Online Vehicle",
+    "liveMap": "Live Map",
+    "trackVehicles": "Track vehicles in real-time",
+    "fleetSummary": "Fleet Summary",
+    "totalVehicles": "Total Vehicles",
+    "totalDrivers": "Total Drivers",
+    "activeTasks": "Active Tasks",
+    "completedToday": "Completed Today",
+    "inUse": "in use",
+    "onDuty": "on duty",
+    "pending": "pending",
+    "task": "task",
+    "unresolvedAlerts": "Unresolved Alerts",
+    "criticalAlerts": "Critical Alerts",
+    "vehicles": "Vehicles",
+    "noVehicles": "No vehicles found",
+    "seeAll": "See All",
+    "recentActivities": "Recent Activities",
+    "noActivities": "No activities yet",
+    "dataLoadError": "Error loading data",
+    "vehicleStatus": {
+      "inUse": "In Use",
+      "available": "Available",
+      "maintenance": "Maintenance"
+    },
+    "alerts": {
+      "hardBrake": "Hard Brake",
+      "hardAccel": "Hard Acceleration",
+      "hardTurn": "Hard Turn",
+      "sharpTurn": "Sharp Turn",
+      "impact": "Impact/Crash",
+      "overspeed": "Overspeed",
+      "geofenceExit": "Geofence Exit",
+      "geofenceEnter": "Geofence Enter",
+      "lowFuel": "Low Fuel",
+      "idleTime": "Long Idle"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "taskStatus": {
+      "pending": "Pending",
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minAgo": "min ago",
+      "hourAgo": "hours ago",
+      "dayAgo": "days ago"
     }
   }
 }

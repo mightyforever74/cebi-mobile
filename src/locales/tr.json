@@ -19,7 +19,8 @@
     "next": "İleri",
     "retry": "Tekrar Dene",
     "all": "Tümü",
-    "none": "Hiçbiri"
+    "none": "Hiçbiri",
+    "continue": "Devam"
   },
   "profile": {
     "title": "Profil",
@@ -61,7 +62,9 @@
     "password": "Şifre",
     "forgotPassword": "Şifremi Unuttum",
     "loginError": "Giriş başarısız",
-    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?",
+    "logoutConfirmTitle": "Çıkış",
+    "logoutConfirmMessage": "Çıkış yapmak istediğinize emin misiniz?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -223,7 +226,8 @@
       "notifications": "BİLDİRİMLER",
       "location": "KONUM",
       "app": "UYGULAMA",
-      "support": "DESTEK"
+      "support": "DESTEK",
+      "account": "HESAP"
     },
     "pushNotifications": "Push Bildirimleri",
     "allNotifications": "Tüm bildirimler",
@@ -250,7 +254,7 @@
     "logout": "Çıkış Yap",
     "logoutSubtitle": "Hesabından çıkış yap",
     "logoutConfirmTitle": "Çıkış Yap",
-    "logoutConfirmMessage": "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
+    "logoutConfirmMessage": "Hesabından çıkış yapmak istediğinize emin misiniz?",
     "cancel": "İptal",
     "darkModeEnabled": "Karanlık mod etkinleştirildi. Tam destek yakında eklenecek!",
     "darkModeDisabled": "Karanlık mod kapatıldı.",
@@ -272,7 +276,38 @@
     "notificationPermissionDenied": "Bildirim izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
     "locationPermissionDenied": "Konum izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
     "locationGranted": "İzin verildi ✓",
-    "openSettings": "Ayarları Aç"
+    "openSettings": "Ayarları Aç",
+
+    "aboutDescription": "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır.",
+    "adminRole": "YÖNETİCİ",
+    "alertNotifications": "Uyarı Bildirimleri",
+    "allFieldsRequired": "Tüm alanlar zorunludur",
+    "change": "Değiştir",
+    "changePasswordSubtitle": "Güvenlik ayarları",
+    "confirmPassword": "Yeni Şifre (Tekrar)",
+    "confirmPasswordPlaceholder": "Yeni şifreyi tekrar girin",
+    "criticalAlerts": "Kritik uyarılar",
+    "currentPassword": "Mevcut Şifre",
+    "currentPasswordPlaceholder": "Mevcut şifrenizi girin",
+    "editProfile": "Profili Düzenle",
+    "editProfileSubtitle": "Kişisel bilgilerinizi güncelleyin",
+    "firstName": "Ad",
+    "firstNamePlaceholder": "Adınız",
+    "firstNameRequired": "Ad alanı zorunludur",
+    "lastName": "Soyad",
+    "lastNamePlaceholder": "Soyadınız",
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?",
+    "newPassword": "Yeni Şifre",
+    "newPasswordPlaceholder": "Yeni şifrenizi girin",
+    "passwordChangeFailed": "Şifre değiştirme başarısız",
+    "passwordChanged": "Şifre başarıyla değiştirildi",
+    "passwordTooShort": "Şifre en az 6 karakter olmalıdır",
+    "passwordsDoNotMatch": "Şifreler eşleşmiyor",
+    "phone": "Telefon",
+    "profileUpdateFailed": "Profil güncelleme başarısız",
+    "profileUpdated": "Profil başarıyla güncellendi",
+    "receiveAlerts": "Tüm bildirimleri al",
+    "taskUpdates": "Görev güncellemeleri"
   },
   "wifi": {
     "ssid": "WiFi Ağı",
@@ -295,6 +330,18 @@
     "permissionRequired": "Bluetooth izni gerekli"
   },
   "dashboard": {
+    "safetyScore": "Güvenlik Skoru",
+    "safetyExcellent": "Mükemmel sürüş",
+    "safetyGood": "İyi sürüş",
+    "safetyAverage": "Ortalama",
+    "safetyBelowAvg": "Geliştirilebilir",
+    "safetyPoor": "Dikkat gerekli",
+    "totalKm": "Toplam KM",
+    "quickAccess": "Hızlı Erişim",
+    "traffic": "Trafik Durumu",
+    "weather": "Hava Durumu",
+    "emergency": "Acil Çağrı",
+    "helpCenter": "Yardım",
     "hello": "Merhaba,",
     "checkingDevice": "Cihaz durumu kontrol ediliyor...",
     "addDevice": "Yeni Cihaz Ekle",
@@ -958,18 +1005,45 @@
   },
   "help": {
     "title": "Yardım Merkezi",
-    "heroTitle": "Nasıl yardımcı olabiliriz?",
-    "heroSubtitle": "Sık sorulan sorular ve kullanım kılavuzu",
-    "quickHelp": "HIZLI YARDIM",
-    "troubleshooting": "Sorun Giderme",
-    "ledIndicators": "LED Göstergeleri",
-    "contactSupport": "Destek İletişim",
-    "userManual": "KULLANIM KILAVUZU",
-    "version": "Versiyon",
-    "view": "Görüntüle",
-    "hide": "Gizle",
-    "loadingPdf": "PDF yükleniyor...",
-    "needMoreHelp": "Daha fazla yardıma mı ihtiyacınız var?"
+    "searchPlaceholder": "Soru ara...",
+    "categories": {
+      "account": "Hesap Ayarları",
+      "vehicles": "Araçlar",
+      "tasks": "Görevler",
+      "technical": "Teknik Destek"
+    },
+    "faq": {
+      "account_q1": "Şifremi nasıl değiştirebilirim?",
+      "account_a1": "Ayarlar → Şifre Değiştir bölümünden mevcut şifrenizi girerek yeni şifre belirleyebilirsiniz.",
+      "account_q2": "Profil bilgilerimi nasıl güncellerim?",
+      "account_a2": "Ayarlar → Profili Düzenle bölümünden ad, soyad ve telefon bilgilerinizi güncelleyebilirsiniz.",
+      "account_q3": "Bildirim ayarlarını nasıl değiştiririm?",
+      "account_a3": "Ayarlar → Bildirimler bölümünden push bildirimleri, görev bildirimleri, ses ve titreşim ayarlarını yönetebilirsiniz.",
+      "vehicles_q1": "Aracımın konumunu nasıl görebilirim?",
+      "vehicles_a1": "Ana sayfadaki Canlı Harita butonuna tıklayarak tüm araçlarınızı gerçek zamanlı olarak takip edebilirsiniz.",
+      "vehicles_q2": "Araç cihazı (ESP32) nasıl kurulur?",
+      "vehicles_a2": "Cihaz Kurulumu bölümünden QR kodu okutarak veya seri numarayı girerek cihazı WiFi ağına bağlayabilirsiniz.",
+      "vehicles_q3": "Araç durumu ne anlama geliyor?",
+      "vehicles_a3": "Kullanımda: Araç aktif görevde. Müsait: Araç boşta. Bakımda: Araç serviste veya onarımda.",
+      "tasks_q1": "Bana atanan görevi nasıl kabul ederim?",
+      "tasks_a1": "Görevlerim bölümünden yeni görevi görüntüleyip Kabul Et butonuna basın. Göreve başlamak için Başlat butonunu kullanın.",
+      "tasks_q2": "Görevi tamamladığımda ne yapmalıyım?",
+      "tasks_a2": "Görev detay ekranından Tamamla butonuna basın. Gerekli notları ve fotoğrafları ekledikten sonra onaylayın.",
+      "tasks_q3": "Görev geçmişimi nereden görebilirim?",
+      "tasks_a3": "Görevlerim → Tamamlanan sekmesinden geçmiş görevlerinizi tarih ve durumlarıyla birlikte görebilirsiniz.",
+      "technical_q1": "GPS sinyali alınamıyor, ne yapmalıyım?",
+      "technical_a1": "GPS antenini açık alana yönlendirin. İlk sinyal alımı 2-5 dakika sürebilir. Aracı kapalı alanda park etmişseniz dışarı çıkın.",
+      "technical_q2": "Bildirim almıyorum, nasıl düzeltirim?",
+      "technical_a2": "Ayarlar → Bildirimler'den izinlerin açık olduğunu kontrol edin. Telefon ayarlarından da TulipFleet bildirimlerinin engellenmediğinden emin olun.",
+      "technical_q3": "Uygulama donuyor veya çöküyor, ne yapmalıyım?",
+      "technical_a3": "Önce uygulamayı kapatıp yeniden açmayı deneyin. Sorun devam ederse Ayarlar → Önbelleği Temizle seçeneğini kullanın veya uygulamayı yeniden yükleyin."
+    },
+    "contact": {
+      "title": "Hâlâ yardıma mı ihtiyacınız var?",
+      "subtitle": "Sorunuz burada yoksa destek ekibimize ulaşın",
+      "button": "Destek Ekibiyle İletişime Geç"
+    },
+    "footer": "© 2025 TulipFleet - Tüm hakları saklıdır"
   },
   "troubleshooting": {
     "title": "Sorun Giderme",
@@ -1102,6 +1176,68 @@
       "download": "İndir",
       "send": "Gönder",
       "comingSoon": "Bu özellik uygulama kullanımı data biriktikçe eklenecektir."
+    }
+  },
+  "admin": {
+    "welcome": "Hoş geldiniz,",
+    "commandCenter": "Komuta Merkezi",
+    "vehicle": "Araç",
+    "driver": "Sürücü",
+    "onlineVehicle": "Online Araç",
+    "liveMap": "Canlı Harita",
+    "trackVehicles": "Araçları gerçek zamanlı takip edin",
+    "fleetSummary": "Filo Özeti",
+    "totalVehicles": "Toplam Araç",
+    "totalDrivers": "Toplam Sürücü",
+    "activeTasks": "Aktif Görev",
+    "completedToday": "Bugün Tamamlanan",
+    "inUse": "kullanımda",
+    "onDuty": "görevde",
+    "pending": "beklemede",
+    "task": "görev",
+    "unresolvedAlerts": "Çözülmemiş Uyarı",
+    "criticalAlerts": "Kritik Uyarı",
+    "vehicles": "Araçlar",
+    "noVehicles": "Araç bulunamadı",
+    "seeAll": "Tümünü Gör",
+    "recentActivities": "Son Aktiviteler",
+    "noActivities": "Henüz aktivite yok",
+    "dataLoadError": "Veri yüklenirken hata oluştu",
+    "vehicleStatus": {
+      "inUse": "Kullanımda",
+      "available": "Müsait",
+      "maintenance": "Bakımda"
+    },
+    "alerts": {
+      "hardBrake": "Ani Fren",
+      "hardAccel": "Sert Hızlanma",
+      "hardTurn": "Sert Viraj",
+      "sharpTurn": "Keskin Viraj",
+      "impact": "Çarpma/Kaza",
+      "overspeed": "Hız Aşımı",
+      "geofenceExit": "Bölge Çıkışı",
+      "geofenceEnter": "Bölge Girişi",
+      "lowFuel": "Düşük Yakıt",
+      "idleTime": "Uzun Rölanti"
+    },
+    "severity": {
+      "critical": "Kritik",
+      "high": "Yüksek",
+      "medium": "Orta",
+      "low": "Düşük"
+    },
+    "taskStatus": {
+      "pending": "Bekliyor",
+      "assigned": "Atandı",
+      "inProgress": "Devam Ediyor",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal"
+    },
+    "time": {
+      "justNow": "Az önce",
+      "minAgo": "dk önce",
+      "hourAgo": "saat önce",
+      "dayAgo": "gün önce"
     }
   }
 }

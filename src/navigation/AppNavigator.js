@@ -634,7 +634,7 @@ const CompanyAdminNavigator = () => {
       <Drawer.Screen name="Reports" component={AdminReportsScreen} />
       <Drawer.Screen name="FuelDashboard" component={AdminFuelDashboard} />
       <Drawer.Screen name="Alerts" component={AdminAlerts} />
-      <Drawer.Screen name="Settings" component={AdminSettings} />
+      <Drawer.Screen name="Settings" component={AdminSettingsStack} />
     </Drawer.Navigator>
   );
 };
@@ -664,6 +664,19 @@ const ProfileStack = () => (
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SettingsMain" component={DriverSettings} />
+    <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
+    <Stack.Screen
+      name="TroubleshootingScreen"
+      component={TroubleshootingScreen}
+    />
+    <Stack.Screen name="LEDIndicatorsScreen" component={LEDIndicatorsScreen} />
+  </Stack.Navigator>
+);
+
+// Admin Settings Stack - AdminSettings + Help Screens
+const AdminSettingsStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SettingsMain" component={AdminSettings} />
     <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
     <Stack.Screen
       name="TroubleshootingScreen"

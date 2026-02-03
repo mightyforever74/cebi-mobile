@@ -19,16 +19,12 @@
     "next": "Siguiente",
     "retry": "Reintentar",
     "all": "Todos",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "continue": "Continuar"
   },
   "auth": {
-    "login": "Iniciar sesión",
-    "logout": "Cerrar sesión",
-    "email": "Correo electrónico",
-    "password": "Contraseña",
-    "forgotPassword": "Olvidé mi contraseña",
-    "loginError": "Error al iniciar sesión",
-    "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?"
+    "logoutConfirmTitle": "Cerrar sesión",
+    "logoutConfirmMessage": "¿Está seguro de que desea cerrar sesión?"
   },
   "navigation": {
     "vehicles": "Vehículos",
@@ -49,6 +45,36 @@
     "taskHistory": "Historial de Tareas"
   },
   "settings": {
+    "aboutDescription": "TulipFleet es una aplicación profesional diseñada para la gestión de flotas.",
+    "adminRole": "ADMINISTRADOR",
+    "alertNotifications": "Notificaciones de alerta",
+    "allFieldsRequired": "Todos los campos son obligatorios",
+    "change": "Cambiar",
+    "changePasswordSubtitle": "Configuración de seguridad",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Reingrese la nueva contraseña",
+    "criticalAlerts": "Alertas críticas",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Ingrese la contraseña actual",
+    "editProfile": "Editar perfil",
+    "editProfileSubtitle": "Actualice su información personal",
+    "firstName": "Nombre",
+    "firstNamePlaceholder": "Su nombre",
+    "firstNameRequired": "El nombre es obligatorio",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "Su apellido",
+    "logoutConfirm": "¿Está seguro de que desea cerrar sesión?",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingrese la nueva contraseña",
+    "passwordChangeFailed": "Error al cambiar la contraseña",
+    "passwordChanged": "Contraseña cambiada exitosamente",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "phone": "Teléfono",
+    "profileUpdateFailed": "Error al actualizar el perfil",
+    "profileUpdated": "Perfil actualizado exitosamente",
+    "receiveAlerts": "Recibir todas las notificaciones",
+    "taskUpdates": "Actualizaciones de tareas",
     "title": "Configuración",
     "language": "Idioma",
     "selectLanguage": "Seleccionar Idioma",
@@ -63,7 +89,8 @@
       "notifications": "NOTIFICACIONES",
       "location": "UBICACIÓN",
       "app": "APLICACIÓN",
-      "support": "SOPORTE"
+      "support": "SOPORTE",
+      "account": "CUENTA"
     },
     "pushNotifications": "Notificaciones Push",
     "allNotifications": "Todas las notificaciones",
@@ -115,6 +142,18 @@
     "privacyPolicyText": "Nuestra política de privacidad está disponible en: tulipfleet.com/privacy"
   },
   "dashboard": {
+    "safetyScore": "Puntuación de Seguridad",
+    "safetyExcellent": "Conducción excelente",
+    "safetyGood": "Buena conducción",
+    "safetyAverage": "Promedio",
+    "safetyBelowAvg": "Necesita mejorar",
+    "safetyPoor": "Requiere atención",
+    "totalKm": "KM Totales",
+    "quickAccess": "Acceso Rápido",
+    "traffic": "Tráfico",
+    "weather": "Clima",
+    "emergency": "Emergencia",
+    "helpCenter": "Ayuda",
     "hello": "Hola,",
     "checkingDevice": "Verificando estado del dispositivo...",
     "loadError": "Error al cargar los datos",
@@ -591,18 +630,45 @@
   },
   "help": {
     "title": "Centro de Ayuda",
-    "heroTitle": "¿Cómo podemos ayudarte?",
-    "heroSubtitle": "Preguntas frecuentes y manual de usuario",
-    "quickHelp": "AYUDA RÁPIDA",
-    "troubleshooting": "Solución de Problemas",
-    "ledIndicators": "Indicadores LED",
-    "contactSupport": "Contactar Soporte",
-    "userManual": "MANUAL DE USUARIO",
-    "version": "Versión",
-    "view": "Ver",
-    "hide": "Ocultar",
-    "loadingPdf": "Cargando PDF...",
-    "needMoreHelp": "¿Necesitas más ayuda?"
+    "searchPlaceholder": "Buscar preguntas...",
+    "categories": {
+      "account": "Configuración de Cuenta",
+      "vehicles": "Vehículos",
+      "tasks": "Tareas",
+      "technical": "Soporte Técnico"
+    },
+    "faq": {
+      "account_q1": "¿Cómo puedo cambiar mi contraseña?",
+      "account_a1": "Ve a Ajustes → Cambiar Contraseña, introduce tu contraseña actual y establece una nueva.",
+      "account_q2": "¿Cómo actualizo mi información de perfil?",
+      "account_a2": "Ve a Ajustes → Editar Perfil para actualizar nombre, apellido y teléfono.",
+      "account_q3": "¿Cómo cambio la configuración de notificaciones?",
+      "account_a3": "Ve a Ajustes → Notificaciones para gestionar notificaciones push, de tareas, sonido y vibración.",
+      "vehicles_q1": "¿Cómo puedo ver la ubicación de mi vehículo?",
+      "vehicles_a1": "Toca el botón Mapa en Vivo en la pantalla principal para rastrear todos tus vehículos en tiempo real.",
+      "vehicles_q2": "¿Cómo configuro el dispositivo (ESP32)?",
+      "vehicles_a2": "Ve a Configuración de Dispositivo, escanea el código QR o introduce el número de serie para conectar a WiFi.",
+      "vehicles_q3": "¿Qué significan los estados de los vehículos?",
+      "vehicles_a3": "En Uso: El vehículo está en una tarea activa. Disponible: El vehículo está libre. Mantenimiento: El vehículo está en servicio.",
+      "tasks_q1": "¿Cómo acepto una tarea asignada a mí?",
+      "tasks_a1": "Ve a Mis Tareas, revisa la tarea y pulsa Aceptar. Usa el botón Iniciar para comenzar.",
+      "tasks_q2": "¿Qué debo hacer cuando completo una tarea?",
+      "tasks_a2": "Pulsa el botón Completar en la pantalla de detalles. Añade las notas y fotos necesarias y confirma.",
+      "tasks_q3": "¿Dónde puedo ver mi historial de tareas?",
+      "tasks_a3": "Ve a Mis Tareas → pestaña Completadas para ver tus tareas anteriores con fechas y estados.",
+      "technical_q1": "No se encuentra señal GPS, ¿qué debo hacer?",
+      "technical_a1": "Apunta la antena GPS al cielo abierto. La primera adquisición puede tardar 2-5 minutos.",
+      "technical_q2": "No recibo notificaciones, ¿cómo lo soluciono?",
+      "technical_a2": "Verifica que los permisos de notificación estén activados en Ajustes → Notificaciones. Revisa también los ajustes del teléfono.",
+      "technical_q3": "La aplicación se congela o se cierra, ¿qué debo hacer?",
+      "technical_a3": "Primero intenta cerrar y abrir la aplicación. Si el problema persiste, usa Ajustes → Limpiar Caché o reinstala."
+    },
+    "contact": {
+      "title": "¿Aún necesitas ayuda?",
+      "subtitle": "Si tu pregunta no está aquí, contacta a nuestro equipo de soporte",
+      "button": "Contactar al Equipo de Soporte"
+    },
+    "footer": "© 2025 TulipFleet - Todos los derechos reservados"
   },
   "troubleshooting": {
     "title": "Solución de Problemas",
@@ -735,5 +801,70 @@
       "download": "Descargar",
       "send": "Enviar"
     }
+  },
+  "admin": {
+    "welcome": "Bienvenido/a,",
+    "commandCenter": "Centro de Mando",
+    "vehicle": "Vehículo",
+    "driver": "Conductor",
+    "onlineVehicle": "Vehículo Online",
+    "liveMap": "Mapa en Vivo",
+    "trackVehicles": "Rastrea vehículos en tiempo real",
+    "fleetSummary": "Resumen de Flota",
+    "totalVehicles": "Total Vehículos",
+    "totalDrivers": "Total Conductores",
+    "activeTasks": "Tareas Activas",
+    "completedToday": "Completadas Hoy",
+    "inUse": "en uso",
+    "onDuty": "en servicio",
+    "pending": "pendiente",
+    "task": "tarea",
+    "unresolvedAlerts": "Alertas Sin Resolver",
+    "criticalAlerts": "Alertas Críticas",
+    "vehicles": "Vehículos",
+    "noVehicles": "No se encontraron vehículos",
+    "seeAll": "Ver Todos",
+    "recentActivities": "Actividades Recientes",
+    "noActivities": "Sin actividades aún",
+    "dataLoadError": "Error al cargar datos",
+    "vehicleStatus": {
+      "inUse": "En Uso",
+      "available": "Disponible",
+      "maintenance": "Mantenimiento"
+    },
+    "alerts": {
+      "hardBrake": "Frenada Brusca",
+      "hardAccel": "Aceleración Brusca",
+      "hardTurn": "Giro Brusco",
+      "sharpTurn": "Giro Cerrado",
+      "impact": "Impacto/Accidente",
+      "overspeed": "Exceso de Velocidad",
+      "geofenceExit": "Salida de Zona",
+      "geofenceEnter": "Entrada a Zona",
+      "lowFuel": "Combustible Bajo",
+      "idleTime": "Ralentí Prolongado"
+    },
+    "severity": {
+      "critical": "Crítico",
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Bajo"
+    },
+    "taskStatus": {
+      "pending": "Pendiente",
+      "assigned": "Asignada",
+      "inProgress": "En Progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "time": {
+      "justNow": "Ahora mismo",
+      "minAgo": "min atrás",
+      "hourAgo": "horas atrás",
+      "dayAgo": "días atrás"
+    }
+  },
+  "roles": {
+    "driver": "Conductor"
   }
 }

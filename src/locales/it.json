@@ -9,8 +9,9 @@
     "confirm": "Conferma",
     "yes": "Sì",
     "no": "No",
-    "ok": "OK",
+    "continue": "Continua",
     "error": "Errore",
+    "ok": "OK",
     "success": "Successo",
     "warning": "Avviso",
     "search": "Cerca",
@@ -26,7 +27,12 @@
     "logout": "Esci",
     "email": "Email",
     "password": "Password",
-    "forgotPassword": "Password dimenticata"
+    "forgotPassword": "Password dimenticata",
+    "logoutConfirmTitle": "Esci",
+    "logoutConfirmMessage": "Sei sicuro di voler uscire?"
+  },
+  "roles": {
+    "driver": "Autista"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -41,6 +47,36 @@
     "fuelEntry": "Inserimento Carburante"
   },
   "settings": {
+    "aboutDescription": "TulipFleet è un'applicazione professionale progettata per la gestione della flotta.",
+    "adminRole": "AMMINISTRATORE",
+    "alertNotifications": "Notifiche di avviso",
+    "allFieldsRequired": "Tutti i campi sono obbligatori",
+    "change": "Modifica",
+    "changePasswordSubtitle": "Impostazioni di sicurezza",
+    "confirmPassword": "Conferma password",
+    "confirmPasswordPlaceholder": "Reinserisci la nuova password",
+    "criticalAlerts": "Avvisi critici",
+    "currentPassword": "Password attuale",
+    "currentPasswordPlaceholder": "Inserisci la password attuale",
+    "editProfile": "Modifica profilo",
+    "editProfileSubtitle": "Aggiorna le tue informazioni personali",
+    "firstName": "Nome",
+    "firstNamePlaceholder": "Il tuo nome",
+    "firstNameRequired": "Il nome è obbligatorio",
+    "lastName": "Cognome",
+    "lastNamePlaceholder": "Il tuo cognome",
+    "logoutConfirm": "Sei sicuro di voler uscire?",
+    "newPassword": "Nuova password",
+    "newPasswordPlaceholder": "Inserisci la nuova password",
+    "passwordChangeFailed": "Modifica password non riuscita",
+    "passwordChanged": "Password modificata con successo",
+    "passwordTooShort": "La password deve avere almeno 6 caratteri",
+    "passwordsDoNotMatch": "Le password non corrispondono",
+    "phone": "Telefono",
+    "profileUpdateFailed": "Aggiornamento profilo non riuscito",
+    "profileUpdated": "Profilo aggiornato con successo",
+    "receiveAlerts": "Ricevi tutte le notifiche",
+    "taskUpdates": "Aggiornamenti attività",
     "title": "Impostazioni",
     "language": "Lingua",
     "selectLanguage": "Seleziona Lingua",
@@ -55,7 +91,8 @@
       "notifications": "NOTIFICHE",
       "location": "POSIZIONE",
       "app": "APPLICAZIONE",
-      "support": "SUPPORTO"
+      "support": "SUPPORTO",
+      "account": "ACCOUNT"
     },
     "pushNotifications": "Notifiche Push",
     "allNotifications": "Tutte le notifiche",
@@ -107,6 +144,18 @@
     "privacyPolicyText": "La nostra politica sulla privacy è disponibile su: tulipfleet.com/privacy"
   },
   "dashboard": {
+    "safetyScore": "Punteggio Sicurezza",
+    "safetyExcellent": "Guida eccellente",
+    "safetyGood": "Buona guida",
+    "safetyAverage": "Nella media",
+    "safetyBelowAvg": "Da migliorare",
+    "safetyPoor": "Attenzione richiesta",
+    "totalKm": "KM Totali",
+    "quickAccess": "Accesso Rapido",
+    "traffic": "Traffico",
+    "weather": "Meteo",
+    "emergency": "Emergenza",
+    "helpCenter": "Aiuto",
     "hello": "Ciao,",
     "checkingDevice": "Controllo stato dispositivo...",
     "loadError": "Errore nel caricamento dati",
@@ -310,7 +359,60 @@
       "cancel": "Annulla",
       "saveAnyway": "Salva comunque"
     },
-    "help": "Aiuto",
+    "help": {
+      "title": "Centro Assistenza",
+      "subtitle": "Domande frequenti, rehber e iletişim",
+      "categories": {
+        "general": "Generale",
+        "driver": "Autista",
+        "admin": "Amministratore",
+        "device": "Dispositivo",
+        "map": "Mappa",
+        "tasks": "Attività",
+        "alerts": "Avvisi"
+      },
+      "faq": [
+        {
+          "q": "Come posso aggiungere un nuovo veicolo?",
+          "a": "Vai alla sezione Veicoli e tocca il pulsante +. Compila i dettagli richiesti e salva."
+        },
+        {
+          "q": "Come posso assegnare un dispositivo a un veicolo?",
+          "a": "Nella schermata Dispositivi, seleziona un dispositivo disponibile e scegli 'Assegna a veicolo'."
+        },
+        {
+          "q": "Cosa significa l'icona rossa sulla mappa?",
+          "a": "L'icona rossa indica che il veicolo ha un avviso critico o è offline."
+        },
+        {
+          "q": "Come posso cambiare la lingua dell'app?",
+          "a": "Vai su Impostazioni > Lingua e seleziona la lingua desiderata."
+        },
+        {
+          "q": "Come posso contattare il supporto?",
+          "a": "Nella sezione Aiuto, tocca 'Contattaci' per inviare una email al supporto TulipFleet."
+        }
+      ],
+      "contact": {
+        "title": "Contattaci",
+        "desc": "Hai ancora domande? Il nostro team di supporto ti aiuterà con piacere.",
+        "email": "support@tulipfleet.com",
+        "phone": "+39 055 1234567"
+      },
+      "footer": {
+        "text": "TulipFleet v2.0. Tutti i diritti riservati.",
+        "links": [
+          {
+            "label": "Informativa Privacy",
+            "url": "https://tulipfleet.com/privacy"
+          },
+          {
+            "label": "Termini di Servizio",
+            "url": "https://tulipfleet.com/terms"
+          }
+        ]
+      }
+    },
     "helpSubtitle": "FAQ e guida",
     "contactUs": "Contattaci",
     "about": "Informazioni",
@@ -673,6 +775,68 @@
       "emailReportDesc": "Condividi report via email",
       "download": "Scarica",
       "send": "Invia"
+    }
+  },
+  "admin": {
+    "welcome": "Benvenuto/a,",
+    "commandCenter": "Centro di Comando",
+    "vehicle": "Veicolo",
+    "driver": "Autista",
+    "onlineVehicle": "Veicolo Online",
+    "liveMap": "Mappa Live",
+    "trackVehicles": "Traccia i veicoli in tempo reale",
+    "fleetSummary": "Riepilogo Flotta",
+    "totalVehicles": "Veicoli Totali",
+    "totalDrivers": "Autisti Totali",
+    "activeTasks": "Attività Attive",
+    "completedToday": "Completate Oggi",
+    "inUse": "in uso",
+    "onDuty": "in servizio",
+    "pending": "in attesa",
+    "task": "attività",
+    "unresolvedAlerts": "Avvisi Non Risolti",
+    "criticalAlerts": "Avvisi Critici",
+    "vehicles": "Veicoli",
+    "noVehicles": "Nessun veicolo trovato",
+    "seeAll": "Vedi Tutti",
+    "recentActivities": "Attività Recenti",
+    "noActivities": "Nessuna attività ancora",
+    "dataLoadError": "Errore nel caricamento dei dati",
+    "vehicleStatus": {
+      "inUse": "In Uso",
+      "available": "Disponibile",
+      "maintenance": "Manutenzione"
+    },
+    "alerts": {
+      "hardBrake": "Frenata Brusca",
+      "hardAccel": "Accelerazione Brusca",
+      "hardTurn": "Curva Brusca",
+      "sharpTurn": "Curva Stretta",
+      "impact": "Impatto/Incidente",
+      "overspeed": "Eccesso di Velocità",
+      "geofenceExit": "Uscita dalla Zona",
+      "geofenceEnter": "Ingresso nella Zona",
+      "lowFuel": "Carburante Basso",
+      "idleTime": "Sosta Prolungata"
+    },
+    "severity": {
+      "critical": "Critico",
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Basso"
+    },
+    "taskStatus": {
+      "pending": "In Attesa",
+      "assigned": "Assegnata",
+      "inProgress": "In Corso",
+      "completed": "Completata",
+      "cancelled": "Annullata"
+    },
+    "time": {
+      "justNow": "Adesso",
+      "minAgo": "min fa",
+      "hourAgo": "ore fa",
+      "dayAgo": "giorni fa"
     }
   }
 }
