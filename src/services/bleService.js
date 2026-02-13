@@ -110,7 +110,7 @@ class BLEService {
     console.log("[BLE] Destroying...");
     this.stopScan();
     this.disconnect();
-    this.stateSubscription?.remove();
+    // No .remove() - native cancelTransaction causes crash
     this.stateSubscription = null;
     if (this.manager) {
       this.manager.destroy();
@@ -346,26 +346,26 @@ class BLEService {
   }
 
   cleanupSubscriptions() {
+    // DO NOT call .remove() on any subscription!
+    // react-native-ble-plx cancelTransaction triggers native
+    // PromiseImpl.reject(null, ...) → NullPointerException → app crash.
+    // Just null the references and let BLE disconnect handle cleanup.
     if (this.statusSubscription) {
-      this.statusSubscription.remove();
       this.statusSubscription = null;
     }
     if (this.resultSubscription) {
-      this.resultSubscription.remove();
       this.resultSubscription = null;
     }
     if (this.disconnectSubscription) {
-      this.disconnectSubscription.remove();
       this.disconnectSubscription = null;
     }
     if (this.wifiStatusSubscription) {
-      this.wifiStatusSubscription.remove();
       this.wifiStatusSubscription = null;
     }
     if (this.wifiScanSubscription) {
-      this.wifiScanSubscription.remove();
       this.wifiScanSubscription = null;
     }
+    console.log("[BLE] Subscriptions nulled (no remove to avoid native crash)");
   }
 
   isConnected() {
@@ -567,10 +567,12 @@ class BLEService {
             clearTimeout(notifyTimeout);
             notifyTimeout = null;
           }
-          if (this.wifiScanSubscription) {
-            this.wifiScanSubscription.remove();
-            this.wifiScanSubscription = null;
-          }
+          // DO NOT call this.wifiScanSubscription.remove() here!
+          // react-native-ble-plx native cancelTransaction triggers
+          // PromiseImpl.reject(null, ...) → NullPointerException → app crash.
+          // Instead, rely on the `done` flag to ignore further callbacks,
+          // and let the subscription die naturally when BLE disconnects.
+          this.wifiScanSubscription = null;
         };
 
         const finish = (result, error) => {
@@ -769,26 +771,57 @@ class BLEService {
           }
         }, NOTIFY_TIMEOUT_MS);
 
-        // ── STEP 3: Send SCAN command (writeWithoutResponse) ──
+        // ── STEP 3: Send SCAN command ──
+        // Try writeWithoutResponse first (needs WRITE_NR on ESP32).
+        // If it fails, fall back to writeWithResponse but fire-and-forget
+        // (don't await) so it doesn't block the monitor callback.
         setTimeout(async () => {
           if (done) return;
+          const command = Buffer.from("SCAN", "utf8").toString("base64");
+
+          // Attempt 1: writeWithoutResponse (non-blocking, ideal)
           try {
             console.log(
-              "[BLE] Step 3: Sending SCAN command (without response)..."
+              "[BLE] Step 3: Sending SCAN command (writeWithoutResponse)..."
             );
-            const command = Buffer.from("SCAN", "utf8").toString("base64");
-
             await this.device.writeCharacteristicWithoutResponseForService(
               BLE_CONFIG.SERVICE_UUID,
               WIFI_SCAN_UUID,
               command
             );
-
-            console.log("[BLE] SCAN command sent, waiting for notify...");
-          } catch (writeError) {
-            console.error("[BLE] SCAN write failed:", writeError.message);
-            // Don't finish here; device may still produce notify, or read fallback may catch it.
+            console.log(
+              "[BLE] SCAN command sent (without response), waiting for notify..."
+            );
+            return; // Success, wait for notify
+          } catch (e1) {
+            console.log(
+              "[BLE] writeWithoutResponse failed:",
+              e1.message,
+              "- trying writeWithResponse..."
+            );
           }
+
+          // Attempt 2: writeWithResponse (fire-and-forget, don't block monitor)
+          // This will block until ESP32 finishes WiFi.scanNetworks() (~3-4s)
+          // but monitor callback runs on a separate event, so notify should still arrive.
+          this.device
+            .writeCharacteristicWithResponseForService(
+              BLE_CONFIG.SERVICE_UUID,
+              WIFI_SCAN_UUID,
+              command
+            )
+            .then(() =>
+              console.log(
+                "[BLE] SCAN command sent (with response), notify should follow..."
+              )
+            )
+            .catch((e2) =>
+              console.error(
+                "[BLE] SCAN writeWithResponse also failed:",
+                e2.message
+              )
+            );
+          // NOTE: Not awaited! Monitor callback should catch the notify.
         }, SUBSCRIBE_SETTLE_MS);
       });
     } catch (error) {
@@ -939,9 +972,9 @@ class BLEService {
 
   cleanupWifiSubscription() {
     if (this.wifiStatusSubscription) {
-      this.wifiStatusSubscription.remove();
+      // No .remove() - native cancelTransaction causes crash
       this.wifiStatusSubscription = null;
-      console.log("[BLE] WiFi subscription cleaned up");
+      console.log("[BLE] WiFi subscription cleaned up (no remove)");
     }
   }
 

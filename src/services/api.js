@@ -201,6 +201,24 @@ export const authAPI = {
     return response.data;
   },
 
+  // Forgot password - interceptor'sız
+  forgotPassword: async (email) => {
+    const response = await authClient.post("/api/auth/forgot-password", {
+      email,
+    });
+    return response.data;
+  },
+
+  // Reset password - interceptor'sız
+  resetPassword: async (email, code, newPassword) => {
+    const response = await authClient.post("/api/auth/reset-password", {
+      email,
+      code,
+      newPassword,
+    });
+    return response.data;
+  },
+
   // Me - bu token gerektirir, api kullan
   me: async () => {
     const response = await api.get("/api/auth/me");
@@ -554,6 +572,11 @@ export const driverAPI = {
     return response.data;
   },
 
+  // Alias'lar - Dashboard uyumluluğu için
+  getMyVehicle: async () => driverAPI.getVehicle(),
+  getMyTasks: async () => driverAPI.getTasks(),
+  getMyStats: async () => driverAPI.getStats(),
+
   getAssignedDevice: async () => {
     const response = await api.get("/api/drivers/me/assigned-device");
     return response.data;
@@ -610,6 +633,19 @@ export const driverAPI = {
     const response = await api.put(
       `/api/driver/tasks/${taskId}/waypoints/${waypointId}/complete`
     );
+    return response.data;
+  },
+  updateWaypointStatus: async (taskId, waypointId, status) => {
+    const response = await api.put(
+      `/api/driver/tasks/${taskId}/waypoints/${waypointId}/status`,
+      { status }
+    );
+    return response.data;
+  },
+
+  // Task events (progress log)
+  getTaskEvents: async (taskId) => {
+    const response = await api.get(`/api/driver/tasks/${taskId}/events`);
     return response.data;
   },
 };
@@ -975,7 +1011,6 @@ export const fuelAPI = {
   },
 };
 
-
 // ===========================================================
 // Driver Provisioning API - Phase 2 (A+B+C Implementation)
 // ===========================================================
@@ -984,17 +1019,17 @@ export const driverProvisionAPI = {
     const response = await api.post("/api/driver/validate-serial", { serial });
     return response.data;
   },
-  
+
   getAvailableVehicles: async () => {
     const response = await api.get("/api/driver/available-vehicles");
     return response.data;
   },
-  
+
   assignDevice: async (payload) => {
     const response = await api.post("/api/driver/assign-device", payload);
     return response.data;
   },
-  
+
   completeSetup: async (payload) => {
     const response = await api.post("/api/driver/complete-setup", payload);
     return response.data;
@@ -1002,4 +1037,3 @@ export const driverProvisionAPI = {
 };
 
 export default api;
-
