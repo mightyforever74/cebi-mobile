@@ -208,13 +208,14 @@ const makeStyles = (COLORS) =>
 const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const { user, logout } = useAuth();
   const { COLORS } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
 
   const handleLogout = () => {
-    Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t("auth.logout"), t("auth.logoutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Çıkış Yap",
+        text: t("auth.logout"),
         style: "destructive",
         onPress: async () => {
           await logout();
@@ -226,11 +227,11 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const getRoleDisplayName = () => {
     switch (user?.role) {
       case "super_admin":
-        return "Super Admin";
+        return t("roles.superAdmin");
       case "company_admin":
-        return "Yönetici";
+        return t("roles.companyAdmin");
       case "driver":
-        return "Sürücü";
+        return t("roles.driver");
       default:
         return user?.role;
     }
@@ -258,7 +259,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
           <Text style={styles.userName} numberOfLines={1}>
             {user?.first_name && user?.last_name
               ? `${user.first_name} ${user.last_name}`
-              : user?.email?.split("@")[0] || "Kullanıcı"}
+              : user?.email?.split("@")[0] || t("drawer.user")}
           </Text>
 
           <View style={styles.roleBadge}>
@@ -305,7 +306,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color={COLORS.WHITE} />
-          <Text style={styles.logoutText}>Çıkış Yap</Text>
+          <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
 
         <Text style={styles.versionText}>TulipFleet v2.0.0</Text>
@@ -331,22 +332,43 @@ const SetupFlowStack = () => (
 
 const DriverNavigator = () => {
   const { COLORS } = useTheme();
+  const { t } = useTranslation();
 
   const headerColor = COLORS.SUCCESS; // önce #2DCE89
   const menuItems = [
     {
       name: "DriverDashboard",
-      label: "Ana Sayfa",
+      label: t("navigation.dashboard"),
       icon: "speedometer-outline",
     },
-    { name: "MyTasks", label: "Görevlerim", icon: "list-outline" },
-    { name: "Navigation", label: "Navigasyon", icon: "navigate-outline" },
-    { name: "FuelEntry", label: "Yakıt Girişi", icon: "flame-outline" },
-    { name: "MyVehicle", label: "Aracım", icon: "car-sport-outline" },
-    { name: "DeviceSetup", label: "Cihaz Kurulumu", icon: "bluetooth-outline" },
-    { name: "Profile", label: "Profil", icon: "person-outline" },
-    { name: "DriverSettings", label: "Ayarlar", icon: "settings-outline" },
-    { name: "SOS", label: "Acil Durum", icon: "warning-outline" },
+    { name: "MyTasks", label: t("navigation.myTasks"), icon: "list-outline" },
+    {
+      name: "Navigation",
+      label: t("navigation.navigation"),
+      icon: "navigate-outline",
+    },
+    {
+      name: "FuelEntry",
+      label: t("navigation.fuelEntry"),
+      icon: "flame-outline",
+    },
+    {
+      name: "MyVehicle",
+      label: t("navigation.myVehicle"),
+      icon: "car-sport-outline",
+    },
+    {
+      name: "DeviceSetup",
+      label: t("navigation.deviceSetup"),
+      icon: "bluetooth-outline",
+    },
+    { name: "Profile", label: t("navigation.profile"), icon: "person-outline" },
+    {
+      name: "DriverSettings",
+      label: t("navigation.settings"),
+      icon: "settings-outline",
+    },
+    { name: "SOS", label: t("navigation.sos"), icon: "warning-outline" },
   ];
 
   return (
@@ -360,15 +382,15 @@ const DriverNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          DriverDashboard: "Ana Sayfa",
-          MyTasks: "Görevlerim",
-          Navigation: "Navigasyon",
-          FuelEntry: "Yakıt Girişi",
-          MyVehicle: "Aracım",
-          DeviceSetup: "Cihaz Kurulumu",
-          Profile: "Profil",
-          DriverSettings: "Ayarlar",
-          SOS: "Acil Durum",
+          DriverDashboard: t("navigation.dashboard"),
+          MyTasks: t("navigation.myTasks"),
+          Navigation: t("navigation.navigation"),
+          FuelEntry: t("navigation.fuelEntry"),
+          MyVehicle: t("navigation.myVehicle"),
+          DeviceSetup: t("navigation.deviceSetup"),
+          Profile: t("navigation.profile"),
+          DriverSettings: t("navigation.settings"),
+          SOS: t("navigation.sos"),
         };
         return {
           headerStyle: { backgroundColor: headerColor, elevation: 4 },

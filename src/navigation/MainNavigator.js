@@ -56,9 +56,10 @@ import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
 import TaskOfferDetail from "../screens/driver/TaskOfferDetail";
 import TaskOffers from "../screens/driver/TaskOffers";
-import VehiclePickerScreen from "../screens/driver/VehiclePickerScreen"; // 🆕 EKLE
+import VehiclePickerScreen from "../screens/driver/VehiclePickerScreen";
 import WiFiPasswordScreen from "../screens/driver/WiFiPasswordScreen";
-import WiFiPickerScreen from "../screens/driver/WiFiPickerScreen"; // 🆕 EKLE
+import WiFiPickerScreen from "../screens/driver/WiFiPickerScreen";
+import AboutScreen from "../screens/shared/AboutScreen";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -736,6 +737,14 @@ const DriverNavigator = () => {
       <Drawer.Screen
         name="WiFiPassword"
         component={WiFiPasswordScreen}
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: "none" },
+        }}
+      />
+      <Drawer.Screen
+        name="About"
+        component={AboutScreen}
         options={{
           headerShown: false,
           drawerItemStyle: { display: "none" },

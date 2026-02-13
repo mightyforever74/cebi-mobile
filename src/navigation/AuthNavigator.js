@@ -1,11 +1,12 @@
 // src/navigation/AuthNavigator.js
 // TulipFleet - Authentication Navigator
+// Updated: 05 Şubat 2026 - Register kaldırıldı, ForgotPassword + Contact eklendi
 
-import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { COLORS } from "../constants/config";
+import ContactScreen from "../screens/auth/ContactScreen";
+import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
-import RegisterScreen from "../screens/auth/RegisterScreen";
 
 const Stack = createStackNavigator();
 
@@ -24,15 +25,20 @@ const AuthNavigator = () => {
       }}
       initialRouteName="Login"
     >
-      <Stack.Screen 
-        name="Login" 
+      <Stack.Screen
+        name="Login"
         component={LoginScreen}
         options={{ title: "Giriş" }}
       />
-      <Stack.Screen 
-        name="Register" 
-        component={RegisterScreen}
-        options={{ title: "Kayıt" }}
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+        options={{ title: "Şifremi Unuttum" }}
+      />
+      <Stack.Screen
+        name="Contact"
+        component={ContactScreen}
+        options={{ title: "Bize Ulaşın" }}
       />
     </Stack.Navigator>
   );

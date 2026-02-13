@@ -1,9 +1,11 @@
 // src/navigation/DrawerContent.js
 // TulipFleet - Custom Drawer Content
-// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
-// Updated: 17 Ocak 2026 - i18n + Language selector in header (korundu)
+// Updated: 11 Şubat 2026 - Theme token cleanup (UI System Guide v3)
+// ✅ SPACING/RADIUS/TYPOGRAPHY tokens, no withAlpha, no ?? fallback chains
+// ✅ DEBUG text removed, inline styles removed, dark mode ready
 
-import { useEffect, useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -22,35 +24,23 @@ import { useThemedStyles } from "../hooks/useThemedStyles";
 import { LANGUAGES } from "../locales/i18n";
 import { taskOffersAPI } from "../services/api";
 
-// --- helper: #RRGGBB => #RRGGBBAA ---
-const withAlpha = (hex, alpha01) => {
-  if (
-    !hex ||
-    typeof hex !== "string" ||
-    !hex.startsWith("#") ||
-    hex.length !== 7
-  )
-    return hex;
-  const a = Math.max(0, Math.min(1, alpha01));
-  const alpha = Math.round(a * 255)
-    .toString(16)
-    .padStart(2, "0")
-    .toUpperCase();
-  return `${hex}${alpha}`;
-};
-
+// ============================================
+// makeStyles - THEME TOKENS
+// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+      backgroundColor: COLORS.BACKGROUND,
     },
+
+    // ── Header ──
     header: {
-      paddingHorizontal: 20,
-      paddingVertical: 20,
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: COLORS.SPACING.lg, // 24
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderBottomColor: COLORS.DIVIDER,
+      backgroundColor: COLORS.SURFACE,
     },
     headerTop: {
       flexDirection: "row",
@@ -58,212 +48,213 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
     },
     logo: {
-      fontSize: 24,
-      fontWeight: "bold",
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.PRIMARY,
     },
     langButton: {
-      backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
-      padding: 8,
-      borderRadius: 8,
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.sm, // 8
       borderWidth: 1,
-      borderColor: withAlpha(COLORS.PRIMARY, 0.18),
+      borderColor: COLORS.INPUT_BORDER,
     },
     langFlag: {
-      fontSize: 24,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl, // 24
     },
     subtitle: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.MUTED,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs, // 4
     },
 
+    // ── User Section ──
     userSection: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: COLORS.SPACING.md, // 16
+      backgroundColor: COLORS.BACKGROUND,
     },
     avatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: COLORS.SPACING.buttonHeight, // 48
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.SPACING.lg, // 24 (circle)
       backgroundColor: COLORS.PRIMARY,
       justifyContent: "center",
       alignItems: "center",
     },
     superAdminAvatar: {
-      backgroundColor: COLORS.GRADIENT_START ?? COLORS.LABEL ?? COLORS.PRIMARY,
+      backgroundColor: COLORS.LABEL,
     },
     avatarText: {
       color: COLORS.WHITE,
-      fontSize: 20,
-      fontWeight: "bold",
+      ...COLORS.TYPOGRAPHY.styles.h4,
     },
     userInfo: {
-      marginLeft: 12,
+      marginLeft: COLORS.SPACING.md, // 16
       flex: 1,
     },
     userName: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
     },
     userRole: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.MUTED,
       marginTop: 2,
     },
     superAdminRole: {
-      color: COLORS.GRADIENT_START ?? COLORS.LABEL ?? COLORS.PRIMARY,
-      fontWeight: "600",
+      color: COLORS.LABEL,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
+    // ── Divider ──
     divider: {
       height: 1,
-      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
-      marginHorizontal: 20,
+      backgroundColor: COLORS.DIVIDER,
+      marginHorizontal: COLORS.SPACING.lg, // 24
     },
 
+    // ── Menu ──
     menuContainer: {
       flex: 1,
-      paddingTop: 8,
-      backgroundColor: COLORS.BACKGROUND ?? COLORS.WHITE,
+      paddingTop: COLORS.SPACING.sm, // 8
+      backgroundColor: COLORS.BACKGROUND,
     },
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      marginHorizontal: 8,
-      borderRadius: 8,
+      paddingVertical: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      marginHorizontal: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.sm, // 8
     },
     menuItemFocused: {
-      backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
+      backgroundColor: COLORS.SECONDARY,
     },
     menuIcon: {
-      fontSize: 20,
-      width: 32,
+      marginRight: COLORS.SPACING.md, // 16
     },
     menuText: {
-      fontSize: 15,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      fontWeight: "500",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg, // 16
+      color: COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     menuTextFocused: {
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
+
+    // ── Badge ──
     badge: {
       marginLeft: "auto",
       backgroundColor: COLORS.ERROR,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 10,
-      minWidth: 24,
+      paddingHorizontal: COLORS.SPACING.sm, // 8
+      paddingVertical: COLORS.SPACING.xs, // 4
+      borderRadius: COLORS.RADIUS.sm, // 8
+      minWidth: COLORS.SPACING.lg, // 24
       alignItems: "center",
     },
     badgeText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "700",
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
 
+    // ── Footer ──
     footer: {
-      paddingHorizontal: 20,
-      paddingTop: 16,
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingTop: COLORS.SPACING.md, // 16
       borderTopWidth: 1,
-      borderTopColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderTopColor: COLORS.DIVIDER,
+      backgroundColor: COLORS.SURFACE,
     },
     logoutButton: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 12,
+      paddingVertical: COLORS.SPACING.md, // 16
     },
     logoutIcon: {
-      fontSize: 20,
-      marginRight: 12,
+      marginRight: COLORS.SPACING.md, // 16
     },
     logoutText: {
-      fontSize: 15,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg, // 16
       color: COLORS.ERROR,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     version: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs, // 10
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: 8,
+      marginTop: COLORS.SPACING.sm, // 8
     },
 
-    // Language Modal Styles
+    // ── Language Modal ──
     langModalOverlay: {
       flex: 1,
-      backgroundColor: withAlpha(COLORS.BLACK, 0.5),
+      backgroundColor: COLORS.OVERLAY,
       justifyContent: "flex-end",
     },
     langModalContent: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl, // 20
+      borderTopRightRadius: COLORS.RADIUS.xl, // 20
+      padding: COLORS.SPACING.lg, // 24
       maxHeight: "70%",
       borderWidth: 1,
-      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
+      ...COLORS.SHADOWS.modal,
     },
     langModalTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT,
       textAlign: "center",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     langItem: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      padding: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.sm, // 8
+      marginBottom: COLORS.SPACING.sm, // 8
+      backgroundColor: COLORS.SECONDARY,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.25) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: COLORS.INPUT_BORDER,
     },
     langItemActive: {
       backgroundColor: COLORS.PRIMARY,
       borderColor: COLORS.PRIMARY,
     },
     langItemFlag: {
-      fontSize: 24,
-      marginRight: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl, // 24
+      marginRight: COLORS.SPACING.md, // 16
     },
     langItemName: {
-      fontSize: 16,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT,
       flex: 1,
     },
     langItemNameActive: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     checkmark: {
-      fontSize: 18,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl, // 20
       color: COLORS.WHITE,
-      fontWeight: "bold",
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     langCloseBtn: {
       backgroundColor: COLORS.MUTED,
-      padding: 14,
-      borderRadius: 8,
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.sm, // 8
       alignItems: "center",
-      marginTop: 12,
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.md, // 16
     },
     langCloseBtnText: {
       color: COLORS.WHITE,
-      fontSize: 16,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.button,
     },
   });
 
@@ -277,6 +268,7 @@ const DrawerMenuItem = ({
   onPress,
   badgeCount,
   styles,
+  COLORS,
 }) => {
   return (
     <TouchableOpacity
@@ -284,7 +276,12 @@ const DrawerMenuItem = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.menuIcon}>{icon}</Text>
+      <Ionicons
+        name={icon}
+        size={22}
+        color={focused ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY}
+        style={styles.menuIcon}
+      />
       <Text style={[styles.menuText, focused && styles.menuTextFocused]}>
         {title}
       </Text>
@@ -328,9 +325,9 @@ const DrawerContent = ({ navigation, state }) => {
   const currentLang =
     LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
 
-  // Change language
-  const changeLanguage = (langCode) => {
-    i18n.changeLanguage(langCode);
+  // Change language with force re-render
+  const changeLanguage = async (langCode) => {
+    await i18n.changeLanguage(langCode);
     setLangModalVisible(false);
   };
 
@@ -388,23 +385,52 @@ const DrawerContent = ({ navigation, state }) => {
   };
 
   // ============================================
-  // MENU ITEMS - Role-based with i18n
+  // MENU ITEMS - Role-based with i18n (NO useMemo - always recalculate)
   // ============================================
-  const menuItems = useMemo(() => {
+
+  const getMenuItems = () => {
     if (isSuperAdmin) {
       return [
         {
           title: t("navigation.dashboard"),
-          icon: "📊",
+          icon: "stats-chart-outline",
           screen: "AdminDashboard",
         },
-        { title: t("navigation.companies"), icon: "🏢", screen: "Companies" },
-        { title: t("navigation.vehicles"), icon: "🚗", screen: "Vehicles" },
-        { title: t("navigation.drivers"), icon: "👥", screen: "Drivers" },
-        { title: t("navigation.tasks"), icon: "📋", screen: "Tasks" },
-        { title: t("navigation.alerts"), icon: "🔔", screen: "Alerts" },
-        { title: t("navigation.fleetMap"), icon: "🗺️", screen: "FleetMap" },
-        { title: t("navigation.settings"), icon: "⚙️", screen: "Settings" },
+        {
+          title: t("navigation.companies"),
+          icon: "business-outline",
+          screen: "Companies",
+        },
+        {
+          title: t("navigation.vehicles"),
+          icon: "car-sport-outline",
+          screen: "Vehicles",
+        },
+        {
+          title: t("navigation.drivers"),
+          icon: "people-outline",
+          screen: "Drivers",
+        },
+        {
+          title: t("navigation.tasks"),
+          icon: "clipboard-outline",
+          screen: "Tasks",
+        },
+        {
+          title: t("navigation.alerts"),
+          icon: "notifications-outline",
+          screen: "Alerts",
+        },
+        {
+          title: t("navigation.fleetMap"),
+          icon: "map-outline",
+          screen: "FleetMap",
+        },
+        {
+          title: t("navigation.settings"),
+          icon: "settings-outline",
+          screen: "Settings",
+        },
       ];
     }
 
@@ -412,15 +438,39 @@ const DrawerContent = ({ navigation, state }) => {
       return [
         {
           title: t("navigation.dashboard"),
-          icon: "📊",
+          icon: "stats-chart-outline",
           screen: "AdminDashboard",
         },
-        { title: t("navigation.vehicles"), icon: "🚗", screen: "Vehicles" },
-        { title: t("navigation.drivers"), icon: "👥", screen: "Drivers" },
-        { title: t("navigation.tasks"), icon: "📋", screen: "Tasks" },
-        { title: t("navigation.alerts"), icon: "🔔", screen: "Alerts" },
-        { title: t("navigation.fleetMap"), icon: "🗺️", screen: "FleetMap" },
-        { title: t("navigation.settings"), icon: "⚙️", screen: "Settings" },
+        {
+          title: t("navigation.vehicles"),
+          icon: "car-sport-outline",
+          screen: "Vehicles",
+        },
+        {
+          title: t("navigation.drivers"),
+          icon: "people-outline",
+          screen: "Drivers",
+        },
+        {
+          title: t("navigation.tasks"),
+          icon: "clipboard-outline",
+          screen: "Tasks",
+        },
+        {
+          title: t("navigation.alerts"),
+          icon: "notifications-outline",
+          screen: "Alerts",
+        },
+        {
+          title: t("navigation.fleetMap"),
+          icon: "map-outline",
+          screen: "FleetMap",
+        },
+        {
+          title: t("navigation.settings"),
+          icon: "settings-outline",
+          screen: "Settings",
+        },
       ];
     }
 
@@ -428,20 +478,34 @@ const DrawerContent = ({ navigation, state }) => {
     return [
       {
         title: t("navigation.dashboard"),
-        icon: "🏠",
+        icon: "speedometer-outline",
         screen: "DriverDashboard",
       },
       {
         title: t("navigation.myTasks"),
-        icon: "📋",
+        icon: "clipboard-outline",
         screen: "MyTasks",
         badgeCount: offersCount,
       },
-      { title: t("navigation.myVehicle"), icon: "🚗", screen: "MyVehicle" },
-      { title: t("navigation.profile"), icon: "👤", screen: "Profile" },
-      { title: t("navigation.settings"), icon: "⚙️", screen: "Settings" },
+      {
+        title: t("navigation.myVehicle"),
+        icon: "car-sport-outline",
+        screen: "MyVehicle",
+      },
+      {
+        title: t("navigation.profile"),
+        icon: "person-outline",
+        screen: "Profile",
+      },
+      {
+        title: t("navigation.settings"),
+        icon: "settings-outline",
+        screen: "Settings",
+      },
     ];
-  }, [isAdmin, isSuperAdmin, offersCount, t]);
+  };
+
+  const menuItems = getMenuItems();
 
   // ============================================
   // CHECK IF MENU ITEM IS FOCUSED
@@ -478,7 +542,7 @@ const DrawerContent = ({ navigation, state }) => {
       {/* Header with Language Selector */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.logo}>🚛 TulipFleet</Text>
+          <Text style={styles.logo}>TulipFleet</Text>
           <TouchableOpacity
             style={styles.langButton}
             onPress={() => setLangModalVisible(true)}
@@ -525,6 +589,7 @@ const DrawerContent = ({ navigation, state }) => {
             onPress={() => handleMenuPress(item)}
             badgeCount={item.badgeCount || 0}
             styles={styles}
+            COLORS={COLORS}
           />
         ))}
       </ScrollView>
@@ -532,10 +597,15 @@ const DrawerContent = ({ navigation, state }) => {
       {/* Footer - Logout */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutIcon}>🚪</Text>
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color={COLORS.ERROR}
+            style={styles.logoutIcon}
+          />
           <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
-        <Text style={styles.version}>TulipFleet v1.0.0</Text>
+        <Text style={styles.version}>TulipFleet v2.1.0</Text>
       </View>
 
       {/* Language Selection Modal */}
