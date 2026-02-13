@@ -75,3 +75,135 @@ Senaryo B: 50 → 200 Araç (1 yıl içinde)
 Mevcut yapı: ⚠️ Kısmen yeterli
 Gerekli değişiklikler:
 
+<<<<<<< HEAD
+=======
+- Marker clustering (frontend)
+- Backend modüler yapı (optional ama önerilir)
+- Redis caching genişletme
+  Senaryo C: 200+ Araç (Enterprise)
+  Mevcut yapı: 🔴 Yetersiz
+  Gerekli değişiklikler:
+- Kubernetes/Load balancer
+- Message queue (RabbitMQ/Kafka)
+- Separate microservices
+- CDN for mobile assets
+  Önemli güvenlik notu
+
+Mesajlarında canlı JWT token’lar açıkça görünüyor. Bunları artık kopyalayıp paylaşmamanı öneririm; mümkünse bu token’ları da yenile/expire et (logout / token rotate).
+
+İstersen sıradaki adım: DeviceSetupScreen.js içinde Gate’i nereye koyduğunu söyle, ben bu endpoint response’una göre en kısa entegrasyon kodunu (React Native) yazayım.
+
+XH-028 voltmetre modülü eklemeyi tavsiye eder miyim?
+Ne kazandırır?
+
+Araç beslemesi düştü mü? (akü zayıf / marş anı / regülatör problemi)
+
+Cihaz reset atıyor mu? Reset sebebini yakalamanı kolaylaştırır.
+
+“GPS gitti / MQTT gitti” gibi sorunlarda: neden elektrik mi, kapsama mı? ayrımı hızlanır.
+
+LED’ler
+
+GPIO4 (Mavi) = WiFi
+
+WiFi yok/bağlanıyor: 500ms blink
+
+WiFi bağlı: sabit ON
+
+GPIO5 (Kırmızı) = GPS fix
+
+Fix yok: 300ms blink
+
+Fix var: sabit ON
+
+Durum Şoför ne görür Sen ne anlarsın
+WiFi kapalı Mavi blink Veri gelmez
+GPS fix yok Kırmızı blink Kapalı alan / anten
+İkisi ON Her şey OK Backend de OK
+GPS gidip geliyor Kırmızı yanıp söner Urban canyon
+Pratik Kul
+
+Güv
+📊 BarCodeScanner Kullanılan Dosyalar
+
+AdminDeviceInventory.js (Admin - Serial okuma)
+DeviceSetupScreen.js (Driver - QR token okuma)
+DriverDeviceAssignment.js (Driver - Cihaz atama)
+🔐 TulipFleet - Profesyonel Cihaz Provisioning Sistemi v2Tarih: 29 Ocak 2026
+Durum: PRODUCTION READY
+Güvenlik: Multi-Layer Security ✅🎯 SİSTEM FELSEFESİTemel Prensipler
+Zero Trust Security 🛡️
+
+Hiçbir cihaz "güvenilir" değildir
+Her adımda authorization kontrolü
+Kayıtsız cihaz = Sisteme giremez
+
+Minimal Admin Müdahalesi 👨‍💼
+
+Admin sadece ilk kurulumda (şirket + araç + sürücü)
+Günlük kullanımda sürücü self-service
+WiFi credentials otomatik hatırlanır (ESP32 NVS)
+
+User-Friendly UX 🎨
+
+QR scan (hızlı)
+Manuel serial giriş (QR eskidiyse)
+Sürücü kendi araçlarını görür
+Tek tıkla bağlantı (WiFi kaydedilmişse)
+
+TulipFleet artık gerçek operasyonel workflow’a geçti.
+
+Bu artık “task app” değil.
+Bu:
+
+✔ State machine kontrollü
+
+✔ Idempotent
+
+✔ Event-driven
+
+✔ Production-safe
+
+✔ Forward-only logic enforced
+
+✔ Rollback-ready
+
+✔ Audit-capable
+
+bir lojistik operasyon motoru.
+
+Şu Anki Mimari Seviyesi
+Backend
+
+UUID tabanlı task sistemi
+
+Event sourcing benzeri progress log
+
+Waypoint state progression enforced
+
+Transaction-safe updates
+
+Multi-tenant isolation
+
+NO-THROW safety layer
+
+API Layer
+
+Clean service abstraction
+
+Status endpoint standardization
+
+Backward compatibility preserved
+
+Driver UI
+
+Deterministic next-stop logic
+
+Real-time progress timeline
+
+Controlled button enablement
+
+Status-driven UX
+
+Bu artık enterprise kalitesinde.
+>>>>>>> a692094 (chore(android): build config & splash updates)

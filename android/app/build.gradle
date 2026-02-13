@@ -160,6 +160,9 @@ android {
 }
 
 dependencies {
+    // RxJava2 - needed for BLE disconnect crash fix (RxJavaPlugins)
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
