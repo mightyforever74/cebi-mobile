@@ -1,6 +1,9 @@
 // src/screens/admin/AdminSettings.js
 // TulipFleet - Admin Ayarlar Ekranı (DriverSettings seviyesi - Full Featured)
-// Updated: 23 Ocak 2026
+// Updated: 11 Şubat 2026 - Theme token cleanup (UI System Guide v3)
+// ✅ SPACING/RADIUS/SHADOWS/TYPOGRAPHY tokens
+// ✅ rgba → COLORS.OVERLAY, gap → marginRight, hex concat → getLightBg
+// ⚠️ Component logic'e dokunulmadı (sadece style + icon backgroundColor fix)
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -42,7 +45,7 @@ const STORAGE_KEYS = {
 const BASE_URL = "https://tulipfleet.com";
 
 // ============================================
-// makeStyles
+// makeStyles - THEME TOKENS
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -61,99 +64,93 @@ const makeStyles = (COLORS) =>
     profileCard: {
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
-      paddingVertical: 30,
-      paddingHorizontal: 20,
+      paddingVertical: COLORS.SPACING.xl, // 32
+      paddingHorizontal: COLORS.SPACING.lg, // 24
     },
     avatarLarge: {
       width: 80,
       height: 80,
-      borderRadius: 40,
+      borderRadius: COLORS.RADIUS.full, // circle
       backgroundColor: COLORS.WHITE,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     avatarText: {
-      fontSize: 32,
-      fontWeight: "bold",
+      ...COLORS.TYPOGRAPHY.styles.h1,
       color: COLORS.PRIMARY,
     },
     profileName: {
-      fontSize: 22,
-      fontWeight: "bold",
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.WHITE,
-      marginBottom: 4,
+      marginBottom: COLORS.SPACING.xs, // 4
     },
     profileEmail: {
-      fontSize: 14,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.WHITE,
       opacity: 0.8,
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     roleBadge: {
       backgroundColor: COLORS.WHITE,
       opacity: 0.2,
-      paddingHorizontal: 16,
-      paddingVertical: 6,
-      borderRadius: 20,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.full,
     },
     roleText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     // Section Header
     sectionHeader: {
-      paddingHorizontal: 16,
-      paddingTop: 24,
-      paddingBottom: 8,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingTop: COLORS.SPACING.lg, // 24
+      paddingBottom: COLORS.SPACING.sm, // 8
     },
     sectionTitle: {
-      fontSize: 12,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       letterSpacing: 1,
       color: COLORS.TEXT_SECONDARY,
     },
 
     // Setting Group
     settingGroup: {
-      marginHorizontal: 12,
-      borderRadius: 12,
+      marginHorizontal: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card, // 12
       backgroundColor: COLORS.SURFACE,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      ...COLORS.SHADOWS.xs,
     },
 
     // Setting Item
     settingItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.md, // 16
       backgroundColor: COLORS.SURFACE,
     },
     settingIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
+      width: COLORS.SPACING.xxl, // 40
+      height: COLORS.SPACING.xxl, // 40
+      borderRadius: COLORS.RADIUS.sm, // 8
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 12,
+      marginRight: COLORS.SPACING.md, // 16
     },
     settingContent: {
       flex: 1,
     },
     settingTitle: {
-      fontSize: 15,
-      fontWeight: "500",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT,
     },
     settingSubtitle: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       marginTop: 2,
       color: COLORS.TEXT_SECONDARY,
     },
@@ -161,95 +158,95 @@ const makeStyles = (COLORS) =>
     // Divider
     divider: {
       height: 1,
-      marginLeft: 68,
+      marginLeft: COLORS.SPACING.xxl + COLORS.SPACING.md + COLORS.SPACING.md,
       backgroundColor: COLORS.DIVIDER,
     },
 
     // Footer
     footer: {
       alignItems: "center",
-      paddingVertical: 30,
-      paddingHorizontal: 20,
+      paddingVertical: COLORS.SPACING.xl, // 32
+      paddingHorizontal: COLORS.SPACING.lg, // 24
     },
     footerText: {
-      fontSize: 14,
-      fontWeight: "500",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT_SECONDARY,
     },
     footerSubtext: {
-      fontSize: 12,
-      marginTop: 4,
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      marginTop: COLORS.SPACING.xs, // 4
       color: COLORS.MUTED,
     },
     footerEmail: {
-      fontSize: 11,
-      marginTop: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs, // 10 (closest to 11)
+      marginTop: COLORS.SPACING.sm, // 8
       color: COLORS.MUTED,
     },
 
     // Modal
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: COLORS.OVERLAY,
       justifyContent: "center",
       alignItems: "center",
     },
     modalContent: {
       backgroundColor: COLORS.SURFACE,
-      borderRadius: 16,
-      padding: 24,
+      borderRadius: COLORS.RADIUS.modal, // 16
+      padding: COLORS.SPACING.lg, // 24
       width: "90%",
       maxWidth: 400,
+      ...COLORS.SHADOWS.modal,
     },
     modalTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
       textAlign: "center",
-      marginBottom: 20,
+      marginBottom: COLORS.SPACING.lg, // 24
     },
     inputLabel: {
-      fontSize: 14,
-      fontWeight: "500",
+      ...COLORS.TYPOGRAPHY.styles.label,
       color: COLORS.TEXT,
-      marginBottom: 6,
-      marginTop: 12,
+      marginBottom: COLORS.SPACING.sm, // 8
+      marginTop: COLORS.SPACING.md, // 16
     },
     modalInput: {
       borderWidth: 1,
-      borderColor: COLORS.BORDER,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
+      borderColor: COLORS.INPUT_BORDER,
+      borderRadius: COLORS.RADIUS.input, // 8
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT,
-      backgroundColor: COLORS.SURFACE,
+      backgroundColor: COLORS.INPUT_BG,
     },
     modalButtons: {
       flexDirection: "row",
-      gap: 12,
-      marginTop: 24,
+      marginTop: COLORS.SPACING.lg, // 24
     },
     modalButton: {
       flex: 1,
-      paddingVertical: 14,
-      borderRadius: 8,
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.button, // 8
       alignItems: "center",
+      justifyContent: "center",
     },
     modalButtonCancel: {
       backgroundColor: COLORS.SECONDARY,
+      marginRight: COLORS.SPACING.sm, // 8 (gap yerine)
     },
     modalButtonCancelText: {
       color: COLORS.TEXT,
-      fontWeight: "600",
-      fontSize: 16,
+      ...COLORS.TYPOGRAPHY.styles.button,
     },
     modalButtonSave: {
       backgroundColor: COLORS.PRIMARY,
     },
     modalButtonSaveText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
-      fontSize: 16,
+      ...COLORS.TYPOGRAPHY.styles.button,
     },
   });
 
@@ -301,6 +298,18 @@ const AdminSettings = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // ============================================
+  // Helpers
+  // ============================================
+  const getLightBg = (color) => {
+    if (color === COLORS.SUCCESS) return COLORS.SUCCESS_LIGHT;
+    if (color === COLORS.WARNING) return COLORS.WARNING_LIGHT;
+    if (color === COLORS.ERROR) return COLORS.ERROR_LIGHT;
+    if (color === COLORS.INFO) return COLORS.INFO_LIGHT;
+    if (color === COLORS.PRIMARY) return COLORS.SECONDARY;
+    return COLORS.DIVIDER;
+  };
+
+  // ============================================
   // Nested Components
   // ============================================
 
@@ -323,7 +332,7 @@ const AdminSettings = ({ navigation }) => {
       <View
         style={[
           styles.settingIcon,
-          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
+          { backgroundColor: getLightBg(iconColor || COLORS.PRIMARY) },
         ]}
       >
         <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
@@ -572,7 +581,6 @@ const AdminSettings = ({ navigation }) => {
     );
   };
 
-  // ✅ YENİ KOD
   const handleHelpCenter = () => {
     navigation.navigate("HelpCenterScreen");
   };
@@ -580,10 +588,10 @@ const AdminSettings = ({ navigation }) => {
   const handleSupport = () => {
     const subject = encodeURIComponent("TulipFleet Admin App - Destek Talebi");
     const body = encodeURIComponent(
-      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
+      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 2.1.0`
     );
     Linking.openURL(
-      `mailto:support@tulipfleet.com?subject=${subject}&body=${body}`
+      `mailto:mightyforever74@gmail.com?subject=${subject}&body=${body}`
     );
   };
 
@@ -597,7 +605,7 @@ const AdminSettings = ({ navigation }) => {
   const handleAbout = () => {
     Alert.alert(
       "TulipFleet",
-      `${t("settings.version") || "Versiyon"} 1.0.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır."}\n\n© 2025 TulipFleet`,
+      `${t("settings.version") || "Versiyon"} 2.1.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır."}\n\n© 2025 TulipFleet`,
       [{ text: t("common.ok") || "Tamam" }]
     );
   };
@@ -927,8 +935,8 @@ const AdminSettings = ({ navigation }) => {
           title={t("settings.darkMode") || "Karanlık Mod"}
           subtitle={
             isDark
-              ? t("settings.darkModeOn") || "Açık 🌙"
-              : t("settings.darkModeOff") || "Kapalı ☀️"
+              ? t("settings.darkModeOn") || "Açık"
+              : t("settings.darkModeOff") || "Kapalı"
           }
           showArrow={false}
           rightElement={
@@ -971,7 +979,7 @@ const AdminSettings = ({ navigation }) => {
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
           title={t("settings.contactUs") || "Bize Ulaşın"}
-          subtitle="support@tulipfleet.com"
+          subtitle="mightyforever74@gmail.com"
           onPress={handleSupport}
         />
         <View style={styles.divider} />
@@ -987,7 +995,7 @@ const AdminSettings = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.aboutApp") || "Uygulama Hakkında"}
-          subtitle={(t("settings.version") || "Versiyon") + " 1.0.0"}
+          subtitle={(t("settings.version") || "Versiyon") + " 2.1.0"}
           onPress={handleAbout}
         />
       </View>
@@ -1005,7 +1013,7 @@ const AdminSettings = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
+        <Text style={styles.footerText}>TulipFleet v2.1.0</Text>
         <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>

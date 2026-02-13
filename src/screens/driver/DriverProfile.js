@@ -33,8 +33,8 @@ const makeStyles = (COLORS) =>
     profileCard: {
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
-      paddingVertical: 30,
-      paddingHorizontal: 20,
+      paddingVertical: COLORS.SPACING.xl,
+      paddingHorizontal: COLORS.SPACING.headerPadding,
     },
     avatarLarge: {
       width: 80,
@@ -43,7 +43,7 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.WHITE,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.md,
     },
     avatarText: {
       fontSize: 32,
@@ -54,45 +54,41 @@ const makeStyles = (COLORS) =>
       fontSize: 22,
       fontWeight: "bold",
       color: COLORS.WHITE,
-      marginBottom: 4,
+      marginBottom: COLORS.SPACING.xs,
     },
     profileEmail: {
       fontSize: 14,
-      color: "rgba(255,255,255,0.8)",
-      marginBottom: 12,
+      color: COLORS.WHITE_80,
+      marginBottom: COLORS.SPACING.md,
     },
     roleBadge: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(255,255,255,0.2)",
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: 20,
+      backgroundColor: COLORS.WHITE_20,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
     },
     roleText: {
       color: COLORS.WHITE,
       fontSize: 12,
       fontWeight: "600",
-      marginLeft: 6,
+      marginLeft: COLORS.SPACING.xs,
     },
     statsContainer: {
       flexDirection: "row",
-      paddingHorizontal: 12,
-      marginTop: -20,
-      marginBottom: 8,
+      paddingHorizontal: COLORS.SPACING.md,
+      marginTop: -COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.sm,
     },
     statCard: {
       flex: 1,
       backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      padding: 16,
-      marginHorizontal: 4,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.md,
+      marginHorizontal: COLORS.SPACING.xs,
       alignItems: "center",
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      ...COLORS.SHADOWS.card,
     },
     statIcon: {
       width: 40,
@@ -100,7 +96,7 @@ const makeStyles = (COLORS) =>
       borderRadius: 20,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     statValue: {
       fontSize: 18,
@@ -113,9 +109,9 @@ const makeStyles = (COLORS) =>
       marginTop: 2,
     },
     sectionHeader: {
-      paddingHorizontal: 16,
-      paddingTop: 24,
-      paddingBottom: 8,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: COLORS.SPACING.lg,
+      paddingBottom: COLORS.SPACING.sm,
     },
     sectionTitle: {
       fontSize: 12,
@@ -125,27 +121,23 @@ const makeStyles = (COLORS) =>
     },
     settingGroup: {
       backgroundColor: COLORS.CARD,
-      marginHorizontal: 12,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      marginHorizontal: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card,
+      ...COLORS.SHADOWS.xs,
     },
     settingItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.md,
     },
     settingIcon: {
       width: 40,
       height: 40,
-      borderRadius: 10,
+      borderRadius: COLORS.RADIUS.sm, // 8 (was 10)
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 12,
+      marginRight: COLORS.SPACING.md, // 16 (was 12)
     },
     settingContent: {
       flex: 1,
@@ -163,11 +155,12 @@ const makeStyles = (COLORS) =>
     divider: {
       height: 1,
       backgroundColor: COLORS.DIVIDER,
-      marginLeft: 68,
+      // 40(icon width) + 16(paddingHorizontal) + 16(icon marginRight) = 72
+      marginLeft: 40 + COLORS.SPACING.md + COLORS.SPACING.md,
     },
     footer: {
       alignItems: "center",
-      paddingVertical: 30,
+      paddingVertical: COLORS.SPACING.xl, // 32 (was 30)
     },
     footerText: {
       fontSize: 14,
@@ -187,8 +180,18 @@ const makeStyles = (COLORS) =>
 const DriverProfile = ({ navigation }) => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  // Theme-aware light background helper (no hex hacks like `${color}15`)
+  const getLightBg = (color) => {
+    if (color === COLORS.SUCCESS) return COLORS.SUCCESS_LIGHT;
+    if (color === COLORS.WARNING) return COLORS.WARNING_LIGHT;
+    if (color === COLORS.ERROR) return COLORS.ERROR_LIGHT;
+    if (color === COLORS.INFO) return COLORS.INFO_LIGHT;
+    if (color === COLORS.PRIMARY) return COLORS.SECONDARY;
+    return COLORS.DIVIDER;
+  };
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
@@ -216,7 +219,7 @@ const DriverProfile = ({ navigation }) => {
       <View
         style={[
           styles.settingIcon,
-          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
+          { backgroundColor: getLightBg(iconColor || COLORS.PRIMARY) },
         ]}
       >
         <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
@@ -242,7 +245,9 @@ const DriverProfile = ({ navigation }) => {
   // Stat Card Component
   const StatCard = ({ icon, iconColor, value, label }) => (
     <View style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: `${iconColor}15` }]}>
+      <View
+        style={[styles.statIcon, { backgroundColor: getLightBg(iconColor) }]}
+      >
         <Ionicons name={icon} size={20} color={iconColor} />
       </View>
       <Text style={styles.statValue}>{value}</Text>
@@ -280,7 +285,7 @@ const DriverProfile = ({ navigation }) => {
       { text: t("profile.cancel"), style: "cancel" },
       {
         text: t("profile.sendEmail"),
-        onPress: () => Linking.openURL("mailto:support@tulipfleet.com"),
+        onPress: () => Linking.openURL("mailto:mightyforever74@gmail.com"),
       },
     ]);
   };
@@ -409,7 +414,7 @@ const DriverProfile = ({ navigation }) => {
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
           title={t("profile.contactUs")}
-          subtitle="support@tulipfleet.com"
+          subtitle="mightyforever74@gmail.com"
           onPress={handleSupport}
         />
         <View style={styles.divider} />

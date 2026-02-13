@@ -36,7 +36,7 @@ import {
 
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { driversAPI, taskAPI, vehicleAPI } from "../../services/api";
+import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
 
 // --- helper: #RRGGBB => #RRGGBBAA (soft bg/overlay için) ---
 const withAlpha = (hex, alpha01) => {
@@ -476,6 +476,7 @@ export default function CreateTaskScreen({ navigation }) {
   const [vehicleId, setVehicleId] = useState(null);
   const [startLocation, setStartLocation] = useState("");
   const [endLocation, setEndLocation] = useState("");
+  const [waypoints, setWaypoints] = useState([]);
 
   // Date/Time State
   const [startDate, setStartDate] = useState(new Date());
@@ -529,7 +530,7 @@ export default function CreateTaskScreen({ navigation }) {
     try {
       setDataLoading(true);
       const [driversRes, vehiclesRes] = await Promise.all([
-        driversAPI.getList(),
+        driverAPI.getList(),
         vehicleAPI.getList(),
       ]);
       setDrivers(driversRes.drivers || driversRes || []);
@@ -539,6 +540,46 @@ export default function CreateTaskScreen({ navigation }) {
     } finally {
       setDataLoading(false);
     }
+  };
+
+  // Waypoint helpers
+  const addWaypoint = () => {
+    setWaypoints((prev) => [
+      ...prev,
+      {
+        id: `wp-${prev.length + 1}`,
+        name: "",
+        address: "",
+        latitude: null,
+        longitude: null,
+        planned_arrival: null,
+        status: "pending",
+      },
+    ]);
+  };
+
+  const removeWaypoint = (id) => {
+    setWaypoints((prev) => prev.filter((wp) => wp.id !== id));
+  };
+
+  const moveUp = (index) => {
+    if (index === 0) return;
+    const copy = [...waypoints];
+    [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
+    setWaypoints(copy);
+  };
+
+  const moveDown = (index) => {
+    if (index === waypoints.length - 1) return;
+    const copy = [...waypoints];
+    [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
+    setWaypoints(copy);
+  };
+
+  const updateWaypoint = (id, field, value) => {
+    setWaypoints((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, [field]: value } : w))
+    );
   };
 
   // Combine date and time
@@ -750,7 +791,7 @@ export default function CreateTaskScreen({ navigation }) {
 
     return true;
   };
-
+  const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
   // Timezone handling - UTC to backend
   const handleSubmit = async () => {
     if (!validateForm()) return;
@@ -760,6 +801,28 @@ export default function CreateTaskScreen({ navigation }) {
 
     try {
       setLoading(true);
+
+      // Waypoint adreslerini geocode et
+      const geocodedWaypoints = await Promise.all(
+        waypoints.map(async (wp) => {
+          if (wp.latitude && wp.longitude) return wp;
+          const addr = wp.address || wp.name;
+          if (!addr) return wp;
+          try {
+            const res = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${GOOGLE_MAPS_API_KEY}&language=tr&region=tr`
+            );
+            const data = await res.json();
+            if (data.status === "OK" && data.results?.[0]?.geometry?.location) {
+              const { lat, lng } = data.results[0].geometry.location;
+              return { ...wp, latitude: lat, longitude: lng };
+            }
+          } catch (e) {
+            console.error("Geocode error:", e);
+          }
+          return wp;
+        })
+      );
 
       const taskData = {
         title: title.trim(),
@@ -771,6 +834,15 @@ export default function CreateTaskScreen({ navigation }) {
         end_location: endLocation.trim(),
         scheduled_start: scheduledStart.toISOString(),
         scheduled_end: scheduledEnd.toISOString(),
+        waypoints: geocodedWaypoints.map((wp) => ({
+          id: wp.id,
+          name: wp.name || "",
+          address: wp.address || "",
+          latitude: Number(wp.latitude) || null,
+          longitude: Number(wp.longitude) || null,
+          planned_arrival: wp.planned_arrival || null,
+          status: "pending",
+        })),
       };
 
       await taskAPI.create(taskData);
@@ -1059,7 +1131,7 @@ export default function CreateTaskScreen({ navigation }) {
               onChangeText={setTitle}
               placeholder={getText(
                 t,
-                "enter_task_title_placeholder",
+                "task_title_placeholder",
                 "Görev başlığını girin",
                 "Enter task title",
                 isEn
@@ -1337,6 +1409,236 @@ export default function CreateTaskScreen({ navigation }) {
               />
             </View>
           </View>
+        </View>
+
+        {/* ═══ Waypoints / Duraklar ═══ */}
+        <View style={styles.section}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
+            <Text style={styles.sectionTitle}>
+              {getText(t, "waypoints", "Duraklar", "Stops", isEn)}
+            </Text>
+            <TouchableOpacity
+              onPress={addWaypoint}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 20,
+                gap: 6,
+              }}
+            >
+              <Ionicons name="add-circle" size={18} color={COLORS.PRIMARY} />
+              <Text
+                style={{
+                  color: COLORS.PRIMARY,
+                  fontWeight: "600",
+                  fontSize: 14,
+                }}
+              >
+                {getText(t, "add_stop", "Durak Ekle", "Add Stop", isEn)}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {waypoints.length === 0 && (
+            <Text
+              style={{
+                textAlign: "center",
+                color: COLORS.MUTED,
+                paddingVertical: 20,
+                fontSize: 14,
+              }}
+            >
+              {getText(
+                t,
+                "no_stops_yet",
+                "Henüz durak eklenmedi",
+                "No stops added yet",
+                isEn
+              )}
+            </Text>
+          )}
+
+          {waypoints.map((wp, index) => (
+            <View
+              key={wp.id}
+              style={{
+                backgroundColor: withAlpha(COLORS.SECONDARY, 0.4),
+                borderRadius: 14,
+                padding: 14,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+              }}
+            >
+              {/* Header: #index + controls */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 10,
+                }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      backgroundColor: COLORS.PRIMARY,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: COLORS.WHITE,
+                        fontWeight: "700",
+                        fontSize: 13,
+                      }}
+                    >
+                      {index + 1}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontWeight: "600",
+                      color: COLORS.TEXT,
+                      fontSize: 15,
+                    }}
+                  >
+                    {wp.name ||
+                      getText(t, "stop", "Durak", "Stop", isEn) +
+                        " " +
+                        (index + 1)}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", gap: 6 }}>
+                  <TouchableOpacity
+                    onPress={() => moveUp(index)}
+                    disabled={index === 0}
+                    style={{ opacity: index === 0 ? 0.3 : 1, padding: 4 }}
+                  >
+                    <Ionicons
+                      name="chevron-up"
+                      size={20}
+                      color={COLORS.PRIMARY}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => moveDown(index)}
+                    disabled={index === waypoints.length - 1}
+                    style={{
+                      opacity: index === waypoints.length - 1 ? 0.3 : 1,
+                      padding: 4,
+                    }}
+                  >
+                    <Ionicons
+                      name="chevron-down"
+                      size={20}
+                      color={COLORS.PRIMARY}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => removeWaypoint(wp.id)}
+                    style={{ padding: 4 }}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={COLORS.ERROR}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Stop Name */}
+              <TextInput
+                style={styles.textInput}
+                placeholder={getText(
+                  t,
+                  "stop_name",
+                  "Durak Adı",
+                  "Stop Name",
+                  isEn
+                )}
+                placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
+                value={wp.name}
+                onChangeText={(val) => updateWaypoint(wp.id, "name", val)}
+              />
+
+              {/* Address */}
+              <TextInput
+                style={[styles.textInput, { marginTop: 8 }]}
+                placeholder={getText(
+                  t,
+                  "stop_address",
+                  "Durak Adresi",
+                  "Stop Address",
+                  isEn
+                )}
+                placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
+                value={wp.address || ""}
+                onChangeText={(val) => updateWaypoint(wp.id, "address", val)}
+              />
+
+              {/* Planned Arrival */}
+              <View style={{ marginTop: 8 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: COLORS.MUTED,
+                    marginBottom: 4,
+                  }}
+                >
+                  {getText(
+                    t,
+                    "planned_arrival",
+                    "Planlanan Varış",
+                    "Planned Arrival",
+                    isEn
+                  )}
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="2026-02-15T14:30"
+                  placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
+                  value={
+                    wp.planned_arrival ? wp.planned_arrival.slice(0, 16) : ""
+                  }
+                  onChangeText={(val) => {
+                    if (!val) {
+                      updateWaypoint(wp.id, "planned_arrival", null);
+                      return;
+                    }
+                    try {
+                      const d = new Date(val);
+                      if (!isNaN(d.getTime()))
+                        updateWaypoint(
+                          wp.id,
+                          "planned_arrival",
+                          d.toISOString()
+                        );
+                    } catch {}
+                  }}
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+          ))}
         </View>
 
         {/* Submit Button */}

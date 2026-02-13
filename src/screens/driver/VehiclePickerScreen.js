@@ -1,4 +1,10 @@
 // src/screens/driver/VehiclePickerScreen.js
+// TulipFleet - Vehicle Picker Screen (Device Provision Flow)
+// Updated: 11 Şubat 2026 - Theme migration (UI System Guide v3)
+// ✅ useTheme + useThemedStyles + makeStyles
+// ✅ Card component, 8px grid, no hardcoded hex/rgba, dark mode ready
+
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
@@ -10,32 +16,186 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import Card from "../../components/ui/Card";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverProvisionAPI } from "../../services/api";
+
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+
+    // Loading / Empty
+    centerContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      padding: COLORS.SPACING.lg, // 24
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    emptyText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      marginBottom: COLORS.SPACING.lg, // 24
+    },
+
+    // Header
+    header: {
+      backgroundColor: COLORS.SURFACE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: COLORS.SPACING.lg, // 24
+    },
+    title: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm, // 8
+    },
+    subtitle: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+    },
+
+    // List
+    listContainer: {
+      flex: 1,
+      padding: COLORS.SPACING.md, // 16
+    },
+
+    // Vehicle card (use Card component)
+    vehicleTouchable: {
+      // touch wrapper, no styles needed; keep for readability
+    },
+    vehicleCard: {
+      // Card provides base. We'll add internal layout.
+    },
+    vehicleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    vehicleIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: COLORS.WARNING_LIGHT,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.md, // 16
+    },
+    vehicleInfo: {
+      flex: 1,
+    },
+    vehiclePlate: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.xs, // 4
+    },
+    vehicleDetails: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.xs, // 4
+    },
+    vehicleFuel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+    },
+    arrowIcon: {
+      marginLeft: COLORS.SPACING.sm, // 8
+    },
+
+    // Footer
+    footer: {
+      padding: COLORS.SPACING.md, // 16
+      backgroundColor: COLORS.SURFACE,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+    },
+    cancelButton: {
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.button, // 8
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.DIVIDER,
+    },
+    cancelButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.TEXT_SECONDARY,
+    },
+
+    // Retry button (empty state)
+    retryButton: {
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.button,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      backgroundColor: COLORS.PRIMARY,
+      ...COLORS.SHADOWS.button,
+    },
+    retryButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+    },
+
+    // Assign overlay
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: COLORS.SPACING.lg, // 24
+    },
+    loadingOverlayText: {
+      marginTop: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+  });
 
 const VehiclePickerScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = useAuth();
 
-  const { serial, deviceId } = route.params;
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  const { serial, deviceId } = route.params || {};
 
   const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState([]);
   const [assigning, setAssigning] = useState(false);
 
-  // User display name with fallback
   const displayName = user?.first_name || user?.name || user?.email || "Sürücü";
 
   useEffect(() => {
     fetchVehicles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchVehicles = async () => {
     try {
       setLoading(true);
       const response = await driverProvisionAPI.getAvailableVehicles();
-      setVehicles(response.vehicles || []);
+      setVehicles(response?.vehicles || []);
     } catch (error) {
       console.error("[VehiclePicker] Error:", error);
       Alert.alert("Hata", "Araçlar yüklenemedi");
@@ -45,7 +205,6 @@ const VehiclePickerScreen = () => {
   };
 
   const handleVehicleSelect = async (vehicle) => {
-    // Plate with fallback
     const plate = vehicle.plate || vehicle.plate_no || "Bilinmeyen";
 
     Alert.alert(
@@ -53,16 +212,12 @@ const VehiclePickerScreen = () => {
       `${plate} plakalı aracı seçtiniz. Devam etmek istiyor musunuz?`,
       [
         { text: "İptal", style: "cancel" },
-        {
-          text: "Devam",
-          onPress: () => assignDevice(vehicle),
-        },
+        { text: "Devam", onPress: () => assignDevice(vehicle) },
       ]
     );
   };
 
   const assignDevice = async (vehicle) => {
-    // ✅ deviceId double-check (ekstra güvenlik)
     if (!deviceId) {
       console.error("[VehiclePicker] ❌ No deviceId - cannot proceed!");
       Alert.alert(
@@ -98,9 +253,8 @@ const VehiclePickerScreen = () => {
         vehicle_id: vehicle.id,
       });
 
-      if (response.success) {
+      if (response?.success) {
         console.log("[VehiclePicker] ✅ Assignment success");
-        // WiFi Picker ekranına geç (replace ile - geri dönüş engellenir)
         navigation.replace("WiFiPickerMain", {
           serial,
           vehicle,
@@ -108,7 +262,7 @@ const VehiclePickerScreen = () => {
           deviceId,
         });
       } else {
-        Alert.alert("Hata", response.message || "Atama başarısız");
+        Alert.alert("Hata", response?.message || "Atama başarısız");
       }
     } catch (error) {
       console.error("[VehiclePicker] Assign error:", error);
@@ -124,7 +278,7 @@ const VehiclePickerScreen = () => {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FF6B35" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Araçlar yükleniyor...</Text>
       </View>
     );
@@ -134,7 +288,11 @@ const VehiclePickerScreen = () => {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.emptyText}>Kullanılabilir araç bulunamadı</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchVehicles}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={fetchVehicles}
+          activeOpacity={0.85}
+        >
           <Text style={styles.retryButtonText}>Yeniden Dene</Text>
         </TouchableOpacity>
       </View>
@@ -150,37 +308,57 @@ const VehiclePickerScreen = () => {
         </Text>
       </View>
 
-      <ScrollView style={styles.listContainer}>
-        {vehicles.map((vehicle, index) => {
+      <ScrollView
+        style={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {vehicles.map((vehicle) => {
           const plate = vehicle.plate || vehicle.plate_no || "-";
+          const fuelLabel =
+            vehicle.fuel_type === "diesel"
+              ? "Dizel"
+              : vehicle.fuel_type === "gasoline"
+                ? "Benzin"
+                : vehicle.fuel_type || "-";
 
           return (
             <TouchableOpacity
               key={vehicle.id}
-              style={[
-                styles.vehicleCard,
-                assigning && styles.vehicleCardDisabled,
-              ]}
+              style={styles.vehicleTouchable}
               onPress={() => handleVehicleSelect(vehicle)}
               disabled={assigning}
+              activeOpacity={0.85}
             >
-              <View style={styles.vehicleIcon}>
-                <Text style={styles.vehicleIconText}>🚗</Text>
-              </View>
+              <Card
+                variant="default"
+                noMarginBottom
+                style={assigning ? { opacity: 0.6 } : null}
+              >
+                <View style={styles.vehicleRow}>
+                  <View style={styles.vehicleIcon}>
+                    <Ionicons
+                      name="car-sport-outline"
+                      size={22}
+                      color={COLORS.WARNING}
+                    />
+                  </View>
 
-              <View style={styles.vehicleInfo}>
-                <Text style={styles.vehiclePlate}>{plate}</Text>
-                <Text style={styles.vehicleDetails}>
-                  {vehicle.brand} {vehicle.model} {vehicle.year}
-                </Text>
-                <Text style={styles.vehicleFuel}>
-                  Yakıt: {vehicle.fuel_type === "diesel" ? "Dizel" : "Benzin"}
-                </Text>
-              </View>
+                  <View style={styles.vehicleInfo}>
+                    <Text style={styles.vehiclePlate}>{plate}</Text>
+                    <Text style={styles.vehicleDetails}>
+                      {vehicle.brand} {vehicle.model} {vehicle.year}
+                    </Text>
+                    <Text style={styles.vehicleFuel}>Yakıt: {fuelLabel}</Text>
+                  </View>
 
-              <View style={styles.arrowIcon}>
-                <Text style={styles.arrowText}>→</Text>
-              </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={COLORS.MUTED}
+                    style={styles.arrowIcon}
+                  />
+                </View>
+              </Card>
             </TouchableOpacity>
           );
         })}
@@ -191,6 +369,7 @@ const VehiclePickerScreen = () => {
           style={styles.cancelButton}
           onPress={() => navigation.goBack()}
           disabled={assigning}
+          activeOpacity={0.85}
         >
           <Text style={styles.cancelButtonText}>İptal</Text>
         </TouchableOpacity>
@@ -198,151 +377,12 @@ const VehiclePickerScreen = () => {
 
       {assigning && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFF" />
+          <ActivityIndicator size="large" color={COLORS.WHITE} />
           <Text style={styles.loadingOverlayText}>Atanıyor...</Text>
         </View>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    padding: 20,
-    backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#666",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: "#FF6B35",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  listContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  vehicleCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  vehicleCardDisabled: {
-    opacity: 0.5,
-  },
-  vehicleIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#FFF3E0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  vehicleIconText: {
-    fontSize: 28,
-  },
-  vehicleInfo: {
-    flex: 1,
-  },
-  vehiclePlate: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 4,
-  },
-  vehicleDetails: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 2,
-  },
-  vehicleFuel: {
-    fontSize: 12,
-    color: "#999",
-  },
-  arrowIcon: {
-    marginLeft: 8,
-  },
-  arrowText: {
-    fontSize: 24,
-    color: "#FF6B35",
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: "#FFF",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-  },
-  cancelButton: {
-    backgroundColor: "#E0E0E0",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingOverlayText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#FFF",
-  },
-});
 
 export default VehiclePickerScreen;

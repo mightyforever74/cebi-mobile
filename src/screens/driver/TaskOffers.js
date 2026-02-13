@@ -1,6 +1,8 @@
-// src/screens/driver/TaskOfferDetail.js
+// src/screens/driver/TaskOffers.js
 // TulipFleet - Task Offer Detail with Accept/Reject
-// Version: 2.0 - Full i18n Support
+// Updated: 12 Şubat 2026 - Theme migration (UI System Guide v3)
+// ✅ useTheme + useThemedStyles, 0 hardcoded hex
+// ✅ SPACING/RADIUS/TYPOGRAPHY/SHADOWS tokens
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
@@ -16,7 +18,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/config";
+
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { taskOffersAPI } from "../../services/api";
 
 // Locale mapping for date formatting
@@ -30,8 +34,329 @@ const localeMap = {
   es: "es-ES",
 };
 
+// ── Styles factory ──────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md,
+      paddingBottom: 100,
+    },
+
+    // ── Loading / Error ──
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.md,
+      color: COLORS.TEXT_SECONDARY,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorText: {
+      color: COLORS.ERROR,
+      ...COLORS.TYPOGRAPHY.styles.body,
+    },
+
+    // ── Status Banner ──
+    statusBanner: {
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.md,
+      alignItems: "center",
+    },
+    statusBannerText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+
+    // ── Time Card ──
+    timeCard: {
+      backgroundColor: COLORS.WARNING_LIGHT,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      marginBottom: COLORS.SPACING.md,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.WARNING,
+    },
+    timeLabel: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.WARNING,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    timeValue: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.WARNING,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+
+    // ── Card ──
+    card: {
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.card,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.md,
+    },
+    cardTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    priorityBadge: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.badge,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    priorityText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.WHITE,
+    },
+    description: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      lineHeight: 22,
+      marginBottom: COLORS.SPACING.md,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: COLORS.DIVIDER,
+      marginVertical: COLORS.SPACING.md,
+    },
+
+    // ── Sections ──
+    section: {
+      marginBottom: COLORS.SPACING.xs,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.md,
+    },
+
+    // ── Location ──
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.md,
+    },
+    locationIcon: {
+      width: 28,
+      alignItems: "center",
+    },
+    locationIconText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    locationInfo: {
+      flex: 1,
+    },
+    locationLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: 2,
+    },
+    locationText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT,
+    },
+
+    // ── Vehicle ──
+    vehiclePlate: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+    },
+    vehicleModel: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+    },
+
+    // ── Schedule ──
+    scheduleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    scheduleLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    scheduleValue: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+
+    // ── Waypoints ──
+    waypointRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    waypointNumber: {
+      width: COLORS.SPACING.lg,
+      height: COLORS.SPACING.lg,
+      borderRadius: COLORS.SPACING.md,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.md,
+    },
+    waypointNumberText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    waypointText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+
+    // ── Action Buttons ──
+    actionContainer: {
+      flexDirection: "row",
+      padding: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+    actionButton: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    rejectButton: {
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.ERROR,
+      marginRight: COLORS.SPACING.sm,
+    },
+    rejectButtonText: {
+      color: COLORS.ERROR,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    acceptButton: {
+      backgroundColor: COLORS.SUCCESS,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    acceptButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    navButton: {
+      flex: 1,
+      backgroundColor: COLORS.PRIMARY,
+    },
+    navButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Modal ──
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      padding: COLORS.SPACING.lg,
+    },
+    modalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    modalSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.md,
+    },
+    reasonInput: {
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT,
+      minHeight: 80,
+      textAlignVertical: "top",
+      marginBottom: COLORS.SPACING.md,
+    },
+    modalActions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    modalCancelButton: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.md,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    modalCancelText: {
+      color: COLORS.TEXT_SECONDARY,
+      ...COLORS.TYPOGRAPHY.styles.body,
+    },
+    modalConfirmButton: {
+      flex: 1,
+      backgroundColor: COLORS.ERROR,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      marginLeft: COLORS.SPACING.sm,
+    },
+    modalConfirmText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+  });
+
+// ── Component ───────────────────────────────
 const TaskOfferDetail = () => {
   const { t, i18n } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const route = useRoute();
   const { offerId } = route.params;
@@ -138,18 +463,21 @@ const TaskOfferDetail = () => {
   const getPriorityLabel = (priority) => {
     switch (priority) {
       case "high":
-        return { text: t("offerDetail.priorities.high"), color: COLORS.danger };
+        return { text: t("offerDetail.priorities.high"), color: COLORS.ERROR };
       case "urgent":
-        return { text: t("offerDetail.priorities.urgent"), color: "#FF0000" };
+        return {
+          text: t("offerDetail.priorities.urgent"),
+          color: COLORS.ERROR,
+        };
       case "low":
         return {
           text: t("offerDetail.priorities.low"),
-          color: COLORS.textSecondary,
+          color: COLORS.TEXT_SECONDARY,
         };
       default:
         return {
           text: t("offerDetail.priorities.normal"),
-          color: COLORS.success,
+          color: COLORS.SUCCESS,
         };
     }
   };
@@ -160,7 +488,6 @@ const TaskOfferDetail = () => {
       return;
     }
 
-    // Google Maps ile aç (koordinatlar varsa)
     if (offer.route_json?.end_coords) {
       const { lat, lng } = offer.route_json.end_coords;
       const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
@@ -176,10 +503,12 @@ const TaskOfferDetail = () => {
     }
   };
 
+  // ── Render ──
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>{t("offerDetail.loading")}</Text>
       </View>
     );
@@ -214,10 +543,10 @@ const TaskOfferDetail = () => {
               {
                 backgroundColor:
                   offer.status === "accepted"
-                    ? COLORS.success
+                    ? COLORS.SUCCESS
                     : offer.status === "rejected"
-                    ? COLORS.danger
-                    : COLORS.textSecondary,
+                      ? COLORS.ERROR
+                      : COLORS.TEXT_SECONDARY,
               },
             ]}
           >
@@ -225,8 +554,8 @@ const TaskOfferDetail = () => {
               {offer.status === "accepted"
                 ? `✅ ${t("offerDetail.statuses.accepted")}`
                 : offer.status === "rejected"
-                ? `❌ ${t("offerDetail.statuses.rejected")}`
-                : `⏱️ ${t("offerDetail.statuses.expired")}`}
+                  ? `❌ ${t("offerDetail.statuses.rejected")}`
+                  : `⏱️ ${t("offerDetail.statuses.expired")}`}
             </Text>
           </View>
         )}
@@ -383,7 +712,7 @@ const TaskOfferDetail = () => {
             disabled={submitting}
           >
             {submitting ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <Text style={styles.acceptButtonText}>
                 ✅ {t("offerDetail.accept")}
@@ -426,6 +755,7 @@ const TaskOfferDetail = () => {
             <TextInput
               style={styles.reasonInput}
               placeholder={t("offerDetail.rejectReasonPlaceholder")}
+              placeholderTextColor={COLORS.PLACEHOLDER}
               value={rejectReason}
               onChangeText={setRejectReason}
               multiline
@@ -460,301 +790,5 @@ const TaskOfferDetail = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 12,
-    color: COLORS.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    color: COLORS.danger,
-    fontSize: 16,
-  },
-  statusBanner: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    alignItems: "center",
-  },
-  statusBannerText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  timeCard: {
-    backgroundColor: "#FFF3CD",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.warning,
-  },
-  timeLabel: {
-    fontSize: 14,
-    color: "#856404",
-    fontWeight: "500",
-  },
-  timeValue: {
-    fontSize: 16,
-    color: "#856404",
-    fontWeight: "bold",
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-    flex: 1,
-  },
-  priorityBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  priorityText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: COLORS.white,
-  },
-  description: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 16,
-  },
-  section: {
-    marginBottom: 4,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  locationIcon: {
-    width: 28,
-    alignItems: "center",
-  },
-  locationIconText: {
-    fontSize: 14,
-  },
-  locationInfo: {
-    flex: 1,
-  },
-  locationLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginBottom: 2,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  vehiclePlate: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  vehicleModel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  scheduleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  scheduleLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  scheduleValue: {
-    fontSize: 13,
-    color: COLORS.text,
-    fontWeight: "500",
-  },
-  waypointRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  waypointNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  waypointNumberText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: COLORS.white,
-  },
-  waypointText: {
-    fontSize: 14,
-    color: COLORS.text,
-    flex: 1,
-  },
-  actionContainer: {
-    flexDirection: "row",
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rejectButton: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.danger,
-    marginRight: 8,
-  },
-  rejectButtonText: {
-    color: COLORS.danger,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  acceptButton: {
-    backgroundColor: COLORS.success,
-    marginLeft: 8,
-  },
-  acceptButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  navButton: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-  navButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 16,
-  },
-  reasonInput: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: 16,
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalCancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginRight: 8,
-  },
-  modalCancelText: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-  },
-  modalConfirmButton: {
-    flex: 1,
-    backgroundColor: COLORS.danger,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginLeft: 8,
-  },
-  modalConfirmText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
 
 export default TaskOfferDetail;

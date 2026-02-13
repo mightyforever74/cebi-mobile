@@ -3,12 +3,9 @@
  * Driver Yakıt Giriş Ekranı - v2.1
  *
  * Düzeltmeler:
- * - KM sayacı 1.000 formatında gösterim
- * - KM validasyonu (önceki değerden büyük olmalı)
- * - Araç bilgisi düzenleme modalı
- * - Dil bazlı para birimi (₺/€)
- * - i18n desteği
- * - Dark Mode Migration v3
+ * - UI System Guide v3 uyumu (Card + tokens + no gap + no manual shadow)
+ * - Input'lar INPUT_BG / INPUT_BORDER kullanır
+ * - 8px grid (SPACING/RADIUS)
  *
  * Konum: src/screens/driver/FuelEntryScreen.js
  */
@@ -29,6 +26,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import Card from "../../components/ui/Card";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
@@ -99,7 +98,7 @@ const FUEL_TYPES = [
 ];
 
 // ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
+// makeStyles - TOKENS
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -109,50 +108,46 @@ const makeStyles = (COLORS) =>
     },
     scrollView: {
       flex: 1,
-      padding: 16,
+      padding: COLORS.SPACING.md, // 16
     },
     centered: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
+      padding: COLORS.SPACING.lg, // 24
     },
     loadingText: {
-      marginTop: 12,
-      fontSize: 14,
+      marginTop: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_SECONDARY,
     },
     emptyText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.lg, // 24
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
     },
     retryButton: {
-      marginTop: 16,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
+      marginTop: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      height: COLORS.SPACING.buttonHeight, // 48
       backgroundColor: COLORS.PRIMARY,
-      borderRadius: 8,
+      borderRadius: COLORS.RADIUS.button,
+      alignItems: "center",
+      justifyContent: "center",
+      ...COLORS.SHADOWS.button,
     },
     retryText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
       color: COLORS.WHITE,
-      fontWeight: "600",
     },
 
-    // Vehicle Card
-    vehicleCard: {
+    // Vehicle Card content
+    vehicleRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
     },
     vehicleHeader: {
       flexDirection: "row",
@@ -160,95 +155,88 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     vehicleInfo: {
-      marginLeft: 12,
+      marginLeft: COLORS.SPACING.md, // 16
       flex: 1,
     },
     plateNo: {
-      fontSize: 18,
-      fontWeight: "700",
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     vehicleDetails: {
-      fontSize: 14,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 2,
+      marginTop: COLORS.SPACING.xs, // 4
     },
     editButton: {
-      padding: 8,
-      borderRadius: 8,
+      padding: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.sm, // 8
       backgroundColor: COLORS.SECONDARY,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
     },
 
     // Form
-    form: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      padding: 16,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    },
     inputGroup: {
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     label: {
-      fontSize: 14,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.label,
       color: COLORS.TEXT_SECONDARY,
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm, // 8
     },
     input: {
-      backgroundColor: COLORS.INPUT,
-      borderRadius: 8,
-      padding: 14,
-      fontSize: 16,
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
       borderWidth: 1,
-      borderColor: COLORS.DIVIDER,
+      borderColor: COLORS.INPUT_BORDER,
       color: COLORS.TEXT,
     },
     inputError: {
       borderColor: COLORS.ERROR,
-      backgroundColor: COLORS.INPUT_ERROR,
+      backgroundColor: COLORS.ERROR_LIGHT,
     },
     inputReadonly: {
       backgroundColor: COLORS.DIVIDER,
     },
     readonlyText: {
-      fontSize: 16,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT_SECONDARY,
     },
     hint: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 6,
+      marginTop: COLORS.SPACING.xs, // 4
     },
     warning: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.WARNING,
-      marginTop: 6,
+      marginTop: COLORS.SPACING.xs, // 4
     },
 
     // Currency Input
     currencyInputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: COLORS.INPUT,
-      borderRadius: 8,
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
       borderWidth: 1,
-      borderColor: COLORS.DIVIDER,
+      borderColor: COLORS.INPUT_BORDER,
     },
     currencySymbol: {
-      paddingLeft: 14,
-      fontSize: 16,
+      paddingLeft: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     currencyInput: {
       flex: 1,
-      padding: 14,
-      fontSize: 16,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT,
     },
 
@@ -256,53 +244,53 @@ const makeStyles = (COLORS) =>
     checkboxRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     checkbox: {
       width: 24,
       height: 24,
-      borderRadius: 6,
+      borderRadius: COLORS.RADIUS.sm, // 8
       borderWidth: 2,
       borderColor: COLORS.PRIMARY,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 10,
+      marginRight: COLORS.SPACING.sm, // 8
     },
     checkboxChecked: {
       backgroundColor: COLORS.PRIMARY,
     },
     checkboxLabel: {
-      fontSize: 16,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.TEXT,
     },
 
     // Calculation Preview
     calculationPreview: {
       backgroundColor: COLORS.SECONDARY,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.md, // 16
       borderWidth: 1,
       borderColor: COLORS.PRIMARY,
     },
     calculationTitle: {
-      fontSize: 14,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm, // 8
     },
     calculationRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: 4,
+      marginBottom: COLORS.SPACING.xs, // 4
     },
     calculationLabel: {
-      fontSize: 13,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_SECONDARY,
     },
     calculationValue: {
-      fontSize: 13,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
     },
 
@@ -311,60 +299,57 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SECONDARY,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.md, // 16
+      borderWidth: 1,
+      borderColor: COLORS.INFO,
     },
     firstRecordText: {
       flex: 1,
-      marginLeft: 8,
-      fontSize: 13,
+      marginLeft: COLORS.SPACING.sm, // 8
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.PRIMARY,
     },
 
     // Error
     errorBox: {
-      backgroundColor: COLORS.INPUT_ERROR,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
+      backgroundColor: COLORS.ERROR_LIGHT,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.ERROR,
     },
     errorText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.ERROR,
-      fontSize: 14,
     },
 
     // Submit
     submitButton: {
       flexDirection: "row",
       backgroundColor: COLORS.SUCCESS,
-      borderRadius: 8,
-      padding: 16,
+      borderRadius: COLORS.RADIUS.button,
+      height: COLORS.SPACING.buttonHeight,
       justifyContent: "center",
       alignItems: "center",
+      ...COLORS.SHADOWS.button,
     },
     submitButtonDisabled: {
       backgroundColor: COLORS.MUTED,
     },
     submitButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
       color: COLORS.WHITE,
-      fontSize: 16,
-      fontWeight: "700",
-      marginLeft: 8,
+      marginLeft: COLORS.SPACING.sm, // 8
     },
 
     // Last Record
-    lastRecordCard: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      padding: 16,
-      marginTop: 16,
-    },
     lastRecordTitle: {
-      fontSize: 14,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_SECONDARY,
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.md, // 16
     },
     lastRecordRow: {
       flexDirection: "row",
@@ -375,21 +360,21 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     lastRecordLabel: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_SECONDARY,
-      marginBottom: 4,
+      marginBottom: COLORS.SPACING.xs, // 4
     },
     lastRecordValue: {
-      fontSize: 16,
-      fontWeight: "700",
+      ...COLORS.TYPOGRAPHY.styles.h4,
       color: COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     lastRecordDate: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
-      marginTop: 12,
-      paddingTop: 12,
+      marginTop: COLORS.SPACING.md,
+      paddingTop: COLORS.SPACING.md,
       borderTopWidth: 1,
       borderTopColor: COLORS.DIVIDER,
     },
@@ -402,48 +387,56 @@ const makeStyles = (COLORS) =>
     },
     modalContent: {
       backgroundColor: COLORS.SURFACE,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
+      borderTopLeftRadius: COLORS.RADIUS.xl, // 20
+      borderTopRightRadius: COLORS.RADIUS.xl, // 20
+      padding: COLORS.SPACING.lg, // 24
       maxHeight: "80%",
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      ...COLORS.SHADOWS.modal,
     },
     modalHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: COLORS.SPACING.lg, // 24
     },
     modalTitle: {
-      fontSize: 18,
-      fontWeight: "700",
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
 
-    // Fuel Type Selector
+    // Fuel Type Selector (no gap)
     fuelTypeContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 8,
     },
     fuelTypeButton: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 8,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.sm,
       borderWidth: 1,
       borderColor: COLORS.DIVIDER,
-      backgroundColor: COLORS.INPUT,
+      backgroundColor: COLORS.INPUT_BG,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     fuelTypeButtonActive: {
       borderColor: COLORS.PRIMARY,
       backgroundColor: COLORS.PRIMARY,
     },
     fuelTypeText: {
-      fontSize: 14,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_SECONDARY,
     },
     fuelTypeTextActive: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    spacer: {
+      height: COLORS.SPACING.xxxl, // 48 (keyboard breathing room)
     },
   });
 
@@ -483,6 +476,7 @@ const FuelEntryScreen = ({ navigation }) => {
   // Load vehicle & last record
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadData = async () => {
@@ -490,7 +484,6 @@ const FuelEntryScreen = ({ navigation }) => {
       setLoading(true);
       setError(null);
 
-      // 1. Sürücünün aracını al
       const vehicleResponse = await driverAPI.getVehicle();
 
       if (vehicleResponse && vehicleResponse.vehicle) {
@@ -499,14 +492,12 @@ const FuelEntryScreen = ({ navigation }) => {
         setEditFuelType(v.fuel_type || "diesel");
         setEditTankCapacity(v.fuel_capacity?.toString() || "60");
 
-        // 2. Son yakıt kaydını al
         try {
           const lastRecordResponse = await fuelAPI.getLastRecord(v.id);
           if (lastRecordResponse && lastRecordResponse.data) {
             setLastRecord(lastRecordResponse.data);
           }
-        } catch (err) {
-          // İlk kayıt olabilir, hata değil
+        } catch {
           console.log("No previous fuel record");
         }
       }
@@ -532,7 +523,6 @@ const FuelEntryScreen = ({ navigation }) => {
     setOdometerDisplay(formatKm(numericValue));
     setError(null);
 
-    // Anlık validation - önceki KM kontrolü
     if (lastRecord && numericValue) {
       const newKm = parseInt(numericValue);
       const lastKm = lastRecord.odometer_km;
@@ -549,7 +539,6 @@ const FuelEntryScreen = ({ navigation }) => {
     }
   };
 
-  // Validation
   const validate = () => {
     const km = parseInt(odometerKm);
     const liters = parseFloat(litersFilled);
@@ -580,7 +569,7 @@ const FuelEntryScreen = ({ navigation }) => {
     if (liters > tankCapacity) {
       setError(
         t("fuel.validation.litersExceedsTank", {
-          liters: liters,
+          liters,
           capacity: tankCapacity,
           defaultValue: `Maksimum ${tankCapacity}L girebilirsiniz`,
         })
@@ -588,7 +577,6 @@ const FuelEntryScreen = ({ navigation }) => {
       return false;
     }
 
-    // Mantıklı tüketim kontrolü
     if (lastRecord) {
       const kmTraveled = km - lastRecord.odometer_km;
       const consumption = (liters / kmTraveled) * 100;
@@ -622,11 +610,9 @@ const FuelEntryScreen = ({ navigation }) => {
     return true;
   };
 
-  // Submit
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    // FULL değilse uyar
     if (!isFullTank) {
       Alert.alert(
         t("fuel.notFullTankWarning.title", "Dikkat"),
@@ -661,7 +647,7 @@ const FuelEntryScreen = ({ navigation }) => {
         liters_filled: parseFloat(litersFilled),
         total_cost: totalCost ? parseFloat(totalCost) : null,
         is_full_tank: isFullTank,
-        currency: currency.code, // Para birimi kodu
+        currency: currency.code,
       };
 
       const response = await fuelAPI.addRecord(data);
@@ -671,16 +657,10 @@ const FuelEntryScreen = ({ navigation }) => {
 
         let message = t("fuel.success.message", "Kaydedildi!");
         if (result.km_traveled && result.consumption_per_100km) {
-          message += `\n\n• ${Number(result.km_traveled).toLocaleString(
-            "tr-TR"
-          )} km`;
-          message += `\n• ${parseFloat(result.consumption_per_100km).toFixed(
-            1
-          )} L/100km`;
+          message += `\n\n• ${Number(result.km_traveled).toLocaleString("tr-TR")} km`;
+          message += `\n• ${parseFloat(result.consumption_per_100km).toFixed(1)} L/100km`;
           if (result.cost_per_km) {
-            message += `\n• ${currency.symbol}${parseFloat(
-              result.cost_per_km
-            ).toFixed(2)}/km`;
+            message += `\n• ${currency.symbol}${parseFloat(result.cost_per_km).toFixed(2)}/km`;
           }
         }
 
@@ -688,13 +668,11 @@ const FuelEntryScreen = ({ navigation }) => {
           {
             text: t("common.ok", "Tamam"),
             onPress: () => {
-              // Formu temizle
               setOdometerKm("");
               setOdometerDisplay("");
               setLitersFilled("");
               setTotalCost("");
               setIsFullTank(true);
-              // Son kaydı güncelle
               loadData();
             },
           },
@@ -717,19 +695,16 @@ const FuelEntryScreen = ({ navigation }) => {
     }
   };
 
-  // Araç bilgisi kaydet
   const saveVehicleInfo = async () => {
     try {
       setSavingVehicle(true);
 
-      // driverAPI.updateVehicleSettings kullanarak güncelle
       const response = await driverAPI.updateVehicleSettings(vehicle.id, {
         fuel_type: editFuelType,
         fuel_capacity: parseFloat(editTankCapacity),
       });
 
       if (response) {
-        // Local state güncelle
         setVehicle({
           ...vehicle,
           fuel_type: editFuelType,
@@ -753,19 +728,15 @@ const FuelEntryScreen = ({ navigation }) => {
     }
   };
 
-  // Yakıt tipi label
   const getFuelTypeLabel = (fuelType) => {
     const ft = FUEL_TYPES.find((f) => f.id === fuelType);
-    if (ft) {
-      return ft.label[currentLang] || ft.label.en || fuelType;
-    }
+    if (ft) return ft.label[currentLang] || ft.label.en || fuelType;
     return fuelType || "Dizel";
   };
 
-  // ============================================
+  // =========================
   // Render
-  // ============================================
-
+  // =========================
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -784,7 +755,11 @@ const FuelEntryScreen = ({ navigation }) => {
         <Text style={styles.emptyText}>
           {t("fuel.error.noVehicle", "Atanmış aracınız yok")}
         </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadData}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={loadData}
+          activeOpacity={0.85}
+        >
           <Text style={styles.retryText}>
             {t("common.retry", "Tekrar Dene")}
           </Text>
@@ -802,30 +777,34 @@ const FuelEntryScreen = ({ navigation }) => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* Araç Bilgisi */}
-        <View style={styles.vehicleCard}>
-          <View style={styles.vehicleHeader}>
-            <Ionicons name="car" size={24} color={COLORS.PRIMARY} />
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.plateNo}>{vehicle.plate_no}</Text>
-              <Text style={styles.vehicleDetails}>
-                {getFuelTypeLabel(vehicle.fuel_type)} |{" "}
-                {vehicle.fuel_capacity || 60}L {t("fuel.tankCapacity", "Depo")}
-              </Text>
+        {/* Vehicle Info */}
+        <Card noMarginBottom>
+          <View style={styles.vehicleRow}>
+            <View style={styles.vehicleHeader}>
+              <Ionicons name="car" size={24} color={COLORS.PRIMARY} />
+              <View style={styles.vehicleInfo}>
+                <Text style={styles.plateNo}>{vehicle.plate_no}</Text>
+                <Text style={styles.vehicleDetails}>
+                  {getFuelTypeLabel(vehicle.fuel_type)} |{" "}
+                  {vehicle.fuel_capacity || 60}L{" "}
+                  {t("fuel.tankCapacity", "Depo")}
+                </Text>
+              </View>
             </View>
+
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setEditModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="pencil" size={18} color={COLORS.PRIMARY} />
+            </TouchableOpacity>
           </View>
-          {/* Edit butonu */}
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => setEditModalVisible(true)}
-          >
-            <Ionicons name="pencil" size={18} color={COLORS.PRIMARY} />
-          </TouchableOpacity>
-        </View>
+        </Card>
 
         {/* Form */}
-        <View style={styles.form}>
-          {/* KM Sayacı */}
+        <Card noMarginBottom>
+          {/* KM */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
               🛣️ {t("fuel.currentOdometer", "KM Sayacı")} *
@@ -836,7 +815,7 @@ const FuelEntryScreen = ({ navigation }) => {
                 error && error.includes("KM") && styles.inputError,
               ]}
               placeholder={t("fuel.odometerPlaceholder", "Örn: 100.520")}
-              placeholderTextColor={COLORS.MUTED}
+              placeholderTextColor={COLORS.PLACEHOLDER}
               keyboardType="numeric"
               value={odometerDisplay}
               onChangeText={handleOdometerChange}
@@ -853,7 +832,7 @@ const FuelEntryScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Litre */}
+          {/* Liters */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
               ⛽ {t("fuel.litersFilled", "Aldığım Litre")} *
@@ -864,7 +843,7 @@ const FuelEntryScreen = ({ navigation }) => {
                 error && error.includes("Litre") && styles.inputError,
               ]}
               placeholder={t("fuel.litersPlaceholder", "Örn: 52")}
-              placeholderTextColor={COLORS.MUTED}
+              placeholderTextColor={COLORS.PLACEHOLDER}
               keyboardType="decimal-pad"
               value={litersFilled}
               onChangeText={(text) => {
@@ -879,7 +858,7 @@ const FuelEntryScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Tutar (Opsiyonel) */}
+          {/* Total Cost */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
               💰 {t("fuel.totalCost", "Tutar")} ({currency.symbol}){" "}
@@ -890,7 +869,7 @@ const FuelEntryScreen = ({ navigation }) => {
               <TextInput
                 style={styles.currencyInput}
                 placeholder={t("fuel.costPlaceholder", "Örn: 2230")}
-                placeholderTextColor={COLORS.MUTED}
+                placeholderTextColor={COLORS.PLACEHOLDER}
                 keyboardType="decimal-pad"
                 value={totalCost}
                 onChangeText={(text) => {
@@ -906,10 +885,11 @@ const FuelEntryScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Full Tank Checkbox */}
+          {/* Full Tank */}
           <TouchableOpacity
             style={styles.checkboxRow}
             onPress={() => setIsFullTank(!isFullTank)}
+            activeOpacity={0.85}
           >
             <View
               style={[styles.checkbox, isFullTank && styles.checkboxChecked]}
@@ -923,7 +903,7 @@ const FuelEntryScreen = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
 
-          {/* Hesaplama Önizleme */}
+          {/* Preview */}
           {odometerKm && litersFilled && lastRecord && !error && (
             <View style={styles.calculationPreview}>
               <Text style={styles.calculationTitle}>
@@ -971,7 +951,7 @@ const FuelEntryScreen = ({ navigation }) => {
             </View>
           )}
 
-          {/* İlk Kayıt Bilgisi */}
+          {/* First record */}
           {!lastRecord && odometerKm && litersFilled && (
             <View style={styles.firstRecordInfo}>
               <Ionicons
@@ -995,7 +975,7 @@ const FuelEntryScreen = ({ navigation }) => {
             </View>
           )}
 
-          {/* Submit Button */}
+          {/* Submit */}
           <TouchableOpacity
             style={[
               styles.submitButton,
@@ -1003,6 +983,7 @@ const FuelEntryScreen = ({ navigation }) => {
             ]}
             onPress={handleSubmit}
             disabled={submitting}
+            activeOpacity={0.85}
           >
             {submitting ? (
               <ActivityIndicator color={COLORS.WHITE} />
@@ -1015,11 +996,11 @@ const FuelEntryScreen = ({ navigation }) => {
               </>
             )}
           </TouchableOpacity>
-        </View>
+        </Card>
 
-        {/* Son Kayıt Bilgisi */}
+        {/* Last Record */}
         {lastRecord && (
-          <View style={styles.lastRecordCard}>
+          <Card noMarginBottom>
             <Text style={styles.lastRecordTitle}>
               📋 {t("fuel.lastRecord", "Son Kayıt")}
             </Text>
@@ -1050,18 +1031,17 @@ const FuelEntryScreen = ({ navigation }) => {
                 currentLang === "tr" ? "tr-TR" : "en-GB"
               )}
             </Text>
-          </View>
+          </Card>
         )}
 
-        {/* Spacer for keyboard */}
-        <View style={{ height: 50 }} />
+        <View style={styles.spacer} />
       </ScrollView>
 
-      {/* Araç Düzenleme Modal */}
+      {/* Edit Vehicle Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -1070,7 +1050,10 @@ const FuelEntryScreen = ({ navigation }) => {
               <Text style={styles.modalTitle}>
                 {t("fuel.editVehicle", "Araç Bilgilerini Düzenle")}
               </Text>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                activeOpacity={0.8}
+              >
                 <Ionicons
                   name="close"
                   size={24}
@@ -1079,7 +1062,7 @@ const FuelEntryScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Plaka (readonly) */}
+            {/* Plate (readonly) */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t("fuel.plate", "Plaka")}</Text>
               <View style={[styles.input, styles.inputReadonly]}>
@@ -1090,7 +1073,7 @@ const FuelEntryScreen = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Yakıt Tipi */}
+            {/* Fuel type */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
                 {t("fuel.fuelType", "Yakıt Tipi")}
@@ -1104,6 +1087,7 @@ const FuelEntryScreen = ({ navigation }) => {
                       editFuelType === ft.id && styles.fuelTypeButtonActive,
                     ]}
                     onPress={() => setEditFuelType(ft.id)}
+                    activeOpacity={0.85}
                   >
                     <Text
                       style={[
@@ -1118,7 +1102,7 @@ const FuelEntryScreen = ({ navigation }) => {
               </View>
             </View>
 
-            {/* Depo Kapasitesi */}
+            {/* Tank capacity */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
                 {t("fuel.tankCapacity", "Depo Kapasitesi")} (L)
@@ -1126,7 +1110,7 @@ const FuelEntryScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="60"
-                placeholderTextColor={COLORS.MUTED}
+                placeholderTextColor={COLORS.PLACEHOLDER}
                 keyboardType="numeric"
                 value={editTankCapacity}
                 onChangeText={(text) =>
@@ -1135,7 +1119,7 @@ const FuelEntryScreen = ({ navigation }) => {
               />
             </View>
 
-            {/* Kaydet Butonu */}
+            {/* Save */}
             <TouchableOpacity
               style={[
                 styles.submitButton,
@@ -1143,6 +1127,7 @@ const FuelEntryScreen = ({ navigation }) => {
               ]}
               onPress={saveVehicleInfo}
               disabled={savingVehicle}
+              activeOpacity={0.85}
             >
               {savingVehicle ? (
                 <ActivityIndicator color={COLORS.WHITE} />
@@ -1161,7 +1146,5 @@ const FuelEntryScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default FuelEntryScreen;

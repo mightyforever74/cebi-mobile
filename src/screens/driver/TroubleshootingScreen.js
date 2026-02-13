@@ -205,7 +205,9 @@ const TroubleshootingScreen = ({ navigation }) => {
           </Text>
           <Text style={styles.helpText}>{t("troubleshooting.contactUs")}</Text>
           <View style={styles.contactInfo}>
-            <Text style={styles.contactEmail}>📧 support@tulipfleet.com</Text>
+            <Text style={styles.contactEmail}>
+              📧 mightyforever74@gmail.com
+            </Text>
           </View>
         </View>
 

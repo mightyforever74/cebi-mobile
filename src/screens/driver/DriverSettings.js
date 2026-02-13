@@ -1,6 +1,8 @@
 // src/screens/driver/DriverSettings.js
 // TulipFleet - Sürücü Ayarlar Ekranı
-// Updated: 22 Ocak 2026 - Dark Mode v3 (makeStyles pattern)
+// Updated: 11 Şubat 2026 - Theme token cleanup (UI System Guide v3)
+// ✅ SPACING/RADIUS/SHADOWS/TYPOGRAPHY tokens
+// ✅ hex concat → getLightBg, 8px grid, dark mode ready
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -38,7 +40,7 @@ const STORAGE_KEYS = {
 const BASE_URL = "https://tulipfleet.com";
 
 // ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
+// makeStyles - THEME TOKENS
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -52,78 +54,84 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
     },
+
+    // Section Header
     sectionHeader: {
-      paddingHorizontal: 16,
-      paddingTop: 24,
-      paddingBottom: 8,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingTop: COLORS.SPACING.lg, // 24
+      paddingBottom: COLORS.SPACING.sm, // 8
     },
     sectionTitle: {
-      fontSize: 12,
-      fontWeight: "600",
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       letterSpacing: 1,
       color: COLORS.TEXT_SECONDARY,
     },
+
+    // Setting Group
     settingGroup: {
-      marginHorizontal: 12,
-      borderRadius: 12,
+      marginHorizontal: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card, // 12
       backgroundColor: COLORS.SURFACE,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      ...COLORS.SHADOWS.xs,
     },
+
+    // Setting Item
     settingItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.md, // 16
       backgroundColor: COLORS.SURFACE,
     },
     settingIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
+      width: COLORS.SPACING.xxl, // 40
+      height: COLORS.SPACING.xxl, // 40
+      borderRadius: COLORS.RADIUS.sm, // 8
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 12,
+      marginRight: COLORS.SPACING.md, // 16
     },
     settingContent: {
       flex: 1,
     },
     settingTitle: {
-      fontSize: 15,
-      fontWeight: "500",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg, // 16
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT,
     },
     settingSubtitle: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       marginTop: 2,
       color: COLORS.TEXT_SECONDARY,
     },
+
+    // Divider
     divider: {
       height: 1,
-      marginLeft: 68,
+      marginLeft: 72, // hesaplanmış: icon(40) + marginRight(16) + paddingLeft(16) ≈ 68
       backgroundColor: COLORS.DIVIDER,
     },
+
+    // Footer
     footer: {
       alignItems: "center",
-      paddingVertical: 30,
-      paddingHorizontal: 20,
+      paddingVertical: COLORS.SPACING.xl, // 32
+      paddingHorizontal: COLORS.SPACING.lg, // 24
     },
     footerText: {
-      fontSize: 14,
-      fontWeight: "500",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT_SECONDARY,
     },
     footerSubtext: {
-      fontSize: 12,
-      marginTop: 4,
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      marginTop: COLORS.SPACING.xs, // 4
       color: COLORS.MUTED,
     },
     footerEmail: {
-      fontSize: 11,
-      marginTop: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs, // 10
+      marginTop: COLORS.SPACING.sm, // 8
       color: COLORS.MUTED,
     },
   });
@@ -155,6 +163,18 @@ const DriverSettings = ({ navigation }) => {
   const [locationPermission, setLocationPermission] = useState(null);
 
   // ============================================
+  // Helpers
+  // ============================================
+  const getLightBg = (color) => {
+    if (color === COLORS.SUCCESS) return COLORS.SUCCESS_LIGHT;
+    if (color === COLORS.WARNING) return COLORS.WARNING_LIGHT;
+    if (color === COLORS.ERROR) return COLORS.ERROR_LIGHT;
+    if (color === COLORS.INFO) return COLORS.INFO_LIGHT;
+    if (color === COLORS.PRIMARY) return COLORS.SECONDARY;
+    return COLORS.DIVIDER;
+  };
+
+  // ============================================
   // Nested Components (COLORS erişimi için içeride)
   // ============================================
 
@@ -178,7 +198,7 @@ const DriverSettings = ({ navigation }) => {
       <View
         style={[
           styles.settingIcon,
-          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
+          { backgroundColor: getLightBg(iconColor || COLORS.PRIMARY) },
         ]}
       >
         <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
@@ -368,7 +388,7 @@ const DriverSettings = ({ navigation }) => {
 
   // Dark Mode toggle - ThemeContext kullanarak
   const handleDarkModeToggle = async (value) => {
-    await setTheme(value);
+    await setTheme(value ? "dark" : "light");
   };
 
   const handleClearCache = () => {
@@ -424,10 +444,10 @@ const DriverSettings = ({ navigation }) => {
   const handleSupport = () => {
     const subject = encodeURIComponent("TulipFleet Mobile App - Destek Talebi");
     const body = encodeURIComponent(
-      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
+      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nPlatform: ${Platform.OS}\nVersiyon: 2.1.0`
     );
     Linking.openURL(
-      `mailto:support@tulipfleet.com?subject=${subject}&body=${body}`
+      `mailto:mightyforever74@gmail.com?subject=${subject}&body=${body}`
     );
   };
 
@@ -439,11 +459,7 @@ const DriverSettings = ({ navigation }) => {
   };
 
   const handleAbout = () => {
-    Alert.alert(
-      "TulipFleet",
-      `${t("settings.version")} 1.0.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır."}\n\n© 2025 TulipFleet`,
-      [{ text: t("common.ok") }]
-    );
+    navigation.navigate("About");
   };
 
   const handleLogout = () => {
@@ -642,7 +658,7 @@ const DriverSettings = ({ navigation }) => {
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
           title={t("settings.contactUs")}
-          subtitle="support@tulipfleet.com"
+          subtitle="mightyforever74@gmail.com"
           onPress={handleSupport}
         />
         <View style={styles.divider} />
@@ -658,7 +674,7 @@ const DriverSettings = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.aboutApp")}
-          subtitle={t("settings.version") + " 1.0.0"}
+          subtitle={t("settings.version") + " 2.1.0"}
           onPress={handleAbout}
         />
       </View>
@@ -676,14 +692,12 @@ const DriverSettings = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
+        <Text style={styles.footerText}>TulipFleet v2.1.0</Text>
         <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
     </ScrollView>
   );
 };
-
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverSettings;

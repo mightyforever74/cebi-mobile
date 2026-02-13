@@ -1,5 +1,13 @@
+// src/screens/shared/ChangePasswordScreen.js
+// TulipFleet - Change Password Screen
+// Updated: 11 Şubat 2026 - Theme migration (UI System Guide v3)
+// ✅ useTheme + useThemedStyles + makeStyles pattern
+// ✅ 0 hardcoded hex, 8px grid, no gap, TYPOGRAPHY tokens
+// ✅ Card component, i18n, dark mode ready
+
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -13,10 +21,102 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/config"; // ← Fix import
+
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { userAPI } from "../../services/api";
 
+// ── Styles factory ──────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md, // 16
+    },
+
+    // ── Info card ──
+    infoCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INFO_LIGHT,
+      padding: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card, // 12
+      marginBottom: COLORS.SPACING.lg, // 24
+      borderWidth: 1,
+      borderColor: COLORS.INFO,
+    },
+    infoIcon: {
+      marginRight: COLORS.SPACING.md, // 16
+    },
+    infoText: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.PRIMARY,
+      lineHeight: 20,
+    },
+
+    // ── Input ──
+    inputContainer: {
+      marginBottom: COLORS.SPACING.lg, // 24
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm, // 8
+    },
+    passwordContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input, // 8
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    passwordInput: {
+      flex: 1,
+      padding: COLORS.SPACING.md, // 16
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT,
+    },
+    eyeButton: {
+      padding: COLORS.SPACING.md, // 16
+    },
+
+    // ── Submit button ──
+    submitButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.button, // 8
+      marginTop: COLORS.SPACING.xl, // 32
+    },
+    submitButtonDisabled: {
+      opacity: 0.7,
+    },
+    submitIcon: {
+      marginRight: COLORS.SPACING.sm, // 8
+    },
+    submitButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.button,
+    },
+  });
+
+// ── Component ───────────────────────────────
 const ChangePasswordScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,19 +128,32 @@ const ChangePasswordScreen = ({ navigation }) => {
   const handleChangePassword = async () => {
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert("Hata", "Tüm alanları doldurun");
+      Alert.alert(
+        t("common.error") || "Hata",
+        t("changePassword.allFieldsRequired") || "Tüm alanları doldurun"
+      );
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert("Hata", "Yeni şifre en az 6 karakter olmalı");
+      Alert.alert(
+        t("common.error") || "Hata",
+        t("changePassword.minLength") || "Yeni şifre en az 6 karakter olmalı"
+      );
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert("Hata", "Yeni şifreler eşleşmiyor");
+      Alert.alert(
+        t("common.error") || "Hata",
+        t("changePassword.mismatch") || "Yeni şifreler eşleşmiyor"
+      );
       return;
     }
     if (currentPassword === newPassword) {
-      Alert.alert("Hata", "Yeni şifre mevcut şifreden farklı olmalı");
+      Alert.alert(
+        t("common.error") || "Hata",
+        t("changePassword.samePassword") ||
+          "Yeni şifre mevcut şifreden farklı olmalı"
+      );
       return;
     }
 
@@ -56,11 +169,12 @@ const ChangePasswordScreen = ({ navigation }) => {
       // Alert'i setTimeout ile göster (Android fix)
       setTimeout(() => {
         Alert.alert(
-          "✅ Başarılı",
-          "Şifreniz başarıyla değiştirildi.",
+          t("changePassword.successTitle") || "Başarılı",
+          t("changePassword.successMessage") ||
+            "Şifreniz başarıyla değiştirildi.",
           [
             {
-              text: "Tamam",
+              text: t("common.ok") || "Tamam",
               onPress: () => navigation.goBack(),
             },
           ],
@@ -70,8 +184,10 @@ const ChangePasswordScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Password change error:", error);
       Alert.alert(
-        "Hata",
-        error.response?.data?.error || "Şifre değiştirilemedi"
+        t("common.error") || "Hata",
+        error.response?.data?.error ||
+          t("changePassword.failed") ||
+          "Şifre değiştirilemedi"
       );
     } finally {
       setLoading(false);
@@ -94,9 +210,10 @@ const ChangePasswordScreen = ({ navigation }) => {
           value={value}
           onChangeText={setValue}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.gray}
+          placeholderTextColor={COLORS.PLACEHOLDER}
           secureTextEntry={!show}
           autoCapitalize="none"
+          editable={!loading}
         />
         <TouchableOpacity
           style={styles.eyeButton}
@@ -105,7 +222,7 @@ const ChangePasswordScreen = ({ navigation }) => {
           <Ionicons
             name={show ? "eye-off" : "eye"}
             size={22}
-            color={COLORS.gray}
+            color={COLORS.MUTED}
           />
         </TouchableOpacity>
       </View>
@@ -124,43 +241,45 @@ const ChangePasswordScreen = ({ navigation }) => {
             <Ionicons
               name="information-circle"
               size={24}
-              color={COLORS.primary}
+              color={COLORS.PRIMARY}
+              style={styles.infoIcon}
             />
             <Text style={styles.infoText}>
-              Güvenliğiniz için güçlü bir şifre seçin. En az 6 karakter
-              kullanın.
+              {t("changePassword.hint") ||
+                "Güvenliğiniz için güçlü bir şifre seçin. En az 6 karakter kullanın."}
             </Text>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Form — Card component */}
+          <Card variant="flat" noMargin>
             {renderPasswordInput(
-              "Mevcut Şifre",
+              t("changePassword.currentPassword") || "Mevcut Şifre",
               currentPassword,
               setCurrentPassword,
               showCurrent,
               setShowCurrent,
-              "Mevcut şifrenizi girin"
+              t("changePassword.currentPlaceholder") || "Mevcut şifrenizi girin"
             )}
 
             {renderPasswordInput(
-              "Yeni Şifre",
+              t("changePassword.newPassword") || "Yeni Şifre",
               newPassword,
               setNewPassword,
               showNew,
               setShowNew,
-              "Yeni şifrenizi girin"
+              t("changePassword.newPlaceholder") || "Yeni şifrenizi girin"
             )}
 
             {renderPasswordInput(
-              "Yeni Şifre (Tekrar)",
+              t("changePassword.confirmPassword") || "Yeni Şifre (Tekrar)",
               confirmPassword,
               setConfirmPassword,
               showConfirm,
               setShowConfirm,
-              "Yeni şifrenizi tekrar girin"
+              t("changePassword.confirmPlaceholder") ||
+                "Yeni şifrenizi tekrar girin"
             )}
-          </View>
+          </Card>
 
           {/* Submit Button */}
           <TouchableOpacity
@@ -170,13 +289,21 @@ const ChangePasswordScreen = ({ navigation }) => {
             ]}
             onPress={handleChangePassword}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <>
-                <Ionicons name="lock-closed" size={20} color={COLORS.white} />
-                <Text style={styles.submitButtonText}>Şifreyi Değiştir</Text>
+                <Ionicons
+                  name="lock-closed"
+                  size={20}
+                  color={COLORS.WHITE}
+                  style={styles.submitIcon}
+                />
+                <Text style={styles.submitButtonText}>
+                  {t("changePassword.submit") || "Şifreyi Değiştir"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -185,79 +312,5 @@ const ChangePasswordScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  infoCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.primaryLight || "#E8F4FD",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.primary,
-    lineHeight: 20,
-  },
-  form: {
-    gap: 20,
-  },
-  inputContainer: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  eyeButton: {
-    padding: 16,
-  },
-  submitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 32,
-    gap: 8,
-  },
-  submitButtonDisabled: {
-    opacity: 0.7,
-  },
-  submitButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
 
 export default ChangePasswordScreen;

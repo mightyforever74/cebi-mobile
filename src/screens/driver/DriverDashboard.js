@@ -1,6 +1,6 @@
 // src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
-// Updated: 30 Ocak 2026 - FAB Modal Fix (Android uyumlu)
+// Updated: 11 Şubat 2026 - Card component migration
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Linking,
   Modal,
   RefreshControl,
   ScrollView,
@@ -19,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
@@ -26,7 +28,7 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 
-// Yakıt tipi çevirisi
+// YakÄ±t tipi Ã§evirisi
 const FUEL_TYPE_LABELS = {
   diesel: {
     tr: "Dizel",
@@ -68,6 +70,78 @@ const FUEL_TYPE_LABELS = {
 
 const makeStyles = (COLORS) =>
   StyleSheet.create({
+    // Safety Score Card
+    safetyScoreContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+    },
+    safetyScoreCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: COLORS.BACKGROUND,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 16,
+    },
+    safetyScoreNumber: {
+      fontSize: 28,
+      fontWeight: "bold",
+    },
+    safetyScoreMax: {
+      fontSize: 12,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: -2,
+    },
+    safetyScoreBar: {
+      flex: 1,
+    },
+    safetyBarTrack: {
+      height: 8,
+      backgroundColor: COLORS.BORDER,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    safetyBarFill: {
+      height: 8,
+      borderRadius: 4,
+    },
+    safetyScoreLabel: {
+      fontSize: 13,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 6,
+    },
+    // Quick Access Card
+    quickAccessGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginTop: COLORS.SPACING.sm, // 8
+    },
+
+    quickAccessItem: {
+      width: "48%", // 47 yerine 48 (space-between ile daha stabil)
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      padding: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card, // 12
+      marginBottom: COLORS.SPACING.sm, // 8 (row spacing)
+    },
+    quickAccessIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    quickAccessText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: COLORS.TEXT,
+      textAlign: "center",
+    },
     container: {
       flex: 1,
       backgroundColor: COLORS.BACKGROUND,
@@ -86,10 +160,10 @@ const makeStyles = (COLORS) =>
     header: {
       backgroundColor: COLORS.PRIMARY,
       paddingTop: 60,
-      paddingBottom: 24,
-      paddingHorizontal: 20,
-      borderBottomLeftRadius: 24,
-      borderBottomRightRadius: 24,
+      paddingBottom: COLORS.SPACING.lg, // 24
+      paddingHorizontal: COLORS.SPACING.headerPadding, // 24 (8px grid)
+      borderBottomLeftRadius: COLORS.RADIUS.xxl, // 24
+      borderBottomRightRadius: COLORS.RADIUS.xxl,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
@@ -104,7 +178,7 @@ const makeStyles = (COLORS) =>
     },
     greeting: {
       fontSize: 14,
-      color: "rgba(255,255,255,0.8)",
+      color: COLORS.WHITE_80,
     },
     userName: {
       fontSize: 22,
@@ -113,10 +187,10 @@ const makeStyles = (COLORS) =>
     },
     headerButtons: {
       flexDirection: "row",
-      gap: 8,
+      gap: COLORS.SPACING.sm, // 8
     },
     headerButton: {
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: COLORS.WHITE_20,
       padding: 10,
       borderRadius: 12,
     },
@@ -168,17 +242,10 @@ const makeStyles = (COLORS) =>
       color: "rgba(255,255,255,0.8)",
       marginTop: 2,
     },
-    card: {
-      backgroundColor: COLORS.CARD,
-      margin: 16,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
+    // card: KALDIRILDI - Card component kullanılıyor
+    // Eski stil referans için:
+    // backgroundColor: COLORS.CARD, margin: 16, padding: 16,
+    // borderRadius: 12, elevation: 3
     cardTitleRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -372,16 +439,16 @@ const makeStyles = (COLORS) =>
     // FAB + MODAL STYLES
     fab: {
       position: "absolute",
-      bottom: 20,
-      right: 20,
+      bottom: COLORS.SPACING.lg, // 24
+      right: COLORS.SPACING.lg, // 24
       width: 60,
       height: 60,
       borderRadius: 30,
-      backgroundColor: "#FF6B35",
+      backgroundColor: COLORS.WARNING, // Theme token
       justifyContent: "center",
       alignItems: "center",
       elevation: 5,
-      shadowColor: "#000",
+      shadowColor: COLORS.SHADOW,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 3,
@@ -391,14 +458,14 @@ const makeStyles = (COLORS) =>
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: COLORS.OVERLAY,
       justifyContent: "center",
       alignItems: "center",
     },
     modalContent: {
       backgroundColor: COLORS.CARD,
-      borderRadius: 16,
-      padding: 24,
+      borderRadius: COLORS.RADIUS.modal, // 16
+      padding: COLORS.SPACING.lg, // 24
       width: "85%",
       maxWidth: 400,
     },
@@ -435,11 +502,11 @@ const makeStyles = (COLORS) =>
     },
     modalButtonCancel: {
       backgroundColor: COLORS.BORDER,
-      marginRight: 8,
+      marginRight: COLORS.SPACING.sm,
     },
     modalButtonSubmit: {
-      backgroundColor: "#FF6B35",
-      marginLeft: 8,
+      backgroundColor: COLORS.WARNING, // Theme token (FAB ile aynı)
+      marginLeft: COLORS.SPACING.sm,
     },
     modalButtonTextCancel: {
       fontSize: 16,
@@ -449,9 +516,34 @@ const makeStyles = (COLORS) =>
     modalButtonTextSubmit: {
       fontSize: 16,
       fontWeight: "600",
-      color: "#FFF",
+      color: COLORS.WHITE, // Theme token
     },
   });
+
+// Safety score renk hesaplama (COLORS parametresi alır)
+const getSafetyColor = (score, COLORS) => {
+  const s = score || 5.0;
+  if (s >= 4.0) return COLORS.SUCCESS;
+  if (s >= 3.0) return COLORS.WARNING;
+  if (s >= 2.0) return COLORS.WARNING; // turuncu yerine warning
+  return COLORS.ERROR;
+};
+
+// Safety score etiket
+const getSafetyLabel = (score, t) => {
+  const s = score || 5.0;
+  if (s >= 4.5) return t("dashboard.safetyExcellent");
+  if (s >= 4.0) return t("dashboard.safetyGood");
+  if (s >= 3.0) return t("dashboard.safetyAverage");
+  if (s >= 2.0) return t("dashboard.safetyBelowAvg");
+  return t("dashboard.safetyPoor");
+};
+
+// KM formatla (1234.56 â†’ "1,235")
+const formatKm = (km) => {
+  if (!km || km === 0) return "0";
+  return Math.round(km).toLocaleString();
+};
 
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
@@ -612,7 +704,12 @@ const DriverDashboard = () => {
       {/* Header with Greeting + Language + Logout */}
       <View style={styles.header}>
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingEmoji}>👋</Text>
+          <Ionicons
+            name="hand-left-outline"
+            size={28}
+            color={COLORS.WHITE}
+            style={{ marginRight: 12 }}
+          />
           <View>
             <Text style={styles.greeting}>{t("dashboard.hello")}</Text>
             <Text style={styles.userName}>
@@ -638,7 +735,7 @@ const DriverDashboard = () => {
       {/* Error Message */}
       {error && (
         <View style={styles.errorCard}>
-          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorText}>âš ï¸ {error}</Text>
         </View>
       )}
 
@@ -650,7 +747,12 @@ const DriverDashboard = () => {
         }
       >
         <View style={styles.offersContent}>
-          <Text style={styles.offersIcon}>📬</Text>
+          <Ionicons
+            name="mail-unread-outline"
+            size={28}
+            color={COLORS.WHITE}
+            style={{ marginRight: 12 }}
+          />
           <View style={styles.offersText}>
             <Text style={styles.offersTitle}>{t("dashboard.taskOffers")}</Text>
             <Text style={styles.offersSubtitle}>
@@ -663,68 +765,77 @@ const DriverDashboard = () => {
 
       {/* Vehicle Card */}
       {vehicle ? (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={handleVehiclePress}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
-            <View style={styles.fuelEntryHint}>
-              <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
-              <Text style={styles.fuelEntryHintText}>
-                {t("dashboard.fuelEntry", "Yakıt Girişi")}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={COLORS.PRIMARY}
-              />
-            </View>
-          </View>
+        <TouchableOpacity onPress={handleVehiclePress} activeOpacity={0.8}>
+          <Card>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>{t("dashboard.myVehicle")}</Text>
 
-          <View style={styles.vehicleInfo}>
-            <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
-            <Text style={styles.vehicleModel}>
-              {vehicle.brand} {vehicle.model}
-            </Text>
-          </View>
+              <View style={styles.fuelEntryHint}>
+                <Ionicons
+                  name="flame-outline"
+                  size={16}
+                  color={COLORS.PRIMARY}
+                />
+                <Text style={styles.fuelEntryHintText}>
+                  {t("dashboard.fuelEntry", "Yakıt Girişi")}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={COLORS.PRIMARY}
+                />
+              </View>
+            </View>
 
-          <View style={styles.vehicleDetailsRow}>
-            <View style={styles.vehicleDetailItem}>
-              <Ionicons name="water-outline" size={20} color={COLORS.INFO} />
-              <Text style={styles.vehicleDetailLabel}>
-                {t("fuel.fuelType", "Yakıt")}
-              </Text>
-              <Text style={styles.vehicleDetailValue}>
-                {getFuelTypeLabel(vehicle.fuel_type)}
+            <View style={styles.vehicleInfo}>
+              <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
+              <Text style={styles.vehicleModel}>
+                {vehicle.brand} {vehicle.model}
               </Text>
             </View>
-            <View style={styles.vehicleDetailDivider} />
-            <View style={styles.vehicleDetailItem}>
-              <Ionicons name="cube-outline" size={20} color={COLORS.SUCCESS} />
-              <Text style={styles.vehicleDetailLabel}>
-                {t("fuel.tankCapacity", "Depo")}
-              </Text>
-              <Text style={styles.vehicleDetailValue}>
-                {vehicle.fuel_capacity || 60}L
-              </Text>
+
+            <View style={styles.vehicleDetailsRow}>
+              <View style={styles.vehicleDetailItem}>
+                <Ionicons name="water-outline" size={20} color={COLORS.INFO} />
+                <Text style={styles.vehicleDetailLabel}>
+                  {t("fuel.fuelType", "Yakıt")}
+                </Text>
+                <Text style={styles.vehicleDetailValue}>
+                  {getFuelTypeLabel(vehicle.fuel_type)}
+                </Text>
+              </View>
+
+              <View style={styles.vehicleDetailDivider} />
+
+              <View style={styles.vehicleDetailItem}>
+                <Ionicons
+                  name="cube-outline"
+                  size={20}
+                  color={COLORS.SUCCESS}
+                />
+                <Text style={styles.vehicleDetailLabel}>
+                  {t("fuel.tankCapacity", "Depo")}
+                </Text>
+                <Text style={styles.vehicleDetailValue}>
+                  {vehicle.fuel_capacity || 60}L
+                </Text>
+              </View>
             </View>
-          </View>
+          </Card>
         </TouchableOpacity>
       ) : (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🚙 {t("dashboard.myVehicle")}</Text>
+        <Card>
+          <Text style={styles.cardTitle}>{t("dashboard.myVehicle")}</Text>
           <Text style={styles.noDataText}>
             {t("dashboard.noVehicleAssigned")}
           </Text>
-        </View>
+        </Card>
       )}
 
       {/* Active Tasks Card */}
-      <View style={styles.card}>
+      <Card>
         <View style={styles.cardTitleRow}>
-          <Text style={styles.cardTitle}>📋 {t("dashboard.activeTasks")}</Text>
+          <Text style={styles.cardTitle}>{t("dashboard.activeTasks")}</Text>
           <TouchableOpacity onPress={() => navigation.navigate("MyTasks")}>
             <Text style={styles.seeAllText}>{t("dashboard.seeAll")}</Text>
           </TouchableOpacity>
@@ -761,12 +872,12 @@ const DriverDashboard = () => {
               </View>
               {task.pickup_address && (
                 <Text style={styles.taskDescription} numberOfLines={1}>
-                  📍 {task.pickup_address}
+                  ðŸ“ {task.pickup_address}
                 </Text>
               )}
               {task.scheduled_date && (
                 <Text style={styles.taskTime}>
-                  🕐 {new Date(task.scheduled_date).toLocaleDateString()}
+                  ðŸ• {new Date(task.scheduled_date).toLocaleDateString()}
                 </Text>
               )}
             </TouchableOpacity>
@@ -774,11 +885,48 @@ const DriverDashboard = () => {
         ) : (
           <Text style={styles.noDataText}>{t("dashboard.noActiveTasks")}</Text>
         )}
-      </View>
+      </Card>
+
+      {/* Safety Score Card */}
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.safetyScore")}</Text>
+        <View style={styles.safetyScoreContainer}>
+          <View style={styles.safetyScoreCircle}>
+            <Text
+              style={[
+                styles.safetyScoreNumber,
+                { color: getSafetyColor(stats?.safety_score, COLORS) },
+              ]}
+            >
+              {(stats?.safety_score || 5.0).toFixed(1)}
+            </Text>
+            <Text style={styles.safetyScoreMax}>/5.0</Text>
+          </View>
+          <View style={styles.safetyScoreBar}>
+            <View style={styles.safetyBarTrack}>
+              <View
+                style={[
+                  styles.safetyBarFill,
+                  {
+                    width: `${((stats?.safety_score || 5.0) / 5) * 100}%`,
+                    backgroundColor: getSafetyColor(
+                      stats?.safety_score,
+                      COLORS
+                    ),
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.safetyScoreLabel}>
+              {getSafetyLabel(stats?.safety_score, t)}
+            </Text>
+          </View>
+        </View>
+      </Card>
 
       {/* Stats Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📊 {t("dashboard.myStats")}</Text>
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.myStats")}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statItemLarge}>
             <Text style={styles.statNumberLarge}>
@@ -797,8 +945,97 @@ const DriverDashboard = () => {
               {t("dashboard.activeTasksCount")}
             </Text>
           </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {formatKm(stats?.total_km)}
+            </Text>
+            <Text style={styles.statTextLarge}>{t("dashboard.totalKm")}</Text>
+          </View>
         </View>
-      </View>
+      </Card>
+
+      {/* Quick Access Card */}
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.quickAccess")}</Text>
+        <View style={styles.quickAccessGrid}>
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() =>
+              Linking.openURL(
+                "https://www.google.com/maps/@?api=1&map_action=map&layer=traffic"
+              )
+            }
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.WARNING_LIGHT },
+              ]}
+            >
+              <Ionicons name="car-outline" size={24} color={COLORS.WARNING} />
+            </View>
+            <Text style={styles.quickAccessText}>{t("dashboard.traffic")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() =>
+              Linking.openURL(
+                "https://wttr.in/?lang=" + (i18n.language || "tr")
+              )
+            }
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.INFO_LIGHT },
+              ]}
+            >
+              <Ionicons name="cloud-outline" size={24} color={COLORS.INFO} />
+            </View>
+            <Text style={styles.quickAccessText}>{t("dashboard.weather")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() => Linking.openURL("tel:112")}
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.ERROR_LIGHT },
+              ]}
+            >
+              <Ionicons name="call-outline" size={24} color={COLORS.ERROR} />
+            </View>
+            <Text style={styles.quickAccessText}>
+              {t("dashboard.emergency")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() => navigation.navigate("HelpCenter")}
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.SUCCESS_LIGHT },
+              ]}
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={24}
+                color={COLORS.SUCCESS}
+              />
+            </View>
+            <Text style={styles.quickAccessText}>
+              {t("dashboard.helpCenter")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
 
       {/* Language Selection Modal */}
       <Modal
@@ -869,7 +1106,7 @@ const DriverDashboard = () => {
               value={serialInput}
               onChangeText={setSerialInput}
               placeholder="TF-2025-00001-1"
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.PLACEHOLDER}
               autoCapitalize="characters"
               autoCorrect={false}
               editable={!validating}
@@ -892,7 +1129,7 @@ const DriverDashboard = () => {
                 disabled={validating}
               >
                 {validating ? (
-                  <ActivityIndicator size="small" color="#FFF" />
+                  <ActivityIndicator size="small" color={COLORS.WHITE} />
                 ) : (
                   <Text style={styles.modalButtonTextSubmit}>
                     {t("common.continue")}
@@ -910,7 +1147,7 @@ const DriverDashboard = () => {
         onPress={handleAddDevice}
         activeOpacity={0.8}
       >
-        <Text style={styles.fabIcon}>📱</Text>
+        <Ionicons name="add-circle" size={28} color={COLORS.WHITE} />
       </TouchableOpacity>
     </ScrollView>
   );

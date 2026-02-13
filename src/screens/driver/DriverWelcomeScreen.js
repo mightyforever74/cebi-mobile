@@ -1,6 +1,8 @@
 // src/screens/driver/DriverWelcomeScreen.js
 // TulipFleet - Premium Welcome Screen with Video Background
-// Version: 4.1 - Full i18n Support
+// Updated: 11 Şubat 2026 - Theme migration (UI System Guide v3)
+// ✅ useTheme + useThemedStyles, SPACING/RADIUS/TYPOGRAPHY tokens
+// ⚠️ Video overlay rgba'lar korundu (video-specific, theme dışı)
 
 import { Ionicons } from "@expo/vector-icons";
 import { CommonActions } from "@react-navigation/native";
@@ -18,13 +20,132 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const { width, height } = Dimensions.get("window");
 
+// ── Styles factory ──────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BLACK,
+    },
+    backgroundVideo: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    content: {
+      flex: 1,
+      justifyContent: "space-between",
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+    },
+
+    // ── Top ──
+    topSection: {
+      alignItems: "center",
+    },
+    logoContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.2)", // video overlay — token dışı
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.full, // pill
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.1)", // video overlay
+    },
+    logoEmoji: {
+      fontSize: 28,
+      marginRight: COLORS.SPACING.sm, // 8
+    },
+    logoText: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.WHITE,
+      letterSpacing: 1,
+    },
+
+    // ── Middle ──
+    middleSection: {
+      alignItems: "center",
+    },
+    greeting: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl, // 18
+      color: "rgba(255,255,255,0.7)", // video overlay
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      letterSpacing: 0.5,
+    },
+    userName: {
+      fontSize: 42,
+      fontWeight: "800",
+      color: COLORS.WHITE,
+      marginTop: COLORS.SPACING.sm, // 8
+      textShadowColor: "rgba(0,0,0,0.3)", // video text shadow
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+    decorativeLine: {
+      width: 60,
+      height: 4,
+      backgroundColor: COLORS.SUCCESS,
+      borderRadius: COLORS.RADIUS.xs, // 4
+      marginVertical: COLORS.SPACING.lg, // 24
+    },
+    subtitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl, // 18
+      color: "rgba(255,255,255,0.8)", // video overlay
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      textAlign: "center",
+    },
+
+    // ── Bottom ──
+    bottomSection: {
+      alignItems: "center",
+    },
+    statsCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.25)", // video overlay
+      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.lg, // 16
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.15)", // video overlay
+      marginBottom: COLORS.SPACING.lg, // 24
+    },
+    statItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md, // 16
+    },
+    statText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: "rgba(255,255,255,0.9)", // video overlay
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      marginLeft: COLORS.SPACING.sm, // 8
+    },
+    statDivider: {
+      width: 1,
+      height: COLORS.SPACING.lg, // 24
+      backgroundColor: "rgba(255,255,255,0.2)", // video overlay
+    },
+    tapHint: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: "rgba(255,255,255,0.5)", // video overlay
+    },
+  });
+
+// ── Component ───────────────────────────────
 const DriverWelcomeScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const insets = useSafeAreaInsets();
 
   // Video state
@@ -124,7 +245,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
         {/* Loading placeholder - video yüklenene kadar */}
         {!videoLoaded && (
           <LinearGradient
-            colors={["#0f3460", "#16213e", "#1a1a2e"]}
+            colors={[COLORS.GRADIENT_START, COLORS.GRADIENT_END, COLORS.BLACK]}
             style={styles.backgroundVideo}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -144,7 +265,12 @@ const DriverWelcomeScreen = ({ navigation }) => {
         />
 
         {/* Content */}
-        <View style={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
+        <View
+          style={[
+            styles.content,
+            { paddingBottom: insets.bottom + COLORS.SPACING.xxl },
+          ]}
+        >
           {/* Top Section - Logo & Branding */}
           <Animated.View
             style={[
@@ -152,7 +278,7 @@ const DriverWelcomeScreen = ({ navigation }) => {
               {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
-                paddingTop: insets.top + 20,
+                paddingTop: insets.top + COLORS.SPACING.lg,
               },
             ]}
           >
@@ -193,12 +319,16 @@ const DriverWelcomeScreen = ({ navigation }) => {
             {/* Stats Preview Card */}
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#2DCE89" />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={COLORS.SUCCESS}
+                />
                 <Text style={styles.statText}>{t("welcome.tasksReady")}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Ionicons name="car" size={20} color="#11CDEF" />
+                <Ionicons name="car" size={20} color={COLORS.INFO} />
                 <Text style={styles.statText}>
                   {t("welcome.vehicleActive")}
                 </Text>
@@ -213,112 +343,5 @@ const DriverWelcomeScreen = ({ navigation }) => {
     </TouchableWithoutFeedback>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  backgroundVideo: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-  },
-  topSection: {
-    alignItems: "center",
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.2)",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-  logoEmoji: {
-    fontSize: 28,
-    marginRight: 10,
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    letterSpacing: 1,
-  },
-  middleSection: {
-    alignItems: "center",
-  },
-  greeting: {
-    fontSize: 18,
-    color: "rgba(255,255,255,0.7)",
-    fontWeight: "500",
-    letterSpacing: 0.5,
-  },
-  userName: {
-    fontSize: 42,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    marginTop: 8,
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  decorativeLine: {
-    width: 60,
-    height: 4,
-    backgroundColor: "#2DCE89",
-    borderRadius: 2,
-    marginVertical: 24,
-  },
-  subtitle: {
-    fontSize: 17,
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  bottomSection: {
-    alignItems: "center",
-  },
-  statsCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.25)",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    marginBottom: 24,
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-  },
-  statText: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.9)",
-    fontWeight: "500",
-    marginLeft: 8,
-  },
-  statDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: "rgba(255,255,255,0.2)",
-  },
-  tapHint: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.5)",
-    fontWeight: "400",
-  },
-});
 
 export default DriverWelcomeScreen;

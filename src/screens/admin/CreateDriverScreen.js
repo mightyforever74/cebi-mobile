@@ -1,5 +1,13 @@
+// src/screens/admin/CreateDriverScreen.js
+// TulipFleet - Admin Sürücü Ekleme Ekranı
+// Updated: 12 Şubat 2026 - Theme migration + i18n (UI System Guide v3)
+// ✅ useTheme + useThemedStyles, 0 hardcoded hex
+// ✅ SPACING/RADIUS/TYPOGRAPHY tokens, gap→margin
+// ✅ Tüm hardcoded Türkçe → t() fallback
+
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -13,10 +21,114 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/config";
+
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI } from "../../services/api";
 
+// ── Styles factory ──────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md,
+    },
+
+    // ── Section ──
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+      marginTop: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+    },
+
+    // ── Input ──
+    inputContainer: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    input: {
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+    },
+
+    // ── Row (replaces gap: 12) ──
+    row: {
+      flexDirection: "row",
+    },
+    halfInputLeft: {
+      flex: 1,
+      marginRight: COLORS.SPACING.sm,
+    },
+    halfInputRight: {
+      flex: 1,
+      marginLeft: COLORS.SPACING.sm,
+    },
+
+    // ── Password ──
+    passwordContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+    },
+    passwordInput: {
+      flex: 1,
+      borderWidth: 0,
+    },
+    eyeButton: {
+      padding: COLORS.SPACING.md,
+    },
+
+    // ── Save Button (replaces gap: 8) ──
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      marginTop: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.xl,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    saveButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+  });
+
+// ── Component ───────────────────────────────
 const CreateDriverScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,21 +147,32 @@ const CreateDriverScreen = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    // Validation
     if (!formData.email.trim()) {
-      Alert.alert("Hata", "Email zorunludur");
+      Alert.alert(
+        t("createDriver.error") || "Hata",
+        t("createDriver.emailRequired") || "Email zorunludur"
+      );
       return;
     }
     if (!formData.password.trim()) {
-      Alert.alert("Hata", "Şifre zorunludur");
+      Alert.alert(
+        t("createDriver.error") || "Hata",
+        t("createDriver.passwordRequired") || "Şifre zorunludur"
+      );
       return;
     }
     if (formData.password.length < 6) {
-      Alert.alert("Hata", "Şifre en az 6 karakter olmalı");
+      Alert.alert(
+        t("createDriver.error") || "Hata",
+        t("createDriver.passwordMinLength") || "Şifre en az 6 karakter olmalı"
+      );
       return;
     }
     if (!formData.license_no.trim()) {
-      Alert.alert("Hata", "Ehliyet numarası zorunludur");
+      Alert.alert(
+        t("createDriver.error") || "Hata",
+        t("createDriver.licenseRequired") || "Ehliyet numarası zorunludur"
+      );
       return;
     }
 
@@ -70,15 +193,25 @@ const CreateDriverScreen = ({ navigation }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "✅ Başarılı",
-          "Sürücü başarıyla eklendi",
-          [{ text: "Tamam", onPress: () => navigation.goBack() }],
+          t("createDriver.success") || "✅ Başarılı",
+          t("createDriver.driverAdded") || "Sürücü başarıyla eklendi",
+          [
+            {
+              text: t("profile.ok") || "Tamam",
+              onPress: () => navigation.goBack(),
+            },
+          ],
           { cancelable: false }
         );
       }, 100);
     } catch (error) {
       console.error("Create driver error:", error);
-      Alert.alert("Hata", error.response?.data?.error || "Sürücü eklenemedi");
+      Alert.alert(
+        t("createDriver.error") || "Hata",
+        error.response?.data?.error ||
+          t("createDriver.createFailed") ||
+          "Sürücü eklenemedi"
+      );
     } finally {
       setLoading(false);
     }
@@ -93,7 +226,7 @@ const CreateDriverScreen = ({ navigation }) => {
           value={formData[field]}
           onChangeText={(value) => handleChange(field, value)}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.gray}
+          placeholderTextColor={COLORS.PLACEHOLDER}
           keyboardType={options.keyboardType || "default"}
           autoCapitalize={options.autoCapitalize || "none"}
           secureTextEntry={options.isPassword && !showPassword}
@@ -106,7 +239,7 @@ const CreateDriverScreen = ({ navigation }) => {
             <Ionicons
               name={showPassword ? "eye-off" : "eye"}
               size={22}
-              color={COLORS.gray}
+              color={COLORS.PLACEHOLDER}
             />
           </TouchableOpacity>
         )}
@@ -122,52 +255,81 @@ const CreateDriverScreen = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Hesap Bilgileri */}
-          <Text style={styles.sectionTitle}>Hesap Bilgileri</Text>
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.accountInfo") || "Hesap Bilgileri"}
+          </Text>
 
-          {renderInput("Email *", "email", "driver@example.com", {
-            keyboardType: "email-address",
-          })}
+          {renderInput(
+            `${t("createDriver.email") || "Email"} *`,
+            "email",
+            "driver@example.com",
+            { keyboardType: "email-address" }
+          )}
 
-          {renderInput("Şifre *", "password", "En az 6 karakter", {
-            isPassword: true,
-          })}
+          {renderInput(
+            `${t("createDriver.password") || "Şifre"} *`,
+            "password",
+            t("createDriver.passwordPlaceholder") || "En az 6 karakter",
+            { isPassword: true }
+          )}
 
           {/* Kişisel Bilgiler */}
-          <Text style={styles.sectionTitle}>Kişisel Bilgiler</Text>
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.personalInfo") || "Kişisel Bilgiler"}
+          </Text>
 
           <View style={styles.row}>
-            <View style={styles.halfInput}>
-              {renderInput("Ad", "first_name", "Ali", {
-                autoCapitalize: "words",
-              })}
+            <View style={styles.halfInputLeft}>
+              {renderInput(
+                t("createDriver.firstName") || "Ad",
+                "first_name",
+                "Ali",
+                { autoCapitalize: "words" }
+              )}
             </View>
-            <View style={styles.halfInput}>
-              {renderInput("Soyad", "last_name", "Yılmaz", {
-                autoCapitalize: "words",
-              })}
+            <View style={styles.halfInputRight}>
+              {renderInput(
+                t("createDriver.lastName") || "Soyad",
+                "last_name",
+                "Yılmaz",
+                { autoCapitalize: "words" }
+              )}
             </View>
           </View>
 
-          {renderInput("Telefon", "phone", "05XX XXX XX XX", {
-            keyboardType: "phone-pad",
-          })}
+          {renderInput(
+            t("createDriver.phone") || "Telefon",
+            "phone",
+            "05XX XXX XX XX",
+            { keyboardType: "phone-pad" }
+          )}
 
           {/* Ehliyet Bilgileri */}
-          <Text style={styles.sectionTitle}>Ehliyet Bilgileri</Text>
-
-          {renderInput("Ehliyet No *", "license_no", "TR123456789", {
-            autoCapitalize: "characters",
-          })}
-
-          {renderInput("Ehliyet Bitiş Tarihi", "license_expiry", "2025-12-31", {
-            keyboardType: "default",
-          })}
-
-          {/* Acil Durum */}
-          <Text style={styles.sectionTitle}>Acil Durum</Text>
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.licenseInfo") || "Ehliyet Bilgileri"}
+          </Text>
 
           {renderInput(
-            "Acil Durum Kişisi",
+            `${t("createDriver.licenseNo") || "Ehliyet No"} *`,
+            "license_no",
+            "TR123456789",
+            { autoCapitalize: "characters" }
+          )}
+
+          {renderInput(
+            t("createDriver.licenseExpiry") || "Ehliyet Bitiş Tarihi",
+            "license_expiry",
+            "2025-12-31",
+            { keyboardType: "default" }
+          )}
+
+          {/* Acil Durum */}
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.emergency") || "Acil Durum"}
+          </Text>
+
+          {renderInput(
+            t("createDriver.emergencyContact") || "Acil Durum Kişisi",
             "emergency_contact",
             "Ayşe Yılmaz - 05XX XXX XX XX"
           )}
@@ -179,11 +341,18 @@ const CreateDriverScreen = ({ navigation }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <>
-                <Ionicons name="person-add" size={20} color={COLORS.white} />
-                <Text style={styles.saveButtonText}>Sürücü Ekle</Text>
+                <Ionicons
+                  name="person-add"
+                  size={20}
+                  color={COLORS.WHITE}
+                  style={styles.saveButtonIcon}
+                />
+                <Text style={styles.saveButtonText}>
+                  {t("createDriver.addDriver") || "Sürücü Ekle"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -192,84 +361,5 @@ const CreateDriverScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.primary,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  passwordInput: {
-    flex: 1,
-    borderWidth: 0,
-  },
-  eyeButton: {
-    padding: 16,
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 32,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
 
 export default CreateDriverScreen;

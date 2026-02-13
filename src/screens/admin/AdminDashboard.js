@@ -1,10 +1,11 @@
 // src/screens/admin/AdminDashboard.js
 // TulipFleet - Admin Dashboard with REAL DATA
-// Updated: 22 Ocak 2026 - Dark Mode Migration v3
+// Updated: 11 Şubat 2026 - Card migration + Theme tokens
 
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -14,50 +15,127 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI } from "../../services/api";
 
-// ❌ KALDIRILDI: import { COLORS } from "../../constants/config";
+//  KALDIRILDI: import { COLORS } from "../../constants/config";
 
 // ============================================
 // ALERT TİP VE SEVİYE MAPPING (Dinamik renkler için fonksiyon)
 // ============================================
 
-const getAlertTypeMap = (COLORS) => ({
-  HARD_BRAKE: { icon: "🛑", label: "Ani Fren", color: COLORS.ERROR },
-  HARD_ACCEL: { icon: "🚀", label: "Sert Hızlanma", color: COLORS.WARNING },
-  HARD_TURN: { icon: "↩️", label: "Sert Viraj", color: COLORS.WARNING },
-  SHARP_TURN: { icon: "↩️", label: "Keskin Viraj", color: COLORS.WARNING },
-  IMPACT: { icon: "💥", label: "Çarpma/Kaza", color: "#DC2626" },
-  OVERSPEED: { icon: "⚡", label: "Hız Aşımı", color: COLORS.ERROR },
-  GEOFENCE_EXIT: { icon: "📍", label: "Bölge Çıkışı", color: "#8B5CF6" },
-  GEOFENCE_ENTER: { icon: "📍", label: "Bölge Girişi", color: COLORS.SUCCESS },
-  LOW_FUEL: { icon: "⛽", label: "Düşük Yakıt", color: COLORS.WARNING },
-  IDLE_TIME: { icon: "⏱️", label: "Uzun Rölanti", color: COLORS.MUTED },
+const getAlertTypeMap = (COLORS, t) => ({
+  HARD_BRAKE: {
+    icon: "alert-circle",
+    label: t("admin.alerts.hardBrake", "Ani Fren"),
+    color: COLORS.ERROR,
+  },
+  HARD_ACCEL: {
+    icon: "speedometer",
+    label: t("admin.alerts.hardAccel", "Sert Hızlanma"),
+    color: COLORS.WARNING,
+  },
+  HARD_TURN: {
+    icon: "return-down-back",
+    label: t("admin.alerts.hardTurn", "Sert Viraj"),
+    color: COLORS.WARNING,
+  },
+  SHARP_TURN: {
+    icon: "return-down-back",
+    label: t("admin.alerts.sharpTurn", "Keskin Viraj"),
+    color: COLORS.WARNING,
+  },
+  IMPACT: {
+    icon: "warning",
+    label: t("admin.alerts.impact", "Çarpma/Kaza"),
+    color: COLORS.ERROR, // kritik
+  },
+  OVERSPEED: {
+    icon: "flash",
+    label: t("admin.alerts.overspeed", "Hız Aşımı"),
+    color: COLORS.ERROR,
+  },
+  GEOFENCE_EXIT: {
+    icon: "location",
+    label: t("admin.alerts.geofenceExit", "Bölge Çıkışı"),
+    color: COLORS.LABEL,
+  },
+  GEOFENCE_ENTER: {
+    icon: "location",
+    label: t("admin.alerts.geofenceEnter", "Bölge Girişi"),
+    color: COLORS.SUCCESS,
+  },
+  LOW_FUEL: {
+    icon: "water-outline",
+    label: t("admin.alerts.lowFuel", "Düşük Yakıt"),
+    color: COLORS.WARNING,
+  },
+  IDLE_TIME: {
+    icon: "time-outline",
+    label: t("admin.alerts.idleTime", "Uzun Rölanti"),
+    color: COLORS.MUTED,
+  },
 });
 
-const getSeverityMap = (COLORS) => ({
-  critical: { label: "Kritik", color: "#DC2626", bg: COLORS.INPUT_ERROR },
-  high: { label: "Yüksek", color: COLORS.ERROR, bg: COLORS.INPUT_ERROR },
-  medium: { label: "Orta", color: COLORS.WARNING, bg: "#FEF3C7" },
-  low: { label: "Düşük", color: COLORS.SUCCESS, bg: "#D1FAE5" },
+const getSeverityMap = (COLORS, t) => ({
+  critical: {
+    label: t("admin.severity.critical", "Kritik"),
+    color: COLORS.ERROR,
+    bg: COLORS.INPUT_ERROR,
+  },
+  high: {
+    label: t("admin.severity.high", "Yüksek"),
+    color: COLORS.ERROR,
+    bg: COLORS.INPUT_ERROR,
+  },
+  medium: {
+    label: t("admin.severity.medium", "Orta"),
+    color: COLORS.WARNING,
+    bg: COLORS.WARNING_LIGHT,
+  },
+  low: {
+    label: t("admin.severity.low", "Düşük"),
+    color: COLORS.SUCCESS,
+    bg: COLORS.SUCCESS_LIGHT,
+  },
 });
 
-const getTaskStatusMap = (COLORS) => ({
-  pending: { label: "Bekliyor", color: COLORS.WARNING, bg: "#FEF3C7" },
-  assigned: { label: "Atandı", color: COLORS.PRIMARY, bg: COLORS.SECONDARY },
-  in_progress: { label: "Devam Ediyor", color: "#8B5CF6", bg: "#EDE9FE" },
-  completed: { label: "Tamamlandı", color: COLORS.SUCCESS, bg: "#D1FAE5" },
-  cancelled: { label: "İptal", color: COLORS.MUTED, bg: COLORS.DIVIDER },
+const getTaskStatusMap = (COLORS, t) => ({
+  pending: {
+    label: t("admin.taskStatus.pending", "Bekliyor"),
+    color: COLORS.WARNING,
+    bg: COLORS.WARNING_LIGHT,
+  },
+  assigned: {
+    label: t("admin.taskStatus.assigned", "Atandı"),
+    color: COLORS.PRIMARY,
+    bg: COLORS.SECONDARY,
+  },
+  in_progress: {
+    label: t("admin.taskStatus.inProgress", "Devam Ediyor"),
+    color: COLORS.LABEL,
+    bg: COLORS.INFO_LIGHT,
+  },
+  completed: {
+    label: t("admin.taskStatus.completed", "Tamamlandı"),
+    color: COLORS.SUCCESS,
+    bg: COLORS.SUCCESS_LIGHT,
+  },
+  cancelled: {
+    label: t("admin.taskStatus.cancelled", "İptal"),
+    color: COLORS.MUTED,
+    bg: COLORS.DIVIDER,
+  },
 });
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
 
-const getRelativeTime = (timestamp) => {
+const getRelativeTime = (timestamp, t) => {
   const now = new Date();
   const time = new Date(timestamp);
   const diffMs = now - time;
@@ -65,15 +143,16 @@ const getRelativeTime = (timestamp) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "Az önce";
-  if (diffMins < 60) return `${diffMins} dk önce`;
-  if (diffHours < 24) return `${diffHours} saat önce`;
-  if (diffDays < 7) return `${diffDays} gün önce`;
-  return time.toLocaleDateString("tr-TR");
+  if (diffMins < 1) return t("admin.time.justNow", "Az önce");
+  if (diffMins < 60) return `${diffMins} ${t("admin.time.minAgo", "dk önce")}`;
+  if (diffHours < 24)
+    return `${diffHours} ${t("admin.time.hourAgo", "saat önce")}`;
+  if (diffDays < 7) return `${diffDays} ${t("admin.time.dayAgo", "gün önce")}`;
+  return time.toLocaleDateString();
 };
 
 // ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
+// makeStyles - BÜYÜK HARF TOKENLAR
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -231,19 +310,8 @@ const makeStyles = (COLORS) =>
       color: "rgba(255,255,255,0.8)",
       marginTop: 2,
     },
-    // Card
-    card: {
-      backgroundColor: COLORS.CARD,
-      margin: 16,
-      marginBottom: 0,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
+    // card: KALDIRILDI - Card component kullanılıyor
+    // AdminDashboard'da marginBottom: 0 için <Card noMarginBottom> kullan
     cardTitleRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -385,11 +453,11 @@ const makeStyles = (COLORS) =>
     },
     vehicleStats: {
       flexDirection: "row",
-      gap: 16,
     },
     vehicleStat: {
       flexDirection: "row",
       alignItems: "center",
+      marginRight: COLORS.SPACING.md, // 16
     },
     vehicleStatIcon: {
       fontSize: 14,
@@ -447,13 +515,16 @@ const makeStyles = (COLORS) =>
     activityDetails: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 8,
     },
     activityTag: {
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: COLORS.DIVIDER,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
+      paddingHorizontal: COLORS.SPACING.sm, // 8
+      paddingVertical: COLORS.SPACING.xs, // 4
+      borderRadius: COLORS.RADIUS.sm, // 8 (badge için daha modern)
+      marginRight: COLORS.SPACING.sm, // 8
+      marginBottom: COLORS.SPACING.sm, // 8
     },
     activityTagText: {
       fontSize: 11,
@@ -477,17 +548,22 @@ const makeStyles = (COLORS) =>
 const AdminDashboard = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
 
   // Dinamik mapping'ler (COLORS'a bağlı)
-  const ALERT_TYPE_MAP = getAlertTypeMap(COLORS);
-  const SEVERITY_MAP = getSeverityMap(COLORS);
-  const TASK_STATUS_MAP = getTaskStatusMap(COLORS);
+  const ALERT_TYPE_MAP = getAlertTypeMap(COLORS, t);
+  const SEVERITY_MAP = getSeverityMap(COLORS, t);
+  const TASK_STATUS_MAP = getTaskStatusMap(COLORS, t);
 
   const getAlertInfo = (type) => {
     return (
-      ALERT_TYPE_MAP[type] || { icon: "⚠️", label: type, color: COLORS.MUTED }
+      ALERT_TYPE_MAP[type] || {
+        icon: "alert-circle-outline",
+        label: type,
+        color: COLORS.MUTED,
+      }
     );
   };
 
@@ -537,14 +613,14 @@ const AdminDashboard = () => {
       setVehicles(vehiclesData.vehicles || []);
       setActivities(activitiesData.activities || []);
 
-      console.log("✅ Admin data loaded:", {
+      console.log("Admin data loaded:", {
         stats: statsData,
         vehicleCount: vehiclesData.vehicles?.length,
         activityCount: activitiesData.activities?.length,
       });
     } catch (error) {
-      console.error("❌ Error fetching admin data:", error);
-      setError("Veri yüklenirken hata oluştu");
+      console.error("Error fetching admin data:", error);
+      setError(t("admin.dataLoadError", "Veri yüklenirken hata oluştu"));
       setFleetStats(getDefaultStats());
       setVehicles([]);
       setActivities([]);
@@ -582,7 +658,7 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
-      console.log("✅ Çıkış yapıldı");
+      console.log("Çıkış yapıldı");
     }
   };
 
@@ -613,19 +689,30 @@ const AdminDashboard = () => {
         >
           <View style={styles.activityHeader}>
             <View style={styles.activityTitleRow}>
-              <Text style={styles.activityIcon}>{alertInfo.icon}</Text>
+              <Ionicons
+                name={alertInfo.icon}
+                size={16}
+                color={alertInfo.color}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.activityTitle}>{alertInfo.label}</Text>
             </View>
             <Text style={styles.activityTime}>
-              {getRelativeTime(activity.timestamp)}
+              {getRelativeTime(activity.timestamp, t)}
             </Text>
           </View>
 
           <View style={styles.activityDetails}>
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
+                <Ionicons
+                  name="car"
+                  size={12}
+                  color={COLORS.TEXT}
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.activityTagText}>
-                  🚗 {activity.vehicle_plate}
+                  {activity.vehicle_plate}
                 </Text>
               </View>
             )}
@@ -657,28 +744,45 @@ const AdminDashboard = () => {
         >
           <View style={styles.activityHeader}>
             <View style={styles.activityTitleRow}>
-              <Text style={styles.activityIcon}>📋</Text>
+              <Ionicons
+                name="clipboard-outline"
+                size={16}
+                color={COLORS.PRIMARY}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.activityTitle} numberOfLines={1}>
-                {activity.identifier || "Görev"}
+                {activity.identifier || t("admin.task", "Görev")}
               </Text>
             </View>
             <Text style={styles.activityTime}>
-              {getRelativeTime(activity.timestamp)}
+              {getRelativeTime(activity.timestamp, t)}
             </Text>
           </View>
 
           <View style={styles.activityDetails}>
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
+                <Ionicons
+                  name="car"
+                  size={12}
+                  color={COLORS.TEXT}
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.activityTagText}>
-                  🚗 {activity.vehicle_plate}
+                  {activity.vehicle_plate}
                 </Text>
               </View>
             )}
             {activity.user_email && (
               <View style={styles.activityTag}>
+                <Ionicons
+                  name="person"
+                  size={12}
+                  color={COLORS.TEXT}
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.activityTagText}>
-                  👤 {activity.user_email.split("@")[0]}
+                  {activity.user_email.split("@")[0]}
                 </Text>
               </View>
             )}
@@ -700,7 +804,9 @@ const AdminDashboard = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>
+          {t("common.loading", "Yükleniyor...")}
+        </Text>
       </View>
     );
   }
@@ -720,11 +826,20 @@ const AdminDashboard = () => {
       {/* Header with Modern Greeting */}
       <View style={styles.header}>
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingEmoji}>👋</Text>
+          <Ionicons
+            name="hand-left-outline"
+            size={28}
+            color={COLORS.WHITE}
+            style={{ marginRight: 12 }}
+          />
           <View>
-            <Text style={styles.greeting}>Hoş geldiniz,</Text>
+            <Text style={styles.greeting}>
+              {t("admin.welcome", "Hoş geldiniz,")}
+            </Text>
             <Text style={styles.userName}>
-              {user?.firstName || user?.email?.split("@")[0] || "Yönetici"}
+              {user?.firstName ||
+                user?.email?.split("@")[0] ||
+                t("roles.admin", "Yönetici")}
             </Text>
           </View>
         </View>
@@ -736,14 +851,16 @@ const AdminDashboard = () => {
       {/* Error Message */}
       {error && (
         <View style={styles.errorCard}>
-          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
 
       {/* Fleet Command Center Infogram */}
       {fleetStats && (
         <View style={styles.commandCenterCard}>
-          <Text style={styles.commandCenterTitle}>🎯 Komuta Merkezi</Text>
+          <Text style={styles.commandCenterTitle}>
+            {t("admin.commandCenter", "Komuta Merkezi")}
+          </Text>
           <View style={styles.commandCenterGrid}>
             <View style={styles.commandItem}>
               <View
@@ -757,22 +874,32 @@ const AdminDashboard = () => {
               <Text style={styles.commandNumber}>
                 {fleetStats.totals?.vehicles ?? 0}
               </Text>
-              <Text style={styles.commandLabel}>Araç</Text>
+              <Text style={styles.commandLabel}>
+                {t("admin.vehicle", "Araç")}
+              </Text>
             </View>
             <View style={styles.commandItem}>
               <View
-                style={[styles.commandIcon, { backgroundColor: "#F0FDF4" }]}
+                style={[
+                  styles.commandIcon,
+                  { backgroundColor: COLORS.SUCCESS_LIGHT },
+                ]}
               >
                 <Ionicons name="people" size={24} color={COLORS.SUCCESS} />
               </View>
               <Text style={styles.commandNumber}>
                 {fleetStats.totals?.drivers ?? 0}
               </Text>
-              <Text style={styles.commandLabel}>Sürücü</Text>
+              <Text style={styles.commandLabel}>
+                {t("admin.driver", "Sürücü")}
+              </Text>
             </View>
             <View style={styles.commandItem}>
               <View
-                style={[styles.commandIcon, { backgroundColor: "#FEF3C7" }]}
+                style={[
+                  styles.commandIcon,
+                  { backgroundColor: COLORS.WARNING_LIGHT },
+                ]}
               >
                 <Ionicons
                   name="hardware-chip"
@@ -783,7 +910,9 @@ const AdminDashboard = () => {
               <Text style={styles.commandNumber}>
                 {fleetStats.health?.online_vehicles ?? 0}
               </Text>
-              <Text style={styles.commandLabel}>Online Araç</Text>
+              <Text style={styles.commandLabel}>
+                {t("admin.onlineVehicle", "Online Araç")}
+              </Text>
             </View>
           </View>
         </View>
@@ -801,9 +930,11 @@ const AdminDashboard = () => {
             <View style={styles.livePulse} />
           </View>
           <View style={styles.liveMapText}>
-            <Text style={styles.liveMapTitle}>🗺️ Canlı Harita</Text>
+            <Text style={styles.liveMapTitle}>
+              {t("admin.liveMap", "Canlı Harita")}
+            </Text>
             <Text style={styles.liveMapSubtitle}>
-              Araçları gerçek zamanlı takip edin
+              {t("admin.trackVehicles", "Araçları gerçek zamanlı takip edin")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={COLORS.WHITE} />
@@ -812,14 +943,18 @@ const AdminDashboard = () => {
 
       {/* Fleet Stats */}
       {fleetStats && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📊 Filo Özeti</Text>
+        <Card noMarginBottom>
+          <Text style={styles.cardTitle}>
+            {t("admin.fleetSummary", "Filo Özeti")}
+          </Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
                 {fleetStats.totals?.vehicles ?? 0}
               </Text>
-              <Text style={styles.statText}>Toplam Araç</Text>
+              <Text style={styles.statText}>
+                {t("admin.totalVehicles", "Toplam Araç")}
+              </Text>
               <Text style={styles.statDetail}>
                 {fleetStats.breakdown?.vehicles?.in_use ?? 0} kullanımda
               </Text>
@@ -828,7 +963,9 @@ const AdminDashboard = () => {
               <Text style={styles.statNumber}>
                 {fleetStats.totals?.drivers ?? 0}
               </Text>
-              <Text style={styles.statText}>Toplam Sürücü</Text>
+              <Text style={styles.statText}>
+                {t("admin.totalDrivers", "Toplam Sürücü")}
+              </Text>
               <Text style={styles.statDetail}>
                 {fleetStats.breakdown?.drivers?.on_duty ?? 0} görevde
               </Text>
@@ -837,7 +974,9 @@ const AdminDashboard = () => {
               <Text style={[styles.statNumber, { color: COLORS.INFO }]}>
                 {fleetStats.totals?.active_tasks ?? 0}
               </Text>
-              <Text style={styles.statText}>Aktif Görev</Text>
+              <Text style={styles.statText}>
+                {t("admin.activeTasks", "Aktif Görev")}
+              </Text>
               <Text style={styles.statDetail}>
                 {fleetStats.totals?.pending_tasks ?? 0} beklemede
               </Text>
@@ -846,43 +985,58 @@ const AdminDashboard = () => {
               <Text style={[styles.statNumber, { color: COLORS.SUCCESS }]}>
                 {fleetStats.breakdown?.tasks?.completed_today ?? 0}
               </Text>
-              <Text style={styles.statText}>Bugün Tamamlanan</Text>
-              <Text style={styles.statDetail}>görev</Text>
+              <Text style={styles.statText}>
+                {t("admin.completedToday", "Bugün Tamamlanan")}
+              </Text>
+              <Text style={styles.statDetail}>
+                {fleetStats.breakdown?.vehicles?.in_use ?? 0}{" "}
+                {t("admin.inUse", "kullanımda")}
+              </Text>
             </View>
           </View>
-        </View>
+        </Card>
       )}
 
       {/* Alert Stats */}
       {fleetStats?.breakdown?.alerts && (
         <View style={styles.alertStatsCard}>
           <View style={styles.alertStatItem}>
-            <Text style={styles.alertStatIcon}>⚠️</Text>
+            <Ionicons
+              name="alert-circle-outline"
+              size={24}
+              color={COLORS.WARNING}
+            />
             <Text style={styles.alertStatNumber}>
               {fleetStats.breakdown?.alerts?.unresolved ??
                 fleetStats.totals?.alerts ??
                 0}
             </Text>
-            <Text style={styles.alertStatLabel}>Çözülmemiş Uyarı</Text>
+            <Text style={styles.alertStatLabel}>
+              {t("admin.unresolvedAlerts", "Çözülmemiş Uyarı")}
+            </Text>
           </View>
           <View style={styles.alertStatDivider} />
           <View style={styles.alertStatItem}>
-            <Text style={styles.alertStatIcon}>🚨</Text>
+            <Ionicons name="warning" size={24} color={COLORS.ERROR} />
             <Text style={[styles.alertStatNumber, { color: COLORS.ERROR }]}>
               {fleetStats.breakdown?.alerts?.critical ?? 0}
             </Text>
-            <Text style={styles.alertStatLabel}>Kritik Uyarı</Text>
+            <Text style={styles.alertStatLabel}>
+              {t("admin.criticalAlerts", "Kritik Uyarı")}
+            </Text>
           </View>
         </View>
       )}
 
       {/* Vehicles - Tıklanabilir */}
-      <View style={styles.card}>
+      <Card noMarginBottom>
         <TouchableOpacity
           style={styles.cardTitleRow}
           onPress={() => navigation.navigate("Vehicles")}
         >
-          <Text style={styles.cardTitle}>🚙 Araçlar ({vehicles.length})</Text>
+          <Text style={styles.cardTitle}>
+            {t("admin.vehicles", "Araçlar")} ({vehicles.length})
+          </Text>
           <Ionicons
             name="chevron-forward"
             size={20}
@@ -905,7 +1059,12 @@ const AdminDashboard = () => {
                   </Text>
                   {vehicle.driver_email && (
                     <View style={styles.driverInfo}>
-                      <Text style={styles.driverIcon}>👤</Text>
+                      <Ionicons
+                        name="person"
+                        size={12}
+                        color={COLORS.TEXT_SECONDARY}
+                        style={{ marginRight: 4 }}
+                      />
                       <Text style={styles.driverName}>
                         {vehicle.driver_email.split("@")[0]}
                       </Text>
@@ -927,17 +1086,22 @@ const AdminDashboard = () => {
                 >
                   <Text style={styles.statusText}>
                     {vehicle.status === "in_use"
-                      ? "Kullanımda"
+                      ? t("admin.vehicleStatus.inUse", "Kullanımda")
                       : vehicle.status === "available"
-                        ? "Müsait"
-                        : "Bakımda"}
+                        ? t("admin.vehicleStatus.available", "Müsait")
+                        : t("admin.vehicleStatus.maintenance", "Bakımda")}
                   </Text>
                 </View>
               </View>
               <View style={styles.vehicleStats}>
                 {vehicle.odometer && (
                   <View style={styles.vehicleStat}>
-                    <Text style={styles.vehicleStatIcon}>🛣️</Text>
+                    <Ionicons
+                      name="speedometer-outline"
+                      size={14}
+                      color={COLORS.TEXT_SECONDARY}
+                      style={{ marginRight: 4 }}
+                    />
                     <Text style={styles.vehicleStatValue}>
                       {Math.round(vehicle.odometer).toLocaleString()} km
                     </Text>
@@ -945,7 +1109,12 @@ const AdminDashboard = () => {
                 )}
                 {vehicle.fuel_level && (
                   <View style={styles.vehicleStat}>
-                    <Text style={styles.vehicleStatIcon}>⛽</Text>
+                    <Ionicons
+                      name="water-outline"
+                      size={14}
+                      color={COLORS.TEXT_SECONDARY}
+                      style={{ marginRight: 4 }}
+                    />
                     <Text style={styles.vehicleStatValue}>
                       {vehicle.fuel_level}%
                     </Text>
@@ -955,7 +1124,9 @@ const AdminDashboard = () => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.noDataText}>Araç bulunamadı</Text>
+          <Text style={styles.noDataText}>
+            {t("admin.noVehicles", "Araç bulunamadı")}
+          </Text>
         )}
 
         {vehicles.length > 3 && (
@@ -964,30 +1135,34 @@ const AdminDashboard = () => {
             onPress={() => navigation.navigate("Vehicles")}
           >
             <Text style={styles.seeAllText}>
-              Tümünü Gör ({vehicles.length})
+              {t("admin.seeAll", "Tamamını Gör")} ({vehicles.length})
             </Text>
           </TouchableOpacity>
         )}
-      </View>
+      </Card>
 
       {/* Activities */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📝 Son Aktiviteler</Text>
+      <Card noMarginBottom>
+        <Text style={styles.cardTitle}>
+          {t("admin.recentActivities", "Son Aktiviteler")}
+        </Text>
         {activities.length > 0 ? (
           activities
             .slice(0, 5)
             .map((activity, index) => renderActivityItem(activity, index))
         ) : (
-          <Text style={styles.noDataText}>Henüz aktivite yok</Text>
+          <Text style={styles.noDataText}>
+            {t("admin.noActivities", "Henüz aktivite yok")}
+          </Text>
         )}
-      </View>
+      </Card>
 
       {/* Bottom spacing */}
-      <View style={{ height: 20 }} />
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 };
 
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
+//  ESK StyleSheet S - art makeStyles kullan
 
 export default AdminDashboard;

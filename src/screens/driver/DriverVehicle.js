@@ -468,19 +468,23 @@ const DriverVehicle = ({ navigation }) => {
         <Text style={styles.vehicleYear}>{vehicle.year}</Text>
         <View style={styles.connectionStatus}>
           <Ionicons
-            name={vehicle.esp32_connected ? "wifi" : "wifi-outline"}
+            name={vehicle.esp32Status?.connected ? "wifi" : "wifi-outline"}
             size={16}
-            color={vehicle.esp32_connected ? COLORS.SUCCESS : COLORS.MUTED}
+            color={
+              vehicle.esp32Status?.connected ? COLORS.SUCCESS : COLORS.MUTED
+            }
           />
           <Text
             style={[
               styles.connectionText,
               {
-                color: vehicle.esp32_connected ? COLORS.SUCCESS : COLORS.WHITE,
+                color: vehicle.esp32Status?.connected
+                  ? COLORS.SUCCESS
+                  : COLORS.WHITE,
               },
             ]}
           >
-            {vehicle.esp32_connected
+            {vehicle.esp32Status?.connected
               ? t("vehicle.connected")
               : t("vehicle.noConnection")}
           </Text>

@@ -1,6 +1,10 @@
 // src/screens/driver/DriverTaskDetail.js
 // TulipFleet - Sürücü Görev Detay Ekranı
-// Updated: 17 Ocak 2026 - Full i18n Support
+// Updated: 12 Şubat 2026 - Theme migration (UI System Guide v3)
+// ✅ useTheme + useThemedStyles, local COLORS kaldırıldı
+// ✅ SPACING/RADIUS/TYPOGRAPHY/SHADOWS tokens, 0 hardcoded hex
+// ✅ Waypoint Stops + Progress Events kartları (Faz 3.5)
+// ✅ i18n key fallback, 0 inline style
 
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -15,75 +19,417 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverTaskAPI } from "../../services/api";
 
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
+// ── Event icon map ──────────────────────────
+const EVENT_ICON_MAP = {
+  TASK_COMPLETED: "checkmark-done",
+  TASK_STARTED: "play",
+  TASK_ACCEPTED: "checkmark-circle",
+  TASK_REJECTED: "close-circle",
+  TASK_WITHDRAWN: "arrow-undo",
+  STOP_ARRIVED: "location",
+  STOP_DEPARTED: "exit",
+  WAYPOINT_COMPLETED: "flag",
 };
 
-// Status config with translation keys
-const STATUS_CONFIG = {
+// ── Status config factory (theme-aware) ─────
+const getStatusConfig = (COLORS) => ({
   pending_review: {
-    color: COLORS.warning,
-    bg: "#FFF5F3",
+    color: COLORS.WARNING,
+    bg: COLORS.WARNING_LIGHT,
     key: "pending_review",
     icon: "notifications",
   },
   accepted: {
-    color: COLORS.info,
-    bg: "#E8FAFC",
+    color: COLORS.INFO,
+    bg: COLORS.INFO_LIGHT,
     key: "accepted",
     icon: "checkmark-circle",
   },
   in_progress: {
-    color: COLORS.primary,
-    bg: "#F0F2FF",
+    color: COLORS.PRIMARY,
+    bg: COLORS.SECONDARY,
     key: "in_progress",
     icon: "navigate",
   },
   completed: {
-    color: COLORS.success,
-    bg: "#E8FCF1",
+    color: COLORS.SUCCESS,
+    bg: COLORS.SUCCESS_LIGHT,
     key: "completed",
     icon: "checkmark-done",
   },
   rejected: {
-    color: COLORS.danger,
-    bg: "#FFF0F3",
+    color: COLORS.ERROR,
+    bg: COLORS.ERROR_LIGHT,
     key: "rejected",
     icon: "close-circle",
   },
   pending: {
-    color: COLORS.warning,
-    bg: "#FFF5F3",
+    color: COLORS.WARNING,
+    bg: COLORS.WARNING_LIGHT,
     key: "pending",
     icon: "time",
   },
   assigned: {
-    color: COLORS.info,
-    bg: "#E8FAFC",
+    color: COLORS.INFO,
+    bg: COLORS.INFO_LIGHT,
     key: "assigned",
     icon: "person",
   },
   cancelled: {
-    color: COLORS.danger,
-    bg: "#FFF0F3",
+    color: COLORS.ERROR,
+    bg: COLORS.ERROR_LIGHT,
     key: "cancelled",
     icon: "close-circle",
   },
-};
+});
 
+// ── Styles factory ──────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 120,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.TEXT_SECONDARY,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    errorText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.ERROR,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Status Banner ──
+    statusBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+    },
+    statusBannerIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    statusBannerText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Card ──
+    card: {
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.lg,
+      marginHorizontal: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.card,
+    },
+    cardTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.md,
+    },
+
+    // ── Info Rows ──
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.BACKGROUND,
+    },
+    infoLabel: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    infoValue: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+    },
+
+    // ── Vehicle Badge ──
+    vehicleBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.xs,
+    },
+    vehicleIcon: {
+      marginRight: COLORS.SPACING.xs,
+    },
+    vehicleText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.PRIMARY,
+    },
+    vehicleModel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+
+    // ── Route ──
+    routeContainer: {
+      position: "relative",
+    },
+    routePoint: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    routeIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: COLORS.RADIUS.xl,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    routeInfo: {
+      marginLeft: COLORS.SPACING.md,
+      flex: 1,
+    },
+    routeLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    routeAddress: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      marginTop: 2,
+    },
+    routeLineVertical: {
+      width: 2,
+      height: COLORS.SPACING.lg,
+      backgroundColor: COLORS.DIVIDER,
+      marginLeft: 19,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    distanceBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      marginTop: COLORS.SPACING.sm,
+    },
+    distanceIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    distanceText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.PRIMARY,
+    },
+
+    // ── Notes ──
+    notesText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      lineHeight: 20,
+    },
+
+    // ── Reject Input ──
+    rejectInput: {
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      borderRadius: COLORS.RADIUS.input,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT,
+      minHeight: 80,
+      textAlignVertical: "top",
+    },
+    rejectButtons: {
+      flexDirection: "row",
+      marginTop: COLORS.SPACING.md,
+    },
+    cancelRejectButton: {
+      flex: 1,
+      padding: COLORS.SPACING.md,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    cancelRejectText: {
+      color: COLORS.TEXT_SECONDARY,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    confirmRejectButton: {
+      flex: 1,
+      backgroundColor: COLORS.ERROR,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.button,
+      alignItems: "center",
+    },
+    confirmRejectText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Action Container ──
+    actionContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.md,
+      paddingBottom: COLORS.SPACING.xl,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      ...COLORS.SHADOWS.header,
+    },
+    buttonRow: {
+      flexDirection: "row",
+    },
+    actionButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      marginHorizontal: COLORS.SPACING.xs,
+    },
+    fullWidth: {
+      marginHorizontal: 0,
+    },
+    actionButtonIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    actionButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    acceptButton: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    rejectButton: {
+      backgroundColor: COLORS.ERROR,
+    },
+    startButton: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    completeButton: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    infoBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    infoBoxIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    infoBoxText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Waypoint Stops ──
+    wpItem: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    wpRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.xs,
+    },
+    wpIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    wpName: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT,
+    },
+    wpNameActive: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    wpStatusLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    wpActions: {
+      flexDirection: "row",
+      marginLeft: COLORS.SPACING.xl,
+    },
+    wpActionBtn: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginRight: COLORS.SPACING.sm,
+    },
+    wpActionText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ── Progress Events ──
+    evItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    evIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    evContent: {
+      flex: 1,
+    },
+    evType: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+    },
+    evTime: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+    },
+  });
+
+// ── Component ───────────────────────────────
 const DriverTaskDetail = ({ route, navigation }) => {
   const { t, i18n } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+  const STATUS_CONFIG = getStatusConfig(COLORS);
+
   const { taskId } = route.params || {};
 
   const [task, setTask] = useState(null);
@@ -91,14 +437,16 @@ const DriverTaskDetail = ({ route, navigation }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
+  const [events, setEvents] = useState([]);
 
   // Vehicle guard helper
   const navigateToMap = (taskData) => {
     if (!taskData?.vehicle_id && !task?.vehicle_id) {
       Alert.alert(
-        "Araç Atanmamış",
-        "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
-        [{ text: "Tamam" }]
+        t("taskDetail.actions.error") || "Araç Atanmamış",
+        t("taskDetail.vehicleNotAssigned") ||
+          "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+        [{ text: t("profile.ok") || "Tamam" }]
       );
       return;
     }
@@ -136,6 +484,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
   useEffect(() => {
     if (taskId) {
       fetchTaskDetail();
+      loadEvents();
     } else {
       Alert.alert(
         t("taskDetail.actions.error"),
@@ -157,6 +506,15 @@ const DriverTaskDetail = ({ route, navigation }) => {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEvents = async () => {
+    try {
+      const res = await driverTaskAPI.getTaskEvents(taskId);
+      setEvents(res.events || []);
+    } catch (e) {
+      console.log("Events load error", e);
     }
   };
 
@@ -185,7 +543,8 @@ const DriverTaskDetail = ({ route, navigation }) => {
     return null;
   };
 
-  // Accept task
+  // ── Task Actions ──
+
   const handleAccept = () => {
     Alert.alert(
       t("taskDetail.actions.acceptTask"),
@@ -218,7 +577,6 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
-  // Reject task
   const handleReject = async () => {
     if (!rejectReason.trim()) {
       Alert.alert(
@@ -247,7 +605,6 @@ const DriverTaskDetail = ({ route, navigation }) => {
     }
   };
 
-  // Start task
   const handleStart = () => {
     Alert.alert(
       t("taskDetail.actions.startTask"),
@@ -290,7 +647,6 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
-  // Complete task
   const handleComplete = () => {
     Alert.alert(
       t("taskDetail.actions.completeTask"),
@@ -334,10 +690,36 @@ const DriverTaskDetail = ({ route, navigation }) => {
     );
   };
 
+  // ── Waypoint Actions ──
+
+  const updateWaypoint = async (waypointId, status) => {
+    setActionLoading(true);
+    try {
+      await driverTaskAPI.updateWaypointStatus(taskId, waypointId, status);
+      await fetchTaskDetail();
+      await loadEvents();
+    } catch (e) {
+      Alert.alert(
+        t("taskDetail.actions.error"),
+        e.response?.data?.error || t("taskDetail.actions.operationFailed")
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleArrived = (wpId) => updateWaypoint(wpId, "arrived");
+  const handleDeparted = (wpId) => updateWaypoint(wpId, "departed");
+  const handleWaypointCompleted = (wpId) => updateWaypoint(wpId, "completed");
+
+  const nextStop = task?.waypoints?.find((wp) => wp.status !== "completed");
+
+  // ── Render ──
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.success} />
+        <ActivityIndicator size="large" color={COLORS.SUCCESS} />
         <Text style={styles.loadingText}>{t("taskDetail.loading")}</Text>
       </View>
     );
@@ -346,7 +728,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
   if (!task) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle" size={60} color={COLORS.danger} />
+        <Ionicons name="alert-circle" size={60} color={COLORS.ERROR} />
         <Text style={styles.errorText}>{t("taskDetail.notFound")}</Text>
       </View>
     );
@@ -364,7 +746,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Status Banner */}
@@ -375,6 +757,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
             name={statusConfig.icon}
             size={24}
             color={statusConfig.color}
+            style={styles.statusBannerIcon}
           />
           <Text
             style={[styles.statusBannerText, { color: statusConfig.color }]}
@@ -398,7 +781,12 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 {t("taskDetail.info.vehicle")}
               </Text>
               <View style={styles.vehicleBadge}>
-                <Ionicons name="car" size={14} color={COLORS.primary} />
+                <Ionicons
+                  name="car"
+                  size={14}
+                  color={COLORS.PRIMARY}
+                  style={styles.vehicleIcon}
+                />
                 <Text style={styles.vehicleText}>
                   {task.vehicle_plate || task.vehicle?.plate_no}
                 </Text>
@@ -451,8 +839,13 @@ const DriverTaskDetail = ({ route, navigation }) => {
 
           <View style={styles.routeContainer}>
             <View style={styles.routePoint}>
-              <View style={[styles.routeIcon, { backgroundColor: "#E8FCF1" }]}>
-                <Ionicons name="location" size={20} color={COLORS.success} />
+              <View
+                style={[
+                  styles.routeIcon,
+                  { backgroundColor: COLORS.SUCCESS_LIGHT },
+                ]}
+              >
+                <Ionicons name="location" size={20} color={COLORS.SUCCESS} />
               </View>
               <View style={styles.routeInfo}>
                 <Text style={styles.routeLabel}>
@@ -465,8 +858,13 @@ const DriverTaskDetail = ({ route, navigation }) => {
             <View style={styles.routeLineVertical} />
 
             <View style={styles.routePoint}>
-              <View style={[styles.routeIcon, { backgroundColor: "#FFF0F3" }]}>
-                <Ionicons name="flag" size={20} color={COLORS.danger} />
+              <View
+                style={[
+                  styles.routeIcon,
+                  { backgroundColor: COLORS.ERROR_LIGHT },
+                ]}
+              >
+                <Ionicons name="flag" size={20} color={COLORS.ERROR} />
               </View>
               <View style={styles.routeInfo}>
                 <Text style={styles.routeLabel}>
@@ -481,7 +879,8 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 <Ionicons
                   name="navigate-outline"
                   size={18}
-                  color={COLORS.primary}
+                  color={COLORS.PRIMARY}
+                  style={styles.distanceIcon}
                 />
                 <Text style={styles.distanceText}>
                   {t("taskDetail.route.distance")}: {getDistance()} km
@@ -508,7 +907,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
             <TextInput
               style={styles.rejectInput}
               placeholder={t("taskDetail.actions.rejectReasonPlaceholder")}
-              placeholderTextColor={COLORS.muted}
+              placeholderTextColor={COLORS.PLACEHOLDER}
               value={rejectReason}
               onChangeText={setRejectReason}
               multiline
@@ -532,7 +931,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 disabled={actionLoading}
               >
                 {actionLoading ? (
-                  <ActivityIndicator color={COLORS.white} size="small" />
+                  <ActivityIndicator color={COLORS.WHITE} size="small" />
                 ) : (
                   <Text style={styles.confirmRejectText}>
                     {t("taskDetail.actions.reject")}
@@ -540,6 +939,124 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        )}
+
+        {/* Waypoint Stops Card */}
+        {task?.waypoints?.length > 0 && status === "in_progress" && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>
+              {t("taskDetail.waypoints.title") || "Duraklar"}
+            </Text>
+
+            {task.waypoints.map((wp, index) => {
+              const wpStatus = wp.status || "pending";
+              const isNext = nextStop && String(nextStop.id) === String(wp.id);
+              const isCompleted = wpStatus === "completed";
+
+              return (
+                <View key={wp.id || index} style={styles.wpItem}>
+                  <View style={styles.wpRow}>
+                    <Ionicons
+                      name={
+                        isCompleted
+                          ? "checkmark-circle"
+                          : isNext
+                            ? "navigate"
+                            : "ellipse-outline"
+                      }
+                      size={20}
+                      color={
+                        isCompleted
+                          ? COLORS.SUCCESS
+                          : isNext
+                            ? COLORS.PRIMARY
+                            : COLORS.MUTED
+                      }
+                      style={styles.wpIcon}
+                    />
+                    <Text style={isNext ? styles.wpNameActive : styles.wpName}>
+                      {wp.name ||
+                        wp.label ||
+                        `${t("taskDetail.waypoints.stop") || "Durak"} ${index + 1}`}
+                    </Text>
+                    <Text style={styles.wpStatusLabel}>
+                      ({t(`taskDetail.waypoints.${wpStatus}`) || wpStatus})
+                    </Text>
+                  </View>
+
+                  {isNext && !actionLoading && (
+                    <View style={styles.wpActions}>
+                      {wpStatus === "pending" && (
+                        <TouchableOpacity
+                          style={[
+                            styles.wpActionBtn,
+                            { backgroundColor: COLORS.INFO },
+                          ]}
+                          onPress={() => handleArrived(wp.id)}
+                        >
+                          <Text style={styles.wpActionText}>
+                            {t("taskDetail.waypoints.arrived") || "Vardım"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {wpStatus === "arrived" && (
+                        <TouchableOpacity
+                          style={[
+                            styles.wpActionBtn,
+                            { backgroundColor: COLORS.WARNING },
+                          ]}
+                          onPress={() => handleDeparted(wp.id)}
+                        >
+                          <Text style={styles.wpActionText}>
+                            {t("taskDetail.waypoints.departed") || "Ayrıldım"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {wpStatus === "departed" && (
+                        <TouchableOpacity
+                          style={[
+                            styles.wpActionBtn,
+                            { backgroundColor: COLORS.SUCCESS },
+                          ]}
+                          onPress={() => handleWaypointCompleted(wp.id)}
+                        >
+                          <Text style={styles.wpActionText}>
+                            {t("taskDetail.waypoints.complete") || "Tamamla"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Progress Events Card */}
+        {events.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>
+              {t("taskDetail.events.title") || "İlerleme"}
+            </Text>
+            {events.map((ev) => (
+              <View key={ev.id} style={styles.evItem}>
+                <Ionicons
+                  name={EVENT_ICON_MAP[ev.type] || "time"}
+                  size={16}
+                  color={COLORS.PRIMARY}
+                  style={styles.evIcon}
+                />
+                <View style={styles.evContent}>
+                  <Text style={styles.evType}>
+                    {t(`taskDetail.events.${ev.type}`) ||
+                      ev.type.replace(/_/g, " ")}
+                  </Text>
+                  <Text style={styles.evTime}>{formatDate(ev.created_at)}</Text>
+                </View>
+              </View>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -555,7 +1072,12 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 onPress={() => setShowRejectInput(true)}
                 disabled={actionLoading}
               >
-                <Ionicons name="close-circle" size={20} color={COLORS.white} />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={COLORS.WHITE}
+                  style={styles.actionButtonIcon}
+                />
                 <Text style={styles.actionButtonText}>
                   {t("taskDetail.actions.reject")}
                 </Text>
@@ -567,13 +1089,14 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 disabled={actionLoading}
               >
                 {actionLoading ? (
-                  <ActivityIndicator color={COLORS.white} size="small" />
+                  <ActivityIndicator color={COLORS.WHITE} size="small" />
                 ) : (
                   <>
                     <Ionicons
                       name="checkmark-circle"
                       size={20}
-                      color={COLORS.white}
+                      color={COLORS.WHITE}
+                      style={styles.actionButtonIcon}
                     />
                     <Text style={styles.actionButtonText}>
                       {t("taskDetail.actions.accept")}
@@ -596,10 +1119,15 @@ const DriverTaskDetail = ({ route, navigation }) => {
               disabled={actionLoading}
             >
               {actionLoading ? (
-                <ActivityIndicator color={COLORS.white} size="small" />
+                <ActivityIndicator color={COLORS.WHITE} size="small" />
               ) : (
                 <>
-                  <Ionicons name="play-circle" size={20} color={COLORS.white} />
+                  <Ionicons
+                    name="play-circle"
+                    size={20}
+                    color={COLORS.WHITE}
+                    style={styles.actionButtonIcon}
+                  />
                   <Text style={styles.actionButtonText}>
                     {t("taskDetail.actions.startTask")}
                   </Text>
@@ -620,13 +1148,14 @@ const DriverTaskDetail = ({ route, navigation }) => {
               disabled={actionLoading}
             >
               {actionLoading ? (
-                <ActivityIndicator color={COLORS.white} size="small" />
+                <ActivityIndicator color={COLORS.WHITE} size="small" />
               ) : (
                 <>
                   <Ionicons
                     name="checkmark-done"
                     size={20}
-                    color={COLORS.white}
+                    color={COLORS.WHITE}
+                    style={styles.actionButtonIcon}
                   />
                   <Text style={styles.actionButtonText}>
                     {t("taskDetail.actions.completeTask")}
@@ -645,13 +1174,14 @@ const DriverTaskDetail = ({ route, navigation }) => {
                 name={statusConfig.icon}
                 size={20}
                 color={statusConfig.color}
+                style={styles.infoBoxIcon}
               />
               <Text style={[styles.infoBoxText, { color: statusConfig.color }]}>
                 {status === "completed"
                   ? t("taskDetail.statusInfo.completed")
                   : status === "rejected"
-                  ? t("taskDetail.statusInfo.rejected")
-                  : t("taskDetail.statusInfo.cancelled")}
+                    ? t("taskDetail.statusInfo.rejected")
+                    : t("taskDetail.statusInfo.cancelled")}
               </Text>
             </View>
           )}
@@ -660,188 +1190,5 @@ const DriverTaskDetail = ({ route, navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollView: { flex: 1 },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: { marginTop: 10, color: COLORS.secondary, fontSize: 14 },
-  errorText: {
-    marginTop: 10,
-    color: COLORS.danger,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  statusBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 15,
-    marginBottom: 15,
-  },
-  statusBannerText: { fontSize: 16, fontWeight: "600", marginLeft: 10 },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 20,
-    marginHorizontal: 15,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.dark,
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.background,
-  },
-  infoLabel: { fontSize: 14, color: COLORS.secondary },
-  infoValue: { fontSize: 14, fontWeight: "600", color: COLORS.dark },
-  vehicleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F0F2FF",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  vehicleText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.primary,
-    marginLeft: 5,
-  },
-  vehicleModel: { fontSize: 12, color: COLORS.secondary, marginLeft: 8 },
-  routeContainer: { position: "relative" },
-  routePoint: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  routeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  routeInfo: { marginLeft: 12, flex: 1 },
-  routeLabel: { fontSize: 12, color: COLORS.secondary },
-  routeAddress: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginTop: 2,
-  },
-  routeLineVertical: {
-    width: 2,
-    height: 20,
-    backgroundColor: "#E9ECEF",
-    marginLeft: 19,
-    marginBottom: 10,
-  },
-  distanceBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F0F2FF",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  distanceText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.primary,
-    marginLeft: 8,
-  },
-  notesText: { fontSize: 14, color: "#525F7F", lineHeight: 20 },
-  rejectInput: {
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: COLORS.dark,
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  rejectButtons: { flexDirection: "row", marginTop: 15 },
-  cancelRejectButton: {
-    flex: 1,
-    padding: 12,
-    alignItems: "center",
-    marginRight: 10,
-  },
-  cancelRejectText: {
-    color: COLORS.secondary,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  confirmRejectButton: {
-    flex: 1,
-    backgroundColor: COLORS.danger,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  confirmRejectText: { color: COLORS.white, fontSize: 14, fontWeight: "600" },
-  actionContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.white,
-    padding: 15,
-    paddingBottom: 30,
-    borderTopWidth: 1,
-    borderTopColor: "#E9ECEF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonRow: { flexDirection: "row" },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 15,
-    borderRadius: 10,
-    marginHorizontal: 5,
-  },
-  fullWidth: { marginHorizontal: 0 },
-  actionButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  acceptButton: { backgroundColor: COLORS.success },
-  rejectButton: { backgroundColor: COLORS.danger },
-  startButton: { backgroundColor: COLORS.primary },
-  completeButton: { backgroundColor: COLORS.success },
-  infoBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 15,
-    borderRadius: 10,
-  },
-  infoBoxText: { fontSize: 14, fontWeight: "600", marginLeft: 8 },
-});
 
 export default DriverTaskDetail;
