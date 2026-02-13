@@ -1,7 +1,7 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 22 Ocak 2026 - Dark Mode Migration v3
-// Fixes: navInfoBar moved to bottom, complete button as icon
+// Updated: 02 Şubat 2026 - Smooth Marker Animation (LERP)
+// Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,8 +23,6 @@ import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
-
-// ❌ KALDIRILDI: import { COLORS } from "../../constants/config";
 
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
@@ -534,10 +533,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const lastRouteTaskIdRef = useRef(null);
   const watchSubscriptionRef = useRef(null);
   const mapRef = useRef(null);
+  const markerRef = useRef(null);
 
-  // ══════════════════════════════════════════════════════════════
+  // Smooth marker animation duration (ms)
+  const MARKER_ANIMATION_DURATION = 2000;
+
+  // ======
   // LIFECYCLE
-  // ══════════════════════════════════════════════════════════════
+  // ======
 
   useEffect(() => {
     loadActiveTask();
@@ -566,9 +569,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   }, [task?.status, task?.id, location]);
 
-  // ══════════════════════════════════════════════════════════════
+  // ======
   // GEOCODING - Text adres → Koordinat (cache + abort + normalize)
-  // ══════════════════════════════════════════════════════════════
+  // ======
 
   // Stabil dependency key (JSON.stringify yerine)
   const destCoordsKey = useMemo(() => {
@@ -709,9 +712,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     normalizeCoords,
   ]);
 
-  // ══════════════════════════════════════════════════════════════
+  // =========
   // DATA LOADING
-  // ══════════════════════════════════════════════════════════════
+  // =========
 
   const loadActiveTask = async () => {
     try {
@@ -769,9 +772,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
+  // ====
   // GOOGLE DIRECTIONS API
-  // ══════════════════════════════════════════════════════════════
+  // ======
 
   const decodePolyline = (encoded) => {
     if (!encoded || typeof encoded !== "string") return [];
@@ -896,9 +899,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
+  // ======
   // NAVIGATION & ROUTE
-  // ══════════════════════════════════════════════════════════════
+  // ======
 
   const fetchRouteAndStartNav = async () => {
     if (!location) {
@@ -917,7 +920,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       stopLocationTracking();
 
-      const waypoints = (task?.waypoints || [])
+      // ── Waypoints: görev ara noktaları ──
+      let waypoints = (task?.waypoints || [])
         .map((wp) => {
           if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
           if (wp.latitude && wp.longitude)
@@ -925,6 +929,22 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           return null;
         })
         .filter(Boolean);
+
+      // ── FIX: Görevin başlangıç noktasını (origin_coords) ilk waypoint olarak ekle ──
+      // Araç (ESP32 GPS) görevin origin'inden farklı yerde olabilir.
+      // Örnek: Araç İstanbul'da, görev Ankara'dan başlıyor → Ankara ilk waypoint olmalı.
+      const sameCoord = (a, b, eps = 1e-4) =>
+        Math.abs(a.latitude - b.latitude) < eps &&
+        Math.abs(a.longitude - b.longitude) < eps;
+
+      const originCoords = normalizeCoords(task?.route_json?.origin_coords);
+      if (
+        originCoords &&
+        (!waypoints[0] || !sameCoord(waypoints[0], originCoords))
+      ) {
+        waypoints = [originCoords, ...waypoints];
+        console.log("[Nav] Added task origin as first waypoint:", originCoords);
+      }
 
       const routeData = await fetchRouteFromGoogle(
         { latitude: location.latitude, longitude: location.longitude },
@@ -990,6 +1010,28 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               latitude: parseFloat(loc.latitude),
               longitude: parseFloat(loc.longitude),
             };
+
+            // Smooth marker animation: slide instead of teleport
+            if (markerRef.current && Platform.OS === "android") {
+              try {
+                markerRef.current.animateMarkerToCoordinate(
+                  coords,
+                  MARKER_ANIMATION_DURATION
+                );
+              } catch (e) {
+                // fallback: direct set
+              }
+            } else if (markerRef.current && Platform.OS === "ios") {
+              try {
+                markerRef.current.animateMarkerToCoordinate(
+                  coords,
+                  MARKER_ANIMATION_DURATION
+                );
+              } catch (e) {
+                // fallback: direct set
+              }
+            }
+
             setLocation(coords);
             if (loc.heading !== undefined && loc.heading !== null)
               setHeading(parseFloat(loc.heading) || 0);
@@ -1011,7 +1053,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         }
       };
 
-      // Initial poll then interval (7s default — within 5-10s requested)
+      // Initial poll then interval (7s default  within 5-10s requested)
       await pollLocation();
       const intervalId = setInterval(pollLocation, 7000);
       watchSubscriptionRef.current = intervalId;
@@ -1039,9 +1081,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
+  // =========
   // TASK ACTIONS
-  // ══════════════════════════════════════════════════════════════
+  // =========
 
   const handleStartTask = async () => {
     if (!task) return;
@@ -1145,9 +1187,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     ]);
   };
 
-  // ══════════════════════════════════════════════════════════════
+  // ===
   // HELPERS
-  // ══════════════════════════════════════════════════════════════
+  // ===
 
   // Task'tan gelen waypoints'i panel formatına çevir
   const prepareWaypoints = (task) => {
@@ -1274,9 +1316,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
+  // ===
   // RENDER
-  // ══════════════════════════════════════════════════════════════
+  // ===
 
   if (loading) {
     return (
@@ -1316,8 +1358,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           rotateEnabled={true}
           pitchEnabled={isNavigating}
         >
-          {/* Current Location Marker */}
+          {/* Current Location Marker - Smooth animated */}
           <Marker
+            ref={markerRef}
             coordinate={{
               latitude: location.latitude,
               longitude: location.longitude,
@@ -1546,7 +1589,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.pendingTextContainer}>
             <Text style={styles.pendingTitle}>{t("routeMap.pendingTask")}</Text>
             <Text style={styles.pendingSubtitle}>
-              {task.title || t("routeMap.newTaskOffer")} •{" "}
+              {task.title || t("routeMap.newTaskOffer")} â€¢{" "}
               {getDistance() ? `${getDistance()} km` : ""}
             </Text>
           </View>
@@ -1662,7 +1705,5 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     </View>
   );
 };
-
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
 
 export default DriverRouteMapScreen;
