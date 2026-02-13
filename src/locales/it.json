@@ -28,8 +28,61 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Password dimenticata",
+    "loginError": "Accesso fallito",
     "logoutConfirmTitle": "Esci",
-    "logoutConfirmMessage": "Sei sicuro di voler uscire?"
+    "logoutConfirmMessage": "Sei sicuro di voler uscire?",
+    "fleetTracking": "Sistema di Tracciamento Flotta",
+    "emailAndPasswordRequired": "Email e password sono obbligatori",
+    "unexpectedError": "Si è verificato un errore imprevisto",
+    "noAccount": "Non hai un account?",
+    "contactUs": "Contattaci",
+    "quickTest": "Test Rapido",
+    "demoSubtitle": "Accesso automatico con account demo",
+    "driverAccount": "Account Autista",
+    "adminAccount": "Account Amministratore",
+    "demoNote": "Tocca i pulsanti per compilare automaticamente",
+    "forgotPasswordTitle": "Password dimenticata",
+    "forgotPasswordDesc": "Inserisci il tuo indirizzo email registrato. Ti invieremo un codice di ripristino.",
+    "emailRequired": "L'indirizzo email è obbligatorio",
+    "invalidEmail": "Inserisci un indirizzo email valido",
+    "sendCode": "Invia Codice",
+    "enterCode": "Codice di Verifica",
+    "enterCodeDesc": "Inserisci il codice a 6 cifre inviato alla tua email e imposta la nuova password.",
+    "verificationCode": "Codice di Verifica",
+    "newPassword": "Nuova Password",
+    "confirmNewPassword": "Conferma Nuova Password",
+    "passwordHint": "Almeno 6 caratteri",
+    "resetPassword": "Reimposta Password",
+    "resendCode": "Reinvia codice",
+    "resendIn": "Reinvia tra",
+    "newPasswordRequired": "La nuova password è obbligatoria",
+    "passwordTooShort": "La password deve avere almeno 6 caratteri",
+    "passwordsDoNotMatch": "Le password non corrispondono",
+    "otpRequired": "Inserisci il codice a 6 cifre",
+    "invalidOTP": "Codice non valido o scaduto. Riprova.",
+    "tooManyAttempts": "Troppi tentativi. Richiedi un nuovo codice.",
+    "tooManyRequests": "Troppe richieste. Attendi qualche minuto.",
+    "resetFailed": "Ripristino password fallito.",
+    "passwordResetSuccess": "Password Cambiata",
+    "passwordResetSuccessMessage": "La tua password è stata cambiata con successo. Puoi accedere con la nuova password.",
+    "goToLogin": "Accedi",
+    "codeSent": "Codice Inviato",
+    "codeSentMessage": "Un nuovo codice è stato inviato alla tua email.",
+    "backToLogin": "Torna al login",
+    "changeEmail": "Cambia email",
+    "goBackTitle": "Indietro",
+    "goBackMessage": "Vuoi cambiare l'indirizzo email?",
+    "contactTitle": "Contattaci",
+    "contactDescription": "Contattaci per unirti a TulipFleet o per maggiori informazioni.",
+    "contactMethods": "CANALI DI CONTATTO",
+    "phoneNL": "Telefono (NL)",
+    "phoneTR": "Telefono (TR)",
+    "website": "Sito Web",
+    "contactInfo": "Il tuo account TulipFleet viene creato dall'amministratore della tua azienda. Le credenziali di accesso verranno inviate alla tua email.",
+    "contactEmailSubject": "TulipFleet - Richiesta Account",
+    "contactEmailBody": "Salve,\n\nDesidero creare un account per TulipFleet.\n\nNome Azienda:\nPersona di Contatto:\nTelefono:\nNumero di Veicoli:\n\nGrazie.",
+    "callNotAvailable": "Impossibile effettuare la chiamata",
+    "whatsappMessage": "Salve, vorrei saperne di più su TulipFleet."
   },
   "roles": {
     "driver": "Autista"
@@ -361,43 +414,55 @@
     },
     "help": {
       "title": "Centro Assistenza",
-      "subtitle": "Domande frequenti, rehber e iletişim",
-      "categories": {
-        "general": "Generale",
-        "driver": "Autista",
-        "admin": "Amministratore",
-        "device": "Dispositivo",
-        "map": "Mappa",
-        "tasks": "Attività",
-        "alerts": "Avvisi"
+      "subtitle": "Domande frequenti e guida",
+      "heroTitle": "Come possiamo aiutarti?",
+      "heroSubtitle": "Consulta le domande frequenti",
+      "heroHint": "Tocca una categoria per vedere le domande",
+      "quickHelp": "Aiuto Rapido",
+      "troubleshooting": "Risoluzione problemi",
+      "ledIndicators": "Indicatori LED",
+      "faqTitle": "Domande Frequenti",
+      "questionCount": "domande",
+      "account": {
+        "title": "Account e accesso",
+        "q1": "Come posso cambiare la mia password?",
+        "a1": "Vai su Impostazioni > Cambia password, inserisci la password attuale e impostane una nuova.",
+        "q2": "Non riesco ad accedere, cosa devo fare?",
+        "a2": "Controlla il tuo indirizzo email. Se hai dimenticato la password, usa l'opzione 'Password dimenticata' o contatta il supporto.",
+        "q3": "Come aggiorno le informazioni del profilo?",
+        "a3": "Vai su Impostazioni > Modifica profilo per aggiornare nome, cognome e numero di telefono."
       },
-      "faq": [
-        {
-          "q": "Come posso aggiungere un nuovo veicolo?",
-          "a": "Vai alla sezione Veicoli e tocca il pulsante +. Compila i dettagli richiesti e salva."
-        },
-        {
-          "q": "Come posso assegnare un dispositivo a un veicolo?",
-          "a": "Nella schermata Dispositivi, seleziona un dispositivo disponibile e scegli 'Assegna a veicolo'."
-        },
-        {
-          "q": "Cosa significa l'icona rossa sulla mappa?",
-          "a": "L'icona rossa indica che il veicolo ha un avviso critico o è offline."
-        },
-        {
-          "q": "Come posso cambiare la lingua dell'app?",
-          "a": "Vai su Impostazioni > Lingua e seleziona la lingua desiderata."
-        },
-        {
-          "q": "Come posso contattare il supporto?",
-          "a": "Nella sezione Aiuto, tocca 'Contattaci' per inviare una email al supporto TulipFleet."
-        }
-      ],
+      "vehicles": {
+        "title": "Veicoli e tracciamento",
+        "q1": "Come posso vedere la posizione del mio veicolo?",
+        "a1": "Puoi vedere la posizione in tempo reale sulla mappa della Dashboard. Si aggiorna ogni 5 secondi.",
+        "q2": "Il mio veicolo risulta offline, cosa devo fare?",
+        "a2": "Controlla l'alimentazione del GPS. Verifica gli indicatori LED. Controlla la connessione internet.",
+        "q3": "Posso tracciare piu veicoli contemporaneamente?",
+        "a3": "Si, puoi vedere tutti i veicoli sulla schermata Mappa Live nel pannello Admin."
+      },
+      "tasks": {
+        "title": "Attivita",
+        "q1": "Come accetto un'attivita assegnata?",
+        "a1": "Visualizza l'attivita in arrivo nella Dashboard e premi 'Accetta'. Usa 'Inizia attivita' per iniziare.",
+        "q2": "Come segno un'attivita come completata?",
+        "a2": "Vai ai dettagli dell'attivita e premi 'Completa'. Compila le informazioni richieste e conferma.",
+        "q3": "Posso rifiutare un'attivita assegnata?",
+        "a3": "Si, visualizza l'attivita e usa l'opzione 'Rifiuta'. Ti verra chiesto di indicare un motivo."
+      },
+      "technical": {
+        "title": "Supporto tecnico",
+        "q1": "Come installo il dispositivo GPS?",
+        "a1": "Collega il dispositivo alla porta USB del veicolo. Scansiona il codice QR nell'app e completa la configurazione WiFi tramite BLE.",
+        "q2": "Il dispositivo non si connette al WiFi, cosa devo fare?",
+        "a2": "Assicurati di usare una rete WiFi 2.4GHz (5GHz non supportato). Controlla la password. Riavvia e connettiti entro 60 secondi.",
+        "q3": "Cosa significano le luci LED?",
+        "a3": "Verde fisso: Sistema attivo. Blu lampeggiante: Modalita BLE. Giallo: Ricerca GPS. Rosso: Errore. Consulta la pagina Indicatori LED."
+      },
       "contact": {
-        "title": "Contattaci",
-        "desc": "Hai ancora domande? Il nostro team di supporto ti aiuterà con piacere.",
-        "email": "support@tulipfleet.com",
-        "phone": "+39 055 1234567"
+        "title": "Hai ancora bisogno di aiuto?",
+        "subtitle": "Se la tua domanda non e qui, contatta il nostro team di supporto",
+        "button": "Invia email"
       },
       "footer": {
         "text": "TulipFleet v2.0. Tutti i diritti riservati.",
@@ -635,8 +700,12 @@
     "skip_waypoint": "Salta questo Punto",
     "complete_waypoint": "Completa Punto",
     "all_waypoints_completed": "Tutti i punti completati",
-    "next_stop": "Prossima Sosta",
-    "final_destination": "Destinazione Finale"
+    "next_stop": "Prossima fermata",
+    "distance": "Distanza",
+    "min": "min",
+    "noSpeed": "In attesa di movimento",
+    "delayRisk": "RISCHIO RITARDO",
+    "noEta": "ETA non disponibile"
   },
   "units": {
     "km": "km",

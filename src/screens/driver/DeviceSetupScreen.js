@@ -1,6 +1,7 @@
 // src/screens/driver/DeviceSetupScreen.js
 // TulipFleet - Device Setup (BLE + QR + WiFi Provisioning)
 // FULL VERSION - Backend integrated + All states
+// Updated: 11 Şubat 2026 - Card component migration (variant="setup") + gap removal + token cleanup
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +21,7 @@ import {
   View,
 } from "react-native";
 
+import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { deviceAPI, driverAPI } from "../../services/api";
@@ -48,7 +50,7 @@ const STEPS = {
   ERROR: "ERROR",
 };
 
-// Helper
+// Helper (kept for now)
 const withAlpha = (hex, alpha01) => {
   if (
     !hex ||
@@ -68,10 +70,11 @@ const withAlpha = (hex, alpha01) => {
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+
     header: {
       paddingTop: Platform.OS === "ios" ? 52 : 18,
-      paddingHorizontal: 16,
-      paddingBottom: 14,
+      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingBottom: COLORS.SPACING.md, // 16 (was 14)
       backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
       borderBottomWidth: 1,
       borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
@@ -87,34 +90,30 @@ const makeStyles = (COLORS) =>
     headerBtn: {
       width: 40,
       height: 40,
-      borderRadius: 12,
+      borderRadius: COLORS.RADIUS.md, // 12
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
       borderWidth: 1,
       borderColor: withAlpha(COLORS.PRIMARY, 0.18),
     },
-    content: { padding: 16 },
-    card: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 10,
-      elevation: 2,
-      marginBottom: 14,
+
+    content: { padding: COLORS.SPACING.md }, // 16
+
+    // Card wrapper spacing (Card component provides padding/shadow/border)
+    cardWrap: {
+      marginBottom: COLORS.SPACING.md, // 16 (was 14)
     },
+
+    // Title row (no gap)
     titleRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
-      marginBottom: 10,
+      marginBottom: COLORS.SPACING.sm, // 8 (was 10)
     },
+    titleRowRight: { flex: 1 },
+    titleRowSpacer: { width: COLORS.SPACING.sm }, // 8
+
     cardTitle: {
       fontSize: 16,
       fontWeight: "800",
@@ -122,20 +121,23 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     cardSub: { fontSize: 13, color: COLORS.MUTED, marginTop: 2 },
+
+    // Pills (no gap)
     stepPills: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 8,
-      marginTop: 12,
+      marginTop: COLORS.SPACING.md, // 16 (was 12)
     },
     pill: {
       paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 999,
+      paddingVertical: COLORS.SPACING.xs, // 4 (was 6)
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: withAlpha(COLORS.MUTED, 0.12),
       borderWidth: 1,
       borderColor:
         withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     pillActive: {
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
@@ -143,6 +145,7 @@ const makeStyles = (COLORS) =>
     },
     pillText: { fontSize: 12, fontWeight: "700", color: COLORS.MUTED },
     pillTextActive: { color: COLORS.PRIMARY },
+
     bigIcon: {
       width: 64,
       height: 64,
@@ -153,10 +156,11 @@ const makeStyles = (COLORS) =>
       borderWidth: 1,
       borderColor: withAlpha(COLORS.PRIMARY, 0.18),
     },
+
     infoBox: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: 12,
-      padding: 12,
+      borderRadius: COLORS.RADIUS.md, // 12
+      padding: COLORS.SPACING.md, // 16 (was 12)
       borderWidth: 1,
       borderColor:
         withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
@@ -167,50 +171,57 @@ const makeStyles = (COLORS) =>
       fontWeight: "600",
       lineHeight: 18,
     },
-    btnRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+
+    // Button row: no gap
+    btnRow: {
+      flexDirection: "row",
+      marginTop: COLORS.SPACING.md, // 16
+    },
     btn: {
       flex: 1,
-      height: 48,
-      borderRadius: 12,
+      height: COLORS.SPACING.buttonHeight, // 48
+      borderRadius: COLORS.RADIUS.md, // 12
       alignItems: "center",
       justifyContent: "center",
       flexDirection: "row",
-      gap: 8,
     },
     btnPrimary: { backgroundColor: COLORS.PRIMARY },
     btnMuted: { backgroundColor: withAlpha(COLORS.MUTED, 0.18) },
     btnDanger: { backgroundColor: COLORS.ERROR },
     btnText: { color: COLORS.WHITE, fontWeight: "800" },
     btnTextDark: { color: COLORS.TEXT ?? COLORS.DEFAULT, fontWeight: "800" },
+    btnIconSpacer: { width: COLORS.SPACING.sm }, // 8
+    btnRight: { marginRight: COLORS.SPACING.sm }, // 8 (use on left button)
+
     inputLabel: {
       fontSize: 13,
       fontWeight: "800",
       color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginTop: 12,
-      marginBottom: 6,
+      marginTop: COLORS.SPACING.md, // 16 (was 12)
+      marginBottom: COLORS.SPACING.sm, // 8 (was 6)
     },
     input: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
+      borderRadius: COLORS.RADIUS.md, // 12
+      paddingHorizontal: COLORS.SPACING.md, // 16 (was 14)
+      paddingVertical: COLORS.SPACING.md, // 16 (was 12)
       borderWidth: 1,
       borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
       color: COLORS.TEXT ?? COLORS.DEFAULT,
       fontWeight: "600",
     },
+
     listItem: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: 12,
-      padding: 12,
+      borderRadius: COLORS.RADIUS.md, // 12
+      padding: COLORS.SPACING.md, // 16 (was 12)
       borderWidth: 1,
       borderColor:
         withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
-      marginBottom: 10,
+      marginBottom: COLORS.SPACING.sm, // 8 (was 10)
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: 10,
     },
     listTitle: {
       color: COLORS.TEXT ?? COLORS.DEFAULT,
@@ -224,25 +235,27 @@ const makeStyles = (COLORS) =>
       fontSize: 12,
       marginTop: 2,
     },
+
     modalOverlay: {
       flex: 1,
       backgroundColor: withAlpha(COLORS.BLACK, 0.55),
       justifyContent: "center",
-      padding: 18,
+      padding: COLORS.SPACING.lg, // 24 (was 18)
     },
     modalCard: {
       backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: COLORS.RADIUS.modal, // 16
+      padding: COLORS.SPACING.md, // 16
       borderWidth: 1,
       borderColor:
         withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      ...COLORS.SHADOWS.xs,
     },
     modalTitle: {
       fontSize: 16,
       fontWeight: "900",
       color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm, // 8
     },
     modalText: {
       fontSize: 13,
@@ -250,6 +263,11 @@ const makeStyles = (COLORS) =>
       fontWeight: "600",
       lineHeight: 18,
     },
+
+    // common inline helpers
+    centerMt: { marginTop: COLORS.SPACING.md, alignItems: "center" },
+    mtMd: { marginTop: COLORS.SPACING.md },
+    bottomSpacer: { height: COLORS.SPACING.xxl }, // 40-ish bottom breathing room
   });
 
 export default function DeviceSetupScreen({ navigation, route }) {
@@ -359,7 +377,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ DEBUG: State değişimlerini logla
   useEffect(() => {
     console.log("[DeviceSetup] STATE:", {
       step,
@@ -371,10 +388,37 @@ export default function DeviceSetupScreen({ navigation, route }) {
   }, [step, busy]);
 
   const checkSmartGate = async () => {
-    // ✅ Guided flow: DriverDashboard'dan serial ile gelindiyse
+    try {
+      const response = await driverAPI.getVehicle();
+      const vehicle = response?.vehicle || response;
+
+      // Debug log (Alert değil, console.log kullan)
+      console.log("[DeviceSetup] Vehicle Data:", {
+        esp32: vehicle?.esp32_device_id,
+        status: vehicle?.device_status,
+      });
+
+      if (
+        vehicle?.esp32_device_id &&
+        (vehicle?.device_status === "ACTIVATED" ||
+          vehicle?.esp32Status?.connected)
+      ) {
+        setDeviceStatus({
+          isActive: true,
+          needsSetup: false,
+          serial: vehicle.esp32_device_id,
+          plate: vehicle.plate_no,
+        });
+        setGateChecking(false);
+        setStep(STEPS.SUCCESS);
+        return;
+      }
+    } catch (e) {
+      console.log("[DeviceSetup] Vehicle check failed:", e.message);
+    }
+
     if (isGuided) {
-      console.log("[DeviceSetup] Guided mode – skipping SmartGate");
-      console.log("[DeviceSetup] route.params:", route.params);
+      console.log("[DeviceSetup] Guided mode — skipping SmartGate");
       setSerial(route.params.serial);
       setGateChecking(false);
       setStep(STEPS.BLE_SCAN);
@@ -382,8 +426,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       return;
     }
 
-    // ✅ Legacy flow: SmartGate tamamen kaldırıldı, direkt serial input
-    console.log("[DeviceSetup] Legacy mode – direct to serial input");
+    console.log("[DeviceSetup] Legacy mode — direct to serial input");
     setGateChecking(false);
     setStep(STEPS.SERIAL_MANUAL);
   };
@@ -437,44 +480,33 @@ export default function DeviceSetupScreen({ navigation, route }) {
     startBLEScan();
   };
 
-  // ✅ YENİ KOD
   const handleDeviceSelect = async (device) => {
-    // ✅ 1) GUARD: Double-tap/spam koruması
     if (busy) {
       console.log("[DeviceSetup] Already connecting, ignoring tap");
       return;
     }
 
-    // ✅ 2) CLEANUP: Scan + timeout temizliği
     if (scanCleanupRef.current) {
       scanCleanupRef.current();
       scanCleanupRef.current = null;
     }
 
-    // ✅ 3) UI FEEDBACK: Modal göster
     setBusy(true);
-
-    // ✅ 4) STATE: Connecting adımına geç
     setSelectedDevice(device);
     setStep(STEPS.CONNECTING);
     setStatus("Bağlanıyor...");
 
     try {
-      // ✅ 5) BLE CONNECTION
       await bleService.connect(device.id);
       setStatus("Bağlandı!");
       console.log("[DeviceSetup] ✅ BLE Connected - Bundle v2.0");
 
-      // ✅ 6) GUIDED MODE: VehiclePicker'a git
-      // ✅ 6) GUIDED MODE: VehiclePicker'a git
       if (isGuided) {
         console.log("[DeviceSetup] ✅ isGuided=true");
         console.log("[DeviceSetup] route.params:", route.params);
 
-        // Navigate'den ÖNCE modal kapat
         setBusy(false);
 
-        // ✅ InteractionManager ile navigation (animasyonlar bitsin)
         const { InteractionManager } = require("react-native");
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate("VehiclePickerMain", {
@@ -490,16 +522,13 @@ export default function DeviceSetupScreen({ navigation, route }) {
         return;
       }
 
-      // ✅ 7) LEGACY MODE: WiFi form'a geç
       console.log("[DeviceSetup] Legacy mode, showing WiFi form");
       setStep(STEPS.WIFI_FORM);
     } catch (e) {
-      // ✅ 8) ERROR HANDLING
       console.error("[DeviceSetup] Connection error:", e);
       setError("Bağlantı hatası: " + e.message);
       setStep(STEPS.ERROR);
     } finally {
-      // ✅ isMountedRef guard ekle
       if (!isGuided && isMountedRef.current) {
         setBusy(false);
       }
@@ -532,7 +561,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
     setStep(STEPS.WIFI_PROVISIONING);
     setWifiStatus("WiFi bilgileri gönderiliyor...");
-    activationStartedRef.current = false; // Reset flag
+    activationStartedRef.current = false;
 
     try {
       await bleService.writeSerial(serial);
@@ -552,7 +581,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
         return;
       }
 
-      // ✅ WiFi başarılı - AsyncStorage kaydet
       try {
         await AsyncStorage.setItem(
           STORAGE_KEYS.LAST_WIFI_SSID,
@@ -560,36 +588,27 @@ export default function DeviceSetupScreen({ navigation, route }) {
         );
       } catch {}
 
-      // ✅ HEMEN backend'e gönder (BLE disconnect beklemeden!)
       setStep(STEPS.ACTIVATING);
       setStatus("Cihaz aktive ediliyor...");
 
       try {
-        // Backend finalize - ESP32 kopmadan önce gönder
         await performActivation();
-
-        // ✅ Başarılı - SUCCESS ekranına geç
-        // performActivation zaten setStep(SUCCESS) yapıyor
       } catch (activationError) {
         console.log(
           "[WiFi] Activation error (ESP32 zaten activate etti):",
           activationError.message
         );
-        // ESP32 zaten /activate çağırdı, success sayalım
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
       } finally {
-        // ✅ BLE AÇIK KALMALI - WiFiPicker kullanacak!
         console.log(
           "[DeviceSetup] WiFi provision complete, keeping BLE connected"
         );
-        // Disconnect WiFiPassword ekranında SUCCESS sonrası yapılacak
       }
     } catch (e) {
       console.error("[WiFi] Exception:", e.message, e.code);
 
-      // BLE disconnect patterns (robust checking)
       const errorStr = (e.message || "").toLowerCase();
       const errorCode = e.code || e.errorCode || "";
 
@@ -608,7 +627,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
         setStatus("Cihaz yeniden başlatılıyor...");
         await new Promise((r) => setTimeout(r, 3000));
 
-        // Race condition koruması
         if (!activationStartedRef.current) {
           activationStartedRef.current = true;
           try {
@@ -618,15 +636,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
             await saveProvisionData(serial);
             setStep(STEPS.SUCCESS);
             setStatus(t("deviceSetup.activation.successStatus"));
-            // setTimeout(async () => {
-            //   try {
-            //     await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
-            //   } catch {}
-            // }, 1000);
           }
         }
       } else {
-        // Gerçek hata
         setError("WiFi kurulumu sırasında hata: " + e.message);
         setStep(STEPS.ERROR);
       }
@@ -643,9 +655,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-        // setTimeout(async () => {
-        //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
-        // }, 1000);
         return;
       }
 
@@ -656,9 +665,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
         await saveProvisionData(serial);
         setStep(STEPS.SUCCESS);
         setStatus(t("deviceSetup.activation.successStatus"));
-        // setTimeout(async () => {
-        //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
-        // }, 1000);
         return;
       }
 
@@ -668,9 +674,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
       await saveProvisionData(serial);
       setStep(STEPS.SUCCESS);
       setStatus(t("deviceSetup.activation.successPending"));
-      // setTimeout(async () => {
-      //   await bleService.disconnect(); // ✅ REMOVED - Keep BLE connected
-      // }, 1000);
     }
   };
 
@@ -704,12 +707,13 @@ export default function DeviceSetupScreen({ navigation, route }) {
   };
 
   const renderStepHeader = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <View style={styles.bigIcon}>
           <Ionicons name="bluetooth" size={26} color={COLORS.PRIMARY} />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={styles.titleRowSpacer} />
+        <View style={styles.titleRowRight}>
           <Text style={styles.cardTitle}>{t("deviceSetup.title")}</Text>
           <Text style={styles.cardSub}>
             {step === STEPS.CHECKING
@@ -733,13 +737,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
           );
         })}
       </View>
-    </View>
+    </Card>
   );
 
   const renderChecking = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="sync" size={20} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>{t("deviceSetup.checkingStatus")}</Text>
       </View>
       <View style={styles.infoBox}>
@@ -747,16 +752,17 @@ export default function DeviceSetupScreen({ navigation, route }) {
           {skipReason || t("deviceSetup.checkingStatus")}
         </Text>
       </View>
-      <View style={{ marginTop: 12, alignItems: "center" }}>
+      <View style={styles.centerMt}>
         <ActivityIndicator color={COLORS.PRIMARY} />
       </View>
-    </View>
+    </Card>
   );
 
   const renderSetupNotRequired = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="checkmark-circle" size={22} color={COLORS.SUCCESS} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.setupNotRequired")}
         </Text>
@@ -769,28 +775,32 @@ export default function DeviceSetupScreen({ navigation, route }) {
           })}
         </Text>
       </View>
+
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
-          onPress={() => navigation.navigate("VehiclePickerMain")}
+          onPress={() => navigation.navigate("DriverDashboard")}
           activeOpacity={0.85}
         >
           <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>{t("deviceSetup.buttons.ok")}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   const renderManualSerial = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="key-outline" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.serial.enterSerial")}
         </Text>
       </View>
       <Text style={styles.cardSub}>{t("deviceSetup.serial.example")}</Text>
+
       <Text style={styles.inputLabel}>{t("device.serial")}</Text>
       <TextInput
         value={serial}
@@ -800,6 +810,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         style={styles.input}
         autoCapitalize="characters"
       />
+
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
@@ -811,22 +822,25 @@ export default function DeviceSetupScreen({ navigation, route }) {
           ) : (
             <Ionicons name="arrow-forward" size={18} color={COLORS.WHITE} />
           )}
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>
             {t("deviceSetup.buttons.continue")}
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   const renderBleScan = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="bluetooth-outline" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.ble.searchingDevices")}
         </Text>
       </View>
+
       {devices.length === 0 ? (
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
@@ -834,7 +848,8 @@ export default function DeviceSetupScreen({ navigation, route }) {
           </Text>
         </View>
       ) : null}
-      <View style={{ marginTop: 12 }}>
+
+      <View style={styles.mtMd}>
         {devices.map((d) => (
           <TouchableOpacity
             key={d.id}
@@ -857,6 +872,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </View>
+
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnMuted]}
@@ -868,16 +884,18 @@ export default function DeviceSetupScreen({ navigation, route }) {
             size={18}
             color={COLORS.TEXT ?? COLORS.DEFAULT}
           />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>{t("deviceSetup.ble.rescan")}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   const renderConnecting = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="link" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.steps.connecting")}
         </Text>
@@ -887,19 +905,22 @@ export default function DeviceSetupScreen({ navigation, route }) {
           {status || t("deviceSetup.connection.connecting")}
         </Text>
       </View>
-      <View style={{ marginTop: 12, alignItems: "center" }}>
+      <View style={styles.centerMt}>
         <ActivityIndicator color={COLORS.PRIMARY} />
       </View>
-    </View>
+    </Card>
   );
 
   const renderWifiForm = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="wifi" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>{t("deviceSetup.wifi.title")}</Text>
       </View>
+
       <Text style={styles.cardSub}>{t("deviceSetup.wifi.subtitle")}</Text>
+
       <Text style={styles.inputLabel}>{t("deviceSetup.wifi.ssidLabel")}</Text>
       <TextInput
         value={wifiSsid}
@@ -909,6 +930,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         style={styles.input}
         autoCapitalize="none"
       />
+
       <Text style={styles.inputLabel}>
         {t("deviceSetup.wifi.passwordLabel")}
       </Text>
@@ -921,12 +943,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
         secureTextEntry
         autoCapitalize="none"
       />
-      <View style={[styles.infoBox, { marginTop: 12 }]}>
+
+      <View style={[styles.infoBox, styles.mtMd]}>
         <Text style={styles.infoText}>{t("deviceSetup.wifi.hint")}</Text>
       </View>
+
       <View style={styles.btnRow}>
         <TouchableOpacity
-          style={[styles.btn, styles.btnMuted]}
+          style={[styles.btn, styles.btnMuted, styles.btnRight]}
           onPress={() => setStep(STEPS.BLE_SCAN)}
           activeOpacity={0.85}
         >
@@ -935,8 +959,10 @@ export default function DeviceSetupScreen({ navigation, route }) {
             size={18}
             color={COLORS.TEXT ?? COLORS.DEFAULT}
           />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>{t("common.back")}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
           onPress={handleWifiFormSubmit}
@@ -947,16 +973,18 @@ export default function DeviceSetupScreen({ navigation, route }) {
           ) : (
             <Ionicons name="wifi" size={18} color={COLORS.WHITE} />
           )}
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>{t("deviceSetup.wifi.connect")}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   const renderProvisioning = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="wifi-outline" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.steps.wifiProvisioning")}
         </Text>
@@ -966,16 +994,17 @@ export default function DeviceSetupScreen({ navigation, route }) {
           {wifiStatus || t("deviceSetup.wifi.connecting")}
         </Text>
       </View>
-      <View style={{ marginTop: 12, alignItems: "center" }}>
+      <View style={styles.centerMt}>
         <ActivityIndicator color={COLORS.PRIMARY} />
       </View>
-    </View>
+    </Card>
   );
 
   const renderActivating = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="flash-outline" size={22} color={COLORS.PRIMARY} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.steps.activating")}
         </Text>
@@ -985,16 +1014,17 @@ export default function DeviceSetupScreen({ navigation, route }) {
           {status || t("deviceSetup.activation.serverCommunication")}
         </Text>
       </View>
-      <View style={{ marginTop: 12, alignItems: "center" }}>
+      <View style={styles.centerMt}>
         <ActivityIndicator color={COLORS.PRIMARY} />
       </View>
-    </View>
+    </Card>
   );
 
   const renderSuccess = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="checkmark-circle" size={22} color={COLORS.SUCCESS} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.result.setupComplete")}
         </Text>
@@ -1011,16 +1041,18 @@ export default function DeviceSetupScreen({ navigation, route }) {
           activeOpacity={0.85}
         >
           <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>{t("deviceSetup.result.done")}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   const renderError = () => (
-    <View style={styles.card}>
+    <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
         <Ionicons name="alert-circle" size={22} color={COLORS.ERROR} />
+        <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
           {t("deviceSetup.result.errorOccurred")}
         </Text>
@@ -1030,7 +1062,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       </View>
       <View style={styles.btnRow}>
         <TouchableOpacity
-          style={[styles.btn, styles.btnMuted]}
+          style={[styles.btn, styles.btnMuted, styles.btnRight]}
           onPress={() => {
             setError(null);
             setStep(STEPS.SERIAL_MANUAL);
@@ -1042,27 +1074,27 @@ export default function DeviceSetupScreen({ navigation, route }) {
             size={18}
             color={COLORS.TEXT ?? COLORS.DEFAULT}
           />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>
             {t("deviceSetup.result.retry")}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.btn, styles.btnDanger]}
           onPress={() => navigation.navigate("DriverDashboard")}
           activeOpacity={0.85}
         >
           <Ionicons name="close" size={18} color={COLORS.WHITE} />
+          <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>{t("deviceSetup.result.cancel")}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
-  // Cleanup: BLE bağlantısını koru, disconnect etme
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     return () => {
-      // bleService.disconnect(); // ← KALDIRILDI
       console.log("BLE provision için korunuyor");
     };
   }, []);
@@ -1081,7 +1113,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
             color={COLORS.TEXT ?? COLORS.DEFAULT}
           />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>{t("deviceSetup.title")}</Text>
+
         <TouchableOpacity
           style={styles.headerBtn}
           onPress={() =>
@@ -1118,7 +1152,8 @@ export default function DeviceSetupScreen({ navigation, route }) {
           (!deviceStatus?.isActive || deviceStatus?.needsSetup) &&
           renderSuccess()}
         {step === STEPS.ERROR && renderError()}
-        <View style={{ height: 28 }} />
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <Modal
@@ -1141,7 +1176,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
                   ? t("deviceSetup.status.wifiConnecting")
                   : t("deviceSetup.activation.activating")}
             </Text>
-            <View style={{ marginTop: 12, alignItems: "center" }}>
+            <View style={styles.centerMt}>
               <ActivityIndicator color={COLORS.PRIMARY} />
             </View>
           </View>
