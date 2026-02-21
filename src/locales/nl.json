@@ -72,7 +72,7 @@
     "supportMessage": "Heeft u hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden."
+    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\nÃ‚Â© 2025 TulipFleet\n\nAlle rechten voorbehouden."
   },
   "auth": {
     "login": "Inloggen",
@@ -362,7 +362,7 @@
     "supportMessage": "Hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
+    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\nÃ‚Â© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
     "clearCacheTitle": "Cache Wissen",
     "clearCacheMessage": "Wil je de app-cache wissen?",
     "clear": "Wissen",
@@ -373,7 +373,7 @@
     "locationPermissionDenied": "Locatietoestemming geweigerd. U kunt dit inschakelen via instellingen.",
     "openSettings": "Open Instellingen",
     "gpsAccuracyMessage": "GPS-nauwkeurigheid wordt beheerd via apparaatinstellingen.",
-    "locationGranted": "Toestemming verleend ✓",
+    "locationGranted": "Toestemming verleend Ã¢Å“â€œ",
     "itemsCleared": "items",
     "cacheClearFailed": "Cache wissen mislukt",
     "privacyPolicyText": "Ons privacybeleid is beschikbaar op: tulipfleet.com/privacy"
@@ -534,7 +534,7 @@
     "title": "Apparaat Instellen",
     "checkingStatus": "Apparaatstatus controleren...",
     "loading": "Laden...",
-    "setupNotRequired": "Installatie Niet Vereist ✅",
+    "setupNotRequired": "Installatie Niet Vereist Ã¢Å“â€¦",
     "deviceActiveMessage": "Het apparaat verbonden met uw voertuig is actief.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
     "deviceReinstall": "Apparaat Herinstallatie",
     "deviceWaitingReinstall": "Apparaat wacht op herinstallatie...",
@@ -566,8 +566,8 @@
     "qr": {
       "invalidCode": "Ongeldige QR Code",
       "invalidCodeMessage": "QR codeformaat niet herkend. Scan de QR code op het apparaat.",
-      "scanHint": "📱 Scan de QR code op het apparaat",
-      "manualEntry": "⌨️ Handmatige Serienummer Invoer"
+      "scanHint": "Ã°Å¸â€œÂ± Scan de QR code op het apparaat",
+      "manualEntry": "Ã¢Å’Â¨Ã¯Â¸Â Handmatige Serienummer Invoer"
     },
     "serial": {
       "validating": "Serienummer valideren...",
@@ -599,7 +599,7 @@
     },
     "complete": {
       "title": "Installatie Voltooid!",
-      "message": "Uw apparaat is succesvol geïnstalleerd en geactiveerd.",
+      "message": "Uw apparaat is succesvol geÃƒÂ¯nstalleerd en geactiveerd.",
       "done": "Voltooien"
     },
     "buttons": {
@@ -725,7 +725,7 @@
     "acceptConfirm": "Weet u zeker dat u dit taakaanbod wilt accepteren?",
     "cancel": "Annuleren",
     "accept": "Accepteren",
-    "success": "✅ Succes",
+    "success": "Ã¢Å“â€¦ Succes",
     "acceptSuccess": "Taak geaccepteerd! U kunt de taak starten vanaf de pagina Mijn Taken.",
     "ok": "OK",
     "acceptFailed": "Kan taak niet accepteren",
@@ -912,8 +912,8 @@
     },
     "hints": {
       "lastRecordTitle": "Laatste record",
-      "lastRecordPrefix": "💡 Laatste",
-      "warningFull": "⚠️ Vul tot VOL"
+      "lastRecordPrefix": "Ã°Å¸â€™Â¡ Laatste",
+      "warningFull": "Ã¢Å¡Â Ã¯Â¸Â Vul tot VOL"
     },
     "errors": {
       "vehicleLoadFailed": "Voertuiginfo kon niet worden geladen",
@@ -992,7 +992,7 @@
       "subtitle": "Als uw vraag hier niet staat, neem dan contact op met ons supportteam",
       "button": "E-mail verzenden"
     },
-    "footer": "© 2026 TulipFleet - Alle rechten voorbehouden"
+    "footer": "Ã‚Â© 2026 TulipFleet - Alle rechten voorbehouden"
   },
   "troubleshooting": {
     "title": "Probleemoplossing",
@@ -1186,6 +1186,80 @@
       "minAgo": "min geleden",
       "hourAgo": "uur geleden",
       "dayAgo": "dagen geleden"
-    }
+    },
+    "csvCopied": "CSV gekopieerd naar klembord",
+    "records": "records",
+    "noData": "Geen gegevens gevonden",
+    "noResults": "Geen resultaten gevonden",
+    "searchPlaceholder": "Zoeken...",
+    "exportCSV": "CSV delen",
+    "copy": "Kopiëren",
+    "operationsOverview": "Operatie Overzicht",
+    "activeDelays": "Actieve Vertragingen",
+    "onlineVehicles": "Online Voertuigen",
+    "totalTasks": "totaal taken",
+    "stopDelayed": "Halte Vertraagd",
+    "delayed": "vertraagd",
+    "filterAll": "Alles",
+    "filterCompleted": "Voltooid",
+    "filterDelays": "Vertragingen",
+    "filterAlerts": "Waarschuwingen",
+    "noFilteredActivities": "Geen activiteiten in deze categorie"
+  },
+  "createTask": {
+    "title": "Nieuwe Taak",
+    "taskInfo": "Taakinfo",
+    "taskTitle": "Titel",
+    "taskTitlePlaceholder": "Voer titel in",
+    "description": "Beschrijving",
+    "descriptionPlaceholder": "Taakbeschrijving (optioneel)",
+    "priority": "Prioriteit",
+    "priorityLow": "Laag",
+    "priorityNormal": "Normaal",
+    "priorityHigh": "Hoog",
+    "priorityUrgent": "Urgent",
+    "selectDriver": "Selecteer Chauffeur",
+    "selectVehicle": "Selecteer Voertuig",
+    "route": "Route",
+    "startLocation": "Startadres",
+    "endLocation": "Eindadres",
+    "startDate": "Start",
+    "endDate": "Einde",
+    "submit": "Taak Aanmaken",
+    "success": "Succes",
+    "taskCreated": "Taak succesvol aangemaakt",
+    "taskCreateError": "Taak aanmaken mislukt",
+    "validationEnterTitle": "Voer een taaktitel in",
+    "validationEnterStart": "Voer startlocatie in",
+    "validationEnterEnd": "Voer bestemming in",
+    "validationEndAfterStart": "Eindtijd moet na starttijd zijn",
+    "noOptions": "Geen opties gevonden"
+  },
+  "editTask": {
+    "title": "Taak Bewerken",
+    "save": "Opslaan",
+    "taskUpdated": "Taak succesvol bijgewerkt",
+    "taskUpdateError": "Taak bijwerken mislukt",
+    "selectDriver": "Selecteer een chauffeur",
+    "selectVehicle": "Selecteer een voertuig",
+    "status": "Status",
+    "statusPending": "Wachtend",
+    "statusAssigned": "Toegewezen",
+    "statusInProgress": "In Uitvoering",
+    "statusCompleted": "Voltooid",
+    "statusCancelled": "Geannuleerd",
+    "startLocation": "Startadres",
+    "endLocation": "Eindadres",
+    "dataLoadError": "Gegevens laden mislukt"
+  },
+  "waypointEditor": {
+    "title": "Haltes",
+    "addStop": "Halte Toevoegen",
+    "limitReached": "Haltelimiet bereikt",
+    "stopName": "Haltenaam",
+    "stopAddress": "Halteadres",
+    "plannedArrival": "Geplande Aankomst",
+    "invalidCoords": "Ongeldige coÃ¶rdinaten",
+    "noStops": "Nog geen haltes toegevoegd"
   }
 }

@@ -13,21 +13,22 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import WaypointEditor from "../../components/admin/WaypointEditor";
 import { COLORS } from "../../constants/config";
 import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Bekliyor", color: "#FB6340" },
-  { value: "assigned", label: "Atandı", color: "#11CDEF" },
+  { value: "assigned", label: "Atandi", color: "#11CDEF" },
   { value: "in_progress", label: "Devam Ediyor", color: "#5E72E4" },
-  { value: "completed", label: "Tamamlandı", color: "#2DCE89" },
-  { value: "cancelled", label: "İptal", color: "#F5365C" },
+  { value: "completed", label: "Tamamlandi", color: "#2DCE89" },
+  { value: "cancelled", label: "ptal", color: "#F5365C" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "low", label: "Düşük", color: "#2DCE89" },
+  { value: "low", label: "Dusuk", color: "#2DCE89" },
   { value: "normal", label: "Normal", color: "#11CDEF" },
-  { value: "high", label: "Yüksek", color: "#FB6340" },
+  { value: "high", label: "Yuksek", color: "#FB6340" },
   { value: "urgent", label: "Acil", color: "#F5365C" },
 ];
 
@@ -46,6 +47,20 @@ const EditTaskScreen = ({ navigation, route }) => {
     endLocation: task.end_location || "",
     status: task.status || "pending",
     priority: task.priority || "normal",
+  });
+
+  // Waypoints state - parse from task (string or array)
+  const [waypoints, setWaypoints] = useState(() => {
+    let wp = task.waypoints || [];
+    if (typeof wp === "string") {
+      try {
+        wp = JSON.parse(wp);
+      } catch {
+        wp = [];
+      }
+    }
+    if (!Array.isArray(wp)) wp = [];
+    return wp;
   });
 
   useEffect(() => {
@@ -71,7 +86,7 @@ const EditTaskScreen = ({ navigation, route }) => {
       setSelectedVehicle(currentVehicle || null);
     } catch (error) {
       console.error("Fetch data error:", error);
-      Alert.alert("Hata", "Veriler yüklenemedi");
+      Alert.alert("Hata", "Veriler yuklenemedi");
     } finally {
       setLoadingData(false);
     }
@@ -83,11 +98,11 @@ const EditTaskScreen = ({ navigation, route }) => {
 
   const handleSave = async () => {
     if (!selectedDriver) {
-      Alert.alert("Hata", "Sürücü seçiniz");
+      Alert.alert("Hata", "Surucu seciniz");
       return;
     }
     if (!selectedVehicle) {
-      Alert.alert("Hata", "Araç seçiniz");
+      Alert.alert("Hata", "Arac seciniz");
       return;
     }
 
@@ -102,14 +117,27 @@ const EditTaskScreen = ({ navigation, route }) => {
         end_location: formData.endLocation.trim(),
         status: formData.status,
         priority: formData.priority,
+        waypoints: waypoints.map((wp, idx) => {
+          const lat = Number(wp.latitude ?? wp.lat);
+          const lng = Number(wp.longitude ?? wp.lng);
+          return {
+            id: wp.id || `wp-${Date.now()}-${idx}`,
+            name: wp.name || "",
+            address: wp.address || "",
+            latitude: Number.isFinite(lat) ? lat : null,
+            longitude: Number.isFinite(lng) ? lng : null,
+            planned_arrival: wp.planned_arrival || null,
+            status: wp.status || "pending",
+          };
+        }),
       };
 
       await taskAPI.update(task.id, data);
 
       setTimeout(() => {
         Alert.alert(
-          "✅ Başarılı",
-          "Görev başarıyla güncellendi",
+          "u Basarili",
+          "Gorev basariyla guncellendi",
           [{ text: "Tamam", onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
@@ -118,7 +146,7 @@ const EditTaskScreen = ({ navigation, route }) => {
       console.error("Update task error:", error);
       Alert.alert(
         "Hata",
-        error.response?.data?.error || "Görev güncellenemedi"
+        error.response?.data?.error || "Gorev guncellenemedi"
       );
     } finally {
       setLoading(false);
@@ -130,7 +158,7 @@ const EditTaskScreen = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Yükleniyor...</Text>
+          <Text style={styles.loadingText}>Yukleniyor...</Text>
         </View>
       </SafeAreaView>
     );
@@ -145,7 +173,7 @@ const EditTaskScreen = ({ navigation, route }) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Task Code (Readonly) */}
           <View style={styles.taskCodeContainer}>
-            <Text style={styles.taskCodeLabel}>Görev Kodu</Text>
+            <Text style={styles.taskCodeLabel}>Gorev Kodu</Text>
             <Text style={styles.taskCode}>{task.task_code}</Text>
           </View>
 
@@ -179,7 +207,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Priority Selection */}
-          <Text style={styles.sectionTitle}>Öncelik</Text>
+          <Text style={styles.sectionTitle}>ncelik</Text>
           <View style={styles.optionRow}>
             {PRIORITY_OPTIONS.map((option) => (
               <TouchableOpacity
@@ -206,7 +234,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </View>
 
           {/* Driver Selection */}
-          <Text style={styles.sectionTitle}>Sürücü</Text>
+          <Text style={styles.sectionTitle}>Surucu</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
               {drivers.map((driver) => (
@@ -245,7 +273,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Vehicle Selection */}
-          <Text style={styles.sectionTitle}>Araç</Text>
+          <Text style={styles.sectionTitle}>Arac</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
               {vehicles.map((vehicle) => (
@@ -284,12 +312,12 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Title */}
-          <Text style={styles.sectionTitle}>Başlık</Text>
+          <Text style={styles.sectionTitle}>Baslik</Text>
           <TextInput
             style={styles.input}
             value={formData.title}
             onChangeText={(v) => handleChange("title", v)}
-            placeholder="Görev başlığı"
+            placeholder="Gorev basliIi"
             placeholderTextColor={COLORS.gray}
           />
 
@@ -299,24 +327,57 @@ const EditTaskScreen = ({ navigation, route }) => {
             style={styles.input}
             value={formData.startLocation}
             onChangeText={(v) => handleChange("startLocation", v)}
-            placeholder="Başlangıç adresi"
+            placeholder="Baslangic adresi"
             placeholderTextColor={COLORS.gray}
           />
           <TextInput
             style={[styles.input, { marginTop: 12 }]}
             value={formData.endLocation}
             onChangeText={(v) => handleChange("endLocation", v)}
-            placeholder="Bitiş adresi"
+            placeholder="Bitis adresi"
             placeholderTextColor={COLORS.gray}
           />
 
+          {/* Waypoints / Stops */}
+          <View style={{ marginTop: 16 }}>
+            <WaypointEditor
+              waypoints={waypoints}
+              setWaypoints={setWaypoints}
+              COLORS={{
+                PRIMARY: COLORS.primary || "#5E72E4",
+                SECONDARY: COLORS.secondary || "#F4F5F7",
+                SURFACE: COLORS.white || "#FFF",
+                TEXT: COLORS.text || "#32325D",
+                MUTED: COLORS.gray || "#8898AA",
+                ERROR: COLORS.error || "#F5365C",
+                WHITE: COLORS.white || "#FFF",
+                DIVIDER: COLORS.borderColor || "#E6E6E6",
+                PLACEHOLDER: COLORS.gray || "#8898AA",
+              }}
+              inputStyle={styles.input}
+              maxStops={10}
+              labels={{
+                title: "Duraklar",
+                add: "Durak Ekle",
+                limitReached: "Durak limiti doldu",
+                name: "Durak Adi",
+                address: "Durak Adresi",
+                lat: "Lat",
+                lng: "Lng",
+                planned: "Planlanan Varis",
+                invalid: "Koordinatlar gecersiz",
+                noStops: "Henuz durak eklenmedi",
+              }}
+            />
+          </View>
+
           {/* Description */}
-          <Text style={styles.sectionTitle}>Açıklama</Text>
+          <Text style={styles.sectionTitle}>Aciklama</Text>
           <TextInput
             style={[styles.input, styles.inputMultiline]}
             value={formData.description}
             onChangeText={(v) => handleChange("description", v)}
-            placeholder="Görev detayları..."
+            placeholder="Gorev detaylari..."
             placeholderTextColor={COLORS.gray}
             multiline
             numberOfLines={3}

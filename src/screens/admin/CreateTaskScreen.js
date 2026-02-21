@@ -12,7 +12,7 @@
  *
  * Dark Mode Regen:
  * - Migration Rehberi pattern: makeStyles + useThemedStyles + useTheme
- * - Hardcoded HEX kaldırıldı (token + withAlpha)
+ * - Hardcoded HEX kaldirildi (token + withAlpha)
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -34,11 +34,12 @@ import {
   View,
 } from "react-native";
 
+import WaypointEditor from "../../components/admin/WaypointEditor";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
 
-// --- helper: #RRGGBB => #RRGGBBAA (soft bg/overlay için) ---
+// --- helper: #RRGGBB => #RRGGBBAA (soft bg/overlay icin) ---
 const withAlpha = (hex, alpha01) => {
   if (
     !hex ||
@@ -55,7 +56,7 @@ const withAlpha = (hex, alpha01) => {
   return `${hex}${alpha}`;
 };
 
-// Öncelik seçenekleri (renkler token ile component içinde çözülür)
+// ncelik secenekleri (renkler token ile component icinde cozulur)
 const PRIORITY_OPTIONS = [
   {
     value: "low",
@@ -536,51 +537,13 @@ export default function CreateTaskScreen({ navigation }) {
       setDrivers(driversRes.drivers || driversRes || []);
       setVehicles(vehiclesRes.vehicles || vehiclesRes || []);
     } catch (error) {
-      console.error("Veri yüklenirken hata:", error);
+      console.error("Veri yuklenirken hata:", error);
     } finally {
       setDataLoading(false);
     }
   };
 
-  // Waypoint helpers
-  const addWaypoint = () => {
-    setWaypoints((prev) => [
-      ...prev,
-      {
-        id: `wp-${prev.length + 1}`,
-        name: "",
-        address: "",
-        latitude: null,
-        longitude: null,
-        planned_arrival: null,
-        status: "pending",
-      },
-    ]);
-  };
-
-  const removeWaypoint = (id) => {
-    setWaypoints((prev) => prev.filter((wp) => wp.id !== id));
-  };
-
-  const moveUp = (index) => {
-    if (index === 0) return;
-    const copy = [...waypoints];
-    [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
-    setWaypoints(copy);
-  };
-
-  const moveDown = (index) => {
-    if (index === waypoints.length - 1) return;
-    const copy = [...waypoints];
-    [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
-    setWaypoints(copy);
-  };
-
-  const updateWaypoint = (id, field, value) => {
-    setWaypoints((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, [field]: value } : w))
-    );
-  };
+  // Waypoint helpers -> moved to WaypointEditor component
 
   // Combine date and time
   const combineDateAndTime = (date, time) => {
@@ -651,7 +614,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "end_time_before_start",
-          "Bitiş saati başlangıçtan sonra olmalı",
+          "Bitis saati baslangictan sonra olmali",
           "End time must be after start time",
           isEn
         )
@@ -701,7 +664,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "end_time_before_start",
-          "Bitiş saati başlangıçtan sonra olmalı",
+          "Bitis saati baslangictan sonra olmali",
           "End time must be after start time",
           isEn
         )
@@ -738,7 +701,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "enter_task_title",
-          "Görev başlığı girin",
+          "Gorev basliIi girin",
           "Please enter task title",
           isEn
         )
@@ -751,7 +714,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "enter_start_location",
-          "Başlangıç konumu girin",
+          "Baslangic konumu girin",
           "Please enter start location",
           isEn
         )
@@ -764,7 +727,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "enter_destination",
-          "Varış konumu girin",
+          "Varis konumu girin",
           "Please enter destination",
           isEn
         )
@@ -781,7 +744,7 @@ export default function CreateTaskScreen({ navigation }) {
         getText(
           t,
           "end_after_start",
-          "Bitiş tarihi/saati başlangıçtan sonra olmalı",
+          "Bitis tarihi/saati baslangictan sonra olmali",
           "End date/time must be after start date/time",
           isEn
         )
@@ -834,39 +797,43 @@ export default function CreateTaskScreen({ navigation }) {
         end_location: endLocation.trim(),
         scheduled_start: scheduledStart.toISOString(),
         scheduled_end: scheduledEnd.toISOString(),
-        waypoints: geocodedWaypoints.map((wp) => ({
-          id: wp.id,
-          name: wp.name || "",
-          address: wp.address || "",
-          latitude: Number(wp.latitude) || null,
-          longitude: Number(wp.longitude) || null,
-          planned_arrival: wp.planned_arrival || null,
-          status: "pending",
-        })),
+        waypoints: geocodedWaypoints.map((wp) => {
+          const lat = Number(wp.latitude ?? wp.lat);
+          const lng = Number(wp.longitude ?? wp.lng);
+          return {
+            id: wp.id,
+            name: wp.name || "",
+            address: wp.address || "",
+            latitude: Number.isFinite(lat) ? lat : null,
+            longitude: Number.isFinite(lng) ? lng : null,
+            planned_arrival: wp.planned_arrival || null,
+            status: "pending",
+          };
+        }),
       };
 
       await taskAPI.create(taskData);
 
       Alert.alert(
-        getText(t, "success", "Başarılı", "Success", isEn),
+        getText(t, "success", "Basarili", "Success", isEn),
         getText(
           t,
           "task_created",
-          "Görev başarıyla oluşturuldu",
+          "Gorev basariyla olusturuldu",
           "Task created successfully",
           isEn
         ),
         [{ text: "OK", onPress: () => navigation.goBack() }]
       );
     } catch (error) {
-      console.error("Görev oluşturulurken hata:", error);
+      console.error("Gorev olusturulurken hata:", error);
       Alert.alert(
         getText(t, "error", "Hata", "Error", isEn),
         error.response?.data?.error ||
           getText(
             t,
             "task_create_failed",
-            "Görev oluşturulamadı",
+            "Gorev olusturulamadi",
             "Failed to create task",
             isEn
           )
@@ -879,7 +846,7 @@ export default function CreateTaskScreen({ navigation }) {
   // Get selected driver/vehicle names
   const getDriverName = () => {
     if (!driverId)
-      return getText(t, "select_driver", "Sürücü Seç", "Select Driver", isEn);
+      return getText(t, "select_driver", "Surucu Sec", "Select Driver", isEn);
     const driver = drivers.find((d) => d.id === driverId);
     return driver
       ? `${driver.first_name || ""} ${driver.last_name || ""}`.trim() ||
@@ -889,7 +856,7 @@ export default function CreateTaskScreen({ navigation }) {
 
   const getVehicleName = () => {
     if (!vehicleId)
-      return getText(t, "select_vehicle", "Araç Seç", "Select Vehicle", isEn);
+      return getText(t, "select_vehicle", "Arac Sec", "Select Vehicle", isEn);
     const vehicle = vehicles.find((v) => v.id === vehicleId);
     return vehicle
       ? `${vehicle.plate_no} - ${vehicle.brand || ""} ${vehicle.model || ""}`.trim()
@@ -903,11 +870,11 @@ export default function CreateTaskScreen({ navigation }) {
       t,
       p.labelKey,
       p.value === "low"
-        ? "Düşük"
+        ? "Dusuk"
         : p.value === "normal"
           ? "Normal"
           : p.value === "high"
-            ? "Yüksek"
+            ? "Yuksek"
             : "Acil",
       p.value === "low"
         ? "Low"
@@ -970,7 +937,7 @@ export default function CreateTaskScreen({ navigation }) {
             <View style={styles.iosPickerHeader}>
               <TouchableOpacity onPress={onClose}>
                 <Text style={styles.iosPickerCancel}>
-                  {getText(t, "cancel", "İptal", "Cancel", isEn)}
+                  {getText(t, "cancel", "ptal", "Cancel", isEn)}
                 </Text>
               </TouchableOpacity>
               <Text style={styles.iosPickerTitle}>{title}</Text>
@@ -1028,7 +995,7 @@ export default function CreateTaskScreen({ navigation }) {
                 {getText(
                   t,
                   "no_options",
-                  "Seçenek bulunamadı",
+                  "Secenek bulunamadi",
                   "No options available",
                   isEn
                 )}
@@ -1069,7 +1036,7 @@ export default function CreateTaskScreen({ navigation }) {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>
-          {getText(t, "loading", "Yükleniyor...", "Loading...", isEn)}
+          {getText(t, "loading", "Yukleniyor...", "Loading...", isEn)}
         </Text>
       </View>
     );
@@ -1096,7 +1063,7 @@ export default function CreateTaskScreen({ navigation }) {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {getText(t, "new_task", "Yeni Görev", "New Task", isEn)}
+          {getText(t, "new_task", "Yeni Gorev", "New Task", isEn)}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -1114,7 +1081,7 @@ export default function CreateTaskScreen({ navigation }) {
             {getText(
               t,
               "task_information",
-              "Görev Bilgileri",
+              "Gorev Bilgileri",
               "Task Information",
               isEn
             )}
@@ -1123,7 +1090,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Title */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "title", "Başlık", "Title", isEn)} *
+              {getText(t, "title", "Baslik", "Title", isEn)} *
             </Text>
             <TextInput
               style={styles.textInput}
@@ -1132,7 +1099,7 @@ export default function CreateTaskScreen({ navigation }) {
               placeholder={getText(
                 t,
                 "task_title_placeholder",
-                "Görev başlığını girin",
+                "Gorev basliIini girin",
                 "Enter task title",
                 isEn
               )}
@@ -1143,7 +1110,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Description */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "description", "Açıklama", "Description", isEn)}
+              {getText(t, "description", "Aciklama", "Description", isEn)}
             </Text>
             <TextInput
               style={[styles.textInput, styles.textArea]}
@@ -1152,7 +1119,7 @@ export default function CreateTaskScreen({ navigation }) {
               placeholder={getText(
                 t,
                 "description_placeholder",
-                "Görev açıklaması (opsiyonel)",
+                "Gorev aciklamasi (opsiyonel)",
                 "Task description (optional)",
                 isEn
               )}
@@ -1166,7 +1133,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Priority */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "priority", "Öncelik", "Priority", isEn)}
+              {getText(t, "priority", "ncelik", "Priority", isEn)}
             </Text>
             <TouchableOpacity
               style={styles.selectButton}
@@ -1196,7 +1163,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Start Date/Time */}
           <View style={styles.dateTimeSection}>
             <Text style={styles.dateTimeGroupLabel}>
-              {getText(t, "start", "Başlangıç", "Start", isEn)}
+              {getText(t, "start", "Baslangic", "Start", isEn)}
             </Text>
             <View style={styles.dateTimeRow}>
               <DateTimeButton
@@ -1219,7 +1186,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* End Date/Time */}
           <View style={styles.dateTimeSection}>
             <Text style={styles.dateTimeGroupLabel}>
-              {getText(t, "end", "Bitiş", "End", isEn)}
+              {getText(t, "end", "Bitis", "End", isEn)}
             </Text>
             <View style={styles.dateTimeRow}>
               <DateTimeButton
@@ -1243,13 +1210,13 @@ export default function CreateTaskScreen({ navigation }) {
           <View style={styles.durationInfo}>
             <Ionicons name="hourglass-outline" size={16} color={COLORS.MUTED} />
             <Text style={styles.durationText}>
-              {getText(t, "duration", "Süre", "Duration", isEn)}:{" "}
+              {getText(t, "duration", "Sure", "Duration", isEn)}:{" "}
               {(() => {
                 const start = combineDateAndTime(startDate, startTime);
                 const end = combineDateAndTime(endDate, endTime);
                 const diff = end - start;
                 if (diff <= 0)
-                  return getText(t, "invalid", "Geçersiz", "Invalid", isEn);
+                  return getText(t, "invalid", "Gecersiz", "Invalid", isEn);
                 const hours = Math.floor(diff / (1000 * 60 * 60));
                 const minutes = Math.floor(
                   (diff % (1000 * 60 * 60)) / (1000 * 60)
@@ -1276,7 +1243,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Driver */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "driver", "Sürücü", "Driver", isEn)}
+              {getText(t, "driver", "Surucu", "Driver", isEn)}
             </Text>
             <TouchableOpacity
               style={styles.selectButton}
@@ -1300,7 +1267,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* Vehicle */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "vehicle", "Araç", "Vehicle", isEn)}
+              {getText(t, "vehicle", "Arac", "Vehicle", isEn)}
             </Text>
             <TouchableOpacity
               style={styles.selectButton}
@@ -1340,7 +1307,7 @@ export default function CreateTaskScreen({ navigation }) {
               {getText(
                 t,
                 "start_location",
-                "Başlangıç Konumu",
+                "Baslangic Konumu",
                 "Start Location",
                 isEn
               )}{" "}
@@ -1360,7 +1327,7 @@ export default function CreateTaskScreen({ navigation }) {
                 placeholder={getText(
                   t,
                   "enter_start_address",
-                  "Başlangıç adresini girin",
+                  "Baslangic adresini girin",
                   "Enter start address",
                   isEn
                 )}
@@ -1385,7 +1352,7 @@ export default function CreateTaskScreen({ navigation }) {
           {/* End Location */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "destination", "Varış Konumu", "Destination", isEn)} *
+              {getText(t, "destination", "Varis Konumu", "Destination", isEn)} *
             </Text>
             <View style={styles.locationInputContainer}>
               <Ionicons
@@ -1401,7 +1368,7 @@ export default function CreateTaskScreen({ navigation }) {
                 placeholder={getText(
                   t,
                   "enter_destination_address",
-                  "Varış adresini girin",
+                  "Varis adresini girin",
                   "Enter destination address",
                   isEn
                 )}
@@ -1411,234 +1378,57 @@ export default function CreateTaskScreen({ navigation }) {
           </View>
         </View>
 
-        {/* ═══ Waypoints / Duraklar ═══ */}
+        {/* Waypoints / Stops */}
         <View style={styles.section}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 16,
-            }}
-          >
-            <Text style={styles.sectionTitle}>
-              {getText(t, "waypoints", "Duraklar", "Stops", isEn)}
-            </Text>
-            <TouchableOpacity
-              onPress={addWaypoint}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 20,
-                gap: 6,
-              }}
-            >
-              <Ionicons name="add-circle" size={18} color={COLORS.PRIMARY} />
-              <Text
-                style={{
-                  color: COLORS.PRIMARY,
-                  fontWeight: "600",
-                  fontSize: 14,
-                }}
-              >
-                {getText(t, "add_stop", "Durak Ekle", "Add Stop", isEn)}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {waypoints.length === 0 && (
-            <Text
-              style={{
-                textAlign: "center",
-                color: COLORS.MUTED,
-                paddingVertical: 20,
-                fontSize: 14,
-              }}
-            >
-              {getText(
+          <WaypointEditor
+            waypoints={waypoints}
+            setWaypoints={setWaypoints}
+            COLORS={COLORS}
+            inputStyle={styles.textInput}
+            maxStops={10}
+            labels={{
+              title: getText(t, "waypoints", "Duraklar", "Stops", isEn),
+              add: getText(t, "add_stop", "Durak Ekle", "Add Stop", isEn),
+              limitReached: getText(
+                t,
+                "limit_reached",
+                "Durak limiti doldu",
+                "Stop limit reached",
+                isEn
+              ),
+              name: getText(t, "stop_name", "Durak Adi", "Stop Name", isEn),
+              address: getText(
+                t,
+                "stop_address",
+                "Durak Adresi",
+                "Stop Address",
+                isEn
+              ),
+              lat: "Lat",
+              lng: "Lng",
+              planned: getText(
+                t,
+                "planned_arrival",
+                "Planlanan Varis",
+                "Planned Arrival",
+                isEn
+              ),
+              invalid: getText(
+                t,
+                "invalid_coords",
+                "Koordinatlar gecersiz",
+                "Invalid coordinates",
+                isEn
+              ),
+              noStops: getText(
                 t,
                 "no_stops_yet",
-                "Henüz durak eklenmedi",
+                "Henuz durak eklenmedi",
                 "No stops added yet",
                 isEn
-              )}
-            </Text>
-          )}
-
-          {waypoints.map((wp, index) => (
-            <View
-              key={wp.id}
-              style={{
-                backgroundColor: withAlpha(COLORS.SECONDARY, 0.4),
-                borderRadius: 14,
-                padding: 14,
-                marginBottom: 12,
-                borderWidth: 1,
-                borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
-              }}
-            >
-              {/* Header: #index + controls */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                }}
-              >
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-                >
-                  <View
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
-                      backgroundColor: COLORS.PRIMARY,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: COLORS.WHITE,
-                        fontWeight: "700",
-                        fontSize: 13,
-                      }}
-                    >
-                      {index + 1}
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      fontWeight: "600",
-                      color: COLORS.TEXT,
-                      fontSize: 15,
-                    }}
-                  >
-                    {wp.name ||
-                      getText(t, "stop", "Durak", "Stop", isEn) +
-                        " " +
-                        (index + 1)}
-                  </Text>
-                </View>
-                <View style={{ flexDirection: "row", gap: 6 }}>
-                  <TouchableOpacity
-                    onPress={() => moveUp(index)}
-                    disabled={index === 0}
-                    style={{ opacity: index === 0 ? 0.3 : 1, padding: 4 }}
-                  >
-                    <Ionicons
-                      name="chevron-up"
-                      size={20}
-                      color={COLORS.PRIMARY}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => moveDown(index)}
-                    disabled={index === waypoints.length - 1}
-                    style={{
-                      opacity: index === waypoints.length - 1 ? 0.3 : 1,
-                      padding: 4,
-                    }}
-                  >
-                    <Ionicons
-                      name="chevron-down"
-                      size={20}
-                      color={COLORS.PRIMARY}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => removeWaypoint(wp.id)}
-                    style={{ padding: 4 }}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={20}
-                      color={COLORS.ERROR}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Stop Name */}
-              <TextInput
-                style={styles.textInput}
-                placeholder={getText(
-                  t,
-                  "stop_name",
-                  "Durak Adı",
-                  "Stop Name",
-                  isEn
-                )}
-                placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
-                value={wp.name}
-                onChangeText={(val) => updateWaypoint(wp.id, "name", val)}
-              />
-
-              {/* Address */}
-              <TextInput
-                style={[styles.textInput, { marginTop: 8 }]}
-                placeholder={getText(
-                  t,
-                  "stop_address",
-                  "Durak Adresi",
-                  "Stop Address",
-                  isEn
-                )}
-                placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
-                value={wp.address || ""}
-                onChangeText={(val) => updateWaypoint(wp.id, "address", val)}
-              />
-
-              {/* Planned Arrival */}
-              <View style={{ marginTop: 8 }}>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: COLORS.MUTED,
-                    marginBottom: 4,
-                  }}
-                >
-                  {getText(
-                    t,
-                    "planned_arrival",
-                    "Planlanan Varış",
-                    "Planned Arrival",
-                    isEn
-                  )}
-                </Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="2026-02-15T14:30"
-                  placeholderTextColor={COLORS.PLACEHOLDER ?? COLORS.MUTED}
-                  value={
-                    wp.planned_arrival ? wp.planned_arrival.slice(0, 16) : ""
-                  }
-                  onChangeText={(val) => {
-                    if (!val) {
-                      updateWaypoint(wp.id, "planned_arrival", null);
-                      return;
-                    }
-                    try {
-                      const d = new Date(val);
-                      if (!isNaN(d.getTime()))
-                        updateWaypoint(
-                          wp.id,
-                          "planned_arrival",
-                          d.toISOString()
-                        );
-                    } catch {}
-                  }}
-                  autoCapitalize="none"
-                />
-              </View>
-            </View>
-          ))}
+              ),
+            }}
+          />
         </View>
 
         {/* Submit Button */}
@@ -1661,7 +1451,7 @@ export default function CreateTaskScreen({ navigation }) {
                 {getText(
                   t,
                   "create_task",
-                  "Görev Oluştur",
+                  "Gorev Olustur",
                   "Create Task",
                   isEn
                 )}
@@ -1728,7 +1518,7 @@ export default function CreateTaskScreen({ navigation }) {
             title={getText(
               t,
               "select_start_date",
-              "Başlangıç Tarihi",
+              "Baslangic Tarihi",
               "Start Date",
               isEn
             )}
@@ -1744,7 +1534,7 @@ export default function CreateTaskScreen({ navigation }) {
             title={getText(
               t,
               "select_start_time",
-              "Başlangıç Saati",
+              "Baslangic Saati",
               "Start Time",
               isEn
             )}
@@ -1761,7 +1551,7 @@ export default function CreateTaskScreen({ navigation }) {
             title={getText(
               t,
               "select_end_date",
-              "Bitiş Tarihi",
+              "Bitis Tarihi",
               "End Date",
               isEn
             )}
@@ -1777,7 +1567,7 @@ export default function CreateTaskScreen({ navigation }) {
             title={getText(
               t,
               "select_end_time",
-              "Bitiş Saati",
+              "Bitis Saati",
               "End Time",
               isEn
             )}
@@ -1789,7 +1579,7 @@ export default function CreateTaskScreen({ navigation }) {
       <SelectionModal
         visible={showDriverPicker}
         onClose={() => setShowDriverPicker(false)}
-        title={getText(t, "select_driver", "Sürücü Seç", "Select Driver", isEn)}
+        title={getText(t, "select_driver", "Surucu Sec", "Select Driver", isEn)}
         data={drivers}
         selectedId={driverId}
         onSelect={setDriverId}
@@ -1814,7 +1604,7 @@ export default function CreateTaskScreen({ navigation }) {
       <SelectionModal
         visible={showVehiclePicker}
         onClose={() => setShowVehiclePicker(false)}
-        title={getText(t, "select_vehicle", "Araç Seç", "Select Vehicle", isEn)}
+        title={getText(t, "select_vehicle", "Arac Sec", "Select Vehicle", isEn)}
         data={vehicles}
         selectedId={vehicleId}
         onSelect={setVehicleId}
@@ -1841,7 +1631,7 @@ export default function CreateTaskScreen({ navigation }) {
         title={getText(
           t,
           "select_priority",
-          "Öncelik Seç",
+          "ncelik Sec",
           "Select Priority",
           isEn
         )}
@@ -1866,11 +1656,11 @@ export default function CreateTaskScreen({ navigation }) {
                 t,
                 p.labelKey,
                 p.value === "low"
-                  ? "Düşük"
+                  ? "Dusuk"
                   : p.value === "normal"
                     ? "Normal"
                     : p.value === "high"
-                      ? "Yüksek"
+                      ? "Yuksek"
                       : "Acil",
                 p.value === "low"
                   ? "Low"

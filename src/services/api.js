@@ -11,33 +11,33 @@ import { clearTokens, clearUserData, getAccessToken } from "../utils/storage";
 // ============================================
 let inMemoryToken = null;
 
-// 401 event callback (AuthContext tarafından set edilir)
+// 401 event callback (AuthContext tarafÄ±ndan set edilir)
 let onUnauthorizedCallback = null;
 
-// KRİTİK B: Spam lock - aynı anda birden fazla 401 için
+// KRÄ°TÄ°K B: Spam lock - aynÄ± anda birden fazla 401 iÃ§in
 let unauthorizedHandled = false;
 
 /**
- * Token'ı memory'ye set et (AuthContext'ten çağrılır)
+ * Token'Ä± memory'ye set et (AuthContext'ten Ã§aÄŸrÄ±lÄ±r)
  */
 export const setAuthToken = (token) => {
   inMemoryToken = token;
   console.log(
-    "🔑 [API] Token set in memory:",
+    "ðŸ”‘ [API] Token set in memory:",
     token ? "***" + token.slice(-6) : null
   );
 };
 
 /**
- * Token'ı memory'den temizle
+ * Token'Ä± memory'den temizle
  */
 export const clearAuthToken = () => {
   inMemoryToken = null;
-  console.log("🔑 [API] Token cleared from memory");
+  console.log("ðŸ”‘ [API] Token cleared from memory");
 };
 
 /**
- * 401 callback'i set et (AuthContext logout için)
+ * 401 callback'i set et (AuthContext logout iÃ§in)
  * Type guard eklendi
  */
 export const setOnUnauthorized = (callback) => {
@@ -45,10 +45,10 @@ export const setOnUnauthorized = (callback) => {
 };
 
 /**
- * Token'ı al - önce memory, sonra storage utils
+ * Token'Ä± al - Ã¶nce memory, sonra storage utils
  */
 const getToken = async () => {
-  // 1. Önce memory'den dene (en hızlı)
+  // 1. Ã–nce memory'den dene (en hÄ±zlÄ±)
   if (inMemoryToken) {
     return inMemoryToken;
   }
@@ -67,8 +67,8 @@ const getToken = async () => {
 };
 
 // ============================================
-// KRİTİK A: Auth endpoint'leri için INTERCEPTOR'SIZ client
-// Login/logout/refresh bu client'ı kullanır
+// KRÄ°TÄ°K A: Auth endpoint'leri iÃ§in INTERCEPTOR'SIZ client
+// Login/logout/refresh bu client'Ä± kullanÄ±r
 // ============================================
 const authClient = axios.create({
   baseURL: API_BASE_URL,
@@ -79,7 +79,7 @@ const authClient = axios.create({
 });
 
 // ============================================
-// Normal API istekleri için interceptor'lü client
+// Normal API istekleri iÃ§in interceptor'lÃ¼ client
 // ============================================
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -89,7 +89,20 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - add token
+// ============================================
+// S6: ETag / 304 Cache (network cost reduction)
+// AdminDashboard 30s polling → veri degismediyse 304 = bos body
+// ============================================
+const etagCache = new Map(); // key: fullUrl → { etag, data }
+
+// Cache key: url + params (query param cakismasi onlenir)
+function getCacheKey(config) {
+  const base = config.url || "";
+  const p = config.params ? "?" + JSON.stringify(config.params) : "";
+  return base + p;
+}
+
+// Request interceptor - add token + ETag
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -100,6 +113,13 @@ api.interceptors.request.use(
     } catch (error) {
       console.error("Error getting token:", error);
     }
+
+    // ETag: GET request icin If-None-Match ekle
+    const key = getCacheKey(config);
+    if (config.method === "get" && etagCache.has(key)) {
+      config.headers["If-None-Match"] = etagCache.get(key).etag;
+    }
+
     return config;
   },
   (error) => {
@@ -107,25 +127,47 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - handle errors + ETag
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const key = getCacheKey(response.config || {});
+
+    // Fix 4: 304 success handler'a duserse cache'den dondur
+    if (response.status === 304 && etagCache.has(key)) {
+      return { ...response, data: etagCache.get(key).data, cached: true };
+    }
+
+    // ETag varsa cache'le
+    const etag = response.headers?.etag;
+    if (etag && response.config?.method === "get") {
+      etagCache.set(key, { etag, data: response.data });
+    }
+    return response;
+  },
   async (error) => {
     const status = error.response?.status;
     const url = error.config?.url || "";
 
-    // KRİTİK B: Auth endpoint'lerinde 401 gelirse cleanup YAPMA
+    // S6: 304 Not Modified → cache'den dondur
+    if (status === 304) {
+      const key = getCacheKey(error.config || {});
+      if (etagCache.has(key)) {
+        return { data: etagCache.get(key).data, status: 304, cached: true };
+      }
+    }
+
+    // KRÄ°TÄ°K B: Auth endpoint'lerinde 401 gelirse cleanup YAPMA
     const isAuthEndpoint =
       url.includes("/api/auth/login") ||
       url.includes("/api/auth/logout") ||
       url.includes("/api/auth/refresh") ||
       url.includes("/api/auth/register");
 
-    // Handle 401 Unauthorized (auth endpoint'leri hariç)
+    // Handle 401 Unauthorized (auth endpoint'leri hariÃ§)
     if (status === 401 && !isAuthEndpoint && !unauthorizedHandled) {
-      console.log("🔒 [API] 401 - Token expired or invalid");
+      console.log("ðŸ”’ [API] 401 - Token expired or invalid");
 
-      // KRİTİK B: Spam lock - 2 saniye içinde tekrar tetiklenmez
+      // KRÄ°TÄ°K B: Spam lock - 2 saniye iÃ§inde tekrar tetiklenmez
       unauthorizedHandled = true;
       setTimeout(() => {
         unauthorizedHandled = false;
@@ -164,11 +206,11 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// AUTH ENDPOINTS (interceptor'sız authClient kullanır)
+// AUTH ENDPOINTS (interceptor'sÄ±z authClient kullanÄ±r)
 // ============================================
 
 export const authAPI = {
-  // Login - interceptor'sız
+  // Login - interceptor'sÄ±z
   login: async (email, password) => {
     const response = await authClient.post("/api/auth/login", {
       email,
@@ -177,7 +219,7 @@ export const authAPI = {
     return response.data;
   },
 
-  // Logout - TOKEN GEREKLİ (api kullan, authClient değil)
+  // Logout - TOKEN GEREKLÄ° (api kullan, authClient deÄŸil)
   logout: async () => {
     try {
       await api.post("/api/auth/logout", {});
@@ -191,7 +233,7 @@ export const authAPI = {
     return { success: true };
   },
 
-  // Register - interceptor'sız
+  // Register - interceptor'sÄ±z
   register: async (email, password, role = "driver") => {
     const response = await authClient.post("/api/auth/register", {
       email,
@@ -201,7 +243,7 @@ export const authAPI = {
     return response.data;
   },
 
-  // Forgot password - interceptor'sız
+  // Forgot password - interceptor'sÄ±z
   forgotPassword: async (email) => {
     const response = await authClient.post("/api/auth/forgot-password", {
       email,
@@ -209,7 +251,7 @@ export const authAPI = {
     return response.data;
   },
 
-  // Reset password - interceptor'sız
+  // Reset password - interceptor'sÄ±z
   resetPassword: async (email, code, newPassword) => {
     const response = await authClient.post("/api/auth/reset-password", {
       email,
@@ -231,7 +273,7 @@ export const authAPI = {
     return response.data;
   },
 
-  // Refresh - interceptor'sız (KRİTİK A)
+  // Refresh - interceptor'sÄ±z (KRÄ°TÄ°K A)
   refresh: async (refreshToken) => {
     const response = await authClient.post("/api/auth/refresh", {
       refreshToken,
@@ -292,7 +334,7 @@ export const adminAPI = {
     const response = await api.post("/api/admin/devices/claim", body);
     return response.data;
   },
-  // YENİ METOD BURAYA EKLENDİ ↓↓↓
+  // YENÄ° METOD BURAYA EKLENDÄ° â†“â†“â†“
   addToStockBySerial: async (serial) => {
     const response = await api.post(
       "/api/admin/devices/add-to-stock-by-serial",
@@ -327,10 +369,10 @@ export const adminAPI = {
 
 export const superAdminAPI = {
   // ============================================
-  // COMPANIES (Birleşik - Şirket + Abonelik)
+  // COMPANIES (BirleÅŸik - Åžirket + Abonelik)
   // ============================================
 
-  // Liste + Özet + Acil durumlar
+  // Liste + Ã–zet + Acil durumlar
   getCompanies: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const response = await api.get(
@@ -339,35 +381,35 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Şirket detayı (tüm tab'lar için veri)
+  // Åžirket detayÄ± (tÃ¼m tab'lar iÃ§in veri)
   getCompanyDetail: async (id) => {
     const response = await api.get(`/api/superadmin/companies/${id}`);
     return response.data;
   },
 
-  // Şirket oluştur (Trial olarak başlar)
+  // Åžirket oluÅŸtur (Trial olarak baÅŸlar)
   createCompany: async (data) => {
     const response = await api.post("/api/superadmin/companies", data);
     return response.data;
   },
 
-  // Şirket güncelle (abonelik dahil)
+  // Åžirket gÃ¼ncelle (abonelik dahil)
   updateCompany: async (id, data) => {
     const response = await api.put(`/api/superadmin/companies/${id}`, data);
     return response.data;
   },
 
-  // Şirket sil
+  // Åžirket sil
   deleteCompany: async (id) => {
     const response = await api.delete(`/api/superadmin/companies/${id}`);
     return response.data;
   },
 
   // ============================================
-  // ABONELİK İŞLEMLERİ
+  // ABONELÄ°K Ä°ÅžLEMLERÄ°
   // ============================================
 
-  // Ödeme kaydet + Otomatik aktifleştir (TEK BUTON)
+  // Ã–deme kaydet + Otomatik aktifleÅŸtir (TEK BUTON)
   recordPayment: async (companyId, data) => {
     const response = await api.post(
       `/api/superadmin/companies/${companyId}/payment-received`,
@@ -376,7 +418,7 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Şirketi askıya al
+  // Åžirketi askÄ±ya al
   suspendCompany: async (companyId, data) => {
     const response = await api.post(
       `/api/superadmin/companies/${companyId}/suspend`,
@@ -385,7 +427,7 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Trial süresini uzat
+  // Trial sÃ¼resini uzat
   extendTrial: async (companyId, days = 7) => {
     const response = await api.post(
       `/api/superadmin/companies/${companyId}/extend-trial`,
@@ -394,7 +436,7 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Ödeme geçmişi (detaylı)
+  // Ã–deme geÃ§miÅŸi (detaylÄ±)
   getPaymentHistory: async (companyId) => {
     const response = await api.get(
       `/api/superadmin/companies/${companyId}/payments`
@@ -402,7 +444,7 @@ export const superAdminAPI = {
     return response.data;
   },
 
-  // Audit log (değişiklik geçmişi)
+  // Audit log (deÄŸiÅŸiklik geÃ§miÅŸi)
   getAuditLogs: async (companyId) => {
     const response = await api.get(
       `/api/superadmin/companies/${companyId}/audit-logs`
@@ -411,7 +453,7 @@ export const superAdminAPI = {
   },
 
   // ============================================
-  // CİHAZLAR (Mevcut - Değişiklik yok)
+  // CÄ°HAZLAR (Mevcut - DeÄŸiÅŸiklik yok)
   // ============================================
   getDevices: async () => {
     const response = await api.get("/api/superadmin/devices");
@@ -441,7 +483,7 @@ export const superAdminAPI = {
   },
 
   // ============================================
-  // KULLANICILAR & SİSTEM
+  // KULLANICILAR & SÄ°STEM
   // ============================================
   getUsers: async () => {
     const response = await api.get("/api/superadmin/users");
@@ -469,7 +511,7 @@ export const superAdminAPI = {
 // ============================================
 
 export const deviceAPI = {
-  // ESKİ - ARTIK KULLANILMIYOR (Backend'de endpoint yok)
+  // ESKÄ° - ARTIK KULLANILMIYOR (Backend'de endpoint yok)
   // validateClaimToken: async (token) => {
   //   const response = await api.get("/api/device/claim/validate", {
   //     params: { token },
@@ -496,7 +538,7 @@ export const deviceAPI = {
     return response.data;
   },
 
-  // ✅ YENİ
+  // âœ… YENÄ°
   provisioningComplete: async (data) => {
     const response = await api.post("/api/devices/provisioning-complete", data);
     return response.data;
@@ -514,7 +556,7 @@ export const deviceAPI = {
     return response.data;
   },
 
-  // KALDIRILDI: updateTaskStatus - bu driverTaskAPI'de olmalı
+  // KALDIRILDI: updateTaskStatus - bu driverTaskAPI'de olmalÄ±
 
   quarantine: async (deviceId, reason) => {
     const response = await api.post(
@@ -531,7 +573,7 @@ export const deviceAPI = {
 };
 
 // ============================================
-// DRIVER ENDPOINTS (Admin tarafından kullanılır)
+// DRIVER ENDPOINTS (Admin tarafÄ±ndan kullanÄ±lÄ±r)
 // ============================================
 
 export const driverAPI = {
@@ -572,7 +614,7 @@ export const driverAPI = {
     return response.data;
   },
 
-  // Alias'lar - Dashboard uyumluluğu için
+  // Alias'lar - Dashboard uyumluluÄŸu iÃ§in
   getMyVehicle: async () => driverAPI.getVehicle(),
   getMyTasks: async () => driverAPI.getTasks(),
   getMyStats: async () => driverAPI.getStats(),
@@ -719,7 +761,7 @@ export const vehicleAPI = {
 };
 
 // ============================================
-// TASK ENDPOINTS (Admin tarafından kullanılır)
+// TASK ENDPOINTS (Admin tarafÄ±ndan kullanÄ±lÄ±r)
 // ============================================
 
 export const taskAPI = {
@@ -795,11 +837,11 @@ export const taskOffersAPI = {
 };
 
 // ============================================
-// DRIVER TASK API (Sürücü görev işlemleri - TEK KAYNAK)
+// DRIVER TASK API (SÃ¼rÃ¼cÃ¼ gÃ¶rev iÅŸlemleri - TEK KAYNAK)
 // ============================================
 
 export const driverTaskAPI = {
-  // Canonical: Sürücünün görevlerini getir
+  // Canonical: SÃ¼rÃ¼cÃ¼nÃ¼n gÃ¶revlerini getir
   getMyTasks: async () => {
     const response = await api.get("/api/driver/tasks");
     return response.data;
@@ -815,7 +857,7 @@ export const driverTaskAPI = {
     return response.data;
   },
 
-  // KRİTİK FIX: Fonksiyon adı ve URL düzeltildi
+  // KRÄ°TÄ°K FIX: Fonksiyon adÄ± ve URL dÃ¼zeltildi
   updateTaskStatus: async (taskId, status) => {
     const response = await api.put(`/api/driver/tasks/${taskId}/status`, {
       status,
@@ -910,7 +952,7 @@ export const alertsAPI = {
   },
 };
 
-// Standardize on alertsAPI (alias kaldırıldı, doğrudan kullan)
+// Standardize on alertsAPI (alias kaldÄ±rÄ±ldÄ±, doÄŸrudan kullan)
 export const alertAPI = alertsAPI;
 
 // ============================================
@@ -935,7 +977,7 @@ export const reportAPI = {
     const data = await alertsAPI.getAll();
     const alerts = data.alerts || [];
 
-    // Tip bazlı grupla
+    // Tip bazlÄ± grupla
     const byType = {};
     alerts.forEach((a) => {
       const type = a.alert_type || "OTHER";
@@ -953,7 +995,7 @@ export const reportAPI = {
     const data = await taskAPI.getList();
     const tasks = data.tasks || data || [];
 
-    // Durum bazlı grupla
+    // Durum bazlÄ± grupla
     const byStatus = {};
     tasks.forEach((t) => {
       const status = t.status || "unknown";

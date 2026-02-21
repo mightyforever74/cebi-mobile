@@ -1,6 +1,6 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 02 Şubat 2026 - Smooth Marker Animation (LERP)
+// Updated: 19 Şubat 2026 - UTF-8 cleanup, smart down sample, route fixes
 // Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
 
 import { Ionicons } from "@expo/vector-icons";
@@ -30,10 +30,10 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
 
-// Route noktası limiti (performans için)
+// Route nokta limiti (performans icin)
 const MAX_ROUTE_POINTS = 500;
 
-// Geocoding cache - aynı adres için tekrar API çağrısını önle
+// Geocoding cache - ayni adres icin tekrar API cagrisini onle
 const geocodeCache = new Map();
 const GEOCODE_CACHE_MAX = 200;
 
@@ -47,7 +47,7 @@ const setGeocodeCacheItem = (key, coords) => {
 };
 
 // ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
+// makeStyles - BUYUK HARF TOKEN'LAR
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -151,7 +151,7 @@ const makeStyles = (COLORS) =>
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: "rgba(59, 130, 246, 0.2)",
+      backgroundColor: COLORS.PRIMARY + "33", // 0.2 opacity
       alignItems: "center",
       justifyContent: "center",
     },
@@ -436,7 +436,7 @@ const makeStyles = (COLORS) =>
       right: 0,
     },
 
-    // Harita üzerindeki waypoint marker'ları
+    // Harita uzerindeki waypoint marker'lari
     waypointMarker: {
       width: 28,
       height: 28,
@@ -475,9 +475,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
 
-  const initialTask = route?.params?.task || null;
-
-  // Koordinat formatını normalize et (lat/lng → latitude/longitude)
+  // 1) normalizeCoords
   const normalizeCoords = useCallback((c) => {
     if (!c) return null;
     if (typeof c.latitude === "number" && typeof c.longitude === "number")
@@ -490,7 +488,40 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return { latitude, longitude };
   }, []);
 
-  // Initial coords hesapla (ilk render'da null olmasın)
+  // 2) normalizeTaskPayload
+  const normalizeTaskPayload = useCallback((raw) => {
+    if (!raw) return raw;
+
+    let route_json = raw.route_json;
+    if (typeof route_json === "string") {
+      try {
+        route_json = JSON.parse(route_json);
+      } catch {
+        route_json = null;
+      }
+    }
+
+    let waypoints = raw.waypoints;
+    if (typeof waypoints === "string") {
+      try {
+        waypoints = JSON.parse(waypoints);
+      } catch {
+        waypoints = [];
+      }
+    }
+
+    return { ...raw, route_json, waypoints };
+  }, []);
+
+  // 3) rawInitialTask
+  const rawInitialTask = route?.params?.task || null;
+
+  // 4) initialTask
+  const initialTask = rawInitialTask
+    ? normalizeTaskPayload(rawInitialTask)
+    : null;
+
+  // Initial coords hesapla (ilk render'da null olmasin)
   const getInitialDestinationCoords = () => {
     if (!initialTask) return null;
 
@@ -570,7 +601,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   }, [task?.status, task?.id, location]);
 
   // ======
-  // GEOCODING - Text adres → Koordinat (cache + abort + normalize)
+  // GEOCODING - Text adres -> Koordinat (cache + abort + normalize)
   // ======
 
   // Stabil dependency key (JSON.stringify yerine)
@@ -586,7 +617,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     const controller = new AbortController();
 
     const geocodeDestination = async () => {
-      // 1. route_json'dan koordinat (normalize edilmiş)
+      // 1. route_json'dan koordinat (normalize edilmis)
       if (task?.route_json?.destination_coords) {
         const normalized = normalizeCoords(task.route_json.destination_coords);
         if (normalized) {
@@ -650,16 +681,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         if (data.status === "OK" && data.results?.length > 0) {
           const { lat, lng } = data.results[0].geometry.location;
           const coords = { latitude: lat, longitude: lng };
-          console.log("[Nav] Geocoded:", textAddress, "→", lat, lng);
+          console.log("[Nav] Geocoded:", textAddress, "->", lat, lng);
 
-          // Cache'e kaydet (limit kontrollü)
+          // Cache'e kaydet (limit kontrollu)
           setGeocodeCacheItem(cacheKey, coords);
           setGeocodedDestination(coords);
         } else {
-          // Detaylı hata logları
+          // Detayli hata loglari
           switch (data.status) {
             case "ZERO_RESULTS":
-              console.log("[Nav] Geocoding: adres bulunamadı:", textAddress);
+              console.log("[Nav] Geocoding: adres bulunamadi:", textAddress);
               break;
             case "OVER_QUERY_LIMIT":
               console.log("[Nav] Geocoding: API limit doldu!");
@@ -671,7 +702,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               );
               break;
             case "INVALID_REQUEST":
-              console.log("[Nav] Geocoding: geçersiz istek:", textAddress);
+              console.log("[Nav] Geocoding: gecersiz istek:", textAddress);
               break;
             default:
               console.log(
@@ -684,7 +715,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         }
       } catch (error) {
         if (cancelled) return;
-        // AbortError ise sessizce geç
+        // AbortError ise sessizce gec
         if (error.name !== "AbortError") {
           console.log("[Nav] Geocoding error:", error.message);
         }
@@ -724,7 +755,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         res.tasks?.find((t) => t.status === "accepted") ||
         res.tasks?.find((t) => t.status === "pending_review") ||
         null;
-      setTask(activeTask);
+      const active = activeTask ? normalizeTaskPayload(activeTask) : null;
+      setTask(active);
     } catch (e) {
       console.log("[Nav] Task load error:", e);
     }
@@ -817,21 +849,85 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const downsampleRoute = (points, maxPoints = MAX_ROUTE_POINTS) => {
     if (!points || points.length <= maxPoints) return points;
 
-    const step = Math.ceil(points.length / maxPoints);
-    const sampled = [];
+    // Ramer-Douglas-Peucker: virajlari koruyarak nokta azaltir
+    const perpDist = (p, a, b) => {
+      const dx = b.longitude - a.longitude;
+      const dy = b.latitude - a.latitude;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) {
+        const ex = p.longitude - a.longitude;
+        const ey = p.latitude - a.latitude;
+        return Math.sqrt(ex * ex + ey * ey);
+      }
+      const t = Math.max(
+        0,
+        Math.min(
+          1,
+          ((p.longitude - a.longitude) * dx + (p.latitude - a.latitude) * dy) /
+            lenSq
+        )
+      );
+      const projLng = a.longitude + t * dx;
+      const projLat = a.latitude + t * dy;
+      const ex = p.longitude - projLng;
+      const ey = p.latitude - projLat;
+      return Math.sqrt(ex * ex + ey * ey);
+    };
 
-    for (let i = 0; i < points.length; i += step) {
-      sampled.push(points[i]);
-    }
+    const rdp = (pts, eps) => {
+      if (pts.length <= 2) return pts;
+      let maxD = 0,
+        idx = 0;
+      const first = pts[0],
+        last = pts[pts.length - 1];
+      for (let i = 1; i < pts.length - 1; i++) {
+        const d = perpDist(pts[i], first, last);
+        if (d > maxD) {
+          maxD = d;
+          idx = i;
+        }
+      }
+      if (maxD > eps) {
+        const left = rdp(pts.slice(0, idx + 1), eps);
+        const right = rdp(pts.slice(idx), eps);
+        return left.slice(0, -1).concat(right);
+      }
+      return [first, last];
+    };
 
-    if (sampled[sampled.length - 1] !== points[points.length - 1]) {
-      sampled.push(points[points.length - 1]);
+    // Adaptive epsilon: kucuk baslayip buyuterek maxPoints'e yakinlastir
+    let eps = 0.00005; // ~5m
+    let result = rdp(points, eps);
+    let iterations = 0;
+    while (result.length > maxPoints && iterations < 10) {
+      eps *= 2;
+      result = rdp(points, eps);
+      iterations++;
     }
 
     console.log(
-      `[Nav] Downsampled ${points.length} -> ${sampled.length} points`
+      `[Nav] Smart downsample: ${points.length} -> ${result.length} points (eps=${eps.toFixed(6)})`
     );
-    return sampled;
+
+    // Guard: RDP cok agresif sadeleştiyse orijinal noktalara geri don
+    if (result.length < 50)
+      return points.slice(0, Math.min(points.length, maxPoints));
+
+    return result;
+  };
+
+  // Helper: pushDedup - only push if not duplicate (prevents zigzag artifacts)
+  const pushDedup = (arr, pts) => {
+    for (const p of pts) {
+      const last = arr[arr.length - 1];
+      if (
+        !last ||
+        Math.abs(last.latitude - p.latitude) > 1e-6 ||
+        Math.abs(last.longitude - p.longitude) > 1e-6
+      ) {
+        arr.push(p);
+      }
+    }
   };
 
   const fetchRouteFromGoogle = async (origin, destination, waypoints = []) => {
@@ -858,9 +954,61 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       if (data.status === "OK" && data.routes && data.routes.length > 0) {
         const route = data.routes[0];
+
+        //  BEST: build path from legs[].steps[].polyline (most road-accurate)
+        const stepCoords = [];
+        (route.legs || []).forEach((leg) => {
+          (leg.steps || []).forEach((step) => {
+            const pts = step?.polyline?.points;
+            const decoded = decodePolyline(pts);
+            if (decoded.length) pushDedup(stepCoords, decoded);
+          });
+        });
+
+        if (stepCoords.length > 0) {
+          const sampled = stepCoords; // downsample KAPALI - steps polyline zaten yol geometrisini birebir verir
+          let totalDistance = 0;
+          let totalDuration = 0;
+          (route.legs || []).forEach((leg) => {
+            totalDistance += leg.distance?.value || 0;
+            totalDuration += leg.duration?.value || 0;
+          });
+
+          return {
+            coordinates: sampled,
+            distance: totalDistance / 1000,
+            duration: Math.ceil(totalDuration / 60),
+          };
+        }
+
+        //  1) overview_path varsa onu kullan (daha guvenilir yol geometrisi)
+        if (
+          Array.isArray(route.overview_path) &&
+          route.overview_path.length > 0
+        ) {
+          let pathCoords = route.overview_path.map((p) => ({
+            latitude: p.lat,
+            longitude: p.lng,
+          }));
+          pathCoords = downsampleRoute(pathCoords);
+
+          let totalDistance = 0;
+          let totalDuration = 0;
+          (route.legs || []).forEach((leg) => {
+            totalDistance += leg.distance?.value || 0;
+            totalDuration += leg.duration?.value || 0;
+          });
+
+          return {
+            coordinates: pathCoords,
+            distance: totalDistance / 1000,
+            duration: Math.ceil(totalDuration / 60),
+          };
+        }
+
+        //  2) fallback: overview_polyline decode (mevcut davranisin)
         const points = route.overview_polyline?.points;
         let decodedPoints = decodePolyline(points);
-
         decodedPoints = downsampleRoute(decodedPoints);
 
         let totalDistance = 0;
@@ -920,7 +1068,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       stopLocationTracking();
 
-      // ── Waypoints: görev ara noktaları ──
+      //  Waypoints: gorev ara noktalari
       let waypoints = (task?.waypoints || [])
         .map((wp) => {
           if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
@@ -930,9 +1078,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         })
         .filter(Boolean);
 
-      // ── FIX: Görevin başlangıç noktasını (origin_coords) ilk waypoint olarak ekle ──
-      // Araç (ESP32 GPS) görevin origin'inden farklı yerde olabilir.
-      // Örnek: Araç İstanbul'da, görev Ankara'dan başlıyor → Ankara ilk waypoint olmalı.
+      //  FIX: Gorevin baslangic noktasini (origin_coords) ilk waypoint olarak ekle
+      // Arac (ESP32 GPS) gorevin origin'inden farkli yerde olabilir.
+      // rnek: Arac stanbul'da, gorev Ankara'dan basliyor -> Ankara ilk waypoint olmali.
       const sameCoord = (a, b, eps = 1e-4) =>
         Math.abs(a.latitude - b.latitude) < eps &&
         Math.abs(a.longitude - b.longitude) < eps;
@@ -961,7 +1109,15 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
         setTimeout(() => {
           if (mapRef.current && routeData.coordinates.length > 1) {
-            mapRef.current.fitToCoordinates(routeData.coordinates, {
+            // fitToCoordinates icin max 200 nokta (crash engelle)
+            const fitCoords =
+              routeData.coordinates.length > 200
+                ? routeData.coordinates.filter(
+                    (_, i) =>
+                      i % Math.ceil(routeData.coordinates.length / 200) === 0
+                  )
+                : routeData.coordinates;
+            mapRef.current.fitToCoordinates(fitCoords, {
               edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
               animated: true,
             });
@@ -1191,26 +1347,26 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   // HELPERS
   // ===
 
-  // Task'tan gelen waypoints'i panel formatına çevir
+  // Task'tan gelen waypoints'i panel formatina cevir
   const prepareWaypoints = (task) => {
     if (!task) return { origin: null, destination: null, waypoints: [] };
 
-    // Origin - başlangıç noktası
+    // Origin - baslangic noktasi
     const origin = task.start_location
       ? {
           id: "origin",
-          name: "Başlangıç",
+          name: "Baslangic",
           address: task.start_location,
           latitude: task.route_json?.origin?.lat,
           longitude: task.route_json?.origin?.lng,
         }
       : null;
 
-    // Destination - varış noktası
+    // Destination - varis noktasi
     const destination = task.end_location
       ? {
           id: "destination",
-          name: "Varış",
+          name: "Varis",
           address: task.end_location,
           latitude: task.route_json?.destination?.lat,
           longitude: task.route_json?.destination?.lng,
@@ -1248,8 +1404,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   const getEndLocationCoords = () => {
-    // Geocoding useEffect tüm kaynakları kontrol edip
-    // normalize edilmiş koordinat döndürüyor
+    // Geocoding useEffect tum kaynaklari kontrol edip
+    // normalize edilmis koordinat donduruyor
     return geocodedDestination;
   };
 
@@ -1307,12 +1463,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       if (task?.id && waypointId) {
         await driverAPI.completeWaypoint(task.id, waypointId);
       }
-      // Başarılıysa local ilerleme yap
+      // Basariliysa local ilerleme yap
       setCurrentWaypointIndex((prev) => prev + 1);
-      // Görevi tazele (backend güncellemesi yansısın)
+      // Gorevi tazele (backend guncellemesi yansisin)
       await loadActiveTask();
     } catch (error) {
-      console.error("Waypoint tamamlanamadı:", error);
+      console.error("Waypoint tamamlanamadi:", error);
     }
   };
 
@@ -1334,7 +1490,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const isPendingReview = task?.status === "pending_review";
   const showTaskCard = task && isAccepted;
 
-  // Waypoints verisini hazırla
+  // Waypoints verisini hazirla
   const { origin, destination, waypoints } = prepareWaypoints(task);
 
   return (
@@ -1409,7 +1565,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               <Polyline
                 coordinates={routeCoords}
                 strokeWidth={8}
-                strokeColor="rgba(59, 130, 246, 0.3)"
+                strokeColor={COLORS.PRIMARY + "4D"}
               />
               <Polyline
                 coordinates={routeCoords}
@@ -1589,7 +1745,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.pendingTextContainer}>
             <Text style={styles.pendingTitle}>{t("routeMap.pendingTask")}</Text>
             <Text style={styles.pendingSubtitle}>
-              {task.title || t("routeMap.newTaskOffer")} â€¢{" "}
+              {task.title || t("routeMap.newTaskOffer")} •{" "}
               {getDistance() ? `${getDistance()} km` : ""}
             </Text>
           </View>
