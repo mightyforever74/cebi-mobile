@@ -1,6 +1,6 @@
 // src/screens/superadmin/DeviceDetailScreen.js
 // TulipFleet - Cihaz Detay ve Atama
-// Created: 26 Aralık 2025 - Mevcut yapıyla senkronize
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -15,19 +15,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
 import { API_URL } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const DeviceDetailScreen = ({ route, navigation }) => {
   const { device: initialDevice } = route.params;
   const { token } = useAuth();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const [device, setDevice] = useState(initialDevice);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [commandLoading, setCommandLoading] = useState(null);
-  // Atama modal
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -50,7 +54,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
           },
         }
       );
-
       if (response.ok) {
         const data = await response.json();
         setDevice(data.device || device);
@@ -71,7 +74,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
           "Content-Type": "application/json",
         },
       });
-
       if (response.ok) {
         const data = await response.json();
         setCompanies(data.companies || []);
@@ -92,7 +94,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
           },
         }
       );
-
       if (response.ok) {
         const data = await response.json();
         setVehicles(data.vehicles || data || []);
@@ -103,13 +104,11 @@ const DeviceDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  // Şirkete ata
   const handleAssign = async () => {
     if (!selectedCompany) {
       Alert.alert("Hata", "Lütfen bir şirket seçin");
       return;
     }
-
     setActionLoading(true);
     try {
       const response = await fetch(
@@ -126,7 +125,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
           }),
         }
       );
-
       if (response.ok) {
         Alert.alert("Başarılı", "Cihaz atandı");
         setAssignModalVisible(false);
@@ -137,14 +135,12 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         Alert.alert("Hata", "Atama başarısız");
       }
     } catch (error) {
-      console.error("Assign error:", error);
       Alert.alert("Hata", "Bağlantı hatası");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Atamayı kaldır
   const handleUnassign = () => {
     Alert.alert(
       "Atamayı Kaldır",
@@ -167,7 +163,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   },
                 }
               );
-
               if (response.ok) {
                 Alert.alert("Başarılı", "Atama kaldırıldı");
                 fetchDeviceDetail();
@@ -185,14 +180,12 @@ const DeviceDetailScreen = ({ route, navigation }) => {
     );
   };
 
-  // Durum değiştir
   const handleStatusChange = (newStatus) => {
     const statusLabels = {
       active: "Aktif",
       faulty: "Arızalı",
       maintenance: "Bakımda",
     };
-
     Alert.alert(
       "Durum Değiştir",
       `Cihaz durumunu "${statusLabels[newStatus]}" olarak değiştirmek istiyor musunuz?`,
@@ -214,7 +207,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   body: JSON.stringify({ status: newStatus }),
                 }
               );
-
               if (response.ok) {
                 Alert.alert("Başarılı", "Durum güncellendi");
                 fetchDeviceDetail();
@@ -231,78 +223,73 @@ const DeviceDetailScreen = ({ route, navigation }) => {
       ]
     );
   };
-  // Uzaktan komut gönder
+
   const handleSendCommand = (command, commandName, isDanger = false) => {
-    const message = isDanger
-      ? `${commandName} komutu göndermek istediğinize emin misiniz? Bu işlem geri alınamaz.`
-      : `${commandName} komutu göndermek istiyor musunuz?`;
-
-    Alert.alert("Uzaktan Komut", message, [
-      { text: "İptal", style: "cancel" },
-      {
-        text: "Gönder",
-        style: isDanger ? "destructive" : "default",
-        onPress: async () => {
-          setCommandLoading(command);
-          try {
-            const response = await fetch(
-              `${API_URL}/api/devices/${device.id}/command`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ command }),
+    Alert.alert(
+      "Uzaktan Komut",
+      isDanger
+        ? `${commandName} komutu göndermek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        : `${commandName} komutu göndermek istiyor musunuz?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Gönder",
+          style: isDanger ? "destructive" : "default",
+          onPress: async () => {
+            setCommandLoading(command);
+            try {
+              const response = await fetch(
+                `${API_URL}/api/devices/${device.id}/command`,
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ command }),
+                }
+              );
+              const data = await response.json();
+              if (response.ok) {
+                Alert.alert("Başarılı", data.message || "Komut gönderildi");
+              } else {
+                Alert.alert("Hata", data.error || "Komut gönderilemedi");
               }
-            );
-
-            const data = await response.json();
-            if (response.ok) {
-              Alert.alert("Başarılı", data.message || "Komut gönderildi");
-            } else {
-              Alert.alert("Hata", data.error || "Komut gönderilemedi");
+            } catch (error) {
+              Alert.alert("Hata", "Bağlantı hatası");
+            } finally {
+              setCommandLoading(null);
             }
-          } catch (error) {
-            console.error("Command error:", error);
-            Alert.alert("Hata", "Bağlantı hatası");
-          } finally {
-            setCommandLoading(null);
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
-  // Zaman farkı
   const getTimeDifference = (dateStr) => {
     if (!dateStr) return "Bilinmiyor";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
+    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
     if (diff < 60) return `${diff} sn önce`;
     if (diff < 3600) return `${Math.floor(diff / 60)} dk önce`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} saat önce`;
     return `${Math.floor(diff / 86400)} gün önce`;
   };
 
-  // Durum rengi
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "#2DCE89";
+        return COLORS.SUCCESS;
       case "pending":
-        return "#FB6340";
+        return COLORS.WARNING;
       case "faulty":
-        return "#F5365C";
+        return COLORS.ERROR;
       case "maintenance":
-        return "#11CDEF";
+        return COLORS.INFO;
       default:
-        return "#8898AA";
+        return COLORS.MUTED;
     }
   };
 
-  // Bilgi satırı
   const InfoRow = ({ label, value, valueColor }) => (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -315,7 +302,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E72E4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
@@ -323,7 +310,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header Card */}
+        {/* Header */}
         <View style={styles.headerCard}>
           <View style={styles.headerTop}>
             <View>
@@ -335,12 +322,16 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                     { backgroundColor: getStatusColor(device.status) },
                   ]}
                 />
-                <Text style={styles.statusText}>
+                <Text style={styles.statusLabel}>
                   {device.status?.toUpperCase()}
                 </Text>
                 {device.is_online && (
                   <View style={styles.onlineBadge}>
-                    <Ionicons name="radio-button-on" size={10} color="#FFF" />
+                    <Ionicons
+                      name="radio-button-on"
+                      size={10}
+                      color={COLORS.WHITE}
+                    />
                     <Text style={styles.onlineText}>ONLINE</Text>
                   </View>
                 )}
@@ -356,8 +347,8 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* Cihaz Bilgileri */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📟 Cihaz Bilgileri</Text>
-          <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Cihaz Bilgileri</Text>
+          <Card variant="flat">
             <InfoRow label="MAC Adresi" value={device.mac_address} />
             <InfoRow label="Chip Model" value={device.chip_model} />
             <InfoRow label="Seri No" value={device.serial_number} />
@@ -370,35 +361,31 @@ const DeviceDetailScreen = ({ route, navigation }) => {
               label="Son Görülme"
               value={getTimeDifference(device.last_seen_at)}
             />
-          </View>
+          </Card>
         </View>
 
-        {/* Atama Bilgileri */}
+        {/* Atama */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🏢 Atama Durumu</Text>
-          <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Atama Durumu</Text>
+          <Card variant="flat">
             {device.company_name ? (
               <>
                 <InfoRow
                   label="Şirket"
                   value={device.company_name}
-                  valueColor="#5E72E4"
+                  valueColor={COLORS.PRIMARY}
                 />
-                {device.vehicle_plate ? (
-                  <InfoRow
-                    label="Araç"
-                    value={`${device.vehicle_plate} (${
-                      device.vehicle_brand || ""
-                    } ${device.vehicle_model || ""})`}
-                    valueColor="#2DCE89"
-                  />
-                ) : (
-                  <InfoRow
-                    label="Araç"
-                    value="Atanmamış"
-                    valueColor="#FB6340"
-                  />
-                )}
+                <InfoRow
+                  label="Araç"
+                  value={
+                    device.vehicle_plate
+                      ? `${device.vehicle_plate} (${device.vehicle_brand || ""} ${device.vehicle_model || ""})`
+                      : "Atanmamış"
+                  }
+                  valueColor={
+                    device.vehicle_plate ? COLORS.SUCCESS : COLORS.WARNING
+                  }
+                />
                 <InfoRow
                   label="Atanma Tarihi"
                   value={
@@ -407,7 +394,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                       : null
                   }
                 />
-
                 <TouchableOpacity
                   style={styles.unassignButton}
                   onPress={handleUnassign}
@@ -416,7 +402,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   <Ionicons
                     name="close-circle-outline"
                     size={18}
-                    color="#F5365C"
+                    color={COLORS.ERROR}
                   />
                   <Text style={styles.unassignText}>Atamayı Kaldır</Text>
                 </TouchableOpacity>
@@ -426,7 +412,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 <Ionicons
                   name="alert-circle-outline"
                   size={40}
-                  color="#FB6340"
+                  color={COLORS.WARNING}
                 />
                 <Text style={styles.unassignedText}>
                   Bu cihaz henüz atanmamış
@@ -435,58 +421,59 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   style={styles.assignButton}
                   onPress={() => setAssignModalVisible(true)}
                 >
-                  <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={20}
+                    color={COLORS.WHITE}
+                  />
                   <Text style={styles.assignButtonText}>Şirkete Ata</Text>
                 </TouchableOpacity>
               </View>
             )}
-          </View>
+          </Card>
         </View>
 
         {/* Son Konum */}
         {device.last_latitude && device.last_longitude && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📍 Son Konum</Text>
-            <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Son Konum</Text>
+            <Card variant="flat">
               <InfoRow
                 label="Koordinat"
                 value={`${device.last_latitude}, ${device.last_longitude}`}
               />
-            </View>
+            </Card>
           </View>
         )}
 
         {/* İstatistikler */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 İstatistikler</Text>
+          <Text style={styles.sectionTitle}>İstatistikler</Text>
           <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>
-                {device.total_uptime_minutes || 0}
-              </Text>
-              <Text style={styles.statLabel}>Çalışma (dk)</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>
-                {device.total_alerts_sent || 0}
-              </Text>
-              <Text style={styles.statLabel}>Alert</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{device.error_count || 0}</Text>
-              <Text style={styles.statLabel}>Hata</Text>
-            </View>
+            {[
+              {
+                value: device.total_uptime_minutes || 0,
+                label: "Çalışma (dk)",
+              },
+              { value: device.total_alerts_sent || 0, label: "Alert" },
+              { value: device.error_count || 0, label: "Hata" },
+            ].map((s, i) => (
+              <Card key={i} variant="flat" style={styles.statBox}>
+                <Text style={styles.statNumber}>{s.value}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </Card>
+            ))}
           </View>
         </View>
 
         {/* Durum Değiştir */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ Durum Değiştir</Text>
+          <Text style={styles.sectionTitle}>Durum Değiştir</Text>
           <View style={styles.statusButtons}>
             {[
-              { key: "active", label: "Aktif", color: "#2DCE89" },
-              { key: "faulty", label: "Arızalı", color: "#F5365C" },
-              { key: "maintenance", label: "Bakımda", color: "#11CDEF" },
+              { key: "active", label: "Aktif", color: COLORS.SUCCESS },
+              { key: "faulty", label: "Arızalı", color: COLORS.ERROR },
+              { key: "maintenance", label: "Bakımda", color: COLORS.INFO },
             ].map((s) => (
               <TouchableOpacity
                 key={s.key}
@@ -505,7 +492,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                     styles.statusButtonText,
                     device.status === s.key && {
                       color: s.color,
-                      fontWeight: "bold",
+                      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
                     },
                   ]}
                 >
@@ -518,83 +505,62 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* Uzaktan Komutlar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📡 Uzaktan Komutlar</Text>
-          <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Uzaktan Komutlar</Text>
+          <Card variant="flat">
             <View style={styles.commandButtons}>
-              <TouchableOpacity
-                style={[styles.commandButton, styles.commandButtonSafe]}
-                onPress={() => handleSendCommand("STATUS", "Durum Sorgula")}
-                disabled={commandLoading !== null}
-              >
-                {commandLoading === "STATUS" ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="pulse-outline" size={18} color="#FFF" />
-                    <Text style={styles.commandButtonText}>Durum</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.commandButton, styles.commandButtonSafe]}
-                onPress={() =>
-                  handleSendCommand("RECALIBRATE", "Yeniden Kalibre")
-                }
-                disabled={commandLoading !== null}
-              >
-                {commandLoading === "RECALIBRATE" ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="compass-outline" size={18} color="#FFF" />
-                    <Text style={styles.commandButtonText}>Kalibre</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.commandButton, styles.commandButtonWarning]}
-                onPress={() =>
-                  handleSendCommand("RESET", "Yeniden Başlat", true)
-                }
-                disabled={commandLoading !== null}
-              >
-                {commandLoading === "RESET" ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="refresh-outline" size={18} color="#FFF" />
-                    <Text style={styles.commandButtonText}>Reset</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.commandButton, styles.commandButtonDanger]}
-                onPress={() =>
-                  handleSendCommand("CLEAR_WIFI", "WiFi Sıfırla", true)
-                }
-                disabled={commandLoading !== null}
-              >
-                {commandLoading === "CLEAR_WIFI" ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="wifi-outline" size={18} color="#FFF" />
-                    <Text style={styles.commandButtonText}>WiFi Sil</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              {[
+                {
+                  cmd: "STATUS",
+                  name: "Durum",
+                  icon: "pulse-outline",
+                  style: styles.commandButtonSafe,
+                },
+                {
+                  cmd: "RECALIBRATE",
+                  name: "Kalibre",
+                  icon: "compass-outline",
+                  style: styles.commandButtonSafe,
+                },
+                {
+                  cmd: "RESET",
+                  name: "Reset",
+                  icon: "refresh-outline",
+                  style: styles.commandButtonWarning,
+                  danger: true,
+                },
+                {
+                  cmd: "CLEAR_WIFI",
+                  name: "WiFi Sil",
+                  icon: "wifi-outline",
+                  style: styles.commandButtonDanger,
+                  danger: true,
+                },
+              ].map((c) => (
+                <TouchableOpacity
+                  key={c.cmd}
+                  style={[styles.commandButton, c.style]}
+                  onPress={() => handleSendCommand(c.cmd, c.name, c.danger)}
+                  disabled={commandLoading !== null}
+                >
+                  {commandLoading === c.cmd ? (
+                    <ActivityIndicator size="small" color={COLORS.WHITE} />
+                  ) : (
+                    <>
+                      <Ionicons name={c.icon} size={18} color={COLORS.WHITE} />
+                      <Text style={styles.commandButtonText}>{c.name}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
+          </Card>
         </View>
 
         {/* Olay Geçmişi */}
         {logs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📋 Olay Geçmişi</Text>
-            <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Olay Geçmişi</Text>
+            <Card variant="flat">
               {logs.slice(0, 10).map((log, index) => (
                 <View key={log.id || index} style={styles.logItem}>
                   <View style={styles.logDot} />
@@ -606,7 +572,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   </View>
                 </View>
               ))}
-            </View>
+            </Card>
           </View>
         )}
       </ScrollView>
@@ -615,7 +581,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
       <Modal
         visible={assignModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setAssignModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -623,10 +589,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Cihazı Ata</Text>
               <TouchableOpacity onPress={() => setAssignModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#8898AA" />
+                <Ionicons name="close" size={24} color={COLORS.MUTED} />
               </TouchableOpacity>
             </View>
-
             <Text style={styles.modalLabel}>Şirket Seç</Text>
             <FlatList
               data={companies}
@@ -648,7 +613,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   <Text
                     style={[
                       styles.companyName,
-                      selectedCompany?.id === item.id && { color: "#FFF" },
+                      selectedCompany?.id === item.id && {
+                        color: COLORS.WHITE,
+                      },
                     ]}
                   >
                     {item.name}
@@ -656,7 +623,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
               )}
             />
-
             {selectedCompany && vehicles.length > 0 && (
               <>
                 <Text style={styles.modalLabel}>Araç Seç (Opsiyonel)</Text>
@@ -680,7 +646,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                       <Text
                         style={[
                           styles.vehiclePlate,
-                          selectedVehicle?.id === item.id && { color: "#FFF" },
+                          selectedVehicle?.id === item.id && {
+                            color: COLORS.WHITE,
+                          },
                         ]}
                       >
                         {item.plate_no}
@@ -688,7 +656,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                       <Text
                         style={[
                           styles.vehicleModel,
-                          selectedVehicle?.id === item.id && { color: "#FFF" },
+                          selectedVehicle?.id === item.id && {
+                            color: COLORS.WHITE,
+                          },
                         ]}
                       >
                         {item.brand} {item.model}
@@ -698,7 +668,6 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 />
               </>
             )}
-
             <TouchableOpacity
               style={[
                 styles.assignModalButton,
@@ -708,7 +677,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
               disabled={!selectedCompany || actionLoading}
             >
               {actionLoading ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={COLORS.WHITE} />
               ) : (
                 <Text style={styles.assignModalButtonText}>
                   {selectedCompany
@@ -723,372 +692,281 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
       {actionLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFF" />
+          <ActivityIndicator size="large" color={COLORS.WHITE} />
         </View>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F5F7",
-  },
-  scrollContent: {
-    paddingBottom: 30,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // Header
-  headerCard: {
-    backgroundColor: "#5E72E4",
-    padding: 20,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  deviceCode: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#FFF",
-  },
-  statusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  statusText: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 13,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  onlineBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2DCE89",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 10,
-  },
-  onlineText: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "700",
-    marginLeft: 4,
-  },
-  firmwareBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  firmwareText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  // Section
-  section: {
-    paddingHorizontal: 15,
-    marginTop: 15,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginBottom: 10,
-  },
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    padding: 15,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-
-  // Info Row
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: "#8898AA",
-  },
-  infoValue: {
-    fontSize: 13,
-    color: "#32325D",
-    fontWeight: "500",
-    maxWidth: "55%",
-    textAlign: "right",
-  },
-
-  // Unassigned
-  unassignedContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  unassignedText: {
-    fontSize: 14,
-    color: "#8898AA",
-    marginTop: 10,
-    marginBottom: 15,
-  },
-  assignButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#5E72E4",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  assignButtonText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  unassignButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 15,
-    paddingVertical: 10,
-  },
-  unassignText: {
-    color: "#F5365C",
-    fontSize: 14,
-    fontWeight: "500",
-    marginLeft: 6,
-  },
-
-  // Stats
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    padding: 15,
-    alignItems: "center",
-    marginHorizontal: 4,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#5E72E4",
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#8898AA",
-    marginTop: 4,
-  },
-
-  // Status buttons
-  statusButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statusButton: {
-    flex: 1,
-    paddingVertical: 12,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-  },
-  statusButtonText: {
-    fontSize: 13,
-    color: "#525F7F",
-  },
-
-  // Logs
-  logItem: {
-    flexDirection: "row",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  logDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#5E72E4",
-    marginTop: 5,
-    marginRight: 12,
-  },
-  logContent: {
-    flex: 1,
-  },
-  logMessage: {
-    fontSize: 13,
-    color: "#32325D",
-  },
-  logTime: {
-    fontSize: 11,
-    color: "#8898AA",
-    marginTop: 4,
-  },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#32325D",
-  },
-  modalLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#525F7F",
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  companyList: {
-    maxHeight: 150,
-  },
-  companyItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#F6F9FC",
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  companyItemSelected: {
-    backgroundColor: "#5E72E4",
-  },
-  companyName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#32325D",
-  },
-  vehicleList: {
-    maxHeight: 120,
-  },
-  vehicleItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: "#F6F9FC",
-    borderRadius: 8,
-    marginBottom: 6,
-  },
-  vehicleItemSelected: {
-    backgroundColor: "#2DCE89",
-  },
-  vehiclePlate: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#32325D",
-  },
-  vehicleModel: {
-    fontSize: 12,
-    color: "#8898AA",
-  },
-  assignModalButton: {
-    backgroundColor: "#5E72E4",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  assignModalButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-
-  // Loading overlay
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  // Command buttons
-  commandButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  commandButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    minWidth: "48%",
-    marginBottom: 8,
-  },
-  commandButtonSafe: {
-    backgroundColor: "#5E72E4",
-  },
-  commandButtonWarning: {
-    backgroundColor: "#FB6340",
-  },
-  commandButtonDanger: {
-    backgroundColor: "#F5365C",
-  },
-  commandButtonText: {
-    color: "#FFF",
-    fontSize: 13,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    scrollContent: { paddingBottom: COLORS.SPACING.xl },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    headerCard: { backgroundColor: COLORS.PRIMARY, padding: COLORS.SPACING.lg },
+    headerTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    deviceCode: { ...COLORS.TYPOGRAPHY.styles.h2, color: COLORS.WHITE },
+    statusContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+    },
+    statusDot: {
+      width: COLORS.SPACING.sm,
+      height: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.xs,
+    },
+    statusLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE_80,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    onlineBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SUCCESS,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    onlineText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    firmwareBadge: {
+      backgroundColor: COLORS.WHITE_20,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    firmwareText: { ...COLORS.TYPOGRAPHY.styles.label, color: COLORS.WHITE },
+    section: {
+      paddingHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.md,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    infoLabel: { ...COLORS.TYPOGRAPHY.styles.caption, color: COLORS.MUTED },
+    infoValue: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      maxWidth: "55%",
+      textAlign: "right",
+    },
+    unassignedContainer: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+    },
+    unassignedText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.md,
+    },
+    assignButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.PRIMARY,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    assignButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.WHITE,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    unassignButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    unassignText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.ERROR,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    statsRow: { flexDirection: "row", justifyContent: "space-between" },
+    statBox: {
+      flex: 1,
+      alignItems: "center",
+      marginHorizontal: COLORS.SPACING.xs,
+    },
+    statNumber: { ...COLORS.TYPOGRAPHY.styles.h3, color: COLORS.PRIMARY },
+    statLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    statusButtons: { flexDirection: "row", justifyContent: "space-between" },
+    statusButton: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      marginHorizontal: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      alignItems: "center",
+      backgroundColor: COLORS.CARD,
+    },
+    statusButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    commandButtons: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+    },
+    commandButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      minWidth: "48%",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    commandButtonSafe: { backgroundColor: COLORS.PRIMARY },
+    commandButtonWarning: { backgroundColor: COLORS.WARNING },
+    commandButtonDanger: { backgroundColor: COLORS.ERROR },
+    commandButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    logItem: {
+      flexDirection: "row",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    logDot: {
+      width: COLORS.SPACING.sm,
+      height: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.xs,
+      backgroundColor: COLORS.PRIMARY,
+      marginTop: COLORS.SPACING.xs,
+      marginRight: COLORS.SPACING.sm,
+    },
+    logContent: { flex: 1 },
+    logMessage: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    logTime: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      padding: COLORS.SPACING.lg,
+      maxHeight: "80%",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.lg,
+    },
+    modalTitle: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
+    modalLabel: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.sm,
+    },
+    companyList: { maxHeight: 160 },
+    companyItem: {
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      backgroundColor: COLORS.SECONDARY,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    companyItemSelected: { backgroundColor: COLORS.PRIMARY },
+    companyName: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    vehicleList: { maxHeight: 120 },
+    vehicleItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      backgroundColor: COLORS.SECONDARY,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.xs,
+    },
+    vehicleItemSelected: { backgroundColor: COLORS.SUCCESS },
+    vehiclePlate: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    vehicleModel: { ...COLORS.TYPOGRAPHY.styles.caption, color: COLORS.MUTED },
+    assignModalButton: {
+      backgroundColor: COLORS.PRIMARY,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      marginTop: COLORS.SPACING.lg,
+    },
+    assignModalButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+    },
+    buttonDisabled: { opacity: 0.5 },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });
 
 export default DeviceDetailScreen;

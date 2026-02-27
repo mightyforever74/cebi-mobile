@@ -1,6 +1,7 @@
 // src/screens/auth/ForgotPasswordScreen.js
 // TulipFleet - Şifremi Unuttum (Email OTP)
 // Created: 05 Şubat 2026
+// Updated: UI System Guide v3 uyumlu
 // Flow: 1) Email gir → 2) OTP kodu gir → 3) Yeni şifre oluştur
 
 import { Ionicons } from "@expo/vector-icons";
@@ -18,7 +19,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/config";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { authAPI } from "../../services/api";
 
 const STEPS = {
@@ -29,6 +32,8 @@ const STEPS = {
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   // Step state
   const [step, setStep] = useState(STEPS.EMAIL);
@@ -78,7 +83,6 @@ const ForgotPasswordScreen = ({ navigation }) => {
       return;
     }
 
-    // Basit email format kontrolü
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
       setError(t("auth.invalidEmail") || "Geçerli bir e-posta adresi girin");
@@ -90,23 +94,17 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
     try {
       await authAPI.forgotPassword(trimmedEmail);
-
-      // Her zaman başarılı göster (enumeration engeli)
       setStep(STEPS.OTP);
       startCooldown();
-
-      // OTP input'a focus
       setTimeout(() => otpInputRef.current?.focus(), 300);
     } catch (err) {
-      console.error("❌ Forgot password error:", err);
-      // Rate limit hatası varsa göster
+      console.error("Forgot password error:", err);
       if (err?.response?.status === 429) {
         setError(
           t("auth.tooManyRequests") ||
             "Çok fazla istek gönderdiniz. Lütfen birkaç dakika bekleyin."
         );
       } else {
-        // Güvenlik: Diğer hataları da başarılı gibi göster
         setStep(STEPS.OTP);
         startCooldown();
       }
@@ -119,13 +117,11 @@ const ForgotPasswordScreen = ({ navigation }) => {
   // Step 2: OTP doğrula + Yeni şifre oluştur
   // ============================================
   const handleResetPassword = async () => {
-    // OTP validation
     if (!otpCode || otpCode.length !== 6) {
       setError(t("auth.otpRequired") || "6 haneli doğrulama kodunu girin");
       return;
     }
 
-    // Password validation
     if (!newPassword) {
       setError(t("auth.newPasswordRequired") || "Yeni şifre gerekli");
       return;
@@ -153,9 +149,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
       setStep(STEPS.NEW_PASSWORD);
 
-      // Başarılı mesaj ve login'e yönlendir
       Alert.alert(
-        t("auth.passwordResetSuccess") || "✅ Şifre Değiştirildi",
+        t("auth.passwordResetSuccess") || "Şifre Değiştirildi",
         t("auth.passwordResetSuccessMessage") ||
           "Şifreniz başarıyla değiştirildi. Yeni şifrenizle giriş yapabilirsiniz.",
         [
@@ -167,7 +162,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         { cancelable: false }
       );
     } catch (err) {
-      console.error("❌ Reset password error:", err);
+      console.error("Reset password error:", err);
       const status = err?.response?.status;
       const serverError = err?.response?.data?.error;
 
@@ -235,9 +230,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
   // ============================================
   const renderEmailStep = () => (
     <>
-      {/* Icon */}
       <View style={styles.stepIcon}>
-        <Ionicons name="mail-outline" size={48} color={COLORS.primary} />
+        <Ionicons name="mail-outline" size={48} color={COLORS.PRIMARY} />
       </View>
 
       <Text style={styles.stepTitle}>
@@ -255,13 +249,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Ionicons
             name="mail-outline"
             size={20}
-            color={COLORS.textSecondary}
+            color={COLORS.TEXT_SECONDARY}
             style={styles.inputIcon}
           />
           <TextInput
             style={styles.input}
             placeholder="ornek@tulipfleet.com"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.PLACEHOLDER}
             value={email}
             onChangeText={(text) => {
               setEmail(text);
@@ -283,7 +277,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color={COLORS.white} />
+          <ActivityIndicator color={COLORS.WHITE} />
         ) : (
           <Text style={styles.primaryButtonText}>
             {t("auth.sendCode") || "Kod Gönder"}
@@ -298,12 +292,11 @@ const ForgotPasswordScreen = ({ navigation }) => {
   // ============================================
   const renderOTPStep = () => (
     <>
-      {/* Icon */}
       <View style={styles.stepIcon}>
         <Ionicons
           name="shield-checkmark-outline"
           size={48}
-          color={COLORS.primary}
+          color={COLORS.PRIMARY}
         />
       </View>
 
@@ -317,7 +310,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
       {/* Masked Email Display */}
       <View style={styles.emailBadge}>
-        <Ionicons name="mail" size={16} color={COLORS.primary} />
+        <Ionicons
+          name="mail"
+          size={16}
+          color={COLORS.PRIMARY}
+          style={styles.emailBadgeIcon}
+        />
         <Text style={styles.emailBadgeText}>{email}</Text>
       </View>
 
@@ -330,17 +328,16 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Ionicons
             name="keypad-outline"
             size={20}
-            color={COLORS.textSecondary}
+            color={COLORS.TEXT_SECONDARY}
             style={styles.inputIcon}
           />
           <TextInput
             ref={otpInputRef}
             style={[styles.input, styles.otpInput]}
             placeholder="000000"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.PLACEHOLDER}
             value={otpCode}
             onChangeText={(text) => {
-              // Sadece rakam, max 6 hane
               const cleaned = text.replace(/[^0-9]/g, "").slice(0, 6);
               setOtpCode(cleaned);
               setError("");
@@ -361,13 +358,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Ionicons
             name="lock-closed-outline"
             size={20}
-            color={COLORS.textSecondary}
+            color={COLORS.TEXT_SECONDARY}
             style={styles.inputIcon}
           />
           <TextInput
             style={[styles.input, { flex: 1 }]}
             placeholder="••••••••"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.PLACEHOLDER}
             value={newPassword}
             onChangeText={(text) => {
               setNewPassword(text);
@@ -384,7 +381,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             <Ionicons
               name={showNewPassword ? "eye-off-outline" : "eye-outline"}
               size={22}
-              color={COLORS.textSecondary}
+              color={COLORS.TEXT_SECONDARY}
             />
           </TouchableOpacity>
         </View>
@@ -399,13 +396,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Ionicons
             name="lock-closed-outline"
             size={20}
-            color={COLORS.textSecondary}
+            color={COLORS.TEXT_SECONDARY}
             style={styles.inputIcon}
           />
           <TextInput
             style={[styles.input, { flex: 1 }]}
             placeholder="••••••••"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.PLACEHOLDER}
             value={confirmPassword}
             onChangeText={(text) => {
               setConfirmPassword(text);
@@ -422,7 +419,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             <Ionicons
               name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
               size={22}
-              color={COLORS.textSecondary}
+              color={COLORS.TEXT_SECONDARY}
             />
           </TouchableOpacity>
         </View>
@@ -438,7 +435,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color={COLORS.white} />
+          <ActivityIndicator color={COLORS.WHITE} />
         ) : (
           <Text style={styles.primaryButtonText}>
             {t("auth.resetPassword") || "Şifreyi Sıfırla"}
@@ -455,7 +452,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
         <Ionicons
           name="refresh-outline"
           size={16}
-          color={resendCooldown > 0 ? COLORS.textSecondary : COLORS.primary}
+          color={resendCooldown > 0 ? COLORS.TEXT_SECONDARY : COLORS.PRIMARY}
+          style={styles.resendIcon}
         />
         <Text
           style={[
@@ -511,7 +509,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             }
           }}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
           <Text style={styles.backText}>
             {step === STEPS.OTP
               ? t("auth.changeEmail") || "E-postayı Değiştir"
@@ -520,7 +518,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Form Card */}
-        <View style={styles.formCard}>
+        <Card variant="elevated" noMargin style={styles.formCardOverride}>
           {/* Step Indicator */}
           <View style={styles.stepIndicator}>
             <View
@@ -546,7 +544,12 @@ const ForgotPasswordScreen = ({ navigation }) => {
           {/* Error */}
           {error ? (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle" size={18} color="#991B1B" />
+              <Ionicons
+                name="alert-circle"
+                size={18}
+                color={COLORS.ERROR}
+                style={styles.errorIcon}
+              />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           ) : null}
@@ -554,190 +557,188 @@ const ForgotPasswordScreen = ({ navigation }) => {
           {/* Step Content */}
           {step === STEPS.EMAIL && renderEmailStep()}
           {step === STEPS.OTP && renderOTPStep()}
-        </View>
+        </Card>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
-    paddingTop: 60,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-    gap: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: COLORS.text,
-    fontWeight: "500",
-  },
-  formCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  stepIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: COLORS.border,
-  },
-  stepDotActive: {
-    backgroundColor: COLORS.primary,
-  },
-  stepLine: {
-    width: 60,
-    height: 3,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 8,
-  },
-  stepLineActive: {
-    backgroundColor: COLORS.primary,
-  },
-  stepIcon: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  stepTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: COLORS.text,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  stepDescription: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  emailBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 20,
-    gap: 8,
-  },
-  emailBadgeText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-  },
-  inputIcon: {
-    paddingLeft: 12,
-  },
-  input: {
-    flex: 1,
-    padding: 12,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  otpInput: {
-    fontSize: 24,
-    fontWeight: "bold",
-    letterSpacing: 8,
-    textAlign: "center",
-  },
-  eyeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  passwordHint: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  errorBox: {
-    backgroundColor: "#FEE2E2",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: "#DC2626",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  errorText: {
-    color: "#991B1B",
-    fontSize: 14,
-    fontWeight: "500",
-    flex: 1,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  resendLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    gap: 6,
-  },
-  resendText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  resendTextDisabled: {
-    color: COLORS.textSecondary,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      padding: COLORS.SPACING.md,
+      paddingTop: 56, // SafeArea (8px grid: 7*8)
+    },
+    backButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.lg,
+    },
+    backText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_PRIMARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    formCardOverride: {
+      padding: COLORS.SPACING.lg,
+    },
+    stepIndicator: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: COLORS.SPACING.lg,
+    },
+    stepDot: {
+      width: COLORS.SPACING.sm + COLORS.SPACING.xs, // 12
+      height: COLORS.SPACING.sm + COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.DIVIDER,
+    },
+    stepDotActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    stepLine: {
+      width: 56, // 8px grid: 7*8
+      height: 3,
+      backgroundColor: COLORS.DIVIDER,
+      marginHorizontal: COLORS.SPACING.sm,
+    },
+    stepLineActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    stepIcon: {
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.md,
+    },
+    stepTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.TEXT_PRIMARY,
+      textAlign: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    stepDescription: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      lineHeight: 20,
+      marginBottom: COLORS.SPACING.lg,
+    },
+    emailBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "center",
+      backgroundColor: COLORS.INFO_LIGHT,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+      marginBottom: COLORS.SPACING.md,
+    },
+    emailBadgeIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    emailBadgeText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.PRIMARY,
+    },
+    inputContainer: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INPUT_BG,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      borderRadius: COLORS.RADIUS.input,
+    },
+    inputIcon: {
+      paddingLeft: COLORS.SPACING.sm,
+    },
+    input: {
+      flex: 1,
+      padding: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    otpInput: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      letterSpacing: 8,
+      textAlign: "center",
+    },
+    eyeButton: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    passwordHint: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    errorBox: {
+      backgroundColor: COLORS.ERROR_LIGHT,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.button,
+      marginBottom: COLORS.SPACING.md,
+      borderLeftWidth: COLORS.SPACING.xs,
+      borderLeftColor: COLORS.ERROR,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    errorIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    errorText: {
+      color: COLORS.ERROR,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      flex: 1,
+    },
+    primaryButton: {
+      backgroundColor: COLORS.PRIMARY,
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.button,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.button,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    primaryButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+    },
+    resendLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.md,
+    },
+    resendIcon: {
+      marginRight: COLORS.SPACING.xs,
+    },
+    resendText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.PRIMARY,
+    },
+    resendTextDisabled: {
+      color: COLORS.TEXT_SECONDARY,
+    },
+  });
 
 export default ForgotPasswordScreen;

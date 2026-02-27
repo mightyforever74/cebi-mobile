@@ -39,25 +39,25 @@ const makeStyles = (COLORS) =>
     avatarLarge: {
       width: 80,
       height: 80,
-      borderRadius: 40,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.WHITE,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: COLORS.SPACING.md,
     },
     avatarText: {
-      fontSize: 32,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
     },
     profileName: {
-      fontSize: 22,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
       marginBottom: COLORS.SPACING.xs,
     },
     profileEmail: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.WHITE_80,
       marginBottom: COLORS.SPACING.md,
     },
@@ -71,8 +71,8 @@ const makeStyles = (COLORS) =>
     },
     roleText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       marginLeft: COLORS.SPACING.xs,
     },
     statsContainer: {
@@ -93,18 +93,18 @@ const makeStyles = (COLORS) =>
     statIcon: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: COLORS.SPACING.sm,
     },
     statValue: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     statLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
@@ -114,8 +114,8 @@ const makeStyles = (COLORS) =>
       paddingBottom: COLORS.SPACING.sm,
     },
     sectionTitle: {
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT_SECONDARY,
       letterSpacing: 1,
     },
@@ -143,12 +143,12 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     settingTitle: {
-      fontSize: 15,
-      fontWeight: "500",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT,
     },
     settingSubtitle: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
@@ -163,12 +163,12 @@ const makeStyles = (COLORS) =>
       paddingVertical: COLORS.SPACING.xl, // 32 (was 30)
     },
     footerText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     footerSubtext: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
       marginTop: 4,
     },

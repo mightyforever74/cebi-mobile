@@ -1,9 +1,8 @@
 // src/screens/superadmin/SystemHealthScreen.js
 // TulipFleet - Sistem Sağlık Durumu Ekranı
-// Created: 27 Aralık 2025
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,9 +12,14 @@ import {
   Text,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
 import { API_URL } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const SystemHealthScreen = () => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [health, setHealth] = useState(null);
@@ -23,9 +27,6 @@ const SystemHealthScreen = () => {
 
   const fetchHealth = async () => {
     try {
-      const token = await AsyncStorage.getItem("accessToken");
-
-      // Basit health check - /health endpoint'i genelde public
       const startTime = Date.now();
       const response = await fetch(`${API_URL}/health`);
       const responseTime = Date.now() - startTime;
@@ -35,7 +36,7 @@ const SystemHealthScreen = () => {
         setHealth({
           api: {
             status: "online",
-            responseTime: responseTime,
+            responseTime,
             message: "API sunucusu çalışıyor",
           },
           database: {
@@ -66,7 +67,7 @@ const SystemHealthScreen = () => {
         setHealth({
           api: {
             status: "offline",
-            responseTime: responseTime,
+            responseTime,
             message: "API yanıt vermiyor",
           },
           database: { status: "unknown", message: "Kontrol edilemedi" },
@@ -74,7 +75,6 @@ const SystemHealthScreen = () => {
           redis: { status: "unknown", message: "Kontrol edilemedi" },
         });
       }
-
       setLastCheck(new Date());
     } catch (error) {
       console.error("Health check error:", error);
@@ -97,7 +97,6 @@ const SystemHealthScreen = () => {
 
   useEffect(() => {
     fetchHealth();
-    // Her 30 saniyede bir otomatik kontrol
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -107,25 +106,25 @@ const SystemHealthScreen = () => {
     fetchHealth();
   }, []);
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "online":
-        return { name: "checkmark-circle", color: "#2DCE89" };
-      case "offline":
-        return { name: "close-circle", color: "#F5365C" };
-      default:
-        return { name: "help-circle", color: "#FB6340" };
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
       case "online":
-        return "#2DCE89";
+        return COLORS.SUCCESS;
       case "offline":
-        return "#F5365C";
+        return COLORS.ERROR;
       default:
-        return "#FB6340";
+        return COLORS.WARNING;
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "online":
+        return "checkmark-circle";
+      case "offline":
+        return "close-circle";
+      default:
+        return "help-circle";
     }
   };
 
@@ -134,46 +133,42 @@ const SystemHealthScreen = () => {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-
     if (days > 0) return `${days} gün ${hours} saat`;
     if (hours > 0) return `${hours} saat ${minutes} dk`;
     return `${minutes} dakika`;
   };
 
   const ServiceCard = ({ title, icon, status, message, extra }) => {
-    const statusIcon = getStatusIcon(status);
     const statusColor = getStatusColor(status);
-
+    const statusIconName = getStatusIcon(status);
     return (
-      <View style={styles.serviceCard}>
+      <Card variant="flat" style={styles.serviceCard}>
         <View style={styles.serviceHeader}>
           <View style={styles.serviceTitle}>
-            <Ionicons name={icon} size={24} color="#5E72E4" />
+            <Ionicons name={icon} size={24} color={COLORS.PRIMARY} />
             <Text style={styles.serviceName}>{title}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Ionicons name={statusIcon.name} size={14} color="#FFF" />
+            <Ionicons name={statusIconName} size={14} color={COLORS.WHITE} />
             <Text style={styles.statusText}>
               {status === "online"
                 ? "Aktif"
                 : status === "offline"
-                ? "Kapalı"
-                : "?"}
+                  ? "Kapalı"
+                  : "?"}
             </Text>
           </View>
         </View>
-
         <Text style={styles.serviceMessage}>{message}</Text>
-
         {extra && <View style={styles.extraInfo}>{extra}</View>}
-      </View>
+      </Card>
     );
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E72E4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>
           Sistem durumu kontrol ediliyor...
         </Text>
@@ -190,20 +185,25 @@ const SystemHealthScreen = () => {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={COLORS.PRIMARY}
+          colors={[COLORS.PRIMARY]}
+        />
       }
     >
       {/* Genel Durum */}
       <View
         style={[
           styles.overallStatus,
-          { backgroundColor: allOnline ? "#2DCE89" : "#F5365C" },
+          { backgroundColor: allOnline ? COLORS.SUCCESS : COLORS.ERROR },
         ]}
       >
         <Ionicons
           name={allOnline ? "shield-checkmark" : "warning"}
           size={48}
-          color="#FFF"
+          color={COLORS.WHITE}
         />
         <Text style={styles.overallTitle}>
           {allOnline
@@ -230,21 +230,18 @@ const SystemHealthScreen = () => {
             )
           }
         />
-
         <ServiceCard
           title="PostgreSQL Veritabanı"
           icon="server-outline"
           status={health?.database?.status}
           message={health?.database?.message}
         />
-
         <ServiceCard
           title="MQTT Broker (EMQX)"
           icon="git-network-outline"
           status={health?.mqtt?.status}
           message={health?.mqtt?.message}
         />
-
         <ServiceCard
           title="Redis Cache"
           icon="flash-outline"
@@ -254,41 +251,38 @@ const SystemHealthScreen = () => {
       </View>
 
       {/* Sistem Bilgileri */}
-      <View style={styles.systemInfo}>
+      <Card variant="flat" style={styles.systemInfo}>
         <Text style={styles.sectionTitle}>Sistem Bilgileri</Text>
+        {[
+          { label: "API Versiyonu", value: `v${health?.version || "3.0.0"}` },
+          { label: "Uptime", value: formatUptime(health?.uptime) },
+          { label: "API URL", value: API_URL },
+        ].map((row, i) => (
+          <View key={i} style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{row.label}</Text>
+            <Text style={styles.infoValue} numberOfLines={1}>
+              {row.value}
+            </Text>
+          </View>
+        ))}
+      </Card>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>API Versiyonu</Text>
-          <Text style={styles.infoValue}>v{health?.version || "3.0.0"}</Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Uptime</Text>
-          <Text style={styles.infoValue}>{formatUptime(health?.uptime)}</Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>API URL</Text>
-          <Text style={styles.infoValue} numberOfLines={1}>
-            {API_URL}
-          </Text>
-        </View>
-      </View>
-
-      {/* ESP32 Bağlantı Durumu */}
-      <View style={styles.deviceStatus}>
+      {/* IoT Cihazları */}
+      <Card variant="flat" style={styles.deviceStatus}>
         <Text style={styles.sectionTitle}>IoT Cihazları</Text>
         <View style={styles.deviceCard}>
-          <Ionicons name="hardware-chip" size={24} color="#2DCE89" />
+          <Ionicons name="hardware-chip" size={24} color={COLORS.SUCCESS} />
           <View style={styles.deviceInfo}>
             <Text style={styles.deviceTitle}>ESP32 Cihazları</Text>
             <Text style={styles.deviceSubtitle}>MQTT üzerinden bağlı</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: "#2DCE89" }]}>
+          <View
+            style={[styles.statusBadge, { backgroundColor: COLORS.SUCCESS }]}
+          >
             <Text style={styles.statusText}>1 Online</Text>
           </View>
         </View>
-      </View>
+      </Card>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
@@ -299,175 +293,119 @@ const SystemHealthScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F5F7",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    color: "#8898AA",
-  },
-
-  // Overall Status
-  overallStatus: {
-    padding: 30,
-    alignItems: "center",
-    margin: 15,
-    borderRadius: 15,
-  },
-  overallTitle: {
-    color: "#FFF",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 15,
-  },
-  overallSubtitle: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-    marginTop: 5,
-  },
-
-  // Services
-  servicesContainer: {
-    paddingHorizontal: 15,
-  },
-  serviceCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  serviceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  serviceTitle: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  serviceName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#32325D",
-    marginLeft: 10,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  serviceMessage: {
-    color: "#8898AA",
-    fontSize: 13,
-  },
-  extraInfo: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  responseTime: {
-    color: "#5E72E4",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-
-  // System Info
-  systemInfo: {
-    backgroundColor: "#FFF",
-    margin: 15,
-    borderRadius: 12,
-    padding: 15,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#32325D",
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  infoLabel: {
-    color: "#8898AA",
-    fontSize: 14,
-  },
-  infoValue: {
-    color: "#32325D",
-    fontSize: 14,
-    fontWeight: "500",
-    maxWidth: "60%",
-  },
-
-  // Device Status
-  deviceStatus: {
-    backgroundColor: "#FFF",
-    marginHorizontal: 15,
-    borderRadius: 12,
-    padding: 15,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  deviceCard: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  deviceInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  deviceTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#32325D",
-  },
-  deviceSubtitle: {
-    fontSize: 12,
-    color: "#8898AA",
-  },
-
-  // Footer
-  footer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#ADB5BD",
-    fontSize: 12,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+    },
+    overallStatus: {
+      padding: COLORS.SPACING.xl,
+      alignItems: "center",
+      margin: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.lg,
+    },
+    overallTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.WHITE,
+      marginTop: COLORS.SPACING.md,
+    },
+    overallSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE_80,
+      marginTop: COLORS.SPACING.xs,
+    },
+    servicesContainer: { paddingHorizontal: COLORS.SPACING.md },
+    serviceCard: { marginBottom: COLORS.SPACING.sm },
+    serviceHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    serviceTitle: { flexDirection: "row", alignItems: "center" },
+    serviceName: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+    },
+    statusText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    serviceMessage: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+    },
+    extraInfo: {
+      marginTop: COLORS.SPACING.sm,
+      paddingTop: COLORS.SPACING.sm,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+    },
+    responseTime: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    systemInfo: {
+      marginHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.md,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.md,
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    infoLabel: { ...COLORS.TYPOGRAPHY.styles.bodySmall, color: COLORS.MUTED },
+    infoValue: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_PRIMARY,
+      maxWidth: "60%",
+    },
+    deviceStatus: {
+      marginHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.md,
+    },
+    deviceCard: { flexDirection: "row", alignItems: "center" },
+    deviceInfo: { flex: 1, marginLeft: COLORS.SPACING.sm },
+    deviceTitle: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    deviceSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+    },
+    footer: { padding: COLORS.SPACING.lg, alignItems: "center" },
+    footerText: { ...COLORS.TYPOGRAPHY.styles.caption, color: COLORS.DISABLED },
+  });
 
 export default SystemHealthScreen;

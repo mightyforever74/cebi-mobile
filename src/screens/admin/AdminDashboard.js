@@ -1,6 +1,6 @@
 // src/screens/admin/AdminDashboard.js
 // TulipFleet - Admin Dashboard with REAL DATA
-// Updated: 22 Ocak 2026 - Dark Mode Migration v3
+// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
 
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -26,61 +26,76 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI, taskAPI } from "../../services/api";
 
-//  KALDIRILDI: import { COLORS } from "../../constants/config";
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
 
 // ============================================
-// ALERT TP VE SEVYE MAPPING (Dinamik renkler iin fonksiyon)
+// ALERT TYPE VE SEVERITY MAPPING
 // ============================================
 
 const getAlertTypeMap = (COLORS, t) => ({
   HARD_BRAKE: {
-    icon: "",
+    icon: "⚠️",
     label: t("admin.alerts.hardBrake", "Ani Fren"),
     color: COLORS.ERROR,
   },
   HARD_ACCEL: {
-    icon: "",
-    label: t("admin.alerts.hardAccel", "Sert Hzlanma"),
+    icon: "⬆️",
+    label: t("admin.alerts.hardAccel", "Sert Hızlanma"),
     color: COLORS.WARNING,
   },
   HARD_TURN: {
-    icon: "",
+    icon: "↩️",
     label: t("admin.alerts.hardTurn", "Sert Viraj"),
     color: COLORS.WARNING,
   },
   SHARP_TURN: {
-    icon: "",
+    icon: "↩️",
     label: t("admin.alerts.sharpTurn", "Keskin Viraj"),
     color: COLORS.WARNING,
   },
   IMPACT: {
-    icon: "",
-    label: t("admin.alerts.impact", "arpma/Kaza"),
-    color: "#DC2626",
+    icon: "💥",
+    label: t("admin.alerts.impact", "Çarpma/Kaza"),
+    color: COLORS.ERROR,
   },
   OVERSPEED: {
-    icon: "",
-    label: t("admin.alerts.overspeed", "Hz Am"),
+    icon: "🏎️",
+    label: t("admin.alerts.overspeed", "Hız Aşımı"),
     color: COLORS.ERROR,
   },
   GEOFENCE_EXIT: {
-    icon: "",
-    label: t("admin.alerts.geofenceExit", "Blge k"),
-    color: "#8B5CF6",
+    icon: "📍",
+    label: t("admin.alerts.geofenceExit", "Bölge Çıkış"),
+    color: COLORS.INFO,
   },
   GEOFENCE_ENTER: {
-    icon: "",
-    label: t("admin.alerts.geofenceEnter", "Blge Girii"),
+    icon: "📍",
+    label: t("admin.alerts.geofenceEnter", "Bölge Girişi"),
     color: COLORS.SUCCESS,
   },
   LOW_FUEL: {
-    icon: "",
-    label: t("admin.alerts.lowFuel", "Dk Yakt"),
+    icon: "⛽",
+    label: t("admin.alerts.lowFuel", "Düşük Yakıt"),
     color: COLORS.WARNING,
   },
   IDLE_TIME: {
-    icon: "",
-    label: t("admin.alerts.idleTime", "Uzun Rlanti"),
+    icon: "⏱️",
+    label: t("admin.alerts.idleTime", "Uzun Rölanti"),
     color: COLORS.MUTED,
   },
 });
@@ -88,23 +103,23 @@ const getAlertTypeMap = (COLORS, t) => ({
 const getSeverityMap = (COLORS, t) => ({
   critical: {
     label: t("admin.severity.critical", "Kritik"),
-    color: "#DC2626",
+    color: COLORS.ERROR,
     bg: COLORS.INPUT_ERROR,
   },
   high: {
-    label: t("admin.severity.high", "Yksek"),
+    label: t("admin.severity.high", "Yüksek"),
     color: COLORS.ERROR,
     bg: COLORS.INPUT_ERROR,
   },
   medium: {
     label: t("admin.severity.medium", "Orta"),
     color: COLORS.WARNING,
-    bg: "#FEF3C7",
+    bg: withAlpha(COLORS.WARNING, 0.15),
   },
   low: {
-    label: t("admin.severity.low", "Dk"),
+    label: t("admin.severity.low", "Düşük"),
     color: COLORS.SUCCESS,
-    bg: "#D1FAE5",
+    bg: withAlpha(COLORS.SUCCESS, 0.15),
   },
 });
 
@@ -112,25 +127,25 @@ const getTaskStatusMap = (COLORS, t) => ({
   pending: {
     label: t("admin.taskStatus.pending", "Bekliyor"),
     color: COLORS.WARNING,
-    bg: "#FEF3C7",
+    bg: withAlpha(COLORS.WARNING, 0.15),
   },
   assigned: {
-    label: t("admin.taskStatus.assigned", "Atand"),
+    label: t("admin.taskStatus.assigned", "Atandı"),
     color: COLORS.PRIMARY,
     bg: COLORS.SECONDARY,
   },
   in_progress: {
     label: t("admin.taskStatus.inProgress", "Devam Ediyor"),
-    color: "#8B5CF6",
-    bg: "#EDE9FE",
+    color: COLORS.INFO,
+    bg: withAlpha(COLORS.INFO, 0.15),
   },
   completed: {
-    label: t("admin.taskStatus.completed", "Tamamland"),
+    label: t("admin.taskStatus.completed", "Tamamlandı"),
     color: COLORS.SUCCESS,
-    bg: "#D1FAE5",
+    bg: withAlpha(COLORS.SUCCESS, 0.15),
   },
   cancelled: {
-    label: t("admin.taskStatus.cancelled", "ptal"),
+    label: t("admin.taskStatus.cancelled", "İptal"),
     color: COLORS.MUTED,
     bg: COLORS.DIVIDER,
   },
@@ -148,16 +163,16 @@ const getRelativeTime = (timestamp, t) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return t("admin.time.justNow", "Az nce");
-  if (diffMins < 60) return `${diffMins} ${t("admin.time.minAgo", "dk nce")}`;
+  if (diffMins < 1) return t("admin.time.justNow", "Az önce");
+  if (diffMins < 60) return `${diffMins} ${t("admin.time.minAgo", "dk önce")}`;
   if (diffHours < 24)
-    return `${diffHours} ${t("admin.time.hourAgo", "saat nce")}`;
-  if (diffDays < 7) return `${diffDays} ${t("admin.time.dayAgo", "gn nce")}`;
+    return `${diffHours} ${t("admin.time.hourAgo", "saat önce")}`;
+  if (diffDays < 7) return `${diffDays} ${t("admin.time.dayAgo", "gün önce")}`;
   return time.toLocaleDateString();
 };
 
 // ============================================
-// makeStyles - BYK HARF TOKEN'LAR
+// makeStyles - FLAT, UI Guide v3 compliant
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -172,77 +187,73 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
     },
     loadingText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: 20,
+      padding: COLORS.SPACING.lg,
       backgroundColor: COLORS.PRIMARY,
-      borderBottomLeftRadius: 24,
-      borderBottomRightRadius: 24,
+      borderBottomLeftRadius: COLORS.RADIUS.xxl,
+      borderBottomRightRadius: COLORS.RADIUS.xxl,
     },
     greetingContainer: {
       flexDirection: "row",
       alignItems: "center",
     },
     greetingEmoji: {
-      fontSize: 32,
-      marginRight: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      marginRight: COLORS.SPACING.md,
     },
     greeting: {
-      fontSize: 14,
-      color: "rgba(255,255,255,0.8)",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.WHITE_80,
     },
     userName: {
-      fontSize: 22,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
       marginTop: 2,
     },
     logoutButton: {
-      backgroundColor: "rgba(255,255,255,0.2)",
-      padding: 10,
-      borderRadius: 12,
+      backgroundColor: COLORS.WHITE_20,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
     },
     logoutText: {
       color: COLORS.WHITE,
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     errorCard: {
       backgroundColor: COLORS.INPUT_ERROR,
-      margin: 16,
-      padding: 12,
-      borderRadius: 8,
-      borderLeftWidth: 4,
+      margin: COLORS.SPACING.md,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      borderLeftWidth: COLORS.SPACING.xs,
       borderLeftColor: COLORS.ERROR,
     },
     errorText: {
       color: COLORS.ERROR,
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     // Command Center
     commandCenterCard: {
       backgroundColor: COLORS.CARD,
-      margin: 16,
+      margin: COLORS.SPACING.md,
       marginBottom: 0,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
     },
     commandCenterTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
       textAlign: "center",
     },
     commandCenterGrid: {
@@ -253,35 +264,31 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
     },
     commandIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: COLORS.SPACING.xxxl,
+      height: COLORS.SPACING.xxxl,
+      borderRadius: COLORS.RADIUS.xxl,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     commandNumber: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     commandLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
     // Live Map Card
     liveMapCard: {
       backgroundColor: COLORS.PRIMARY,
-      margin: 16,
+      margin: COLORS.SPACING.md,
       marginBottom: 0,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 4,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
     },
     liveMapContent: {
       flexDirection: "row",
@@ -289,15 +296,15 @@ const makeStyles = (COLORS) =>
     },
     liveMapIconContainer: {
       position: "relative",
-      marginRight: 12,
+      marginRight: COLORS.SPACING.md,
     },
     livePulse: {
       position: "absolute",
-      top: -4,
-      right: -4,
-      width: 12,
-      height: 12,
-      borderRadius: 6,
+      top: -COLORS.SPACING.xs,
+      right: -COLORS.SPACING.xs,
+      width: COLORS.SPACING.sm,
+      height: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.SUCCESS,
       borderWidth: 2,
       borderColor: COLORS.WHITE,
@@ -306,45 +313,41 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     liveMapTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     liveMapSubtitle: {
-      fontSize: 13,
-      color: "rgba(255,255,255,0.8)",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.WHITE_80,
       marginTop: 2,
     },
     // Card
     card: {
       backgroundColor: COLORS.CARD,
-      margin: 16,
+      margin: COLORS.SPACING.md,
       marginBottom: 0,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
     },
     cardTitleRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     cardTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     noDataText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
-      paddingVertical: 20,
+      paddingVertical: COLORS.SPACING.lg,
     },
     // Stats Grid
     statsGrid: {
@@ -355,24 +358,24 @@ const makeStyles = (COLORS) =>
     statItem: {
       width: "48%",
       alignItems: "center",
-      padding: 16,
+      padding: COLORS.SPACING.md,
       backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 8,
-      marginBottom: 12,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     statNumber: {
-      fontSize: 32,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
     },
     statText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT,
-      marginTop: 4,
-      fontWeight: "600",
+      marginTop: COLORS.SPACING.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     statDetail: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
@@ -380,15 +383,11 @@ const makeStyles = (COLORS) =>
     alertStatsCard: {
       flexDirection: "row",
       backgroundColor: COLORS.CARD,
-      marginHorizontal: 16,
-      marginTop: 16,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      marginHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.md,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
     },
     alertStatItem: {
       flex: 1,
@@ -397,117 +396,118 @@ const makeStyles = (COLORS) =>
     alertStatDivider: {
       width: 1,
       backgroundColor: COLORS.DIVIDER,
-      marginHorizontal: 16,
+      marginHorizontal: COLORS.SPACING.md,
     },
     alertStatIcon: {
-      fontSize: 24,
-      marginBottom: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      marginBottom: COLORS.SPACING.xs,
     },
     alertStatNumber: {
-      fontSize: 28,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WARNING,
     },
     alertStatLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     // Vehicle Card
     vehicleCard: {
       backgroundColor: COLORS.BACKGROUND,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     vehicleHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     vehicleInfo: {
       flex: 1,
     },
     vehiclePlate: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     vehicleModel: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
     driverInfo: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     driverIcon: {
-      fontSize: 12,
-      marginRight: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      marginRight: COLORS.SPACING.xs,
     },
     driverName: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT,
     },
     lastUpdate: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     statusBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 12,
-      height: 28,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.md,
+      height: COLORS.SPACING.lg,
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     vehicleStats: {
       flexDirection: "row",
-      gap: 16,
+      marginRight: COLORS.SPACING.md,
     },
     vehicleStat: {
       flexDirection: "row",
       alignItems: "center",
+      marginRight: COLORS.SPACING.md,
     },
     vehicleStatIcon: {
-      fontSize: 14,
-      marginRight: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      marginRight: COLORS.SPACING.xs,
     },
     vehicleStatValue: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT,
     },
     seeAllButton: {
       alignItems: "center",
-      paddingVertical: 12,
+      paddingVertical: COLORS.SPACING.sm,
       borderTopWidth: 1,
       borderTopColor: COLORS.DIVIDER,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     seeAllText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     // Activity Card
     activityCard: {
       backgroundColor: COLORS.BACKGROUND,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
       borderLeftWidth: 3,
     },
     activityHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     activityTitleRow: {
       flexDirection: "row",
@@ -515,42 +515,293 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     activityIcon: {
-      fontSize: 16,
-      marginRight: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      marginRight: COLORS.SPACING.sm,
     },
     activityTitle: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
       flex: 1,
     },
     activityTime: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
     },
     activityDetails: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 8,
     },
     activityTag: {
       backgroundColor: COLORS.DIVIDER,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.xs,
     },
     activityTagText: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT,
     },
     severityBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.xs,
     },
     severityText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    // Filter tabs
+    filterRow: {
+      flexDirection: "row",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    filterTab: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.lg,
+      marginRight: COLORS.SPACING.xs,
+    },
+    filterTabActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    filterTabInactive: {
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    filterTabTextActive: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    filterTabTextInactive: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    // Trend row
+    trendRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 2,
+    },
+    bottomSpacer: {
+      height: COLORS.SPACING.lg,
+    },
+    // Detail Modal
+    detailModalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    detailModalContainer: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      maxHeight: "80%",
+      minHeight: "40%",
+      paddingBottom: COLORS.SPACING.lg,
+    },
+    detailModalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingTop: COLORS.SPACING.md,
+      paddingBottom: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    detailModalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    detailModalCloseBtn: {
+      width: COLORS.SPACING.xl,
+      height: COLORS.SPACING.xl,
+      borderRadius: COLORS.RADIUS.lg,
+      backgroundColor: COLORS.CARD,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    detailModalCenter: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: COLORS.SPACING.xxl,
+    },
+    detailEmptyText: {
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    detailSearchWrap: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: COLORS.SPACING.sm,
+      paddingBottom: COLORS.SPACING.xs,
+    },
+    detailSearchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.CARD,
+      borderRadius: COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.sm,
+      height: 40,
+    },
+    detailSearchInput: {
+      flex: 1,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT,
+      padding: 0,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    detailCountText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: COLORS.SPACING.sm,
+      paddingBottom: COLORS.SPACING.xs,
+    },
+    detailListContent: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingBottom: COLORS.SPACING.md,
+    },
+    detailCard: {
+      backgroundColor: COLORS.CARD,
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+      borderLeftWidth: 3,
+    },
+    detailCardRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    detailCardTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    detailCardTitleSmall: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    detailBadge: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: 2,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    detailBadgeText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    detailBadgeTextSmall: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    detailSub: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    detailSubSmall: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    detailMetaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.xs,
+    },
+    detailMetaText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT,
+      flex: 1,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailMetaTextMuted: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailDelayTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.ERROR,
+    },
+    detailDelayRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.xs,
+    },
+    detailDelayItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    detailDelayText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailDelayTime: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.MUTED,
+    },
+    detailEmptyResult: {
+      alignItems: "center",
+      padding: COLORS.SPACING.lg,
+    },
+    detailEmptyResultText: {
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    // Footer buttons
+    detailFooter: {
+      flexDirection: "row",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: COLORS.SPACING.sm,
+    },
+    detailExportBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      marginRight: COLORS.SPACING.sm,
+    },
+    detailExportText: {
+      color: COLORS.WHITE,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailCopyBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.CARD,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+    },
+    detailCopyText: {
+      color: COLORS.TEXT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
     },
   });
 
@@ -564,10 +815,10 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
-  // Guvenli fallback - INFO token yoksa PRIMARY kullan
+  // Güvenli fallback - INFO token yoksa PRIMARY kullan
   if (!COLORS.INFO) COLORS.INFO = COLORS.PRIMARY;
 
-  // Dinamik mapping'ler (COLORS'a bal)
+  // Dinamik mapping'ler (COLORS'a bağlı)
   const ALERT_TYPE_MAP = getAlertTypeMap(COLORS, t);
   const SEVERITY_MAP = getSeverityMap(COLORS, t);
   const TASK_STATUS_MAP = getTaskStatusMap(COLORS, t);
@@ -575,7 +826,7 @@ const AdminDashboard = () => {
   const getAlertInfo = (type) => {
     return (
       ALERT_TYPE_MAP[type] || {
-        icon: "",
+        icon: "🔔",
         label: type,
         color: COLORS.MUTED,
       }
@@ -610,7 +861,7 @@ const AdminDashboard = () => {
   const [detailModal, setDetailModal] = useState({
     visible: false,
     title: "",
-    type: null, // "online_vehicles" | "active_tasks" | "completed_today" | "delays"
+    type: null,
     data: [],
     loading: false,
   });
@@ -636,15 +887,11 @@ const AdminDashboard = () => {
     const dateStr = new Date().toISOString().slice(0, 10);
     const filename = `TulipFleet_${title}_${dateStr}`;
     try {
-      await Share.share({
-        message: csv,
-        title: filename,
-      });
+      await Share.share({ message: csv, title: filename });
     } catch (e) {
-      // Fallback: clipboard
       try {
         await Clipboard.setStringAsync(csv);
-        Alert.alert("CSV", t("admin.csvCopied", "CSV panoya kopyalandi"));
+        Alert.alert("CSV", t("admin.csvCopied", "CSV panoya kopyalandı"));
       } catch (err) {
         Alert.alert("Error", err.message);
       }
@@ -662,25 +909,20 @@ const AdminDashboard = () => {
 
       switch (type) {
         case "online_vehicles": {
-          title = t("admin.onlineVehicles", "Online Araclar");
-          // Backend online_vehicles = son 5dk'da locations'a veri gonderen araclar
-          // Eger fleetStats 0 gosteriyorsa ve gercekten online arac yoksa bos donsun
-          // Ama in_use araclar da gosterilsin (gorevde olan = ilgili)
+          title = t("admin.onlineVehicles", "Online Araçlar");
           const onlineCount = fleetStats?.health?.online_vehicles ?? 0;
           if (onlineCount > 0) {
-            // Backend online diyor, tum araclari goster (backend listesini bilmiyoruz)
             const onlineList = vehicles.filter(
               (v) => v.is_online || v.status === "in_use"
             );
             data = onlineList.length > 0 ? onlineList : vehicles;
           } else {
-            // Backend 0 diyor, bos liste goster
             data = [];
           }
           break;
         }
         case "active_tasks": {
-          title = t("admin.activeTasks", "Aktif Gorevler");
+          title = t("admin.activeTasks", "Aktif Görevler");
           const res = await taskAPI.getList();
           const tasks = res.tasks || res || [];
           data = tasks.filter((t) =>
@@ -689,7 +931,7 @@ const AdminDashboard = () => {
           break;
         }
         case "completed_today": {
-          title = t("admin.completedToday", "Bugun Tamamlanan");
+          title = t("admin.completedToday", "Bugün Tamamlanan");
           const res2 = await taskAPI.getList();
           const allTasks = res2.tasks || res2 || [];
           const today = new Date().toISOString().slice(0, 10);
@@ -713,7 +955,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // CSV column definitions per type
   const getCSVColumns = (type) => {
     switch (type) {
       case "online_vehicles":
@@ -758,7 +999,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Search filter for modal data
   const getFilteredModalData = () => {
     if (!detailSearch.trim()) return detailModal.data;
     const q = detailSearch.toLowerCase().trim();
@@ -774,7 +1014,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchAllData();
     refreshTimer.current = setInterval(() => {
-      fetchAllData(true); // silent refresh
+      fetchAllData(true);
     }, 30000);
     return () => {
       if (refreshTimer.current) clearInterval(refreshTimer.current);
@@ -787,11 +1027,10 @@ const AdminDashboard = () => {
 
       const [statsData, vehiclesData, activitiesData] = await Promise.all([
         adminAPI.getFleetStats(),
-        adminAPI.getVehicles().catch((err) => ({ vehicles: [] })),
-        adminAPI.getActivities().catch((err) => ({ activities: [] })),
+        adminAPI.getVehicles().catch(() => ({ vehicles: [] })),
+        adminAPI.getActivities().catch(() => ({ activities: [] })),
       ]);
 
-      // ema guard (yeni backend: totals/breakdown/health)
       if (!statsData?.totals || !statsData?.breakdown) {
         throw new Error("Bad fleet-stats schema");
       }
@@ -799,15 +1038,9 @@ const AdminDashboard = () => {
       setFleetStats(statsData);
       setVehicles(vehiclesData.vehicles || []);
       setActivities(activitiesData.activities || activitiesData.alerts || []);
-
-      console.log(" Admin data loaded:", {
-        stats: statsData,
-        vehicleCount: vehiclesData.vehicles?.length,
-        activityCount: activitiesData.activities?.length,
-      });
     } catch (error) {
-      console.error(" Error fetching admin data:", error);
-      setError(t("admin.dataLoadError", "Veri yklenirken hata olutu"));
+      console.error("Error fetching admin data:", error);
+      setError(t("admin.dataLoadError", "Veri yüklenirken hata oluştu"));
       setFleetStats(getDefaultStats());
       setVehicles([]);
       setActivities([]);
@@ -831,16 +1064,8 @@ const AdminDashboard = () => {
       tasks: { total: 0, completed_today: 0 },
       alerts: { unresolved: 0, critical: 0 },
     },
-    health: {
-      online_vehicles: 0,
-      offline_vehicles: 0,
-    },
-    delays: {
-      last_24h: 0,
-      prev_24h: 0,
-      active_now: 0,
-      delta: 0,
-    },
+    health: { online_vehicles: 0, offline_vehicles: 0 },
+    delays: { last_24h: 0, prev_24h: 0, active_now: 0, delta: 0 },
   });
 
   const onRefresh = () => {
@@ -851,13 +1076,11 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
-      console.log(" k yapld");
+      console.log("Çıkış yapıldı");
     }
   };
 
-  // Ara kartna tklannca Ara Ynetimi'ne git
   const handleVehiclePress = (vehicle) => {
-    console.log("Vehicle pressed:", vehicle.id);
     navigation.navigate("Vehicles");
   };
 
@@ -873,15 +1096,17 @@ const AdminDashboard = () => {
       return (
         <View
           key={`delay-${activity.id}-${index}`}
-          style={[
-            styles.activityCard,
-            { borderLeftColor: COLORS.ERROR, borderLeftWidth: 3 },
-          ]}
+          style={[styles.activityCard, { borderLeftColor: COLORS.ERROR }]}
         >
           <View style={styles.activityHeader}>
             <View style={styles.activityTitleRow}>
               <Ionicons name="warning" size={16} color={COLORS.ERROR} />
-              <Text style={[styles.activityTitle, { marginLeft: 6 }]}>
+              <Text
+                style={[
+                  styles.activityTitle,
+                  { marginLeft: COLORS.SPACING.xs },
+                ]}
+              >
                 {t("admin.stopDelayed", "Durak Gecikmesi")}
               </Text>
             </View>
@@ -907,7 +1132,7 @@ const AdminDashboard = () => {
             <View
               style={[
                 styles.severityBadge,
-                { backgroundColor: COLORS.INPUT_ERROR || "#FEE2E2" },
+                { backgroundColor: COLORS.INPUT_ERROR },
               ]}
             >
               <Text style={[styles.severityText, { color: COLORS.ERROR }]}>
@@ -926,10 +1151,7 @@ const AdminDashboard = () => {
       return (
         <View
           key={`alert-${activity.id}-${index}`}
-          style={[
-            styles.activityCard,
-            { borderLeftColor: alertInfo.color, borderLeftWidth: 3 },
-          ]}
+          style={[styles.activityCard, { borderLeftColor: alertInfo.color }]}
         >
           <View style={styles.activityHeader}>
             <View style={styles.activityTitleRow}>
@@ -940,7 +1162,6 @@ const AdminDashboard = () => {
               {getRelativeTime(activity.timestamp, t)}
             </Text>
           </View>
-
           <View style={styles.activityDetails}>
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
@@ -970,23 +1191,19 @@ const AdminDashboard = () => {
       return (
         <View
           key={`task-${activity.id}-${index}`}
-          style={[
-            styles.activityCard,
-            { borderLeftColor: COLORS.PRIMARY, borderLeftWidth: 3 },
-          ]}
+          style={[styles.activityCard, { borderLeftColor: COLORS.PRIMARY }]}
         >
           <View style={styles.activityHeader}>
             <View style={styles.activityTitleRow}>
-              <Text style={styles.activityIcon}></Text>
+              <Text style={styles.activityIcon}>📋</Text>
               <Text style={styles.activityTitle} numberOfLines={1}>
-                {activity.identifier || t("admin.task", "Grev")}
+                {activity.identifier || t("admin.task", "Görev")}
               </Text>
             </View>
             <Text style={styles.activityTime}>
               {getRelativeTime(activity.timestamp, t)}
             </Text>
           </View>
-
           <View style={styles.activityDetails}>
             {activity.vehicle_plate && (
               <View style={styles.activityTag}>
@@ -1015,13 +1232,21 @@ const AdminDashboard = () => {
     }
   };
 
+  // Detail modal color helper
+  const getDetailBorderColor = () => {
+    if (detailModal.type === "delays") return COLORS.ERROR;
+    if (detailModal.type === "online_vehicles") return COLORS.SUCCESS;
+    if (detailModal.type === "completed_today") return COLORS.SUCCESS;
+    return COLORS.INFO;
+  };
+
   // Loading state
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>
-          {t("common.loading", "Ykleniyor...")}
+          {t("common.loading", "Yükleniyor...")}
         </Text>
       </View>
     );
@@ -1040,23 +1265,23 @@ const AdminDashboard = () => {
           />
         }
       >
-        {/* Header with Modern Greeting */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Ionicons
               name="hand-left-outline"
               size={28}
               color={COLORS.WHITE}
-              style={{ marginRight: 12 }}
+              style={{ marginRight: COLORS.SPACING.sm }}
             />
             <View>
               <Text style={styles.greeting}>
-                {t("admin.welcome", "Ho geldiniz,")}
+                {t("admin.welcome", "Hoş geldiniz,")}
               </Text>
               <Text style={styles.userName}>
                 {user?.firstName ||
                   user?.email?.split("@")[0] ||
-                  t("roles.admin", "Ynetici")}
+                  t("roles.admin", "Yönetici")}
               </Text>
             </View>
           </View>
@@ -1065,14 +1290,14 @@ const AdminDashboard = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
           <View style={styles.errorCard}>
-            <Text style={styles.errorText}> {error}</Text>
+            <Text style={styles.errorText}>⚠️ {error}</Text>
           </View>
         )}
 
-        {/* Fleet Command Center Infogram */}
+        {/* Command Center */}
         {fleetStats && (
           <View style={styles.commandCenterCard}>
             <Text style={styles.commandCenterTitle}>
@@ -1092,12 +1317,15 @@ const AdminDashboard = () => {
                   {fleetStats.totals?.vehicles ?? 0}
                 </Text>
                 <Text style={styles.commandLabel}>
-                  {t("admin.vehicle", "Ara")}
+                  {t("admin.vehicle", "Araç")}
                 </Text>
               </View>
               <View style={styles.commandItem}>
                 <View
-                  style={[styles.commandIcon, { backgroundColor: "#F0FDF4" }]}
+                  style={[
+                    styles.commandIcon,
+                    { backgroundColor: withAlpha(COLORS.SUCCESS, 0.08) },
+                  ]}
                 >
                   <Ionicons name="people" size={24} color={COLORS.SUCCESS} />
                 </View>
@@ -1105,12 +1333,15 @@ const AdminDashboard = () => {
                   {fleetStats.totals?.drivers ?? 0}
                 </Text>
                 <Text style={styles.commandLabel}>
-                  {t("admin.driver", "Src")}
+                  {t("admin.driver", "Sürücü")}
                 </Text>
               </View>
               <View style={styles.commandItem}>
                 <View
-                  style={[styles.commandIcon, { backgroundColor: "#FEF3C7" }]}
+                  style={[
+                    styles.commandIcon,
+                    { backgroundColor: withAlpha(COLORS.WARNING, 0.15) },
+                  ]}
                 >
                   <Ionicons
                     name="hardware-chip"
@@ -1122,14 +1353,14 @@ const AdminDashboard = () => {
                   {fleetStats.health?.online_vehicles ?? 0}
                 </Text>
                 <Text style={styles.commandLabel}>
-                  {t("admin.onlineVehicle", "Online Ara")}
+                  {t("admin.onlineVehicle", "Online Araç")}
                 </Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* Canl Harita Blm */}
+        {/* Live Map */}
         <TouchableOpacity
           style={styles.liveMapCard}
           onPress={() => navigation.navigate("FleetMap")}
@@ -1142,24 +1373,23 @@ const AdminDashboard = () => {
             </View>
             <View style={styles.liveMapText}>
               <Text style={styles.liveMapTitle}>
-                {t("admin.liveMap", "Canl Harita")}
+                {t("admin.liveMap", "Canlı Harita")}
               </Text>
               <Text style={styles.liveMapSubtitle}>
-                {t("admin.trackVehicles", "Aralar gerek zamanl takip edin")}
+                {t("admin.trackVehicles", "Araçları gerçek zamanlı takip edin")}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color={COLORS.WHITE} />
           </View>
         </TouchableOpacity>
 
-        {/* Operations Overview - Tiklanabilir Kartlar */}
+        {/* Operations Overview */}
         {fleetStats && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>
-              {t("admin.operationsOverview", "Operasyon Ozeti")}
+              {t("admin.operationsOverview", "Operasyon Özeti")}
             </Text>
             <View style={styles.statsGrid}>
-              {/* Online Araclar */}
               <TouchableOpacity
                 style={[
                   styles.statItem,
@@ -1173,7 +1403,7 @@ const AdminDashboard = () => {
                   {fleetStats.health?.online_vehicles ?? 0}
                 </Text>
                 <Text style={styles.statText}>
-                  {t("admin.onlineVehicles", "Online Arac")}
+                  {t("admin.onlineVehicles", "Online Araç")}
                 </Text>
                 <Text style={styles.statDetail}>
                   / {fleetStats.totals?.vehicles ?? 0}{" "}
@@ -1181,7 +1411,6 @@ const AdminDashboard = () => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Aktif Gorevler */}
               <TouchableOpacity
                 style={[
                   styles.statItem,
@@ -1195,7 +1424,7 @@ const AdminDashboard = () => {
                   {fleetStats.totals?.active_tasks ?? 0}
                 </Text>
                 <Text style={styles.statText}>
-                  {t("admin.activeTasks", "Aktif Gorev")}
+                  {t("admin.activeTasks", "Aktif Görev")}
                 </Text>
                 <Text style={styles.statDetail}>
                   {fleetStats.totals?.pending_tasks ?? 0}{" "}
@@ -1203,7 +1432,6 @@ const AdminDashboard = () => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Bugun Tamamlanan */}
               <TouchableOpacity
                 style={[
                   styles.statItem,
@@ -1221,15 +1449,14 @@ const AdminDashboard = () => {
                   {fleetStats.breakdown?.tasks?.completed_today ?? 0}
                 </Text>
                 <Text style={styles.statText}>
-                  {t("admin.completedToday", "Bugun Biten")}
+                  {t("admin.completedToday", "Bugün Biten")}
                 </Text>
                 <Text style={styles.statDetail}>
                   {fleetStats.breakdown?.tasks?.total ?? 0}{" "}
-                  {t("admin.totalTasks", "toplam gorev")}
+                  {t("admin.totalTasks", "toplam görev")}
                 </Text>
               </TouchableOpacity>
 
-              {/* Gecikme Uyarisi */}
               <TouchableOpacity
                 style={[
                   styles.statItem,
@@ -1269,14 +1496,7 @@ const AdminDashboard = () => {
                 <Text style={styles.statText}>
                   {t("admin.activeDelays", "Aktif Gecikme")}
                 </Text>
-                {/* Trend oku */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginTop: 2,
-                  }}
-                >
+                <View style={styles.trendRow}>
                   {(fleetStats.delays?.delta ?? 0) !== 0 && (
                     <Ionicons
                       name={
@@ -1316,41 +1536,41 @@ const AdminDashboard = () => {
           </View>
         )}
 
-        {/* Alert Stats - unresolved/critical */}
+        {/* Alert Stats */}
         {fleetStats?.breakdown?.alerts && (
           <View style={styles.alertStatsCard}>
             <View style={styles.alertStatItem}>
-              <Text style={styles.alertStatIcon}></Text>
+              <Text style={styles.alertStatIcon}>🔔</Text>
               <Text style={styles.alertStatNumber}>
                 {fleetStats.breakdown?.alerts?.unresolved ??
                   fleetStats.totals?.alerts ??
                   0}
               </Text>
               <Text style={styles.alertStatLabel}>
-                {t("admin.unresolvedAlerts", "zlmemi Uyar")}
+                {t("admin.unresolvedAlerts", "Çözülmemiş Uyarı")}
               </Text>
             </View>
             <View style={styles.alertStatDivider} />
             <View style={styles.alertStatItem}>
-              <Text style={styles.alertStatIcon}></Text>
+              <Text style={styles.alertStatIcon}>🚨</Text>
               <Text style={[styles.alertStatNumber, { color: COLORS.ERROR }]}>
                 {fleetStats.breakdown?.alerts?.critical ?? 0}
               </Text>
               <Text style={styles.alertStatLabel}>
-                {t("admin.criticalAlerts", "Kritik Uyar")}
+                {t("admin.criticalAlerts", "Kritik Uyarı")}
               </Text>
             </View>
           </View>
         )}
 
-        {/* Vehicles - Tklanabilir */}
+        {/* Vehicles */}
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.cardTitleRow}
             onPress={() => navigation.navigate("Vehicles")}
           >
             <Text style={styles.cardTitle}>
-              {t("admin.vehicles", "Aralar")} ({vehicles.length})
+              {t("admin.vehicles", "Araçlar")} ({vehicles.length})
             </Text>
             <Ionicons
               name="chevron-forward"
@@ -1374,7 +1594,7 @@ const AdminDashboard = () => {
                     </Text>
                     {vehicle.driver_email && (
                       <View style={styles.driverInfo}>
-                        <Text style={styles.driverIcon}></Text>
+                        <Text style={styles.driverIcon}>👤</Text>
                         <Text style={styles.driverName}>
                           {vehicle.driver_email.split("@")[0]}
                         </Text>
@@ -1396,17 +1616,17 @@ const AdminDashboard = () => {
                   >
                     <Text style={styles.statusText}>
                       {vehicle.status === "in_use"
-                        ? t("admin.vehicleStatus.inUse", "Kullanmda")
+                        ? t("admin.vehicleStatus.inUse", "Kullanımda")
                         : vehicle.status === "available"
-                          ? t("admin.vehicleStatus.available", "Msait")
-                          : t("admin.vehicleStatus.maintenance", "Bakmda")}
+                          ? t("admin.vehicleStatus.available", "Müsait")
+                          : t("admin.vehicleStatus.maintenance", "Bakımda")}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.vehicleStats}>
                   {vehicle.odometer && (
                     <View style={styles.vehicleStat}>
-                      <Text style={styles.vehicleStatIcon}></Text>
+                      <Text style={styles.vehicleStatIcon}>🛣️</Text>
                       <Text style={styles.vehicleStatValue}>
                         {Math.round(vehicle.odometer).toLocaleString()} km
                       </Text>
@@ -1414,7 +1634,7 @@ const AdminDashboard = () => {
                   )}
                   {vehicle.fuel_level && (
                     <View style={styles.vehicleStat}>
-                      <Text style={styles.vehicleStatIcon}></Text>
+                      <Text style={styles.vehicleStatIcon}>⛽</Text>
                       <Text style={styles.vehicleStatValue}>
                         {vehicle.fuel_level}%
                       </Text>
@@ -1425,7 +1645,7 @@ const AdminDashboard = () => {
             ))
           ) : (
             <Text style={styles.noDataText}>
-              {t("admin.noVehicles", "Ara bulunamad")}
+              {t("admin.noVehicles", "Araç bulunamadı")}
             </Text>
           )}
 
@@ -1435,7 +1655,7 @@ const AdminDashboard = () => {
               onPress={() => navigation.navigate("Vehicles")}
             >
               <Text style={styles.seeAllText}>
-                {t("admin.seeAll", "Tmn Gr")} ({vehicles.length})
+                {t("admin.seeAll", "Tümünü Gör")} ({vehicles.length})
               </Text>
             </TouchableOpacity>
           )}
@@ -1447,36 +1667,30 @@ const AdminDashboard = () => {
             {t("admin.recentActivities", "Son Aktiviteler")}
           </Text>
 
-          {/* Kategori filtre tablari */}
-          <View style={{ flexDirection: "row", marginBottom: 12, gap: 6 }}>
+          {/* Filter tabs */}
+          <View style={styles.filterRow}>
             {[
-              { key: "all", label: t("admin.filterAll", "Tumunu") },
+              { key: "all", label: t("admin.filterAll", "Tümünü") },
               { key: "delays", label: t("admin.filterDelays", "Gecikmeler") },
               { key: "completed", label: t("admin.filterCompleted", "Biten") },
-              { key: "alerts", label: t("admin.filterAlerts", "Uyarilar") },
+              { key: "alerts", label: t("admin.filterAlerts", "Uyarılar") },
             ].map((tab) => (
               <TouchableOpacity
                 key={tab.key}
                 onPress={() => setActivityFilter(tab.key)}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 16,
-                  backgroundColor:
-                    activityFilter === tab.key
-                      ? COLORS.PRIMARY
-                      : COLORS.BACKGROUND,
-                }}
+                style={[
+                  styles.filterTab,
+                  activityFilter === tab.key
+                    ? styles.filterTabActive
+                    : styles.filterTabInactive,
+                ]}
               >
                 <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: activityFilter === tab.key ? "700" : "500",
-                    color:
-                      activityFilter === tab.key
-                        ? COLORS.WHITE
-                        : COLORS.TEXT_SECONDARY,
-                  }}
+                  style={
+                    activityFilter === tab.key
+                      ? styles.filterTabTextActive
+                      : styles.filterTabTextInactive
+                  }
                 >
                   {tab.label}
                 </Text>
@@ -1507,139 +1721,55 @@ const AdminDashboard = () => {
           })()}
         </View>
 
-        {/* Bottom spacing */}
-        <View style={{ height: 20 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* ============================================ */}
-      {/* DETAIL MODAL + CSV EXPORT */}
-      {/* ============================================ */}
+      {/* Detail Modal */}
       <Modal
         visible={detailModal.visible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setDetailModal((p) => ({ ...p, visible: false }))}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: COLORS.SURFACE,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              maxHeight: "80%",
-              minHeight: "40%",
-              paddingBottom: 24,
-            }}
-          >
+        <View style={styles.detailModalOverlay}>
+          <View style={styles.detailModalContainer}>
             {/* Modal Header */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingHorizontal: 20,
-                paddingTop: 16,
-                paddingBottom: 12,
-                borderBottomWidth: 1,
-                borderBottomColor: COLORS.BORDER,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "700",
-                  color: COLORS.TEXT,
-                }}
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.detailModalTitle}>{detailModal.title}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setDetailModal((p) => ({ ...p, visible: false }))
+                }
+                style={styles.detailModalCloseBtn}
               >
-                {detailModal.title}
-              </Text>
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                {/* Close */}
-                <TouchableOpacity
-                  onPress={() =>
-                    setDetailModal((p) => ({ ...p, visible: false }))
-                  }
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: COLORS.CARD,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="close" size={20} color={COLORS.MUTED} />
-                </TouchableOpacity>
-              </View>
+                <Ionicons name="close" size={20} color={COLORS.MUTED} />
+              </TouchableOpacity>
             </View>
 
             {/* Modal Content */}
             {detailModal.loading ? (
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 40,
-                }}
-              >
+              <View style={styles.detailModalCenter}>
                 <ActivityIndicator size="large" color={COLORS.PRIMARY} />
               </View>
             ) : detailModal.data.length === 0 ? (
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 40,
-                }}
-              >
+              <View style={styles.detailModalCenter}>
                 <Ionicons
                   name="file-tray-outline"
                   size={48}
                   color={COLORS.MUTED}
                 />
-                <Text
-                  style={{ color: COLORS.MUTED, marginTop: 8, fontSize: 15 }}
-                >
-                  {t("admin.noData", "Veri bulunamadi")}
+                <Text style={styles.detailEmptyText}>
+                  {t("admin.noData", "Veri bulunamadı")}
                 </Text>
               </View>
             ) : (
               <>
-                {/* Search Input */}
-                <View
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingTop: 12,
-                    paddingBottom: 4,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: COLORS.CARD,
-                      borderRadius: 10,
-                      paddingHorizontal: 12,
-                      height: 40,
-                      gap: 8,
-                    }}
-                  >
+                {/* Search */}
+                <View style={styles.detailSearchWrap}>
+                  <View style={styles.detailSearchRow}>
                     <Ionicons name="search" size={18} color={COLORS.MUTED} />
                     <TextInput
-                      style={{
-                        flex: 1,
-                        fontSize: 14,
-                        color: COLORS.TEXT,
-                        padding: 0,
-                      }}
+                      style={styles.detailSearchInput}
                       placeholder={t("admin.searchPlaceholder", "Ara...")}
                       placeholderTextColor={COLORS.MUTED}
                       value={detailSearch}
@@ -1659,92 +1789,54 @@ const AdminDashboard = () => {
                   </View>
                 </View>
 
-                {/* Count badge */}
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: COLORS.MUTED,
-                    paddingHorizontal: 16,
-                    paddingTop: 8,
-                    paddingBottom: 4,
-                  }}
-                >
+                {/* Count */}
+                <Text style={styles.detailCountText}>
                   {getFilteredModalData().length} / {detailModal.data.length}{" "}
-                  {t("admin.records", "kayit")}
+                  {t("admin.records", "kayıt")}
                 </Text>
 
-                {/* FlatList */}
+                {/* List */}
                 <FlatList
                   data={getFilteredModalData()}
                   keyExtractor={(item, idx) =>
                     item.id?.toString() || idx.toString()
                   }
-                  contentContainerStyle={{
-                    paddingHorizontal: 16,
-                    paddingBottom: 16,
-                  }}
+                  contentContainerStyle={styles.detailListContent}
                   renderItem={({ item }) => (
                     <View
-                      style={{
-                        backgroundColor: COLORS.CARD,
-                        borderRadius: 12,
-                        padding: 14,
-                        marginBottom: 8,
-                        borderLeftWidth: 3,
-                        borderLeftColor:
-                          detailModal.type === "delays"
-                            ? COLORS.ERROR
-                            : detailModal.type === "online_vehicles"
-                              ? COLORS.SUCCESS
-                              : detailModal.type === "completed_today"
-                                ? COLORS.SUCCESS
-                                : COLORS.INFO,
-                      }}
+                      style={[
+                        styles.detailCard,
+                        { borderLeftColor: getDetailBorderColor() },
+                      ]}
                     >
                       {detailModal.type === "online_vehicles" && (
                         <>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 16,
-                                fontWeight: "700",
-                                color: COLORS.TEXT,
-                              }}
-                            >
+                          <View style={styles.detailCardRow}>
+                            <Text style={styles.detailCardTitle}>
                               {item.plate_no || item.plate || "—"}
                             </Text>
                             <View
-                              style={{
-                                backgroundColor: COLORS.SUCCESS + "20",
-                                paddingHorizontal: 8,
-                                paddingVertical: 2,
-                                borderRadius: 6,
-                              }}
+                              style={[
+                                styles.detailBadge,
+                                {
+                                  backgroundColor: withAlpha(
+                                    COLORS.SUCCESS,
+                                    0.12
+                                  ),
+                                },
+                              ]}
                             >
                               <Text
-                                style={{
-                                  color: COLORS.SUCCESS,
-                                  fontSize: 12,
-                                  fontWeight: "600",
-                                }}
+                                style={[
+                                  styles.detailBadgeText,
+                                  { color: COLORS.SUCCESS },
+                                ]}
                               >
                                 Online
                               </Text>
                             </View>
                           </View>
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              color: COLORS.MUTED,
-                              marginTop: 4,
-                            }}
-                          >
+                          <Text style={styles.detailSub}>
                             {[item.brand, item.model]
                               .filter(Boolean)
                               .join(" ") || "—"}
@@ -1756,47 +1848,35 @@ const AdminDashboard = () => {
                       {(detailModal.type === "active_tasks" ||
                         detailModal.type === "completed_today") && (
                         <>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 14,
-                                fontWeight: "700",
-                                color: COLORS.TEXT,
-                                flex: 1,
-                              }}
-                            >
+                          <View style={styles.detailCardRow}>
+                            <Text style={styles.detailCardTitleSmall}>
                               {item.title || item.task_no || "—"}
                             </Text>
                             <View
-                              style={{
-                                backgroundColor:
-                                  item.status === "in_progress"
-                                    ? COLORS.INFO + "20"
-                                    : item.status === "completed"
-                                      ? COLORS.SUCCESS + "20"
-                                      : COLORS.WARNING + "20",
-                                paddingHorizontal: 8,
-                                paddingVertical: 2,
-                                borderRadius: 6,
-                              }}
+                              style={[
+                                styles.detailBadge,
+                                {
+                                  backgroundColor:
+                                    item.status === "in_progress"
+                                      ? withAlpha(COLORS.INFO, 0.12)
+                                      : item.status === "completed"
+                                        ? withAlpha(COLORS.SUCCESS, 0.12)
+                                        : withAlpha(COLORS.WARNING, 0.12),
+                                },
+                              ]}
                             >
                               <Text
-                                style={{
-                                  fontSize: 11,
-                                  fontWeight: "600",
-                                  color:
-                                    item.status === "in_progress"
-                                      ? COLORS.INFO
-                                      : item.status === "completed"
-                                        ? COLORS.SUCCESS
-                                        : COLORS.WARNING,
-                                }}
+                                style={[
+                                  styles.detailBadgeTextSmall,
+                                  {
+                                    color:
+                                      item.status === "in_progress"
+                                        ? COLORS.INFO
+                                        : item.status === "completed"
+                                          ? COLORS.SUCCESS
+                                          : COLORS.WARNING,
+                                  },
+                                ]}
                               >
                                 {item.status
                                   ?.replace(/_/g, " ")
@@ -1805,35 +1885,18 @@ const AdminDashboard = () => {
                             </View>
                           </View>
                           {item.task_no && (
-                            <Text
-                              style={{
-                                fontSize: 12,
-                                color: COLORS.MUTED,
-                                marginTop: 2,
-                              }}
-                            >
+                            <Text style={styles.detailSubSmall}>
                               {item.task_no}
                             </Text>
                           )}
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              marginTop: 6,
-                              gap: 4,
-                            }}
-                          >
+                          <View style={styles.detailMetaRow}>
                             <Ionicons
                               name="location"
                               size={14}
                               color={COLORS.MUTED}
                             />
                             <Text
-                              style={{
-                                fontSize: 13,
-                                color: COLORS.TEXT,
-                                flex: 1,
-                              }}
+                              style={styles.detailMetaText}
                               numberOfLines={1}
                             >
                               {item.start_location || "?"} →{" "}
@@ -1841,22 +1904,13 @@ const AdminDashboard = () => {
                             </Text>
                           </View>
                           {(item.driver_name || item.driver_email) && (
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                marginTop: 4,
-                                gap: 4,
-                              }}
-                            >
+                            <View style={styles.detailMetaRow}>
                               <Ionicons
                                 name="person"
                                 size={14}
                                 color={COLORS.MUTED}
                               />
-                              <Text
-                                style={{ fontSize: 13, color: COLORS.MUTED }}
-                              >
+                              <Text style={styles.detailMetaTextMuted}>
                                 {item.driver_name || item.driver_email}
                               </Text>
                             </View>
@@ -1866,50 +1920,30 @@ const AdminDashboard = () => {
 
                       {detailModal.type === "delays" && (
                         <>
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              fontWeight: "600",
-                              color: COLORS.ERROR,
-                            }}
-                          >
+                          <Text style={styles.detailDelayTitle}>
                             {item.message || item.identifier || "Gecikme"}
                           </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              marginTop: 4,
-                              gap: 8,
-                            }}
-                          >
+                          <View style={styles.detailDelayRow}>
                             {item.vehicle_plate && (
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  gap: 4,
-                                }}
-                              >
+                              <View style={styles.detailDelayItem}>
                                 <Ionicons
                                   name="car"
                                   size={14}
                                   color={COLORS.MUTED}
                                 />
-                                <Text
-                                  style={{ fontSize: 13, color: COLORS.MUTED }}
-                                >
+                                <Text style={styles.detailDelayText}>
                                   {item.vehicle_plate}
                                 </Text>
                               </View>
                             )}
                             {item.timestamp && (
-                              <Text
-                                style={{ fontSize: 12, color: COLORS.MUTED }}
-                              >
+                              <Text style={styles.detailDelayTime}>
                                 {new Date(item.timestamp).toLocaleTimeString(
                                   [],
-                                  { hour: "2-digit", minute: "2-digit" }
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
                                 )}
                               </Text>
                             )}
@@ -1919,23 +1953,16 @@ const AdminDashboard = () => {
                     </View>
                   )}
                   ListEmptyComponent={
-                    <View style={{ alignItems: "center", padding: 24 }}>
-                      <Text style={{ color: COLORS.MUTED, fontSize: 14 }}>
-                        {t("admin.noResults", "Sonuc bulunamadi")}
+                    <View style={styles.detailEmptyResult}>
+                      <Text style={styles.detailEmptyResultText}>
+                        {t("admin.noResults", "Sonuç bulunamadı")}
                       </Text>
                     </View>
                   }
                 />
 
-                {/* Footer: CSV Export + Copy */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    paddingHorizontal: 16,
-                    paddingTop: 8,
-                    gap: 8,
-                  }}
-                >
+                {/* Footer */}
+                <View style={styles.detailFooter}>
                   <TouchableOpacity
                     onPress={() =>
                       handleCSVExport(
@@ -1944,30 +1971,15 @@ const AdminDashboard = () => {
                         getCSVColumns(detailModal.type)
                       )
                     }
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: COLORS.PRIMARY,
-                      paddingVertical: 12,
-                      borderRadius: 10,
-                      gap: 6,
-                    }}
+                    style={styles.detailExportBtn}
                   >
                     <Ionicons
                       name="share-outline"
                       size={18}
                       color={COLORS.WHITE}
                     />
-                    <Text
-                      style={{
-                        color: COLORS.WHITE,
-                        fontSize: 14,
-                        fontWeight: "600",
-                      }}
-                    >
-                      {t("admin.exportCSV", "CSV Paylas")}
+                    <Text style={styles.detailExportText}>
+                      {t("admin.exportCSV", "CSV Paylaş")}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1980,37 +1992,20 @@ const AdminDashboard = () => {
                         await Clipboard.setStringAsync(csv);
                         Alert.alert(
                           "CSV",
-                          t("admin.csvCopied", "CSV panoya kopyalandi")
+                          t("admin.csvCopied", "CSV panoya kopyalandı")
                         );
                       } catch (e) {
                         Alert.alert("Error", e.message);
                       }
                     }}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: COLORS.CARD,
-                      paddingVertical: 12,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: COLORS.BORDER,
-                      gap: 6,
-                    }}
+                    style={styles.detailCopyBtn}
                   >
                     <Ionicons
                       name="copy-outline"
                       size={18}
                       color={COLORS.TEXT}
                     />
-                    <Text
-                      style={{
-                        color: COLORS.TEXT,
-                        fontSize: 14,
-                        fontWeight: "600",
-                      }}
-                    >
+                    <Text style={styles.detailCopyText}>
                       {t("admin.copy", "Kopyala")}
                     </Text>
                   </TouchableOpacity>
@@ -2023,7 +2018,5 @@ const AdminDashboard = () => {
     </>
   );
 };
-
-//  ESK StyleSheet S - art makeStyles kullan
 
 export default AdminDashboard;

@@ -1,6 +1,6 @@
 // src/screens/admin/AdminTasks.js
-// TulipFleet - Admin Görev Listesi Ekranı (Dark Mode uyumlu - Rehbere uygun)
-// Updated: 30 Aralık 2025 - pendingCount fix + Teklif Gönder
+// TulipFleet - Admin Görev Listesi Ekranı
+// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -20,7 +20,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { taskAPI } from "../../services/api";
 
-// --- helper: #RRGGBB => #RRGGBBAA (hardcoded hex yazmadan soft bg) ---
+// --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
   if (
     !hex ||
@@ -57,6 +57,9 @@ const PRIORITY_LABELS = {
   urgent: "Acil",
 };
 
+// ============================================
+// makeStyles - UI Guide v3 compliant
+// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: {
@@ -68,62 +71,54 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
-      padding: 20,
+      padding: COLORS.SPACING.lg,
     },
 
     // Header Stats
     statsHeader: {
       flexDirection: "row",
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      paddingVertical: 12,
-      paddingHorizontal: 8,
-      marginBottom: 8,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
     },
     headerStatBox: {
       flex: 1,
       alignItems: "center",
     },
     headerStatValue: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
     headerStatLabel: {
-      fontSize: 10,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
       marginTop: 2,
     },
 
     // List
     listContainer: {
-      padding: 12,
+      padding: COLORS.SPACING.sm,
       paddingBottom: 80,
     },
 
     // Card
     card: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 12,
-      marginBottom: 12,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
       overflow: "hidden",
     },
     cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: 14,
+      padding: COLORS.SPACING.sm,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
     },
     taskTitleContainer: {
       flexDirection: "row",
@@ -132,65 +127,65 @@ const makeStyles = (COLORS) =>
       minWidth: 140,
     },
     priorityDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      marginRight: 8,
+      width: COLORS.SPACING.sm,
+      height: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.full,
+      marginRight: COLORS.SPACING.sm,
     },
     taskCode: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
       flex: 1,
     },
     headerActions: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
-      marginLeft: 8,
+      marginLeft: COLORS.SPACING.sm,
     },
     actionButton: {
-      padding: 6,
-      borderRadius: 6,
+      padding: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+      marginLeft: COLORS.SPACING.xs,
     },
     statusBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 10,
-      marginLeft: 4,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.md,
+      marginLeft: COLORS.SPACING.xs,
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     cardBody: {
-      padding: 14,
+      padding: COLORS.SPACING.sm,
     },
     taskTitle: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: COLORS.DEFAULT,
-      marginBottom: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.xs,
     },
     taskDescription: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
-      marginBottom: 10,
+      marginBottom: COLORS.SPACING.sm,
     },
     infoGrid: {
-      marginTop: 8,
+      marginTop: COLORS.SPACING.sm,
     },
     infoItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 6,
+      marginBottom: COLORS.SPACING.xs,
     },
     infoText: {
-      fontSize: 13,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginLeft: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT,
+      marginLeft: COLORS.SPACING.sm,
       flex: 1,
     },
 
@@ -199,8 +194,8 @@ const makeStyles = (COLORS) =>
       justifyContent: "space-between",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.sm,
     },
     footerItem: {
       flexDirection: "row",
@@ -208,19 +203,19 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     footerText: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
-      marginLeft: 6,
+      marginLeft: COLORS.SPACING.xs,
     },
     priorityBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-      marginLeft: 12,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.sm,
+      marginLeft: COLORS.SPACING.sm,
     },
     priorityText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     // Empty State
@@ -228,73 +223,73 @@ const makeStyles = (COLORS) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 60,
+      paddingVertical: COLORS.SPACING.xxxl,
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
-      marginTop: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginTop: COLORS.SPACING.md,
     },
     emptySubtitle: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: 8,
-      paddingHorizontal: 40,
+      marginTop: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.xxl,
     },
 
     // Error State
     errorTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.ERROR,
-      marginTop: 16,
+      marginTop: COLORS.SPACING.md,
     },
     errorText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: 8,
+      marginTop: COLORS.SPACING.sm,
     },
     retryButton: {
-      marginTop: 20,
+      marginTop: COLORS.SPACING.lg,
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 8,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
     },
     retryButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // Loading
     loadingText: {
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
       color: COLORS.MUTED,
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // FAB
     fab: {
       position: "absolute",
-      right: 20,
-      bottom: 20,
+      right: COLORS.SPACING.lg,
+      bottom: COLORS.SPACING.lg,
       width: 56,
       height: 56,
-      borderRadius: 28,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.PRIMARY,
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 8,
+      ...COLORS.SHADOWS.card,
     },
   });
 
+// ============================================
+// COMPONENT
+// ============================================
 const AdminTasks = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
@@ -304,7 +299,7 @@ const AdminTasks = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ İstatistik hesaplamaları
+  // İstatistik hesaplamaları
   const pendingCount = useMemo(
     () =>
       tasks.filter((t) => ["pending", "pending_review"].includes(t.status))
@@ -457,7 +452,7 @@ const AdminTasks = ({ navigation }) => {
   // Görev kartı
   const renderTaskCard = ({ item }) => {
     const status = item.status || "pending";
-    const statusColor = STATUS_COLORS[status] || COLORS.SECONDARY;
+    const statusColor = STATUS_COLORS[status] || COLORS.TEXT_SECONDARY;
     const statusLabel = STATUS_LABELS[status] || status;
 
     const priority = item.priority || "normal";
@@ -491,7 +486,7 @@ const AdminTasks = ({ navigation }) => {
         }}
         activeOpacity={0.7}
       >
-        {/* Üst Kısım - Başlık ve Durum */}
+        {/* Üst Kısım */}
         <View style={styles.cardHeader}>
           <View style={styles.taskTitleContainer}>
             <View
@@ -540,7 +535,7 @@ const AdminTasks = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Orta Kısım - Görev Bilgileri */}
+        {/* Orta Kısım */}
         <View style={styles.cardBody}>
           {item.title && <Text style={styles.taskTitle}>{item.title}</Text>}
 
@@ -587,7 +582,7 @@ const AdminTasks = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Alt Kısım - Tarih ve Öncelik */}
+        {/* Alt Kısım */}
         <View style={styles.cardFooter}>
           <View style={styles.footerItem}>
             <Ionicons name="calendar-outline" size={14} color={COLORS.MUTED} />
@@ -701,7 +696,7 @@ const AdminTasks = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* FAB - Yeni Görev Ekle */}
+      {/* FAB */}
       <TouchableOpacity style={styles.fab} onPress={handleAddTask}>
         <Ionicons name="add" size={28} color={COLORS.WHITE} />
       </TouchableOpacity>

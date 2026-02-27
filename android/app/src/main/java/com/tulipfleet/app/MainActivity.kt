@@ -1,6 +1,5 @@
 package com.tulipfleet.app
 import expo.modules.splashscreen.SplashScreenManager
-import com.zoontek.rnbootsplash.RNBootSplash
 
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +21,6 @@ class MainActivity : ReactActivity() {
     SplashScreenManager.registerOnActivity(this)
     // @generated end expo-splashscreen
     super.onCreate(savedInstanceState)
-    RNBootSplash.init(this, R.style.BootTheme)
   }
 
   /**

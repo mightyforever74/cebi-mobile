@@ -525,7 +525,18 @@
     "connecting": "Connessione...",
     "connected": "Connesso",
     "failed": "Connessione Fallita",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "activation": {
+      "successStatus": "Dispositivo attivato con successo!",
+      "successPending": "Configurazione completata. In attesa di conferma attivazione..."
+    },
+    "activeWarning": {
+      "title": "⚠️ Dispositivo Già Attivo",
+      "message": "Il dispositivo {{serial}} è già attivo e connesso via WiFi{{vehicle}}.\n\nVuoi reinstallare?",
+      "cancel": "Annulla",
+      "continue": "Continua Comunque"
+    },
+    "checkingDeviceStatus": "Verifica stato dispositivo..."
   },
   "navigator": {
     "fuelManagement": "Gestione Carburante",

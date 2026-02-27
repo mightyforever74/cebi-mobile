@@ -615,7 +615,9 @@
       "activating": "Activating device...",
       "success": "Device successfully activated!",
       "failed": "Activation failed",
-      "serverCommunication": "Device communicating with server..."
+      "serverCommunication": "Device communicating with server...",
+      "successStatus": "Device successfully activated!",
+      "successPending": "Device setup complete. Waiting for activation confirmation..."
     },
     "result": {
       "setupComplete": "Setup Complete!",
@@ -630,6 +632,13 @@
       "permissionMessage": "You need to grant camera permission to scan QR code.",
       "grantPermission": "Grant Permission"
     },
+    "activeWarning": {
+      "title": "⚠️ Device Already Active",
+      "message": "Device {{serial}} is already active and connected via WiFi{{vehicle}}.\n\nDo you want to reinstall?",
+      "cancel": "Cancel",
+      "continue": "Continue Anyway"
+    },
+    "checkingDeviceStatus": "Checking device status...",
     "buttons": {
       "settings": "Settings",
       "cancel": "Cancel",

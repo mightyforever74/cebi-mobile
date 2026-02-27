@@ -1,7 +1,7 @@
 // src/screens/superadmin/DevicesScreen.js
-// TulipFleet - ESP32 Cihaz Yönetimi
-// Updated: 26 Aralık 2025 - Token from AuthContext
-// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği (Rehbere uygun)
+// TulipFleet - ESP32 Cihaz Yönetimi + Yeni Cihaz Kayıt
+// Updated: 23 February 2026 - Register Device modal added
+// Theme: useTheme + useThemedStyles (UI Guide v3)
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -9,7 +9,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -22,7 +26,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-// --- helper: #RRGGBB => #RRGGBBAA (rgba/hardcode olmadan) ---
+// --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
   if (
     !hex ||
@@ -39,25 +43,44 @@ const withAlpha = (hex, alpha01) => {
   return `${hex}${alpha}`;
 };
 
+// --- MAC address formatter ---
+const formatMacAddress = (text) => {
+  const clean = text.replace(/[^A-Fa-f0-9]/g, "").toUpperCase();
+  let formatted = "";
+  for (let i = 0; i < clean.length && i < 12; i++) {
+    if (i > 0 && i % 2 === 0) formatted += ":";
+    formatted += clean[i];
+  }
+  return formatted;
+};
+
+const CHIP_MODELS = [
+  { label: "ESP32-S3-N16R8", value: "ESP32-S3-N16R8" },
+  { label: "ESP32-S3-WROOM", value: "ESP32-S3-WROOM" },
+  { label: "ESP32-WROOM-32", value: "ESP32-WROOM-32" },
+];
+
+const HW_VERSIONS = [
+  { label: "v2.0 (Yeni Kasa)", value: "v2.0" },
+  { label: "v1.0 (Eski)", value: "v1.0" },
+];
+
+const FW_VERSIONS = [
+  { label: "v4.4.1 (Güncel)", value: "v4.4.1" },
+  { label: "v4.4.0", value: "v4.4.0" },
+  { label: "v4.3.11", value: "v4.3.11" },
+];
+
 const makeStyles = (COLORS) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-    },
-
-    // Loading
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
     loadingContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
     },
-    loadingText: {
-      marginTop: 10,
-      color: COLORS.MUTED,
-      fontWeight: "500",
-    },
+    loadingText: { marginTop: 10, color: COLORS.MUTED, fontWeight: "500" },
 
     // Stats
     statsContainer: {
@@ -78,17 +101,10 @@ const makeStyles = (COLORS) =>
       shadowOpacity: 0.1,
       shadowRadius: 2,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.18) || COLORS.BORDER,
     },
-    statCardActive: {
-      borderWidth: 2,
-      borderColor: COLORS.PRIMARY,
-    },
-    statValue: {
-      fontSize: 24,
-      fontWeight: "bold",
-    },
+    statCardActive: { borderWidth: 2, borderColor: COLORS.PRIMARY },
+    statValue: { fontSize: 24, fontWeight: "bold" },
     statLabel: {
       fontSize: 11,
       color: COLORS.MUTED,
@@ -111,8 +127,7 @@ const makeStyles = (COLORS) =>
       shadowOpacity: 0.1,
       shadowRadius: 2,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.18) || COLORS.BORDER,
     },
     searchInput: {
       flex: 1,
@@ -136,39 +151,40 @@ const makeStyles = (COLORS) =>
       borderRadius: 16,
       backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.18) || COLORS.BORDER,
       elevation: 1,
     },
     filterButtonActive: {
       backgroundColor: COLORS.PRIMARY,
       borderColor: COLORS.PRIMARY,
     },
-    filterText: {
-      fontSize: 12,
-      color: COLORS.MUTED,
-      fontWeight: "600",
-    },
-    filterTextActive: {
-      color: COLORS.WHITE,
-    },
+    filterText: { fontSize: 12, color: COLORS.MUTED, fontWeight: "600" },
+    filterTextActive: { color: COLORS.WHITE },
 
     // Summary
     summaryBar: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: 15,
       paddingBottom: 10,
     },
-    summaryText: {
-      color: COLORS.MUTED,
-      fontSize: 13,
-      fontWeight: "600",
+    summaryText: { color: COLORS.MUTED, fontSize: 13, fontWeight: "600" },
+
+    // FAB
+    fab: {
+      backgroundColor: COLORS.PRIMARY,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
     },
+    fabText: { color: COLORS.WHITE, fontSize: 13, fontWeight: "700" },
 
     // Device Card
-    listContainer: {
-      paddingHorizontal: 15,
-      paddingBottom: 20,
-    },
+    listContainer: { paddingHorizontal: 15, paddingBottom: 20 },
     deviceCard: {
       flexDirection: "row",
       backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
@@ -181,16 +197,10 @@ const makeStyles = (COLORS) =>
       shadowOpacity: 0.1,
       shadowRadius: 2,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.18) || COLORS.BORDER,
     },
-    statusBar: {
-      width: 4,
-    },
-    deviceContent: {
-      flex: 1,
-      padding: 15,
-    },
+    statusBar: { width: 4 },
+    deviceContent: { flex: 1, padding: 15 },
     deviceHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -218,11 +228,7 @@ const makeStyles = (COLORS) =>
       borderRadius: 10,
       marginLeft: 8,
     },
-    onlineText: {
-      color: COLORS.WHITE,
-      fontSize: 9,
-      fontWeight: "800",
-    },
+    onlineText: { color: COLORS.WHITE, fontSize: 9, fontWeight: "800" },
     firmwareVersion: {
       fontSize: 11,
       color: COLORS.MUTED,
@@ -231,12 +237,9 @@ const makeStyles = (COLORS) =>
       paddingVertical: 4,
       borderRadius: 6,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.14) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.14) || COLORS.BORDER,
     },
-    deviceInfo: {
-      marginTop: 4,
-    },
+    deviceInfo: { marginTop: 4 },
     infoRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -257,10 +260,7 @@ const makeStyles = (COLORS) =>
     },
 
     // Empty
-    emptyState: {
-      alignItems: "center",
-      padding: 50,
-    },
+    emptyState: { alignItems: "center", padding: 50 },
     emptyTitle: {
       fontSize: 18,
       fontWeight: "bold",
@@ -268,10 +268,144 @@ const makeStyles = (COLORS) =>
       marginTop: 15,
       marginBottom: 8,
     },
-    emptyText: {
+    emptyText: { color: COLORS.MUTED, textAlign: "center", fontWeight: "500" },
+
+    // ============ MODAL ============
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContainer: {
+      width: "92%",
+      maxHeight: "88%",
+      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      borderRadius: 16,
+      overflow: "hidden",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.BORDER,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    modalBody: { padding: 20 },
+    modalSection: { marginBottom: 20 },
+    modalSectionTitle: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: COLORS.PRIMARY,
+      marginBottom: 12,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    formGroup: { marginBottom: 14 },
+    formLabel: {
+      fontSize: 12,
+      fontWeight: "700",
       color: COLORS.MUTED,
-      textAlign: "center",
-      fontWeight: "500",
+      marginBottom: 6,
+      textTransform: "uppercase",
+      letterSpacing: 0.3,
+    },
+    formInput: {
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
+    },
+    formInputFocused: {
+      borderColor: COLORS.PRIMARY,
+    },
+    formHint: { fontSize: 11, color: COLORS.MUTED, marginTop: 4 },
+    formRow: { flexDirection: "row", gap: 12 },
+    formRowItem: { flex: 1 },
+
+    // Selector
+    selectorRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    selectorItem: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+    },
+    selectorItemActive: {
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.15) || COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    selectorText: { fontSize: 12, fontWeight: "600", color: COLORS.MUTED },
+    selectorTextActive: { color: COLORS.PRIMARY },
+
+    // Modal Footer
+    modalFooter: {
+      flexDirection: "row",
+      gap: 12,
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.BORDER,
+    },
+    btnCancel: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+    },
+    btnCancelText: { fontSize: 15, fontWeight: "600", color: COLORS.MUTED },
+    btnRegister: {
+      flex: 2,
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      backgroundColor: COLORS.PRIMARY,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 8,
+    },
+    btnRegisterDisabled: { opacity: 0.5 },
+    btnRegisterText: { fontSize: 15, fontWeight: "700", color: COLORS.WHITE },
+
+    // Result card
+    resultCard: {
+      backgroundColor: withAlpha(COLORS.SUCCESS, 0.1) || COLORS.SUCCESS,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: withAlpha(COLORS.SUCCESS, 0.3) || COLORS.SUCCESS,
+    },
+    resultTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: COLORS.SUCCESS,
+      marginBottom: 12,
+    },
+    resultRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 4,
+    },
+    resultLabel: { fontSize: 12, color: COLORS.MUTED, fontWeight: "600" },
+    resultValue: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: COLORS.TEXT ?? COLORS.DEFAULT,
     },
   });
 
@@ -287,6 +421,21 @@ const DevicesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
 
+  // Register Modal
+  const [registerVisible, setRegisterVisible] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [registerResult, setRegisterResult] = useState(null);
+  const [form, setForm] = useState({
+    device_code: "",
+    mac_address: "",
+    esp_chip_id: "",
+    chip_model: "ESP32-S3-N16R8",
+    hardware_version: "v2.0",
+    firmware_version: "v4.4.1",
+    owner_type: "platform",
+    notes: "",
+  });
+
   const STATUS_COLORS = useMemo(
     () => ({
       online: COLORS.SUCCESS,
@@ -299,10 +448,9 @@ const DevicesScreen = ({ navigation }) => {
     [COLORS]
   );
 
+  // ============ FETCH DEVICES ============
   const fetchDevices = async () => {
     try {
-      console.log("🔑 Token exists:", !!token);
-
       if (!token) {
         Alert.alert("Hata", "Oturum süresi dolmuş. Lütfen tekrar giriş yapın.");
         setLoading(false);
@@ -310,8 +458,6 @@ const DevicesScreen = ({ navigation }) => {
       }
 
       const params = filter !== "all" ? `?status=${filter}` : "";
-      console.log("📡 Fetching:", `${API_URL}/api/superadmin/devices${params}`);
-
       const response = await fetch(
         `${API_URL}/api/superadmin/devices${params}`,
         {
@@ -322,20 +468,16 @@ const DevicesScreen = ({ navigation }) => {
         }
       );
 
-      console.log("📦 Response status:", response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Devices loaded:", data.devices?.length || 0);
         setDevices(data.devices || []);
         setStats(data.stats || {});
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error("❌ API Error:", response.status, errorData);
         Alert.alert("Hata", errorData.error || "Cihazlar yüklenemedi");
       }
     } catch (error) {
-      console.error("❌ Fetch devices error:", error);
+      console.error("Fetch devices error:", error);
       Alert.alert("Hata", "Bağlantı hatası");
     } finally {
       setLoading(false);
@@ -345,16 +487,88 @@ const DevicesScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchDevices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchDevices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
-  // Filtrelenmiş cihazlar
+  // ============ REGISTER DEVICE ============
+  const handleRegister = async () => {
+    // Validation
+    if (!form.device_code.trim()) {
+      return Alert.alert("Hata", "Device Code zorunlu");
+    }
+    if (!form.mac_address || form.mac_address.length < 17) {
+      return Alert.alert(
+        "Hata",
+        "Geçerli MAC adresi girin (XX:XX:XX:XX:XX:XX)"
+      );
+    }
+    if (!form.esp_chip_id.trim()) {
+      return Alert.alert("Hata", "ESP Chip ID zorunlu");
+    }
+
+    setRegistering(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/api/superadmin/devices/register`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...form,
+            device_code: form.device_code.trim(),
+            mac_address: form.mac_address.toUpperCase(),
+            esp_chip_id: form.esp_chip_id.trim().toUpperCase(),
+            notes: form.notes.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setRegisterResult(data);
+        fetchDevices(); // Refresh list
+      } else {
+        Alert.alert(
+          "Kayıt Hatası",
+          data.details || data.error || "Cihaz kaydedilemedi"
+        );
+      }
+    } catch (error) {
+      console.error("Register device error:", error);
+      Alert.alert("Hata", "Bağlantı hatası");
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  const resetRegisterForm = () => {
+    setForm({
+      device_code: "",
+      mac_address: "",
+      esp_chip_id: "",
+      chip_model: "ESP32-S3-N16R8",
+      hardware_version: "v2.0",
+      firmware_version: "v4.4.1",
+      owner_type: "platform",
+      notes: "",
+    });
+    setRegisterResult(null);
+    setRegisterVisible(false);
+  };
+
+  const updateForm = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // ============ FILTERED DEVICES ============
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
       if (!searchQuery) return true;
@@ -368,14 +582,12 @@ const DevicesScreen = ({ navigation }) => {
     });
   }, [devices, searchQuery]);
 
-  // Durum rengi (token tabanlı)
   const getStatusColor = (status, isOnline) => {
     if (isOnline) return STATUS_COLORS.online;
     if (status && STATUS_COLORS[status]) return STATUS_COLORS[status];
     return STATUS_COLORS.default;
   };
 
-  // Zaman farkı
   const getTimeDifference = (dateStr) => {
     if (!dateStr) return "Hiç görülmedi";
     const date = new Date(dateStr);
@@ -387,7 +599,7 @@ const DevicesScreen = ({ navigation }) => {
     return `${Math.floor(diff / 86400)} gün önce`;
   };
 
-  // İstatistik kartı
+  // ============ STAT CARD ============
   const StatCard = ({ title, value, color, filterKey }) => (
     <TouchableOpacity
       style={[styles.statCard, filter === filterKey && styles.statCardActive]}
@@ -399,7 +611,7 @@ const DevicesScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  // Cihaz kartı
+  // ============ DEVICE CARD ============
   const renderDeviceItem = ({ item }) => {
     const statusColor = getStatusColor(item.status, item.is_online);
 
@@ -409,37 +621,30 @@ const DevicesScreen = ({ navigation }) => {
         onPress={() => navigation.navigate("DeviceDetail", { device: item })}
         activeOpacity={0.85}
       >
-        {/* Sol renk çubuğu */}
         <View style={[styles.statusBar, { backgroundColor: statusColor }]} />
-
         <View style={styles.deviceContent}>
-          {/* Header */}
           <View style={styles.deviceHeader}>
             <View style={styles.deviceCodeContainer}>
               <Ionicons name="hardware-chip" size={20} color={statusColor} />
               <Text style={styles.deviceCode} numberOfLines={1}>
                 {item.device_code}
               </Text>
-
               {item.is_online && (
                 <View style={styles.onlineBadge}>
                   <Text style={styles.onlineText}>ONLINE</Text>
                 </View>
               )}
             </View>
-
             <Text style={styles.firmwareVersion}>
               v{item.firmware_version || "?"}
             </Text>
           </View>
 
-          {/* Info */}
           <View style={styles.deviceInfo}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>MAC:</Text>
               <Text style={styles.infoValue}>{item.mac_address || "-"}</Text>
             </View>
-
             {item.company_name ? (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Şirket:</Text>
@@ -467,7 +672,6 @@ const DevicesScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
-
             {item.vehicle_plate && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Araç:</Text>
@@ -476,7 +680,6 @@ const DevicesScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
-
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Son görülme:</Text>
               <Text style={styles.infoValue}>
@@ -489,6 +692,33 @@ const DevicesScreen = ({ navigation }) => {
     );
   };
 
+  // ============ SELECTOR COMPONENT ============
+  const Selector = ({ options, value, onChange }) => (
+    <View style={styles.selectorRow}>
+      {options.map((opt) => (
+        <TouchableOpacity
+          key={opt.value}
+          style={[
+            styles.selectorItem,
+            value === opt.value && styles.selectorItemActive,
+          ]}
+          onPress={() => onChange(opt.value)}
+          activeOpacity={0.85}
+        >
+          <Text
+            style={[
+              styles.selectorText,
+              value === opt.value && styles.selectorTextActive,
+            ]}
+          >
+            {opt.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  // ============ LOADING ============
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -548,7 +778,7 @@ const DevicesScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Filtre butonları */}
+      {/* Filtre */}
       <View style={styles.filterContainer}>
         {[
           { key: "all", label: "Tümü" },
@@ -578,11 +808,19 @@ const DevicesScreen = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Özet */}
+      {/* Özet + Kayıt Butonu */}
       <View style={styles.summaryBar}>
         <Text style={styles.summaryText}>
           {filteredDevices.length} cihaz {filter !== "all" && `(${filter})`}
         </Text>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setRegisterVisible(true)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add-circle" size={18} color={COLORS.WHITE} />
+          <Text style={styles.fabText}>Yeni Cihaz</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Cihaz Listesi */}
@@ -612,12 +850,274 @@ const DevicesScreen = ({ navigation }) => {
                 ? "Arama kriterlerine uygun cihaz yok"
                 : filter !== "all"
                   ? `${filter} durumunda cihaz yok`
-                  : "ESP32 cihazlar otomatik olarak kaydedilir"}
+                  : "Henüz cihaz kaydedilmemiş"}
             </Text>
           </View>
         }
         showsVerticalScrollIndicator={false}
       />
+
+      {/* ============ REGISTER MODAL ============ */}
+      <Modal
+        visible={registerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={resetRegisterForm}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.modalContainer}
+          >
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {registerResult ? "✅ Kayıt Başarılı" : "📟 Yeni Cihaz Kayıt"}
+              </Text>
+              <TouchableOpacity
+                onPress={resetRegisterForm}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="close" size={24} color={COLORS.MUTED} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+            >
+              {registerResult ? (
+                /* ===== RESULT VIEW ===== */
+                <View>
+                  <View style={styles.resultCard}>
+                    <Text style={styles.resultTitle}>Cihaz Kaydedildi!</Text>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>Device Code</Text>
+                      <Text style={styles.resultValue}>
+                        {registerResult.device?.device_code}
+                      </Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>Serial</Text>
+                      <Text style={styles.resultValue}>
+                        {registerResult.device?.serial}
+                      </Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>MAC</Text>
+                      <Text style={styles.resultValue}>
+                        {registerResult.device?.mac_address}
+                      </Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>Chip ID</Text>
+                      <Text style={styles.resultValue}>
+                        {registerResult.device?.esp_chip_id}
+                      </Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>Device Token</Text>
+                      <Text
+                        style={[styles.resultValue, { fontSize: 10 }]}
+                        selectable
+                      >
+                        {registerResult.device_token}
+                      </Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Text style={styles.resultLabel}>QR Token</Text>
+                      <Text
+                        style={[styles.resultValue, { fontSize: 10 }]}
+                        selectable
+                      >
+                        {registerResult.qr_token}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.formHint,
+                      { textAlign: "center", marginBottom: 20 },
+                    ]}
+                  >
+                    Serial ve Device Token bilgilerini not edin.{"\n"}
+                    ESP32 provisioning sırasında otomatik kullanılacak.
+                  </Text>
+                </View>
+              ) : (
+                /* ===== FORM VIEW ===== */
+                <View>
+                  {/* Cihaz Kimlik */}
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Cihaz Kimlik</Text>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>Device Code *</Text>
+                      <TextInput
+                        style={styles.formInput}
+                        placeholder="FLEET-009"
+                        value={form.device_code}
+                        onChangeText={(t) => updateForm("device_code", t)}
+                        placeholderTextColor={COLORS.MUTED}
+                        autoCapitalize="characters"
+                      />
+                      <Text style={styles.formHint}>Kısa tanımlayıcı kod</Text>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>MAC Address *</Text>
+                      <TextInput
+                        style={styles.formInput}
+                        placeholder="AA:BB:CC:DD:EE:FF"
+                        value={form.mac_address}
+                        onChangeText={(t) =>
+                          updateForm("mac_address", formatMacAddress(t))
+                        }
+                        placeholderTextColor={COLORS.MUTED}
+                        maxLength={17}
+                        autoCapitalize="characters"
+                      />
+                      <Text style={styles.formHint}>
+                        ESP32 Serial Monitor'dan
+                      </Text>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>ESP Chip ID *</Text>
+                      <TextInput
+                        style={styles.formInput}
+                        placeholder="83E8B0AF6E8"
+                        value={form.esp_chip_id}
+                        onChangeText={(t) =>
+                          updateForm("esp_chip_id", t.toUpperCase())
+                        }
+                        placeholderTextColor={COLORS.MUTED}
+                        autoCapitalize="characters"
+                      />
+                      <Text style={styles.formHint}>
+                        ESP32 Serial Monitor'dan
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Donanım */}
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Donanım</Text>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>Chip Model</Text>
+                      <Selector
+                        options={CHIP_MODELS}
+                        value={form.chip_model}
+                        onChange={(v) => updateForm("chip_model", v)}
+                      />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>Hardware Version</Text>
+                      <Selector
+                        options={HW_VERSIONS}
+                        value={form.hardware_version}
+                        onChange={(v) => updateForm("hardware_version", v)}
+                      />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>Firmware</Text>
+                      <Selector
+                        options={FW_VERSIONS}
+                        value={form.firmware_version}
+                        onChange={(v) => updateForm("firmware_version", v)}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Notlar */}
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Ek Bilgi</Text>
+                    <View style={styles.formGroup}>
+                      <Text style={styles.formLabel}>Notlar</Text>
+                      <TextInput
+                        style={[
+                          styles.formInput,
+                          { minHeight: 60, textAlignVertical: "top" },
+                        ]}
+                        placeholder="3D baskı kasa v2, harici GPS anten..."
+                        value={form.notes}
+                        onChangeText={(t) => updateForm("notes", t)}
+                        placeholderTextColor={COLORS.MUTED}
+                        multiline
+                      />
+                    </View>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Footer */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.btnCancel}
+                onPress={resetRegisterForm}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.btnCancelText}>
+                  {registerResult ? "Kapat" : "İptal"}
+                </Text>
+              </TouchableOpacity>
+
+              {!registerResult && (
+                <TouchableOpacity
+                  style={[
+                    styles.btnRegister,
+                    registering && styles.btnRegisterDisabled,
+                  ]}
+                  onPress={handleRegister}
+                  disabled={registering}
+                  activeOpacity={0.85}
+                >
+                  {registering ? (
+                    <ActivityIndicator size="small" color={COLORS.WHITE} />
+                  ) : (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={COLORS.WHITE}
+                    />
+                  )}
+                  <Text style={styles.btnRegisterText}>
+                    {registering ? "Kaydediliyor..." : "Cihazı Kaydet"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {registerResult && (
+                <TouchableOpacity
+                  style={styles.btnRegister}
+                  onPress={() => {
+                    setRegisterResult(null);
+                    setForm({
+                      device_code: "",
+                      mac_address: "",
+                      esp_chip_id: "",
+                      chip_model: "ESP32-S3-N16R8",
+                      hardware_version: "v2.0",
+                      firmware_version: "v4.4.1",
+                      owner_type: "platform",
+                      notes: "",
+                    });
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
+                  <Text style={styles.btnRegisterText}>Başka Cihaz Ekle</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 };

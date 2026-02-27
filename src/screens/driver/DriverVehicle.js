@@ -1,26 +1,51 @@
-// src/screens/driver/DriverVehicle.js
-// TulipFleet - Sürücü Aracım Ekranı
-// Updated: 22 Ocak 2026 - Dark Mode Migration
+// src/screens/driver/DriverDashboard.js
+// TulipFleet - Driver Dashboard with REAL DATA
+// Updated: 11 Şubat 2026 - Card component migration
 
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { driverAPI, fuelAPI } from "../../services/api";
+import { LANGUAGES } from "../../locales/i18n";
+import { driverAPI, driverProvisionAPI } from "../../services/api";
 
-// ❌ KALDIRILDI: Local COLORS objesi
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
 
-// Yakıt tipi çevirileri
+// YakÄ±t tipi Ã§evirisi
 const FUEL_TYPE_LABELS = {
   diesel: {
     tr: "Dizel",
@@ -60,296 +85,522 @@ const FUEL_TYPE_LABELS = {
   },
 };
 
-// ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
-// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
+    // Safety Score Card
+    safetyScoreContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+    },
+    safetyScoreCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.BACKGROUND,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.md,
+    },
+    safetyScoreNumber: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    safetyScoreMax: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: -2,
+    },
+    safetyScoreBar: {
+      flex: 1,
+    },
+    safetyBarTrack: {
+      height: 8,
+      backgroundColor: COLORS.BORDER,
+      borderRadius: COLORS.RADIUS.xs,
+      overflow: "hidden",
+    },
+    safetyBarFill: {
+      height: 8,
+      borderRadius: COLORS.RADIUS.xs,
+    },
+    safetyScoreLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 6,
+    },
+    // Quick Access Card
+    quickAccessGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginTop: COLORS.SPACING.sm, // 8
+    },
+
+    quickAccessItem: {
+      width: "48%", // 47 yerine 48 (space-between ile daha stabil)
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      padding: COLORS.SPACING.md, // 16
+      borderRadius: COLORS.RADIUS.card, // 12
+      marginBottom: COLORS.SPACING.sm, // 8 (row spacing)
+    },
+    quickAccessIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: COLORS.RADIUS.xxl,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    quickAccessText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      textAlign: "center",
+    },
     container: {
       flex: 1,
       backgroundColor: COLORS.BACKGROUND,
     },
-    centerContainer: {
+    loadingContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
-      padding: 20,
-    },
-    vehicleCard: {
-      alignItems: "center",
-      paddingVertical: 30,
-      paddingHorizontal: 20,
-      backgroundColor: COLORS.PRIMARY,
-    },
-    vehicleIconContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: COLORS.WHITE,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    plateNumber: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: COLORS.WHITE,
-      letterSpacing: 2,
-    },
-    vehicleModel: {
-      fontSize: 18,
-      color: "rgba(255,255,255,0.9)",
-      marginTop: 8,
-    },
-    vehicleYear: {
-      fontSize: 14,
-      color: "rgba(255,255,255,0.7)",
-      marginTop: 4,
-    },
-    connectionStatus: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 16,
-      backgroundColor: "rgba(255,255,255,0.2)",
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-    },
-    connectionText: {
-      fontSize: 12,
-      fontWeight: "600",
-      marginLeft: 6,
-    },
-    // Fuel Card
-    fuelCard: {
-      backgroundColor: COLORS.CARD,
-      margin: 12,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    fuelHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    fuelTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: COLORS.TEXT,
-      marginLeft: 8,
-      flex: 1,
-    },
-    fuelType: {
-      fontSize: 12,
-      color: COLORS.TEXT_SECONDARY,
-      backgroundColor: COLORS.BACKGROUND,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
-    },
-    fuelBarContainer: {
-      height: 12,
-      backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 6,
-      overflow: "hidden",
-    },
-    fuelBar: {
-      height: "100%",
-      borderRadius: 6,
-    },
-    fuelValues: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginTop: 12,
-    },
-    fuelPercentage: {
-      fontSize: 20,
-      fontWeight: "bold",
-    },
-    fuelPercentText: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-      fontWeight: "600",
-    },
-    // Info Grid
-    infoGrid: {
-      flexDirection: "row",
-      paddingHorizontal: 12,
-      marginBottom: 12,
-    },
-    infoCard: {
-      flex: 1,
-      backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      padding: 16,
-      marginHorizontal: 4,
-      alignItems: "center",
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    infoIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    infoTitle: {
-      fontSize: 12,
-      color: COLORS.TEXT_SECONDARY,
-      marginBottom: 4,
-    },
-    infoValueRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    infoValue: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.TEXT,
-    },
-    infoSubtitle: {
-      fontSize: 11,
-      color: COLORS.MUTED,
-      marginTop: 2,
-    },
-    // Details Card
-    detailsCard: {
-      backgroundColor: COLORS.CARD,
-      marginHorizontal: 12,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    detailsTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: COLORS.TEXT,
-      marginBottom: 16,
-    },
-    detailRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    detailLabel: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-    },
-    detailValue: {
-      fontSize: 14,
-      fontWeight: "500",
-      color: COLORS.TEXT,
-    },
-    statusBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-    },
-    statusText: {
-      color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "600",
-    },
-    // Empty/Error States
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.TEXT,
-      marginTop: 16,
-    },
-    emptySubtitle: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-      textAlign: "center",
-      marginTop: 8,
-      paddingHorizontal: 40,
-    },
-    errorTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.ERROR,
-      marginTop: 16,
-    },
-    errorText: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 8,
-    },
-    retryButton: {
-      marginTop: 20,
-      backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 8,
-    },
-    retryButtonText: {
-      color: COLORS.WHITE,
-      fontWeight: "600",
     },
     loadingText: {
-      marginTop: 12,
+      marginTop: 10,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
+    },
+    header: {
+      backgroundColor: COLORS.PRIMARY,
+      paddingTop: 60,
+      paddingBottom: COLORS.SPACING.lg, // 24
+      paddingHorizontal: COLORS.SPACING.headerPadding, // 24 (8px grid)
+      borderBottomLeftRadius: COLORS.RADIUS.xxl, // 24
+      borderBottomRightRadius: COLORS.RADIUS.xxl,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    greetingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    greetingEmoji: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      marginRight: COLORS.SPACING.sm,
+    },
+    greeting: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.WHITE_80,
+    },
+    userName: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    headerButtons: {
+      flexDirection: "row",
+      // gap removed - use marginRight on children
+    },
+    headerButton: {
+      backgroundColor: COLORS.WHITE_20,
+      padding: 10,
+      borderRadius: COLORS.RADIUS.md,
+    },
+    langFlag: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+    },
+    errorCard: {
+      backgroundColor: COLORS.INPUT_ERROR,
+      margin: 16,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      borderLeftWidth: 4,
+      borderLeftColor: COLORS.ERROR,
+    },
+    errorText: {
+      color: COLORS.ERROR,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    offersCard: {
+      backgroundColor: COLORS.SUCCESS,
+      margin: 16,
+      marginBottom: 0,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
+    },
+    offersContent: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    offersIcon: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      marginRight: COLORS.SPACING.sm,
+    },
+    offersText: {
+      flex: 1,
+    },
+    offersTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    offersSubtitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.WHITE_80 || withAlpha(COLORS.WHITE, 0.8),
+      marginTop: 2,
+    },
+    // card: KALDIRILDI - Card component kullanılıyor
+    // Eski stil referans için:
+    // backgroundColor: COLORS.CARD, margin: 16, padding: COLORS.SPACING.md,
+    // borderRadius: COLORS.RADIUS.md, elevation: 3
+    cardTitleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.md,
+    },
+    cardTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    noDataText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      paddingVertical: 20,
+    },
+    vehicleInfo: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    vehiclePlate: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+    },
+    vehicleModel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+    },
+    fuelEntryHint: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: COLORS.RADIUS.sm,
+      // gap removed - use marginRight on children
+    },
+    fuelEntryHintText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    vehicleDetailsRow: {
+      flexDirection: "row",
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+    },
+    vehicleDetailItem: {
+      flex: 1,
+      alignItems: "center",
+    },
+    vehicleDetailLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+    },
+    vehicleDetailValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginTop: 2,
+    },
+    vehicleDetailDivider: {
+      width: 1,
+      backgroundColor: COLORS.BORDER,
+      marginHorizontal: COLORS.SPACING.sm,
+    },
+    taskCard: {
+      backgroundColor: COLORS.BACKGROUND,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    taskHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    taskTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: COLORS.SPACING.xs,
+      paddingVertical: 4,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    statusText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.WHITE,
+    },
+    taskDescription: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.xs,
+    },
+    taskTime: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    seeAllText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    statsRow: {
+      flexDirection: "row",
+      marginTop: COLORS.SPACING.sm,
+    },
+    statItemLarge: {
+      flex: 1,
+      alignItems: "center",
+    },
+    statNumberLarge: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+    },
+    statTextLarge: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+    },
+    statDivider: {
+      width: 1,
+      backgroundColor: COLORS.BORDER,
+      marginHorizontal: COLORS.SPACING.md,
+    },
+    langModalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    langModalContent: {
+      backgroundColor: COLORS.CARD,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingTop: 16,
+      paddingBottom: 32,
+      maxHeight: "70%",
+    },
+    langModalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      paddingHorizontal: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.md,
+    },
+    langItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: COLORS.SPACING.lg,
+    },
+    langItemActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    langItemFlag: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      marginRight: COLORS.SPACING.sm,
+    },
+    langItemName: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    langItemNameActive: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    langCloseBtn: {
+      marginHorizontal: 20,
+      marginTop: COLORS.SPACING.md,
+      paddingVertical: 14,
+      backgroundColor: COLORS.BORDER,
+      borderRadius: COLORS.RADIUS.md,
+      alignItems: "center",
+    },
+    langCloseBtnText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+    },
+    // FAB + MODAL STYLES
+    fab: {
+      position: "absolute",
+      bottom: COLORS.SPACING.lg, // 24
+      right: COLORS.SPACING.lg, // 24
+      width: 60,
+      height: 60,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.WARNING, // Theme token
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+      ...COLORS.SHADOWS.card,
+    },
+    fabIcon: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: COLORS.CARD,
+      borderRadius: COLORS.RADIUS.modal, // 16
+      padding: COLORS.SPACING.lg, // 24
+      width: "85%",
+      maxWidth: 400,
+    },
+    modalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    modalSubtitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: 20,
+    },
+    modalInput: {
+      backgroundColor: COLORS.BACKGROUND,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
+      marginBottom: 20,
+    },
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+    },
+    modalButtonCancel: {
+      backgroundColor: COLORS.BORDER,
+      marginRight: COLORS.SPACING.sm,
+    },
+    modalButtonSubmit: {
+      backgroundColor: COLORS.WARNING, // Theme token (FAB ile aynı)
+      marginLeft: COLORS.SPACING.sm,
+    },
+    modalButtonTextCancel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+    },
+    modalButtonTextSubmit: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.WHITE, // Theme token
     },
   });
 
-// ============================================
-// COMPONENT
-// ============================================
-const DriverVehicle = ({ navigation }) => {
-  const { t, i18n } = useTranslation();
-  const styles = useThemedStyles(makeStyles);
+// Safety score renk hesaplama (COLORS parametresi alır)
+const getSafetyColor = (score, COLORS) => {
+  const s = score || 5.0;
+  if (s >= 4.0) return COLORS.SUCCESS;
+  if (s >= 3.0) return COLORS.WARNING;
+  if (s >= 2.0) return COLORS.WARNING; // turuncu yerine warning
+  return COLORS.ERROR;
+};
+
+// Safety score etiket
+const getSafetyLabel = (score, t) => {
+  const s = score || 5.0;
+  if (s >= 4.5) return t("dashboard.safetyExcellent");
+  if (s >= 4.0) return t("dashboard.safetyGood");
+  if (s >= 3.0) return t("dashboard.safetyAverage");
+  if (s >= 2.0) return t("dashboard.safetyBelowAvg");
+  return t("dashboard.safetyPoor");
+};
+
+// KM formatla (1234.56 â†’ "1,235")
+const formatKm = (km) => {
+  if (!km || km === 0) return "0";
+  return Math.round(km).toLocaleString();
+};
+
+const DriverDashboard = () => {
+  const { user, logout } = useAuth();
+  const { i18n, t } = useTranslation();
+  const navigation = useNavigation();
   const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
-  const currentLang = i18n.language || "tr";
+  usePushNotifications();
 
-  const [vehicle, setVehicle] = useState(null);
-  const [lastFuelRecord, setLastFuelRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [vehicle, setVehicle] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState({});
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
-  const fetchVehicle = async () => {
+  // MODAL STATES
+  const [showSerialModal, setShowSerialModal] = useState(false);
+  const [serialInput, setSerialInput] = useState("");
+  const [validating, setValidating] = useState(false);
+
+  const currentLang =
+    LANGUAGES.find((lang) => lang.code === i18n.language) || LANGUAGES[0];
+
+  const getFuelTypeLabel = (fuelType) => {
+    if (!fuelType) return "N/A";
+    const labels = FUEL_TYPE_LABELS[fuelType.toLowerCase()];
+    return labels ? labels[i18n.language] || labels.en : fuelType;
+  };
+
+  const fetchDashboardData = async () => {
     try {
       setError(null);
-      console.log("🚗 Fetching driver vehicle...");
-      const data = await driverAPI.getVehicle();
-      console.log("✅ Driver vehicle loaded:", data);
-      const veh = data.vehicle || data;
-      setVehicle(veh);
+      const [vehicleRes, tasksRes, statsRes] = await Promise.all([
+        driverAPI.getMyVehicle(),
+        driverAPI.getMyTasks(),
+        driverAPI.getMyStats(),
+      ]);
 
-      // Son yakıt kaydını al (KM için)
-      if (veh?.id) {
-        try {
-          const fuelData = await fuelAPI.getLastRecord(veh.id);
-          if (fuelData?.record) {
-            setLastFuelRecord(fuelData.record);
-          }
-        } catch (fuelErr) {
-          console.log("No fuel record found");
-        }
-      }
+      setVehicle(vehicleRes.vehicle || null);
+      setTasks(tasksRes.tasks || []);
+      setStats(statsRes.stats || {});
     } catch (err) {
-      console.error("❌ Fetch vehicle error:", err);
-      setError(err.message || t("vehicle.couldNotLoad"));
+      console.error("[Dashboard] Fetch error:", err);
+      setError(t("common.error") + ": " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -357,91 +608,96 @@ const DriverVehicle = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchVehicle();
+    fetchDashboardData();
   }, []);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchVehicle();
-  }, []);
-
-  // Yakıt tipi label
-  const getFuelTypeLabel = (fuelType) => {
-    const labels = FUEL_TYPE_LABELS[fuelType];
-    if (labels) {
-      return labels[currentLang] || labels.en || fuelType;
-    }
-    return fuelType || "-";
-  };
-
-  const getFuelColor = (percent) => {
-    if (percent >= 50) return COLORS.SUCCESS;
-    if (percent >= 25) return COLORS.WARNING;
-    return COLORS.ERROR;
-  };
-
-  // Info Card Component
-  const InfoCard = ({ icon, iconColor, title, value, subtitle }) => (
-    <View style={styles.infoCard}>
-      <View style={[styles.infoIcon, { backgroundColor: `${iconColor}15` }]}>
-        <Ionicons name={icon} size={24} color={iconColor} />
-      </View>
-      <Text style={styles.infoTitle}>{title}</Text>
-      <View style={styles.infoValueRow}>
-        <Text style={styles.infoValue}>{value}</Text>
-      </View>
-      {subtitle && <Text style={styles.infoSubtitle}>{subtitle}</Text>}
-    </View>
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+    }, [])
   );
 
-  // Error state
-  if (error && !loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle" size={64} color={COLORS.ERROR} />
-        <Text style={styles.errorTitle}>{t("vehicle.errorOccurred")}</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchVehicle}>
-          <Text style={styles.retryButtonText}>{t("vehicle.retry")}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
 
-  // Loading state
+  const handleLogout = () => {
+    Alert.alert(t("auth.logoutConfirmTitle"), t("auth.logoutConfirmMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.confirm"), onPress: logout },
+    ]);
+  };
+
+  const changeLanguage = (code) => {
+    i18n.changeLanguage(code);
+    setLangModalVisible(false);
+  };
+
+  const handleVehiclePress = () => {
+    navigation.navigate("FuelEntry");
+  };
+
+  const handleTaskPress = (task) => {
+    navigation.navigate("MyTasks", {
+      screen: "DriverTaskDetailScreen",
+      params: { taskId: task.id },
+    });
+  };
+
+  // FAB HANDLER - MODAL
+  const handleAddDevice = () => {
+    setSerialInput("");
+    setShowSerialModal(true);
+  };
+
+  const handleSerialSubmit = async () => {
+    if (!serialInput || serialInput.trim().length === 0) {
+      Alert.alert(t("common.error"), t("dashboard.serialEmpty"));
+      return;
+    }
+
+    try {
+      setValidating(true);
+
+      const response = await driverProvisionAPI.validateSerial(
+        serialInput.trim()
+      );
+
+      if (response.valid) {
+        setShowSerialModal(false);
+        navigation.navigate("DeviceSetup", {
+          screen: "DeviceSetupMain",
+          params: {
+            serial: serialInput.trim(),
+            deviceInfo: response.device,
+          },
+        });
+      } else {
+        Alert.alert(
+          t("common.error"),
+          response.message || t("dashboard.deviceNotFound")
+        );
+      }
+    } catch (error) {
+      console.error("[Dashboard] Serial validation error:", error);
+      Alert.alert(
+        t("common.error"),
+        t("dashboard.deviceCheckFailed") + ": " + error.message
+      );
+    } finally {
+      setValidating(false);
+    }
+  };
+
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>{t("vehicle.loading")}</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
-
-  // No vehicle assigned
-  if (!vehicle) {
-    return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="car-outline" size={64} color={COLORS.MUTED} />
-        <Text style={styles.emptyTitle}>{t("vehicle.notAssigned")}</Text>
-        <Text style={styles.emptySubtitle}>
-          {t("vehicle.notAssignedMessage")}
-        </Text>
-      </View>
-    );
-  }
-
-  // Hesaplamalar
-  const fuelLevel = parseFloat(vehicle.current_fuel_level) || 0;
-  const fuelCapacity = parseFloat(vehicle.fuel_capacity) || 60;
-  const fuelPercent = Math.min(
-    100,
-    Math.max(0, (fuelLevel / fuelCapacity) * 100)
-  );
-  const fuelColor = getFuelColor(fuelPercent);
-
-  // KM: Önce fuel_records'dan son kayıt, yoksa vehicles.total_km
-  const currentKm = lastFuelRecord?.odometer_km || vehicle.total_km || 0;
 
   return (
     <ScrollView
@@ -454,140 +710,457 @@ const DriverVehicle = ({ navigation }) => {
           colors={[COLORS.PRIMARY]}
         />
       }
-      showsVerticalScrollIndicator={false}
     >
-      {/* Vehicle Card */}
-      <View style={styles.vehicleCard}>
-        <View style={styles.vehicleIconContainer}>
-          <Ionicons name="car-sport" size={48} color={COLORS.PRIMARY} />
-        </View>
-        <Text style={styles.plateNumber}>{vehicle.plate_no}</Text>
-        <Text style={styles.vehicleModel}>
-          {vehicle.brand} {vehicle.model}
-        </Text>
-        <Text style={styles.vehicleYear}>{vehicle.year}</Text>
-        <View style={styles.connectionStatus}>
+      {/* Header with Greeting + Language + Logout */}
+      <View style={styles.header}>
+        <View style={styles.greetingContainer}>
           <Ionicons
-            name={vehicle.esp32Status?.connected ? "wifi" : "wifi-outline"}
-            size={16}
-            color={
-              vehicle.esp32Status?.connected ? COLORS.SUCCESS : COLORS.MUTED
-            }
+            name="hand-left-outline"
+            size={28}
+            color={COLORS.WHITE}
+            style={{ marginRight: 12 }}
           />
-          <Text
-            style={[
-              styles.connectionText,
-              {
-                color: vehicle.esp32Status?.connected
-                  ? COLORS.SUCCESS
-                  : COLORS.WHITE,
-              },
-            ]}
-          >
-            {vehicle.esp32Status?.connected
-              ? t("vehicle.connected")
-              : t("vehicle.noConnection")}
-          </Text>
-        </View>
-      </View>
-
-      {/* Fuel Card */}
-      <View style={styles.fuelCard}>
-        <View style={styles.fuelHeader}>
-          <Ionicons name="water" size={24} color={fuelColor} />
-          <Text style={styles.fuelTitle}>{t("vehicle.fuelLevel")}</Text>
-          <Text style={styles.fuelType}>
-            {getFuelTypeLabel(vehicle.fuel_type)}
-          </Text>
-        </View>
-        <View style={styles.fuelBarContainer}>
-          <View
-            style={[
-              styles.fuelBar,
-              {
-                width: `${Math.round(fuelPercent)}%`,
-                backgroundColor: fuelColor,
-              },
-            ]}
-          />
-        </View>
-        <View style={styles.fuelValues}>
-          <Text style={[styles.fuelPercentage, { color: fuelColor }]}>
-            {Math.round(fuelLevel)} / {Math.round(fuelCapacity)} L
-          </Text>
-          <Text style={styles.fuelPercentText}>%{Math.round(fuelPercent)}</Text>
-        </View>
-      </View>
-
-      {/* Info Cards Row */}
-      <View style={styles.infoGrid}>
-        <InfoCard
-          icon="speedometer"
-          iconColor={COLORS.INFO}
-          title={t("vehicle.mileage")}
-          value={Number(currentKm).toLocaleString("tr-TR")}
-          subtitle="km"
-        />
-        <InfoCard
-          icon="calendar"
-          iconColor={COLORS.PRIMARY}
-          title={t("vehicle.modelYear")}
-          value={vehicle.year || "-"}
-        />
-      </View>
-
-      {/* Details Card */}
-      <View style={styles.detailsCard}>
-        <Text style={styles.detailsTitle}>{t("vehicle.vehicleDetails")}</Text>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.plate")}</Text>
-          <Text style={styles.detailValue}>{vehicle.plate_no}</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.brand")}</Text>
-          <Text style={styles.detailValue}>{vehicle.brand || "-"}</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.model")}</Text>
-          <Text style={styles.detailValue}>{vehicle.model || "-"}</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.fuelType")}</Text>
-          <Text style={styles.detailValue}>
-            {getFuelTypeLabel(vehicle.fuel_type)}
-          </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.status")}</Text>
-          <View
-            style={[styles.statusBadge, { backgroundColor: COLORS.SUCCESS }]}
-          >
-            <Text style={styles.statusText}>
-              {t(`vehicle.statuses.${vehicle.status}`) ||
-                vehicle.status ||
-                t("vehicle.active")}
+          <View>
+            <Text style={styles.greeting}>{t("dashboard.hello")}</Text>
+            <Text style={styles.userName}>
+              {user?.first_name ||
+                user?.email?.split("@")[0] ||
+                t("roles.driver")}
             </Text>
           </View>
         </View>
-
-        {vehicle.esp32_device_id && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>{t("vehicle.esp32")}</Text>
-            <Text style={styles.detailValue}>{vehicle.esp32_device_id}</Text>
-          </View>
-        )}
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setLangModalVisible(true)}
+          >
+            <Text style={styles.langFlag}>{currentLang.flag}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={COLORS.WHITE} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={{ height: 30 }} />
+      {/* Error Message */}
+      {error && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>âš ï¸ {error}</Text>
+        </View>
+      )}
+
+      {/* Task Offers Card */}
+      <TouchableOpacity
+        style={styles.offersCard}
+        onPress={() =>
+          navigation.navigate("MyTasks", { screen: "DriverTasksScreen" })
+        }
+      >
+        <View style={styles.offersContent}>
+          <Ionicons
+            name="mail-unread-outline"
+            size={28}
+            color={COLORS.WHITE}
+            style={{ marginRight: 12 }}
+          />
+          <View style={styles.offersText}>
+            <Text style={styles.offersTitle}>{t("dashboard.taskOffers")}</Text>
+            <Text style={styles.offersSubtitle}>
+              {t("dashboard.viewPendingOffers")}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={COLORS.WHITE} />
+        </View>
+      </TouchableOpacity>
+
+      {/* Vehicle Card */}
+      {vehicle ? (
+        <TouchableOpacity onPress={handleVehiclePress} activeOpacity={0.8}>
+          <Card>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>{t("dashboard.myVehicle")}</Text>
+
+              <View style={styles.fuelEntryHint}>
+                <Ionicons
+                  name="flame-outline"
+                  size={16}
+                  color={COLORS.PRIMARY}
+                />
+                <Text style={styles.fuelEntryHintText}>
+                  {t("dashboard.fuelEntry", "Yakıt Girişi")}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={COLORS.PRIMARY}
+                />
+              </View>
+            </View>
+
+            <View style={styles.vehicleInfo}>
+              <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
+              <Text style={styles.vehicleModel}>
+                {vehicle.brand} {vehicle.model}
+              </Text>
+            </View>
+
+            <View style={styles.vehicleDetailsRow}>
+              <View style={styles.vehicleDetailItem}>
+                <Ionicons name="water-outline" size={20} color={COLORS.INFO} />
+                <Text style={styles.vehicleDetailLabel}>
+                  {t("fuel.fuelType", "Yakıt")}
+                </Text>
+                <Text style={styles.vehicleDetailValue}>
+                  {getFuelTypeLabel(vehicle.fuel_type)}
+                </Text>
+              </View>
+
+              <View style={styles.vehicleDetailDivider} />
+
+              <View style={styles.vehicleDetailItem}>
+                <Ionicons
+                  name="cube-outline"
+                  size={20}
+                  color={COLORS.SUCCESS}
+                />
+                <Text style={styles.vehicleDetailLabel}>
+                  {t("fuel.tankCapacity", "Depo")}
+                </Text>
+                <Text style={styles.vehicleDetailValue}>
+                  {vehicle.fuel_capacity || 60}L
+                </Text>
+              </View>
+            </View>
+          </Card>
+        </TouchableOpacity>
+      ) : (
+        <Card>
+          <Text style={styles.cardTitle}>{t("dashboard.myVehicle")}</Text>
+          <Text style={styles.noDataText}>
+            {t("dashboard.noVehicleAssigned")}
+          </Text>
+        </Card>
+      )}
+
+      {/* Active Tasks Card */}
+      <Card>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>{t("dashboard.activeTasks")}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("MyTasks")}>
+            <Text style={styles.seeAllText}>{t("dashboard.seeAll")}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {tasks.length > 0 ? (
+          tasks.slice(0, 3).map((task) => (
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskCard}
+              onPress={() => handleTaskPress(task)}
+            >
+              <View style={styles.taskHeader}>
+                <Text style={styles.taskTitle} numberOfLines={1}>
+                  {task.title || `${t("task.title")} #${task.id?.slice(-4)}`}
+                </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor:
+                        task.status === "in_progress"
+                          ? COLORS.WARNING
+                          : task.status === "completed"
+                            ? COLORS.SUCCESS
+                            : COLORS.INFO,
+                    },
+                  ]}
+                >
+                  <Text style={styles.statusText}>
+                    {t(`task.statuses.${task.status}`) || task.status}
+                  </Text>
+                </View>
+              </View>
+              {task.pickup_address && (
+                <Text style={styles.taskDescription} numberOfLines={1}>
+                  ðŸ“ {task.pickup_address}
+                </Text>
+              )}
+              {task.scheduled_date && (
+                <Text style={styles.taskTime}>
+                  ðŸ• {new Date(task.scheduled_date).toLocaleDateString()}
+                </Text>
+              )}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>{t("dashboard.noActiveTasks")}</Text>
+        )}
+      </Card>
+
+      {/* Safety Score Card */}
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.safetyScore")}</Text>
+        <View style={styles.safetyScoreContainer}>
+          <View style={styles.safetyScoreCircle}>
+            <Text
+              style={[
+                styles.safetyScoreNumber,
+                { color: getSafetyColor(stats?.safety_score, COLORS) },
+              ]}
+            >
+              {(stats?.safety_score || 5.0).toFixed(1)}
+            </Text>
+            <Text style={styles.safetyScoreMax}>/5.0</Text>
+          </View>
+          <View style={styles.safetyScoreBar}>
+            <View style={styles.safetyBarTrack}>
+              <View
+                style={[
+                  styles.safetyBarFill,
+                  {
+                    width: `${((stats?.safety_score || 5.0) / 5) * 100}%`,
+                    backgroundColor: getSafetyColor(
+                      stats?.safety_score,
+                      COLORS
+                    ),
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.safetyScoreLabel}>
+              {getSafetyLabel(stats?.safety_score, t)}
+            </Text>
+          </View>
+        </View>
+      </Card>
+
+      {/* Stats Card */}
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.myStats")}</Text>
+        <View style={styles.statsRow}>
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {stats?.completed_tasks || 0}
+            </Text>
+            <Text style={styles.statTextLarge}>
+              {t("dashboard.completedTasks")}
+            </Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {stats?.active_tasks || 0}
+            </Text>
+            <Text style={styles.statTextLarge}>
+              {t("dashboard.activeTasksCount")}
+            </Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItemLarge}>
+            <Text style={styles.statNumberLarge}>
+              {formatKm(stats?.total_km)}
+            </Text>
+            <Text style={styles.statTextLarge}>{t("dashboard.totalKm")}</Text>
+          </View>
+        </View>
+      </Card>
+
+      {/* Quick Access Card */}
+      <Card>
+        <Text style={styles.cardTitle}>{t("dashboard.quickAccess")}</Text>
+        <View style={styles.quickAccessGrid}>
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() =>
+              Linking.openURL(
+                "https://www.google.com/maps/@?api=1&map_action=map&layer=traffic"
+              )
+            }
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.WARNING_LIGHT },
+              ]}
+            >
+              <Ionicons name="car-outline" size={24} color={COLORS.WARNING} />
+            </View>
+            <Text style={styles.quickAccessText}>{t("dashboard.traffic")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() =>
+              Linking.openURL(
+                "https://wttr.in/?lang=" + (i18n.language || "tr")
+              )
+            }
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.INFO_LIGHT },
+              ]}
+            >
+              <Ionicons name="cloud-outline" size={24} color={COLORS.INFO} />
+            </View>
+            <Text style={styles.quickAccessText}>{t("dashboard.weather")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() => Linking.openURL("tel:112")}
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.ERROR_LIGHT },
+              ]}
+            >
+              <Ionicons name="call-outline" size={24} color={COLORS.ERROR} />
+            </View>
+            <Text style={styles.quickAccessText}>
+              {t("dashboard.emergency")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickAccessItem}
+            onPress={() => navigation.navigate("HelpCenter")}
+          >
+            <View
+              style={[
+                styles.quickAccessIcon,
+                { backgroundColor: COLORS.SUCCESS_LIGHT },
+              ]}
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={24}
+                color={COLORS.SUCCESS}
+              />
+            </View>
+            <Text style={styles.quickAccessText}>
+              {t("dashboard.helpCenter")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={langModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.langModalOverlay}>
+          <View style={styles.langModalContent}>
+            <Text style={styles.langModalTitle}>
+              {t("settings.selectLanguage")}
+            </Text>
+
+            <FlatList
+              data={LANGUAGES}
+              keyExtractor={(item) => item.code}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.langItem,
+                    item.code === i18n.language && styles.langItemActive,
+                  ]}
+                  onPress={() => changeLanguage(item.code)}
+                >
+                  <Text style={styles.langItemFlag}>{item.flag}</Text>
+                  <Text
+                    style={[
+                      styles.langItemName,
+                      item.code === i18n.language && styles.langItemNameActive,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                  {item.code === i18n.language && (
+                    <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+
+            <TouchableOpacity
+              style={styles.langCloseBtn}
+              onPress={() => setLangModalVisible(false)}
+            >
+              <Text style={styles.langCloseBtnText}>{t("common.close")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Serial Input Modal */}
+      <Modal
+        visible={showSerialModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSerialModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t("dashboard.enterSerial")}</Text>
+            <Text style={styles.modalSubtitle}>
+              {t("dashboard.enterSerialMessage")}
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              value={serialInput}
+              onChangeText={setSerialInput}
+              placeholder="TF-2025-00001-1"
+              placeholderTextColor={COLORS.PLACEHOLDER}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!validating}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowSerialModal(false)}
+                disabled={validating}
+              >
+                <Text style={styles.modalButtonTextCancel}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSubmit]}
+                onPress={handleSerialSubmit}
+                disabled={validating}
+              >
+                {validating ? (
+                  <ActivityIndicator size="small" color={COLORS.WHITE} />
+                ) : (
+                  <Text style={styles.modalButtonTextSubmit}>
+                    {t("common.continue")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleAddDevice}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add-circle" size={28} color={COLORS.WHITE} />
+      </TouchableOpacity>
     </ScrollView>
   );
 };
 
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
-
-export default DriverVehicle;
+export default DriverDashboard;

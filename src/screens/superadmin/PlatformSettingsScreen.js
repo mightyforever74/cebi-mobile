@@ -1,7 +1,13 @@
 // src/screens/superadmin/PlatformSettingsScreen.js
+// TulipFleet - Platform Ayarları (Placeholder)
+// Updated: UI System Guide v3 uyumlu
+
 import { StyleSheet, Text, View } from "react-native";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const PlatformSettingsScreen = () => {
+  const styles = useThemedStyles(makeStyles);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Platform Ayarları</Text>
@@ -12,25 +18,25 @@ const PlatformSettingsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#F7FAFC",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#32325D",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#8898AA",
-    textAlign: "center",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: COLORS.SPACING.lg,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    title: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    subtitle: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+      textAlign: "center",
+    },
+  });
 
 export default PlatformSettingsScreen;

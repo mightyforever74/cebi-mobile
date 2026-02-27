@@ -1,8 +1,7 @@
-// src/screens/shared/HelpCenterScreen.js
+// src/screens/driver/HelpCenterScreen.js
 // TulipFleet - Yardım Merkezi (Interaktif FAQ - In-App)
 // Shared: Driver & Admin ortak kullanır
-// Updated: 11 Şubat 2026 - Theme tokens + 8px grid cleanup
-// Mevcut: TroubleshootingScreen + LEDIndicatorsScreen linkleri korundu
+// Updated: UI System Guide v3 uyumlu - inline style ihlalleri düzeltildi
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useRef, useState } from "react";
@@ -93,7 +92,7 @@ const getFaqCategories = (COLORS) => [
 // ============================================
 // FAQ ITEM (Accordion - Animated)
 // ============================================
-const FAQItem = ({ question, answer, isOpen, onToggle, COLORS }) => {
+const FAQItem = ({ question, answer, isOpen, onToggle, COLORS, styles }) => {
   const animValue = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
 
   const toggle = useCallback(() => {
@@ -116,64 +115,26 @@ const FAQItem = ({ question, answer, isOpen, onToggle, COLORS }) => {
   });
 
   return (
-    <View
-      style={{
-        marginBottom: COLORS.SPACING.sm, // 8
-        borderRadius: COLORS.RADIUS.sm, // 8
-        backgroundColor: COLORS.BACKGROUND,
-        overflow: "hidden",
-      }}
-    >
+    <View style={styles.faqItem}>
       <TouchableOpacity
         onPress={toggle}
         activeOpacity={0.7}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: COLORS.SPACING.md, // 16
-          paddingVertical: COLORS.SPACING.sm + COLORS.SPACING.xs, // 12
-        }}
+        style={styles.faqItemHeader}
       >
         <Ionicons
           name="help-circle-outline"
           size={18}
           color={COLORS.PRIMARY}
-          style={{ marginRight: COLORS.SPACING.sm }} // 8
+          style={styles.faqItemIcon}
         />
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 14,
-            fontWeight: "600",
-            color: COLORS.TEXT,
-            lineHeight: 20,
-          }}
-        >
-          {question}
-        </Text>
+        <Text style={styles.faqItemQuestion}>{question}</Text>
         <Animated.View style={{ transform: [{ rotate: arrowRotate }] }}>
           <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
         </Animated.View>
       </TouchableOpacity>
 
-      <Animated.View
-        style={{
-          maxHeight: bodyHeight,
-          overflow: "hidden",
-          paddingHorizontal: COLORS.SPACING.md, // 16
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 13,
-            color: COLORS.TEXT_SECONDARY,
-            lineHeight: 20,
-            paddingBottom: COLORS.SPACING.md, // 16
-            paddingLeft: COLORS.SPACING.lg + COLORS.SPACING.xs, // 28
-          }}
-        >
-          {answer}
-        </Text>
+      <Animated.View style={[styles.faqItemBody, { maxHeight: bodyHeight }]}>
+        <Text style={styles.faqItemAnswer}>{answer}</Text>
       </Animated.View>
     </View>
   );
@@ -191,6 +152,7 @@ const CategoryCard = ({
   t,
   COLORS,
   getLightBg,
+  styles,
 }) => {
   const animValue = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
 
@@ -209,58 +171,37 @@ const CategoryCard = ({
   });
 
   return (
-    <View
-      style={{
-        marginBottom: COLORS.SPACING.md, // 16
-        borderRadius: COLORS.RADIUS.card, // 12
-        backgroundColor: COLORS.CARD,
-        ...COLORS.SHADOWS.card,
-        overflow: "hidden",
-      }}
-    >
+    <View style={styles.categoryCard}>
       <TouchableOpacity
         onPress={toggleCategory}
         activeOpacity={0.7}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          padding: COLORS.SPACING.md, // 16
-        }}
+        style={styles.categoryHeader}
       >
         <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: COLORS.RADIUS.sm, // 8
-            backgroundColor: getLightBg(category.color),
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: COLORS.SPACING.md, // 16
-          }}
+          style={[
+            styles.categoryIcon,
+            { backgroundColor: getLightBg(category.color) },
+          ]}
         >
           <Ionicons name={category.icon} size={22} color={category.color} />
         </View>
 
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: "700", color: COLORS.TEXT }}>
-            {t(category.titleKey)}
-          </Text>
-          <Text style={{ fontSize: 12, color: COLORS.MUTED, marginTop: 2 }}>
+        <View style={styles.categoryInfo}>
+          <Text style={styles.categoryTitle}>{t(category.titleKey)}</Text>
+          <Text style={styles.categoryCount}>
             {category.questions.length} {t("help.questionCount") || "soru"}
           </Text>
         </View>
 
         <View
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: COLORS.RADIUS.md, // 16
-            backgroundColor: isExpanded
-              ? getLightBg(category.color)
-              : COLORS.BACKGROUND,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={[
+            styles.categoryToggle,
+            {
+              backgroundColor: isExpanded
+                ? getLightBg(category.color)
+                : COLORS.BACKGROUND,
+            },
+          ]}
         >
           <Ionicons
             name={isExpanded ? "chevron-up" : "chevron-down"}
@@ -271,11 +212,7 @@ const CategoryCard = ({
       </TouchableOpacity>
 
       <Animated.View
-        style={{
-          maxHeight: contentHeight,
-          overflow: "hidden",
-          paddingHorizontal: COLORS.SPACING.md, // 16
-        }}
+        style={[styles.categoryContent, { maxHeight: contentHeight }]}
       >
         {category.questions.map((q) => (
           <FAQItem
@@ -285,6 +222,7 @@ const CategoryCard = ({
             isOpen={openQuestionId === q.id}
             onToggle={() => onQuestionToggle(q.id)}
             COLORS={COLORS}
+            styles={styles}
           />
         ))}
         <View style={{ height: COLORS.SPACING.sm }} />
@@ -294,7 +232,7 @@ const CategoryCard = ({
 };
 
 // ============================================
-// makeStyles - Dark Mode Uyumlu
+// makeStyles - Dark Mode Uyumlu (inline style'lar temizlendi)
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -306,7 +244,7 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       paddingTop: Platform.OS === "ios" ? 56 : 44,
-      paddingBottom: COLORS.SPACING.md, // 16
+      paddingBottom: COLORS.SPACING.md,
       paddingHorizontal: COLORS.SPACING.md,
       backgroundColor: COLORS.CARD,
       borderBottomWidth: 1,
@@ -315,51 +253,51 @@ const makeStyles = (COLORS) =>
     backButton: {
       width: 40,
       height: 40,
-      borderRadius: COLORS.RADIUS.full, // 20
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.BACKGROUND,
       alignItems: "center",
       justifyContent: "center",
-      marginRight: COLORS.SPACING.md, // 16
+      marginRight: COLORS.SPACING.md,
     },
     headerTitle: {
-      fontSize: 20,
-      fontWeight: "800",
-      color: COLORS.TEXT,
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
     },
     headerSubtitle: {
-      fontSize: 12,
+      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.MUTED,
       marginTop: 2,
     },
     hero: {
-      marginHorizontal: COLORS.SPACING.md, // 16
+      marginHorizontal: COLORS.SPACING.md,
       marginTop: COLORS.SPACING.md,
-      marginBottom: COLORS.SPACING.sm, // 8
-      padding: COLORS.SPACING.lg, // 24
-      borderRadius: COLORS.RADIUS.xl, // 20
+      marginBottom: COLORS.SPACING.sm,
+      padding: COLORS.SPACING.lg,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.PRIMARY,
     },
     heroIconRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.md,
     },
     heroIconCircle: {
       width: 48,
       height: 48,
-      borderRadius: COLORS.RADIUS.lg, // 24
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.WHITE_20,
       alignItems: "center",
       justifyContent: "center",
-      marginRight: COLORS.SPACING.md, // 16
+      marginRight: COLORS.SPACING.md,
     },
     heroTitle: {
-      fontSize: 22,
-      fontWeight: "800",
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     heroSubtitle: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.WHITE_80,
       marginTop: 2,
     },
@@ -367,28 +305,28 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.WHITE_20,
-      borderRadius: COLORS.RADIUS.card, // 12
-      paddingHorizontal: COLORS.SPACING.md, // 16
-      paddingVertical: COLORS.SPACING.sm + 2, // 10
+      borderRadius: COLORS.RADIUS.card,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
     },
     heroHintIcon: {
-      marginRight: COLORS.SPACING.sm, // 8 - gap yerine
+      marginRight: COLORS.SPACING.sm,
     },
     heroHintText: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.WHITE_80,
-      fontWeight: "500",
     },
     quickSection: {
-      marginHorizontal: COLORS.SPACING.md, // 16
+      marginHorizontal: COLORS.SPACING.md,
       marginTop: COLORS.SPACING.md,
-      marginBottom: COLORS.SPACING.xs, // 4
+      marginBottom: COLORS.SPACING.xs,
     },
     sectionTitle: {
-      fontSize: 14,
-      fontWeight: "700",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.MUTED,
-      marginBottom: COLORS.SPACING.sm + 2, // 10
+      marginBottom: COLORS.SPACING.sm,
       letterSpacing: 0.5,
       textTransform: "uppercase",
     },
@@ -396,42 +334,125 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.CARD,
-      borderRadius: COLORS.RADIUS.card, // 12
-      padding: COLORS.SPACING.md, // 16
-      marginBottom: COLORS.SPACING.sm, // 8
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
       ...COLORS.SHADOWS.xs,
     },
     topicIcon: {
       width: 40,
       height: 40,
-      borderRadius: COLORS.RADIUS.sm, // 8
+      borderRadius: COLORS.RADIUS.sm,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: COLORS.SPACING.md, // 16
+      marginRight: COLORS.SPACING.md,
     },
     topicTitle: {
       flex: 1,
-      fontSize: 15,
-      fontWeight: "600",
-      color: COLORS.TEXT,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
     },
     faqSectionTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: COLORS.TEXT,
-      marginHorizontal: COLORS.SPACING.md, // 16
-      marginTop: COLORS.SPACING.lg, // 24
-      marginBottom: COLORS.SPACING.sm + 2, // 10
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.sm,
     },
     categoriesContainer: {
-      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.md,
     },
+
+    // Category Card (was inline)
+    categoryCard: {
+      marginBottom: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      backgroundColor: COLORS.CARD,
+      ...COLORS.SHADOWS.card,
+      overflow: "hidden",
+    },
+    categoryHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: COLORS.SPACING.md,
+    },
+    categoryIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: COLORS.SPACING.md,
+    },
+    categoryInfo: {
+      flex: 1,
+    },
+    categoryTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    categoryCount: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    categoryToggle: {
+      width: 32,
+      height: 32,
+      borderRadius: COLORS.RADIUS.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    categoryContent: {
+      overflow: "hidden",
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+
+    // FAQ Item (was inline)
+    faqItem: {
+      marginBottom: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      backgroundColor: COLORS.BACKGROUND,
+      overflow: "hidden",
+    },
+    faqItemHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    faqItemIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    faqItemQuestion: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+      lineHeight: 20,
+    },
+    faqItemBody: {
+      overflow: "hidden",
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+    faqItemAnswer: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      lineHeight: 20,
+      paddingBottom: COLORS.SPACING.md,
+      paddingLeft: COLORS.SPACING.lg + COLORS.SPACING.xs, // 28
+    },
+
+    // Contact Card
     contactCard: {
-      marginHorizontal: COLORS.SPACING.md, // 16
-      marginTop: COLORS.SPACING.lg, // 24
-      marginBottom: COLORS.SPACING.sm + 2, // 10
-      padding: COLORS.SPACING.lg, // 24
-      borderRadius: COLORS.RADIUS.card, // 12
+      marginHorizontal: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.sm,
+      padding: COLORS.SPACING.lg,
+      borderRadius: COLORS.RADIUS.card,
       backgroundColor: COLORS.CARD,
       alignItems: "center",
       ...COLORS.SHADOWS.card,
@@ -439,58 +460,58 @@ const makeStyles = (COLORS) =>
     contactIconCircle: {
       width: 48,
       height: 48,
-      borderRadius: COLORS.RADIUS.lg, // 24
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.SECONDARY,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.md,
     },
     contactTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: COLORS.TEXT,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
       textAlign: "center",
     },
     contactSubtitle: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: COLORS.SPACING.xs, // 4
-      marginBottom: COLORS.SPACING.md, // 16
+      marginTop: COLORS.SPACING.xs,
+      marginBottom: COLORS.SPACING.md,
       lineHeight: 18,
     },
     contactRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: COLORS.SPACING.xs + 2, // 6
+      paddingVertical: COLORS.SPACING.xs,
     },
     contactText: {
-      fontSize: 14,
-      color: COLORS.TEXT,
-      marginLeft: COLORS.SPACING.sm + 2, // 10
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      marginLeft: COLORS.SPACING.sm,
     },
     contactBtn: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: COLORS.SPACING.lg, // 24
-      paddingVertical: COLORS.SPACING.md, // 16
-      borderRadius: COLORS.RADIUS.card, // 12
-      marginTop: COLORS.SPACING.md, // 16
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      marginTop: COLORS.SPACING.md,
     },
     contactBtnIcon: {
-      marginRight: COLORS.SPACING.sm, // 8 - gap yerine
+      marginRight: COLORS.SPACING.sm,
     },
     contactBtnText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 14,
     },
     footerText: {
       textAlign: "center",
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
-      marginVertical: COLORS.SPACING.md, // 16
+      marginVertical: COLORS.SPACING.md,
       opacity: 0.6,
     },
   });
@@ -567,7 +588,7 @@ const HelpCenterScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={22} color={COLORS.TEXT} />
+          <Ionicons name="arrow-back" size={22} color={COLORS.TEXT_PRIMARY} />
         </TouchableOpacity>
         <View>
           <Text style={styles.headerTitle}>
@@ -611,7 +632,7 @@ const HelpCenterScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Quick Topics (Troubleshooting + LED) */}
+        {/* Quick Topics */}
         <View style={styles.quickSection}>
           <Text style={styles.sectionTitle}>
             {t("help.quickHelp") || "Hızlı Yardım"}
@@ -657,6 +678,7 @@ const HelpCenterScreen = ({ navigation }) => {
               t={t}
               COLORS={COLORS}
               getLightBg={getLightBg}
+              styles={styles}
             />
           ))}
         </View>

@@ -20,6 +20,23 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverTaskAPI, taskOffersAPI } from "../../services/api";
 
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
 // ❌ KALDIRILDI: Local COLORS objesi - artık ThemeContext'ten geliyor
 
 // Status config - renkleri dinamik yapmak için fonksiyon
@@ -108,25 +125,25 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.SURFACE,
       padding: 6,
       marginHorizontal: 16,
-      marginTop: 16,
-      marginBottom: 8,
-      borderRadius: 12,
+      marginTop: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
     },
     tab: {
       flex: 1,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 10,
-      borderRadius: 8,
-      gap: 6,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      // gap removed - use margin on children
     },
     activeTab: {
       backgroundColor: COLORS.PRIMARY,
     },
     tabText: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT_SECONDARY,
     },
     activeTabText: {
@@ -134,50 +151,50 @@ const makeStyles = (COLORS) =>
     },
     tabBadge: {
       backgroundColor: COLORS.SECONDARY,
-      paddingHorizontal: 8,
+      paddingHorizontal: COLORS.SPACING.xs,
       paddingVertical: 2,
-      borderRadius: 10,
+      borderRadius: COLORS.RADIUS.md,
       minWidth: 24,
       alignItems: "center",
     },
     activeTabBadge: {
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: withAlpha(COLORS.WHITE, 0.2),
     },
     tabBadgeText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     listContent: {
-      padding: 16,
+      padding: COLORS.SPACING.md,
       paddingTop: 8,
     },
     analyticsContainer: {
       backgroundColor: COLORS.SURFACE,
-      borderRadius: 16,
-      marginBottom: 16,
+      borderRadius: COLORS.RADIUS.lg,
+      marginBottom: COLORS.SPACING.md,
       overflow: "hidden",
     },
     analyticsHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: 16,
+      padding: COLORS.SPACING.md,
       borderBottomWidth: 1,
       borderBottomColor: COLORS.DIVIDER,
     },
     analyticsHeaderLeft: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
+      // gap removed - use margin on children
     },
     analyticsTitle: {
-      fontSize: 16,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     summaryCard: {
-      padding: 16,
+      padding: COLORS.SPACING.md,
     },
     summaryRow: {
       flexDirection: "row",
@@ -191,18 +208,18 @@ const makeStyles = (COLORS) =>
     summaryIconBg: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     summaryValue: {
-      fontSize: 20,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     summaryLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
@@ -212,29 +229,29 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.DIVIDER,
     },
     expandedAnalytics: {
-      padding: 16,
+      padding: COLORS.SPACING.md,
       paddingTop: 0,
     },
     analyticsSection: {
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
       backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 10,
+      borderRadius: COLORS.RADIUS.md,
       overflow: "hidden",
     },
     sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
-      padding: 12,
+      // gap removed - use margin on children
+      padding: COLORS.SPACING.sm,
       backgroundColor: COLORS.SURFACE,
     },
     sectionTitle: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
     },
     sectionContent: {
-      padding: 12,
+      padding: COLORS.SPACING.sm,
     },
     metricRow: {
       flexDirection: "row",
@@ -245,30 +262,30 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     metricValue: {
-      fontSize: 18,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     metricLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
     progressContainer: {
-      gap: 8,
+      // gap removed - use margin on children
     },
     progressLabels: {
       flexDirection: "row",
       justifyContent: "space-between",
     },
     progressLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
     },
     progressBar: {
       flexDirection: "row",
       height: 8,
-      borderRadius: 4,
+      borderRadius: COLORS.RADIUS.xs,
       overflow: "hidden",
       backgroundColor: COLORS.DIVIDER,
     },
@@ -280,17 +297,17 @@ const makeStyles = (COLORS) =>
       justifyContent: "space-between",
     },
     progressValue: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     scoreContainer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
+      // gap removed - use margin on children
     },
     scoreValue: {
-      fontSize: 18,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     energyRow: {
@@ -299,15 +316,15 @@ const makeStyles = (COLORS) =>
     },
     energyItem: {
       alignItems: "center",
-      gap: 4,
+      // gap removed - use margin on children
     },
     energyValue: {
-      fontSize: 18,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     energyLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
     },
     distanceDetails: {
@@ -320,48 +337,44 @@ const makeStyles = (COLORS) =>
     distanceItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      // gap removed - use margin on children
     },
     distanceText: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     pendingReviewAlert: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.WARNING,
-      borderRadius: 12,
+      borderRadius: COLORS.RADIUS.md,
       padding: 14,
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.sm,
       borderLeftWidth: 4,
       borderLeftColor: COLORS.WARNING,
       opacity: 0.9,
     },
     pendingReviewAlertContent: {
       flex: 1,
-      marginLeft: 12,
+      marginLeft: COLORS.SPACING.sm,
     },
     pendingReviewAlertTitle: {
-      fontSize: 14,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     pendingReviewAlertSubtitle: {
-      fontSize: 12,
-      color: "rgba(255,255,255,0.8)",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: withAlpha(COLORS.WHITE, 0.8),
       marginTop: 2,
     },
     offersCard: {
       backgroundColor: COLORS.PRIMARY,
-      borderRadius: 12,
-      marginBottom: 16,
-      padding: 16,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
-      elevation: 5,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.md,
+      padding: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.card,
     },
     offersContent: {
       flexDirection: "row",
@@ -376,7 +389,7 @@ const makeStyles = (COLORS) =>
       top: -6,
       right: -6,
       backgroundColor: COLORS.ERROR,
-      borderRadius: 10,
+      borderRadius: COLORS.RADIUS.md,
       minWidth: 20,
       height: 20,
       justifyContent: "center",
@@ -385,31 +398,27 @@ const makeStyles = (COLORS) =>
     },
     offersBadgeText: {
       color: COLORS.WHITE,
-      fontSize: 11,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     offersTextContainer: {
       flex: 1,
     },
     offersTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     offersSubtitle: {
-      fontSize: 13,
-      color: "rgba(255,255,255,0.8)",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: withAlpha(COLORS.WHITE, 0.8),
       marginTop: 2,
     },
     card: {
       backgroundColor: COLORS.CARD,
-      borderRadius: 12,
-      marginBottom: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 3,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
       overflow: "hidden",
     },
     cardPendingReview: {
@@ -421,13 +430,13 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.WARNING,
-      paddingVertical: 8,
-      gap: 6,
+      paddingVertical: COLORS.SPACING.xs,
+      // gap removed - use margin on children
     },
     newTaskBannerText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 13,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     cardHeader: {
       flexDirection: "row",
@@ -443,43 +452,43 @@ const makeStyles = (COLORS) =>
       flex: 1,
     },
     taskId: {
-      fontSize: 14,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginLeft: 8,
+      marginLeft: COLORS.SPACING.sm,
     },
     completedDate: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginLeft: 8,
+      marginLeft: COLORS.SPACING.sm,
       backgroundColor: COLORS.BACKGROUND,
-      paddingHorizontal: 8,
+      paddingHorizontal: COLORS.SPACING.xs,
       paddingVertical: 2,
-      borderRadius: 4,
+      borderRadius: COLORS.RADIUS.xs,
     },
     statusBadge: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 10,
+      paddingHorizontal: COLORS.SPACING.sm,
       paddingVertical: 5,
-      borderRadius: 8,
+      borderRadius: COLORS.RADIUS.sm,
     },
     statusText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       marginLeft: 4,
     },
     cardBody: {
       padding: 14,
     },
     taskTitle: {
-      fontSize: 15,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
       marginBottom: 10,
     },
     locationContainer: {
-      marginBottom: 12,
+      marginBottom: COLORS.SPACING.sm,
     },
     locationRow: {
       flexDirection: "row",
@@ -488,7 +497,7 @@ const makeStyles = (COLORS) =>
     locationDot: {
       width: 8,
       height: 8,
-      borderRadius: 4,
+      borderRadius: COLORS.RADIUS.xs,
       marginRight: 10,
     },
     locationLine: {
@@ -499,7 +508,7 @@ const makeStyles = (COLORS) =>
       marginVertical: 2,
     },
     locationText: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT,
       flex: 1,
     },
@@ -512,36 +521,36 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       marginRight: 15,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     metaText: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginLeft: 4,
     },
     actionButtonsContainer: {
       borderTopWidth: 1,
       borderTopColor: COLORS.DIVIDER,
-      padding: 12,
+      padding: COLORS.SPACING.sm,
     },
     loadingContainer: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 8,
+      // gap removed - use margin on children
     },
     actionButtons: {
       flexDirection: "row",
-      gap: 10,
+      // gap removed - use margin on children
     },
     actionButton: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 12,
-      borderRadius: 10,
-      gap: 6,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed - use margin on children
     },
     rejectButton: {
       backgroundColor: COLORS.ERROR,
@@ -551,8 +560,8 @@ const makeStyles = (COLORS) =>
     },
     actionButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     goToNavButton: {
       flexDirection: "row",
@@ -560,15 +569,15 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
       marginHorizontal: 12,
-      marginBottom: 12,
-      paddingVertical: 12,
-      borderRadius: 10,
-      gap: 8,
+      marginBottom: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed - use margin on children
     },
     goToNavButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     continueNavButton: {
       flexDirection: "row",
@@ -576,40 +585,40 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
       backgroundColor: COLORS.INFO,
       marginHorizontal: 12,
-      marginBottom: 12,
-      paddingVertical: 12,
-      borderRadius: 10,
-      gap: 8,
+      marginBottom: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed - use margin on children
     },
     continueNavButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     acceptedButtonsContainer: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       marginHorizontal: 12,
-      marginBottom: 12,
-      gap: 10,
+      marginBottom: COLORS.SPACING.sm,
+      // gap removed - use margin on children
     },
     acceptedButton: {
       flex: 0.4,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 12,
-      borderRadius: 10,
-      gap: 8,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed - use margin on children
     },
     withdrawButton: {
       backgroundColor: COLORS.ERROR,
     },
     acceptedButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     emptyContainer: {
       flex: 1,
@@ -619,42 +628,42 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginTop: 16,
+      marginTop: COLORS.SPACING.md,
     },
     emptySubtitle: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
-      marginTop: 8,
-      paddingHorizontal: 20,
+      marginTop: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
     errorTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.ERROR,
-      marginTop: 16,
+      marginTop: COLORS.SPACING.md,
     },
     errorText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 8,
+      marginTop: COLORS.SPACING.sm,
     },
     retryButton: {
       marginTop: 20,
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 8,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
     },
     retryButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     loadingText: {
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
       color: COLORS.TEXT_SECONDARY,
     },
   });

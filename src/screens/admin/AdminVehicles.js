@@ -1,5 +1,6 @@
 // src/screens/admin/AdminVehicles.js
-// TulipFleet - Admin Araç Listesi Ekranı (Dark Mode uyumlu - Migration Rehberi ile)
+// TulipFleet - Admin Araç Listesi Ekranı
+// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -19,23 +20,21 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 
-// --- helper: hex literal kullanmadan soft background üretmek için ---
+// --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
-  // hex: #RRGGBB
   if (
     !hex ||
     typeof hex !== "string" ||
     !hex.startsWith("#") ||
     hex.length !== 7
-  ) {
+  )
     return hex;
-  }
   const a = Math.max(0, Math.min(1, alpha01));
   const alpha = Math.round(a * 255)
     .toString(16)
     .padStart(2, "0")
     .toUpperCase();
-  return `${hex}${alpha}`; // #RRGGBBAA
+  return `${hex}${alpha}`;
 };
 
 // Araç durumu Türkçe karşılıkları
@@ -47,6 +46,9 @@ const STATUS_LABELS = {
   offline: "Çevrimdışı",
 };
 
+// ============================================
+// makeStyles - UI Guide v3 compliant
+// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: {
@@ -58,62 +60,54 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
-      padding: 20,
+      padding: COLORS.SPACING.lg,
     },
 
     // Stats Header
     statsHeader: {
       flexDirection: "row",
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      paddingVertical: 16,
-      paddingHorizontal: 12,
-      marginBottom: 8,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      paddingVertical: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
     },
     statBox: {
       flex: 1,
       alignItems: "center",
     },
     statValue: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
     statLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
 
     // List
     listContainer: {
-      padding: 12,
+      padding: COLORS.SPACING.sm,
       paddingBottom: 80,
     },
 
     // Card
     card: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 12,
-      marginBottom: 12,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
       overflow: "hidden",
     },
     cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: 16,
+      padding: COLORS.SPACING.md,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER_COLOR ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
     },
     plateContainer: {
       flexDirection: "row",
@@ -123,78 +117,76 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginLeft: 8,
-      gap: 8,
+      marginLeft: COLORS.SPACING.sm,
       minWidth: 140,
     },
     plateText: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
+      marginRight: COLORS.SPACING.sm,
     },
     editButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor:
-        withAlpha(COLORS.PRIMARY, 0.12) || (COLORS.SURFACE ?? COLORS.WHITE),
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
+      marginRight: COLORS.SPACING.xs,
     },
     deleteButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor:
-        withAlpha(COLORS.ERROR, 0.12) || (COLORS.SURFACE ?? COLORS.WHITE),
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      backgroundColor: withAlpha(COLORS.ERROR, 0.12),
     },
     statusBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 12,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.md,
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     cardBody: {
-      padding: 16,
+      padding: COLORS.SPACING.md,
     },
     infoRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     infoText: {
-      fontSize: 14,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginLeft: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT,
+      marginLeft: COLORS.SPACING.sm,
     },
 
     cardFooter: {
       flexDirection: "row",
       backgroundColor: COLORS.BACKGROUND,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
     },
     metric: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: 2,
     },
     metricValue: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
     metricLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
       marginTop: 2,
     },
     metricDivider: {
       width: 1,
       backgroundColor: COLORS.MUTED,
-      marginHorizontal: 8,
+      marginHorizontal: COLORS.SPACING.sm,
     },
 
     // Empty State
@@ -202,87 +194,88 @@ const makeStyles = (COLORS) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 60,
+      paddingVertical: COLORS.SPACING.xxxl,
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
-      marginTop: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginTop: COLORS.SPACING.md,
     },
     emptySubtitle: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: 8,
-      paddingHorizontal: 40,
+      marginTop: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
 
     // Error State
     errorTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.ERROR,
-      marginTop: 16,
+      marginTop: COLORS.SPACING.md,
     },
     errorText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: 8,
+      marginTop: COLORS.SPACING.sm,
     },
     retryButton: {
-      marginTop: 20,
+      marginTop: COLORS.SPACING.lg,
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 8,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
     },
     retryButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // Loading
     loadingText: {
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
       color: COLORS.MUTED,
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // FAB
     fab: {
       position: "absolute",
-      right: 20,
-      bottom: 20,
+      right: COLORS.SPACING.lg,
+      bottom: COLORS.SPACING.lg,
       width: 56,
       height: 56,
-      borderRadius: 28,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.PRIMARY,
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 8,
+      ...COLORS.SHADOWS.card,
     },
   });
 
+// ============================================
+// COMPONENT
+// ============================================
 const AdminVehicles = ({ navigation }) => {
-  const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // Araç durumu renkleri (tema token’larından)
+  // Araç durumu renkleri (tema token'larından)
   const STATUS_COLORS = useMemo(
     () => ({
       active: COLORS.SUCCESS,
       available: COLORS.SUCCESS,
+      in_use: COLORS.INFO,
       inactive: COLORS.MUTED,
       maintenance: COLORS.WARNING,
       offline: COLORS.ERROR,

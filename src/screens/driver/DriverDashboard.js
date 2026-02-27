@@ -28,6 +28,23 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 
+// --- helper: #RRGGBB => #RRGGBBAA ---
+const withAlpha = (hex, alpha01) => {
+  if (
+    !hex ||
+    typeof hex !== "string" ||
+    !hex.startsWith("#") ||
+    hex.length !== 7
+  )
+    return hex;
+  const a = Math.max(0, Math.min(1, alpha01));
+  const alpha = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+  return `${hex}${alpha}`;
+};
+
 // YakÄ±t tipi Ã§evirisi
 const FUEL_TYPE_LABELS = {
   diesel: {
@@ -74,23 +91,23 @@ const makeStyles = (COLORS) =>
     safetyScoreContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
     },
     safetyScoreCircle: {
       width: 80,
       height: 80,
-      borderRadius: 40,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.BACKGROUND,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 16,
+      marginRight: COLORS.SPACING.md,
     },
     safetyScoreNumber: {
-      fontSize: 28,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     safetyScoreMax: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: -2,
     },
@@ -100,15 +117,15 @@ const makeStyles = (COLORS) =>
     safetyBarTrack: {
       height: 8,
       backgroundColor: COLORS.BORDER,
-      borderRadius: 4,
+      borderRadius: COLORS.RADIUS.xs,
       overflow: "hidden",
     },
     safetyBarFill: {
       height: 8,
-      borderRadius: 4,
+      borderRadius: COLORS.RADIUS.xs,
     },
     safetyScoreLabel: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 6,
     },
@@ -131,14 +148,14 @@ const makeStyles = (COLORS) =>
     quickAccessIcon: {
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: COLORS.RADIUS.xxl,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     quickAccessText: {
-      fontSize: 13,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
       textAlign: "center",
     },
@@ -154,7 +171,7 @@ const makeStyles = (COLORS) =>
     },
     loadingText: {
       marginTop: 10,
-      fontSize: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
     },
     header: {
@@ -173,108 +190,104 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
     },
     greetingEmoji: {
-      fontSize: 32,
-      marginRight: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      marginRight: COLORS.SPACING.sm,
     },
     greeting: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.WHITE_80,
     },
     userName: {
-      fontSize: 22,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     headerButtons: {
       flexDirection: "row",
-      gap: COLORS.SPACING.sm, // 8
+      // gap removed - use marginRight on children
     },
     headerButton: {
       backgroundColor: COLORS.WHITE_20,
       padding: 10,
-      borderRadius: 12,
+      borderRadius: COLORS.RADIUS.md,
     },
     langFlag: {
-      fontSize: 20,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
     },
     errorCard: {
       backgroundColor: COLORS.INPUT_ERROR,
       margin: 16,
-      padding: 12,
-      borderRadius: 8,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
       borderLeftWidth: 4,
       borderLeftColor: COLORS.ERROR,
     },
     errorText: {
       color: COLORS.ERROR,
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     offersCard: {
       backgroundColor: COLORS.SUCCESS,
       margin: 16,
       marginBottom: 0,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 4,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+      ...COLORS.SHADOWS.card,
     },
     offersContent: {
       flexDirection: "row",
       alignItems: "center",
     },
     offersIcon: {
-      fontSize: 32,
-      marginRight: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      marginRight: COLORS.SPACING.sm,
     },
     offersText: {
       flex: 1,
     },
     offersTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
     offersSubtitle: {
-      fontSize: 13,
-      color: "rgba(255,255,255,0.8)",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.WHITE_80 || withAlpha(COLORS.WHITE, 0.8),
       marginTop: 2,
     },
     // card: KALDIRILDI - Card component kullanılıyor
     // Eski stil referans için:
-    // backgroundColor: COLORS.CARD, margin: 16, padding: 16,
-    // borderRadius: 12, elevation: 3
+    // backgroundColor: COLORS.CARD, margin: 16, padding: COLORS.SPACING.md,
+    // borderRadius: COLORS.RADIUS.md, elevation: 3
     cardTitleRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     cardTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     noDataText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
       paddingVertical: 20,
     },
     vehicleInfo: {
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     vehiclePlate: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
     },
     vehicleModel: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     fuelEntryHint: {
       flexDirection: "row",
@@ -282,108 +295,108 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.SECONDARY,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      borderRadius: 8,
-      gap: 4,
+      borderRadius: COLORS.RADIUS.sm,
+      // gap removed - use marginRight on children
     },
     fuelEntryHintText: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     vehicleDetailsRow: {
       flexDirection: "row",
       backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 8,
-      padding: 12,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
     },
     vehicleDetailItem: {
       flex: 1,
       alignItems: "center",
     },
     vehicleDetailLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     vehicleDetailValue: {
-      fontSize: 16,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
       marginTop: 2,
     },
     vehicleDetailDivider: {
       width: 1,
       backgroundColor: COLORS.BORDER,
-      marginHorizontal: 8,
+      marginHorizontal: COLORS.SPACING.sm,
     },
     taskCard: {
       backgroundColor: COLORS.BACKGROUND,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     taskHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     taskTitle: {
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
       flex: 1,
     },
     statusBadge: {
-      paddingHorizontal: 8,
+      paddingHorizontal: COLORS.SPACING.xs,
       paddingVertical: 4,
-      borderRadius: 6,
+      borderRadius: COLORS.RADIUS.sm,
     },
     statusText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.WHITE,
     },
     taskDescription: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      marginBottom: 4,
+      marginBottom: COLORS.SPACING.xs,
     },
     taskTime: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
     },
     seeAllText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     statsRow: {
       flexDirection: "row",
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
     },
     statItemLarge: {
       flex: 1,
       alignItems: "center",
     },
     statNumberLarge: {
-      fontSize: 28,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
     },
     statTextLarge: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     statDivider: {
       width: 1,
       backgroundColor: COLORS.BORDER,
-      marginHorizontal: 16,
+      marginHorizontal: COLORS.SPACING.md,
     },
     langModalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: COLORS.OVERLAY,
       justifyContent: "flex-end",
     },
     langModalContent: {
@@ -395,45 +408,45 @@ const makeStyles = (COLORS) =>
       maxHeight: "70%",
     },
     langModalTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      paddingHorizontal: 20,
-      marginBottom: 16,
+      paddingHorizontal: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.md,
     },
     langItem: {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 14,
-      paddingHorizontal: 20,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
     langItemActive: {
       backgroundColor: COLORS.PRIMARY,
     },
     langItemFlag: {
-      fontSize: 24,
-      marginRight: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      marginRight: COLORS.SPACING.sm,
     },
     langItemName: {
-      fontSize: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT,
       flex: 1,
     },
     langItemNameActive: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     langCloseBtn: {
       marginHorizontal: 20,
-      marginTop: 16,
+      marginTop: COLORS.SPACING.md,
       paddingVertical: 14,
       backgroundColor: COLORS.BORDER,
-      borderRadius: 12,
+      borderRadius: COLORS.RADIUS.md,
       alignItems: "center",
     },
     langCloseBtnText: {
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
     },
     // FAB + MODAL STYLES
@@ -443,18 +456,15 @@ const makeStyles = (COLORS) =>
       right: COLORS.SPACING.lg, // 24
       width: 60,
       height: 60,
-      borderRadius: 30,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.WARNING, // Theme token
       justifyContent: "center",
       alignItems: "center",
       elevation: 5,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 3,
+      ...COLORS.SHADOWS.card,
     },
     fabIcon: {
-      fontSize: 28,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
     },
     modalOverlay: {
       flex: 1,
@@ -470,13 +480,13 @@ const makeStyles = (COLORS) =>
       maxWidth: 400,
     },
     modalTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     modalSubtitle: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
       marginBottom: 20,
     },
@@ -484,9 +494,9 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
       borderWidth: 1,
       borderColor: COLORS.BORDER,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT,
       marginBottom: 20,
     },
@@ -496,8 +506,8 @@ const makeStyles = (COLORS) =>
     },
     modalButton: {
       flex: 1,
-      paddingVertical: 12,
-      borderRadius: 8,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
       alignItems: "center",
     },
     modalButtonCancel: {
@@ -509,13 +519,13 @@ const makeStyles = (COLORS) =>
       marginLeft: COLORS.SPACING.sm,
     },
     modalButtonTextCancel: {
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.TEXT,
     },
     modalButtonTextSubmit: {
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.WHITE, // Theme token
     },
   });

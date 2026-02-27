@@ -598,7 +598,9 @@
       "activating": "Cihaz aktive ediliyor...",
       "success": "Cihaz başarıyla aktive edildi!",
       "failed": "Aktivasyon başarısız",
-      "serverCommunication": "Cihaz sunucu ile iletişim kuruyor..."
+      "serverCommunication": "Cihaz sunucu ile iletişim kuruyor...",
+      "successStatus": "Cihaz başarıyla aktive edildi!",
+      "successPending": "Cihaz kurulumu tamamlandı. Aktivasyon onayı bekleniyor..."
     },
     "result": {
       "setupComplete": "Kurulum Tamamlandı!",
@@ -613,6 +615,13 @@
       "permissionMessage": "QR kod okumak için kamera izni vermeniz gerekiyor.",
       "grantPermission": "İzin Ver"
     },
+    "activeWarning": {
+      "title": "⚠️ Cihaz Zaten Aktif",
+      "message": "{{serial}} seri nolu cihaz zaten aktif ve WiFi ile bağlı{{vehicle}}.\n\nYeniden kurulum yapmak istiyor musunuz?",
+      "cancel": "İptal",
+      "continue": "Yine de Devam Et"
+    },
+    "checkingDeviceStatus": "Cihaz durumu kontrol ediliyor...",
     "buttons": {
       "settings": "Ayarlar",
       "cancel": "İptal",

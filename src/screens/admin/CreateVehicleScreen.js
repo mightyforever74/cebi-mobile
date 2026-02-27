@@ -13,12 +13,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/config";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 
 const CreateVehicleScreen = ({ navigation }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(false);
-  // formData'yı güncelle
   const [formData, setFormData] = useState({
     plate_no: "",
     esp32_device_id: "",
@@ -41,7 +45,6 @@ const CreateVehicleScreen = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    // Validation
     if (!formData.plate_no.trim()) {
       Alert.alert("Hata", "Plaka zorunludur");
       return;
@@ -74,15 +77,15 @@ const CreateVehicleScreen = ({ navigation }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "✅ Başarılı",
-          "Araç başarıyla eklendi",
+          "Basarili",
+          "Arac basariyla eklendi",
           [{ text: "Tamam", onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
       }, 100);
     } catch (error) {
       console.error("Create vehicle error:", error);
-      Alert.alert("Hata", error.response?.data?.error || "Araç eklenemedi");
+      Alert.alert("Hata", error.response?.data?.error || "Arac eklenemedi");
     } finally {
       setLoading(false);
     }
@@ -96,9 +99,9 @@ const CreateVehicleScreen = ({ navigation }) => {
         value={formData[field]}
         onChangeText={(value) => handleChange(field, value)}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.gray}
+        placeholderTextColor={COLORS.PLACEHOLDER}
         keyboardType={keyboardType}
-        autoCapitalize={field === "plate" ? "characters" : "words"}
+        autoCapitalize={field === "plate_no" ? "characters" : "words"}
       />
     </View>
   );
@@ -110,51 +113,53 @@ const CreateVehicleScreen = ({ navigation }) => {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Plaka */}
-          {renderInput("Plaka *", "plate_no", "34ABC123")}
+          <Card variant="flat">
+            {/* Plaka */}
+            {renderInput("Plaka *", "plate_no", "34ABC123")}
 
-          {/* ESP32 Cihaz ID */}
-          {renderInput("ESP32 Cihaz ID *", "esp32_device_id", "ESP32-001")}
+            {/* ESP32 Cihaz ID */}
+            {renderInput("ESP32 Cihaz ID *", "esp32_device_id", "ESP32-001")}
 
-          {/* Marka & Model */}
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              {renderInput("Marka *", "brand", "Ford")}
+            {/* Marka & Model */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                {renderInput("Marka *", "brand", "Ford")}
+              </View>
+              <View style={styles.halfInput}>
+                {renderInput("Model *", "model", "Transit")}
+              </View>
             </View>
-            <View style={styles.halfInput}>
-              {renderInput("Model *", "model", "Transit")}
-            </View>
-          </View>
 
-          {/* Yıl */}
-          {renderInput("Yıl", "year", "2023", "numeric")}
+            {/* Yil */}
+            {renderInput("Yil", "year", "2023", "numeric")}
 
-          {/* Yakıt Tipi */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Yakıt Tipi</Text>
-            <View style={styles.fuelTypeContainer}>
-              {fuelTypes.map((fuel) => (
-                <TouchableOpacity
-                  key={fuel.value}
-                  style={[
-                    styles.fuelTypeButton,
-                    formData.fuelType === fuel.value && styles.fuelTypeActive,
-                  ]}
-                  onPress={() => handleChange("fuelType", fuel.value)}
-                >
-                  <Text
+            {/* Yakit Tipi */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Yakit Tipi</Text>
+              <View style={styles.fuelTypeContainer}>
+                {fuelTypes.map((fuel) => (
+                  <TouchableOpacity
+                    key={fuel.value}
                     style={[
-                      styles.fuelTypeText,
-                      formData.fuelType === fuel.value &&
-                        styles.fuelTypeTextActive,
+                      styles.fuelTypeButton,
+                      formData.fuelType === fuel.value && styles.fuelTypeActive,
                     ]}
+                    onPress={() => handleChange("fuelType", fuel.value)}
                   >
-                    {fuel.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.fuelTypeText,
+                        formData.fuelType === fuel.value &&
+                          styles.fuelTypeTextActive,
+                      ]}
+                    >
+                      {fuel.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+          </Card>
 
           {/* Save Button */}
           <TouchableOpacity
@@ -163,11 +168,11 @@ const CreateVehicleScreen = ({ navigation }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <>
-                <Ionicons name="add-circle" size={20} color={COLORS.white} />
-                <Text style={styles.saveButtonText}>Araç Ekle</Text>
+                <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
+                <Text style={styles.saveButtonText}>Arac Ekle</Text>
               </>
             )}
           </TouchableOpacity>
@@ -177,85 +182,87 @@ const CreateVehicleScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  fuelTypeContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  fuelTypeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  fuelTypeActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  fuelTypeText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  fuelTypeTextActive: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md,
+    },
+    inputContainer: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    input: {
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    halfInput: {
+      flex: 1,
+      marginRight: COLORS.SPACING.sm,
+    },
+    fuelTypeContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    fuelTypeButton: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+      backgroundColor: COLORS.SURFACE,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    fuelTypeActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    fuelTypeText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    fuelTypeTextActive: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.button,
+      marginTop: COLORS.SPACING.lg,
+      ...COLORS.SHADOWS.button,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.button,
+      marginLeft: COLORS.SPACING.sm,
+    },
+  });
 
 export default CreateVehicleScreen;

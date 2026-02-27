@@ -1,31 +1,28 @@
 /*
- * Fleet Tracker ESP32 v4.3.9 STABLE
+ * Fleet Tracker ESP32-S3 v4.5.0
  * 
- * v4.3.9 CHANGES:
+ * v4.5.0 CHANGES (26 Feb 2026):
+ *  - RESTORED: Full ADXL345 event detection system (from v4.3.3)
+ *    - readAndSmoothAccel() with EMA filter (alpha=0.3)
+ *    - checkForEvents(): IMPACT, HARD_BRAKE, HARD_ACCEL, HARD_TURN
+ *    - sendAlert() → MQTT events topic with GPS coordinates
+ *    - calibrateAccel() with 50 samples (improved from 10)
+ *    - Alert cooldown (5s) to prevent spam
+ *  - FIXED: I2C pins changed from GPIO38/39 → GPIO8/9
+ *    (GPIO38/39 conflict with PSRAM on ESP32-S3 N16R8)
+ *  - ADDED: accel_x/y/z in location payload for DB storage
+ *  - ADDED: ADXL345 16G range + 100Hz data rate config
+ *  - ADDED: adxlReady flag for graceful degradation
+ *  - KEPT: All v4.3.11 features (BLE provisioning, smart publish, etc.)
+ * 
+ * v4.3.11 FEATURES (preserved):
  *  - Separated MQTT topics: location vs telemetry
- *  - GPS data now published to fleet/device/{id}/location
- *  - Telemetry topic reserved for vehicle sensors (fuel, odometer)
- *  - Independent intervals: location=speed-based, telemetry=60s
- *  - GPS debug logging every 5 seconds
+ *  - Smart publish with stationary detection
+ *  - BLE boot window with re-provision support
+ *  - WiFi provisioning state machine
+ *  - NTP time sync, heartbeat
  * 
- * CRITICAL FIX from v4.3.7:
- *  - BLE must be properly STOPPED before WiFi.begin()
- *  - NimBLEDevice::deinit() MUST complete before WiFi operations
- *  - Added delay after BLE deinit for stack cleanup
- *  - WiFi credentials handled in main loop, NOT in BLE callback
- * 
- * ROOT CAUSE OF CRASH:
- *  - ESP32 has shared radio for BLE and WiFi
- *  - WiFi.begin() during active BLE connection causes crash
- *  - NimBLE stack needs time to properly shutdown
- * 
- * SOLUTION:
- *  - Store credentials in BLE callback (don't connect)
- *  - Stop BLE advertising, disconnect client
- *  - Call NimBLEDevice::deinit(true) with delay
- *  - Only then call WiFi.begin()
- * 
- * 01 February 2026 - Crash Fix Release
+ * 26 February 2026 - ADXL345 Event System Restore
  */
 
 #include <WiFi.h>
@@ -42,7 +39,7 @@
 #include "soc/rtc_cntl_reg.h"
 #include "esp_mac.h"
 #include "esp_bt.h"
-//#include "esp_task_wdt.h"
+#include "esp_task_wdt.h"
 #include <ArduinoJson.h>
 #include <NimBLEDevice.h>
 #include <Preferences.h>
@@ -51,7 +48,7 @@
 // CONFIGURATION
 // ============================================
 
-const char* FIRMWARE_VERSION = "4.3.11";
+const char* FIRMWARE_VERSION = "4.5.0";
 const char* DEVICE_SERIAL = "TF-2026-DEMO-1";
 
 // Backend
@@ -181,6 +178,7 @@ NimBLECharacteristic* pAuthTokenChar = nullptr;
 String mqtt_topic_location = "";
 String mqtt_topic_telemetry = "";
 String mqtt_topic_events = "";
+String mqtt_topic_alert = "";    // RESTORED from v4.3.3
 String mqtt_topic_heartbeat = "";
 String mqtt_topic_command = "";
 
@@ -188,8 +186,15 @@ String mqtt_topic_command = "";
 double currentLat = 0, currentLon = 0;
 double lastLat = 0, lastLon = 0;
 float currentSpeed = 0;
-float baseX = 0, baseY = 0, baseZ = 0;
 bool gpsValid = false;
+
+// ADXL345 State (RESTORED from v4.3.3)
+bool adxlReady = false;          // true if ADXL345 initialized OK
+bool calibrated = false;         // true after calibration
+float smoothAx = 0, smoothAy = 0, smoothAz = 9.81;
+float baselineAx = 0, baselineAy = 0, baselineAz = 9.81;
+unsigned long lastAlertTime = 0;
+unsigned long totalAlerts = 0;
 
 // Timing
 unsigned long lastPublish = 0;
@@ -215,18 +220,26 @@ const float IDLE_SPEED = 5.0;
 const float CITY_SPEED = 50.0;
 const float HIGHWAY_SPEED = 90.0;
 
-// Accelerometer thresholds
-const float HARSH_BRAKE_THRESHOLD = 0.35;
-const float HARSH_ACCEL_THRESHOLD = 0.25;
-const float HARSH_TURN_THRESHOLD = 0.30;
-const float IMPACT_THRESHOLD = 2.5;
+// (Thresholds defined above as #define)
 
 // DEG_TO_RAD is already defined in Arduino.h
 
 // LED Pins
-#define LED_STATUS 2
 #define LED_GPS 4
 #define LED_WIFI 5
+
+// I2C Pins (ESP32-S3 N16R8 — GPIO38/39 PSRAM conflict!)
+#define I2C_SDA 8
+#define I2C_SCL 9
+
+// ADXL345 Thresholds (G-force)
+#define THRESHOLD_BRAKE   0.40
+#define THRESHOLD_ACCEL   0.30
+#define THRESHOLD_TURN    0.35
+#define THRESHOLD_IMPACT  2.00
+
+// Alert timing
+#define ALERT_COOLDOWN    5000   // ms between alerts (prevent spam)
 
 // ============================================
 // FORWARD DECLARATIONS
@@ -243,15 +256,19 @@ bool verifyTokenWithBackend(const String& serial, const String& provToken);
 void performWiFiScan();
 void processProvisionStateMachine();
 
+// ADXL345 functions (RESTORED from v4.3.3)
+void calibrateAccel();
+void readAndSmoothAccel();
+void checkForEvents();
+void sendAlert(String type, String message, float value, String severity);
+
 // ============================================
 // LED FUNCTIONS
 // ============================================
 
 void ledsInit() {
-  pinMode(LED_STATUS, OUTPUT);
   pinMode(LED_GPS, OUTPUT);
   pinMode(LED_WIFI, OUTPUT);
-  digitalWrite(LED_STATUS, LOW);
   digitalWrite(LED_GPS, LOW);
   digitalWrite(LED_WIFI, LOW);
 }
@@ -495,17 +512,15 @@ void initBLE() {
   Serial.println("[BLE] Starting...");
   Serial.printf("[MEM] free=%u min=%u\n", ESP.getFreeHeap(), ESP.getMinFreeHeap());
 
-  // Classic BT belleğini serbest bırak
+  // Classic BT belleÄŸini serbest bÄ±rak
   esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
-  delay(500);  // 500ms bekle
+  delay(50);
 
-  Serial.println("[BLE] Calling NimBLE init...");  // ← DEBUG EKLE
   NimBLEDevice::init(deviceName.c_str());
-  Serial.println("[BLE] NimBLE init done");  // ← DEBUG EKLE
   delay(100);
 
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
-  NimBLEDevice::setMTU(185);  // 517 yerine düşük MTU
+  NimBLEDevice::setMTU(185);  // 517 yerine dÃ¼ÅŸÃ¼k MTU
   
   pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(new ServerCallbacks());
@@ -627,44 +642,39 @@ void stopBLE() {
 
 bool connectWiFiDirect(const String& ssid, const String& password) {
   Serial.println("[WiFi] Connecting to: " + ssid);
-  Serial.printf("[WiFi] Heap before mode: %u\n", ESP.getFreeHeap());
+  delay(100);  // â† EKLE - WiFi init iÃ§in
 
-  WiFi.disconnect(true, true);
-  delay(200);
-
-  Serial.println("[WiFi] mode(WIFI_STA)...");
   WiFi.mode(WIFI_STA);
-  WiFi.setSleep(false);
-  delay(200);
-
-  Serial.println("[WiFi] begin()...");
-  Serial.flush();
+  delay(100);  // â† EKLE - WiFi init iÃ§in
+  delay(100);  // â† EKLE - WiFi init iÃ§in
   WiFi.begin(ssid.c_str(), password.c_str());
-  delay(200);
-
-  Serial.println("[WiFi] waiting status...");
-  uint32_t t0 = millis();
+  
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 20000) {
-    delay(250);                 // WDT/yield için
+  while (WiFi.status() != WL_CONNECTED && attempts < 60) {
+    delay(500);
     Serial.print(".");
     attempts++;
   }
   Serial.println();
-
-  wl_status_t st = WiFi.status();
-  Serial.printf("[WiFi] status=%d\n", (int)st);
-
-  if (st == WL_CONNECTED) {
+  
+  if (WiFi.status() == WL_CONNECTED) {
     wifiConnected = true;
-    digitalWrite(LED_WIFI, HIGH);
+      digitalWrite(LED_WIFI, HIGH);
     Serial.println("[WiFi] CONNECTED!");
     Serial.println("[WiFi] IP: " + WiFi.localIP().toString());
     Serial.printf("[WiFi] RSSI: %d dBm\n", WiFi.RSSI());
     return true;
   }
-
-  Serial.println("[WiFi] FAILED");
+  
+  wl_status_t status = WiFi.status();
+  if (status == WL_NO_SSID_AVAIL) {
+    Serial.println("[WiFi] SSID not found");
+  } else if (status == WL_CONNECT_FAILED) {
+    Serial.println("[WiFi] Wrong password");
+  } else {
+    Serial.println("[WiFi] Timeout");
+  }
+  
   return false;
 }
 
@@ -676,7 +686,7 @@ void wifiScanTaskFunc(void* param) {
   
   WiFi.mode(WIFI_STA);
   
-  // Async scan başlat (blocking değil!)
+  // Async scan baÅŸlat (blocking deÄŸil!)
   WiFi.scanNetworks(true);  // true = async
   
   // Scan tamamlanana kadar bekle, watchdog'u besle
@@ -725,8 +735,8 @@ bool smartWiFiConnect() {
     return false;
   }
   
-  // Scan yapmadan direkt bağlan - kayıtlı SSID zaten var
-  // Bağlanamazsa BLE re-provision başlayacak
+  // Scan yapmadan direkt baÄŸlan - kayÄ±tlÄ± SSID zaten var
+  // BaÄŸlanamazsa BLE re-provision baÅŸlayacak
   Serial.println("[WiFi] Connecting to: " + storedSsid);
   return connectWiFiDirect(storedSsid, storedPassword);
 }
@@ -1024,29 +1034,131 @@ void connectMQTT() {
 }
 
 // ============================================
-// ACCELEROMETER
+// ACCELEROMETER - RESTORED FROM v4.3.3
 // ============================================
 
-void calibrateAccelerometer() {
-  Serial.println("[CAL] Calibrating...");
-  
+void readAndSmoothAccel() {
+  if (!adxlReady) return;
+  sensors_event_t event;
+  accel.getEvent(&event);
+  float alpha = 0.3;
+  smoothAx = alpha * event.acceleration.x + (1 - alpha) * smoothAx;
+  smoothAy = alpha * event.acceleration.y + (1 - alpha) * smoothAy;
+  smoothAz = alpha * event.acceleration.z + (1 - alpha) * smoothAz;
+}
+
+void calibrateAccel() {
+  Serial.println("[CAL] Calibrating (50 samples)...");
   float sumX = 0, sumY = 0, sumZ = 0;
-  int samples = 10;
-  
-  for (int i = 0; i < samples; i++) {
+  for (int i = 0; i < 50; i++) {
     sensors_event_t event;
     accel.getEvent(&event);
     sumX += event.acceleration.x;
     sumY += event.acceleration.y;
     sumZ += event.acceleration.z;
-    delay(100);
+    delay(20);
+  }
+  baselineAx = sumX / 50;
+  baselineAy = sumY / 50;
+  baselineAz = sumZ / 50;
+  smoothAx = baselineAx;
+  smoothAy = baselineAy;
+  smoothAz = baselineAz;
+  calibrated = true;
+  Serial.printf("[CAL] Done (base: %.2f, %.2f, %.2f)\n", baselineAx, baselineAy, baselineAz);
+}
+
+// ============================================
+// EVENT DETECTION - RESTORED FROM v4.3.3
+// ============================================
+
+void checkForEvents() {
+  if (!adxlReady || !calibrated) return;
+  if (millis() - lastAlertTime < ALERT_COOLDOWN) return;
+  
+  float netAxG = (smoothAx - baselineAx) / 9.81;
+  float netAyG = (smoothAy - baselineAy) / 9.81;
+  float impactG = sqrt(netAxG * netAxG + netAyG * netAyG);
+  
+  // Debug every 2 seconds
+  static unsigned long lastDebug = 0;
+  if (millis() - lastDebug > 2000) {
+    Serial.printf("[ADXL] Ax=%.2fG Ay=%.2fG impact=%.2fG spd=%.1f\n",
+                  netAxG, netAyG, impactG, currentSpeed);
+    lastDebug = millis();
   }
   
-  baseX = sumX / samples;
-  baseY = sumY / samples;
-  baseZ = sumZ / samples;
+  // IMPACT — highest priority (check even when stationary)
+  if (impactG > THRESHOLD_IMPACT) {
+    sendAlert("IMPACT", "Carpma tespit edildi!", impactG, "critical");
+    return;
+  }
   
-  Serial.println("[CAL] Complete");
+  // Skip driving events if vehicle is stationary
+  if (currentSpeed < 2.5) return;
+  
+  // HARD BRAKE
+  if (netAxG < -THRESHOLD_BRAKE) {
+    sendAlert("HARD_BRAKE", "Ani fren!", abs(netAxG), "high");
+    return;
+  }
+  
+  // HARD ACCELERATION
+  if (netAxG > THRESHOLD_ACCEL) {
+    sendAlert("HARD_ACCEL", "Sert hizlanma!", netAxG, "medium");
+    return;
+  }
+  
+  // HARD TURN
+  if (abs(netAyG) > THRESHOLD_TURN) {
+    sendAlert("HARD_TURN", "Sert viraj!", abs(netAyG), "medium");
+    return;
+  }
+}
+
+// ============================================
+// SEND ALERT - RESTORED FROM v4.3.3
+// ============================================
+
+void sendAlert(String type, String message, float value, String severity) {
+  if (mqtt_topic_alert.length() == 0) return;
+  if (!mqtt_client.connected()) return;
+  
+  lastAlertTime = millis();
+  eventBurstCount = 3;  // Speed up location publish after events
+  totalAlerts++;
+  
+  StaticJsonDocument<512> doc;
+  doc["device_id"] = espChipId;
+  doc["device_code"] = activatedSerial;
+  doc["timestamp"] = getTimestamp();
+  doc["type"] = type;
+  doc["severity"] = severity;
+  doc["title"] = type;              // Backend alerts.title (NOT NULL)
+  doc["description"] = message;
+  doc["value"] = value;
+  
+  // metadata JSONB for DB
+  JsonObject meta = doc.createNestedObject("metadata");
+  meta["g_force"] = value;
+  meta["threshold"] = (type == "HARD_BRAKE") ? THRESHOLD_BRAKE :
+                      (type == "HARD_ACCEL") ? THRESHOLD_ACCEL :
+                      (type == "HARD_TURN")  ? THRESHOLD_TURN  :
+                      THRESHOLD_IMPACT;
+  
+  if (gpsValid) {
+    doc["latitude"] = currentLat;
+    doc["longitude"] = currentLon;
+    doc["speed"] = currentSpeed;
+    doc["heading"] = gps.course.isValid() ? gps.course.deg() : 0;
+  }
+  
+  String payload;
+  serializeJson(doc, payload);
+  
+  bool sent = mqtt_client.publish(mqtt_topic_alert.c_str(), payload.c_str());
+  Serial.printf("[ALERT] %s %s: %.2fG (spd=%.1f) %s\n", 
+    type.c_str(), severity.c_str(), value, currentSpeed, sent ? "OK" : "FAILED");
 }
 
 // ============================================
@@ -1088,9 +1200,9 @@ String getMacNoWiFi() {
 }
 
 void setup() {
-  //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);  // <-- ŞİMDİLİK KAPAT
-  //disableCore0WDT();
-  //disableCore1WDT();
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+  disableCore0WDT();
+  disableCore1WDT();
   Serial.begin(115200);
   mqtt_client.setBufferSize(512);  // CRITICAL: Default 256 too small for location payload
   delay(2000);
@@ -1125,12 +1237,19 @@ void setup() {
   
   Serial.println("[NVS] Activated: " + String(isActivated ? "YES" : "NO"));
   
-  // Init sensors
+  // Init sensors - ADXL345 on I2C (GPIO8/9)
+  Wire.begin(I2C_SDA, I2C_SCL);
+  Wire.setClock(400000);
+  
   if (accel.begin()) {
-    Serial.println("[ADXL] Ready");
-    calibrateAccelerometer();
+    accel.setRange(ADXL345_RANGE_16_G);
+    accel.setDataRate(ADXL345_DATARATE_100_HZ);
+    adxlReady = true;
+    Serial.println("[ADXL] Ready (SDA=8 SCL=9, 16G, 100Hz)");
+    calibrateAccel();
   } else {
-    Serial.println("[ADXL] FAILED");
+    adxlReady = false;
+    Serial.println("[ADXL] Not found on GPIO8/9 — events disabled");
   }
   
   gpsSerial.begin(9600, SERIAL_8N1, 16, 17);
@@ -1154,6 +1273,7 @@ void setup() {
       mqtt_topic_location = "fleet/device/" + espChipId + "/location";
       mqtt_topic_telemetry = "fleet/device/" + espChipId + "/telemetry";
       mqtt_topic_events = "fleet/device/" + espChipId + "/events";
+      mqtt_topic_alert = "fleet/device/" + espChipId + "/alerts";
       mqtt_topic_heartbeat = "fleet/device/" + espChipId + "/heartbeat";
       mqtt_topic_command = "fleet/device/" + espChipId + "/commands";
       
@@ -1215,8 +1335,12 @@ void loop() {
       currentLon = gps.location.lng();
       currentSpeed = gps.speed.kmph();
       gpsValid = true;
-        digitalWrite(LED_GPS, HIGH);  // ← EKLE
+      digitalWrite(LED_GPS, HIGH);
     }
+    
+    // ADXL345 — read & smooth every loop cycle, check events
+    readAndSmoothAccel();
+    checkForEvents();
     
     // MQTT
     if (!mqtt_client.connected()) {
@@ -1226,16 +1350,16 @@ void loop() {
     
     unsigned long now = millis();
     
-    // GPS Debug - her 5 saniyede durum yazdÃ„Â±r
+    // GPS Debug - her 10 saniyede durum
     static unsigned long lastGpsDebug = 0;
-    if (now - lastGpsDebug >= 5000) {
+    if (now - lastGpsDebug >= 10000) {
       lastGpsDebug = now;
       Serial.printf("[GPS] chars=%lu valid=%d sats=%d lat=%.6f lon=%.6f spd=%.1f\n",
         gps.charsProcessed(), gpsValid ? 1 : 0, 
         gps.satellites.value(), currentLat, currentLon, currentSpeed);
     }
     
-    // ── LOCATION publish (GPS data → location topic) ──
+    // â”€â”€ LOCATION publish (GPS data â†’ location topic) â”€â”€
     // Smart publish: skip if vehicle hasn't moved (saves bandwidth & DB)
     long locationInterval = getPublishInterval();
     
@@ -1252,7 +1376,7 @@ void loop() {
         if (isStationary && !heartbeatDue) {
           Serial.printf("[LOC] Skipped: stationary (moved %.1fm)\n", distMoved);
         } else {
-          StaticJsonDocument<384> doc;
+          StaticJsonDocument<512> doc;
           doc["device_id"] = espChipId;
           doc["timestamp"] = getTimestamp();
           doc["latitude"] = currentLat;
@@ -1264,6 +1388,13 @@ void loop() {
           doc["hdop"] = gps.hdop.isValid() ? gps.hdop.hdop() : 0;
           doc["wifi_rssi"] = WiFi.RSSI();
           doc["fw_version"] = FIRMWARE_VERSION;
+          
+          // ADXL345 accelerometer data (for DB locations table)
+          if (adxlReady && calibrated) {
+            doc["accel_x"] = smoothAx;
+            doc["accel_y"] = smoothAy;
+            doc["accel_z"] = smoothAz;
+          }
           
           String json;
           serializeJson(doc, json);
@@ -1279,7 +1410,7 @@ void loop() {
         }
       }
     }
-    // Ã¢â€â‚¬Ã¢â€â‚¬ TELEMETRY publish (vehicle sensors Ã¢â€ â€™ telemetry topic) Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- TELEMETRY publish (vehicle sensors -> telemetry topic) --
     // Interval: 60 saniye sabit
     if (now - lastTelemetryPublish >= 60000) {
       lastTelemetryPublish = now;
@@ -1294,7 +1425,7 @@ void loop() {
         doc["gps_valid"] = gpsValid;
         doc["satellites"] = gps.satellites.value();
         doc["fw_version"] = FIRMWARE_VERSION;
-        // TODO: fuel_level ve odometer sensÃƒÂ¶rleri eklenince buraya
+        // TODO: fuel_level ve odometer sensorleri eklenince buraya
         
         String json;
         serializeJson(doc, json);

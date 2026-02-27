@@ -1,6 +1,6 @@
 // src/screens/driver/TroubleshootingScreen.js
 // TulipFleet - Sorun Giderme Ekranı
-// Created: 21 Ocak 2026
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -13,28 +13,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-// Theme colors
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-  border: "#E9ECEF",
-};
-
-// Troubleshooting data
-const TROUBLESHOOTING_DATA = [
+const getTroubleshootingData = (COLORS) => [
   {
     id: "power",
     icon: "power-outline",
-    color: COLORS.danger,
+    color: COLORS.ERROR,
     problemKey: "troubleshooting.problems.noPower",
     solutionKey: "troubleshooting.solutions.noPower",
     steps: [
@@ -46,7 +33,7 @@ const TROUBLESHOOTING_DATA = [
   {
     id: "gps",
     icon: "navigate-outline",
-    color: COLORS.warning,
+    color: COLORS.WARNING,
     problemKey: "troubleshooting.problems.noGps",
     solutionKey: "troubleshooting.solutions.noGps",
     steps: [
@@ -58,7 +45,7 @@ const TROUBLESHOOTING_DATA = [
   {
     id: "wifi",
     icon: "wifi-outline",
-    color: COLORS.info,
+    color: COLORS.INFO,
     problemKey: "troubleshooting.problems.noWifi",
     solutionKey: "troubleshooting.solutions.noWifi",
     steps: [
@@ -70,7 +57,7 @@ const TROUBLESHOOTING_DATA = [
   {
     id: "ble",
     icon: "bluetooth-outline",
-    color: COLORS.primary,
+    color: COLORS.PRIMARY,
     problemKey: "troubleshooting.problems.noBle",
     solutionKey: "troubleshooting.solutions.noBle",
     steps: [
@@ -82,7 +69,7 @@ const TROUBLESHOOTING_DATA = [
   {
     id: "location",
     icon: "location-outline",
-    color: COLORS.success,
+    color: COLORS.SUCCESS,
     problemKey: "troubleshooting.problems.noUpdate",
     solutionKey: "troubleshooting.solutions.noUpdate",
     steps: [
@@ -94,7 +81,7 @@ const TROUBLESHOOTING_DATA = [
   {
     id: "app",
     icon: "phone-portrait-outline",
-    color: COLORS.secondary,
+    color: COLORS.TEXT_SECONDARY,
     problemKey: "troubleshooting.problems.appCrash",
     solutionKey: "troubleshooting.solutions.appCrash",
     steps: [
@@ -105,8 +92,15 @@ const TROUBLESHOOTING_DATA = [
   },
 ];
 
-const TroubleshootingCard = ({ item, expanded, onToggle, t }) => (
-  <View style={styles.card}>
+const TroubleshootingCard = ({
+  item,
+  expanded,
+  onToggle,
+  t,
+  COLORS,
+  styles,
+}) => (
+  <Card variant="flat" style={styles.troubleCard}>
     <TouchableOpacity
       style={styles.cardHeader}
       onPress={onToggle}
@@ -123,20 +117,18 @@ const TroubleshootingCard = ({ item, expanded, onToggle, t }) => (
       <Ionicons
         name={expanded ? "chevron-up" : "chevron-down"}
         size={20}
-        color={COLORS.muted}
+        color={COLORS.MUTED}
       />
     </TouchableOpacity>
-
     {expanded && (
       <View style={styles.cardContent}>
         <View style={styles.solutionHeader}>
-          <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+          <Ionicons name="checkmark-circle" size={18} color={COLORS.SUCCESS} />
           <Text style={styles.solutionTitle}>
             {t("troubleshooting.solution")}
           </Text>
         </View>
         <Text style={styles.solutionText}>{t(item.solutionKey)}</Text>
-
         <View style={styles.stepsContainer}>
           <Text style={styles.stepsTitle}>
             {t("troubleshooting.stepsToTry")}
@@ -152,235 +144,205 @@ const TroubleshootingCard = ({ item, expanded, onToggle, t }) => (
         </View>
       </View>
     )}
-  </View>
+  </Card>
 );
 
 const TroubleshootingScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [expandedId, setExpandedId] = useState(null);
-
-  const toggleExpand = (id) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
+  const TROUBLESHOOTING_DATA = getTroubleshootingData(COLORS);
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("troubleshooting.title")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Info Banner */}
         <View style={styles.infoBanner}>
-          <Ionicons name="information-circle" size={24} color={COLORS.info} />
+          <Ionicons name="information-circle" size={24} color={COLORS.INFO} />
           <Text style={styles.infoBannerText}>
             {t("troubleshooting.tapToExpand")}
           </Text>
         </View>
 
-        {/* Troubleshooting Cards */}
         {TROUBLESHOOTING_DATA.map((item) => (
           <TroubleshootingCard
             key={item.id}
             item={item}
             expanded={expandedId === item.id}
-            onToggle={() => toggleExpand(item.id)}
+            onToggle={() =>
+              setExpandedId(expandedId === item.id ? null : item.id)
+            }
             t={t}
+            COLORS={COLORS}
+            styles={styles}
           />
         ))}
 
-        {/* Still Need Help */}
-        <View style={styles.helpSection}>
-          <Ionicons name="help-buoy" size={32} color={COLORS.primary} />
-          <Text style={styles.helpTitle}>
-            {t("troubleshooting.stillNeedHelp")}
-          </Text>
-          <Text style={styles.helpText}>{t("troubleshooting.contactUs")}</Text>
-          <View style={styles.contactInfo}>
-            <Text style={styles.contactEmail}>
-              📧 mightyforever74@gmail.com
+        <Card variant="flat" style={styles.helpCard}>
+          <View style={styles.helpInner}>
+            <Ionicons name="help-buoy" size={32} color={COLORS.PRIMARY} />
+            <Text style={styles.helpTitle}>
+              {t("troubleshooting.stillNeedHelp")}
             </Text>
+            <Text style={styles.helpText}>
+              {t("troubleshooting.contactUs")}
+            </Text>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactEmail}>mightyforever74@gmail.com</Text>
+            </View>
           </View>
-        </View>
-
-        <View style={{ height: 30 }} />
+        </Card>
+        <View style={{ height: COLORS.SPACING.xl }} />
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === "ios" ? 50 : 16,
-    paddingBottom: 16,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.dark,
-  },
-  content: {
-    flex: 1,
-    padding: 12,
-  },
-  infoBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: `${COLORS.info}15`,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  infoBannerText: {
-    flex: 1,
-    fontSize: 13,
-    color: COLORS.info,
-    marginLeft: 10,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 10,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  cardTitleContainer: {
-    flex: 1,
-  },
-  problemText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.dark,
-  },
-  cardContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  solutionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  solutionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.success,
-    marginLeft: 6,
-  },
-  solutionText: {
-    fontSize: 14,
-    color: COLORS.dark,
-    lineHeight: 20,
-  },
-  stepsContainer: {
-    marginTop: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 10,
-    padding: 12,
-  },
-  stepsTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.secondary,
-    marginBottom: 10,
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  stepNumber: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  stepNumberText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: COLORS.white,
-  },
-  stepText: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.dark,
-    lineHeight: 22,
-  },
-  helpSection: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 24,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  helpTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginTop: 12,
-  },
-  helpText: {
-    fontSize: 14,
-    color: COLORS.secondary,
-    marginTop: 6,
-    textAlign: "center",
-  },
-  contactInfo: {
-    marginTop: 12,
-  },
-  contactEmail: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      paddingBottom: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    headerTitle: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
+    content: { flex: 1, padding: COLORS.SPACING.sm },
+    infoBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INFO_LIGHT,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.md,
+    },
+    infoBannerText: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.INFO,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    troubleCard: { marginBottom: COLORS.SPACING.sm, overflow: "hidden" },
+    cardHeader: { flexDirection: "row", alignItems: "center" },
+    iconContainer: {
+      width: 44,
+      height: 44,
+      borderRadius: COLORS.RADIUS.card,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    cardTitleContainer: { flex: 1 },
+    problemText: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    cardContent: {
+      paddingTop: COLORS.SPACING.md,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      marginTop: COLORS.SPACING.md,
+    },
+    solutionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    solutionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.SUCCESS,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    solutionText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      lineHeight: 20,
+    },
+    stepsContainer: {
+      marginTop: COLORS.SPACING.md,
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+    },
+    stepsTitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    stepRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    stepNumber: {
+      width: 24,
+      height: 24,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    stepNumberText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    stepText: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      lineHeight: 22,
+    },
+    helpCard: { marginTop: COLORS.SPACING.sm },
+    helpInner: { alignItems: "center" },
+    helpTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+      marginTop: COLORS.SPACING.sm,
+    },
+    helpText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+      textAlign: "center",
+    },
+    contactInfo: { marginTop: COLORS.SPACING.sm },
+    contactEmail: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.PRIMARY,
+    },
+  });
 
 export default TroubleshootingScreen;

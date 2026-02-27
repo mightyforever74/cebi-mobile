@@ -1,8 +1,10 @@
 // src/screens/shared/EditProfileScreen.js
 // TulipFleet - Profil Düzenleme Ekranı
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -16,22 +18,15 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { userAPI } from "../../services/api";
 
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  danger: "#F5365C",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-  border: "#E9ECEF",
-};
-
 const EditProfileScreen = ({ navigation }) => {
-  const { user, updateProfile } = useAuth(); // ← updateProfile eklendi
+  const { user, updateProfile } = useAuth();
+  const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -39,9 +34,11 @@ const EditProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    // Validation
     if (!firstName.trim()) {
-      Alert.alert("Hata", "Ad alanı zorunludur");
+      Alert.alert(
+        t("common.error") || "Hata",
+        t("editProfile.firstNameRequired") || "Ad alanı zorunludur"
+      );
       return;
     }
 
@@ -53,22 +50,32 @@ const EditProfileScreen = ({ navigation }) => {
         phone: phone.trim(),
       };
 
-      // Backend'e kaydet
       await userAPI.updateProfile(data);
 
-      // ✅ AuthContext'i güncelle (snake_case!)
       await updateProfile({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         phone: phone.trim(),
       });
 
-      Alert.alert("Başarılı", "Profil güncellendi", [
-        { text: "Tamam", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert(
+        t("common.success") || "Başarılı",
+        t("editProfile.updated") || "Profil güncellendi",
+        [
+          {
+            text: t("common.ok") || "Tamam",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
     } catch (error) {
       console.error("Profile update error:", error);
-      Alert.alert("Hata", error.message || "Profil güncellenemedi");
+      Alert.alert(
+        t("common.error") || "Hata",
+        error.message ||
+          t("editProfile.updateFailed") ||
+          "Profil güncellenemedi"
+      );
     } finally {
       setLoading(false);
     }
@@ -94,8 +101,10 @@ const EditProfileScreen = ({ navigation }) => {
             </Text>
           </View>
           <TouchableOpacity style={styles.changePhotoButton}>
-            <Ionicons name="camera" size={16} color={COLORS.primary} />
-            <Text style={styles.changePhotoText}>Fotoğraf Değiştir</Text>
+            <Ionicons name="camera" size={16} color={COLORS.PRIMARY} />
+            <Text style={styles.changePhotoText}>
+              {t("editProfile.changePhoto") || "Fotoğraf Değiştir"}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -103,67 +112,89 @@ const EditProfileScreen = ({ navigation }) => {
         <View style={styles.form}>
           {/* Email (readonly) */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>E-posta</Text>
-            <View style={[styles.input, styles.inputDisabled]}>
-              <Ionicons name="mail-outline" size={20} color={COLORS.muted} />
+            <Text style={styles.label}>
+              {t("editProfile.email") || "E-posta"}
+            </Text>
+            <View style={[styles.inputRow, styles.inputDisabled]}>
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color={COLORS.MUTED}
+                style={styles.inputIcon}
+              />
               <Text style={styles.inputTextDisabled}>{user?.email || "-"}</Text>
             </View>
-            <Text style={styles.helperText}>E-posta değiştirilemez</Text>
+            <Text style={styles.helperText}>
+              {t("editProfile.emailReadonly") || "E-posta değiştirilemez"}
+            </Text>
           </View>
 
           {/* First Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ad *</Text>
-            <View style={styles.input}>
+            <Text style={styles.label}>
+              {t("editProfile.firstName") || "Ad"} *
+            </Text>
+            <View style={styles.inputRow}>
               <Ionicons
                 name="person-outline"
                 size={20}
-                color={COLORS.secondary}
+                color={COLORS.TEXT_SECONDARY}
+                style={styles.inputIcon}
               />
               <TextInput
                 style={styles.inputText}
                 value={firstName}
                 onChangeText={setFirstName}
-                placeholder="Adınızı girin"
-                placeholderTextColor={COLORS.muted}
+                placeholder={
+                  t("editProfile.firstNamePlaceholder") || "Adınızı girin"
+                }
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
           </View>
 
           {/* Last Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Soyad</Text>
-            <View style={styles.input}>
+            <Text style={styles.label}>
+              {t("editProfile.lastName") || "Soyad"}
+            </Text>
+            <View style={styles.inputRow}>
               <Ionicons
                 name="person-outline"
                 size={20}
-                color={COLORS.secondary}
+                color={COLORS.TEXT_SECONDARY}
+                style={styles.inputIcon}
               />
               <TextInput
                 style={styles.inputText}
                 value={lastName}
                 onChangeText={setLastName}
-                placeholder="Soyadınızı girin"
-                placeholderTextColor={COLORS.muted}
+                placeholder={
+                  t("editProfile.lastNamePlaceholder") || "Soyadınızı girin"
+                }
+                placeholderTextColor={COLORS.PLACEHOLDER}
               />
             </View>
           </View>
 
           {/* Phone */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telefon</Text>
-            <View style={styles.input}>
+            <Text style={styles.label}>
+              {t("editProfile.phone") || "Telefon"}
+            </Text>
+            <View style={styles.inputRow}>
               <Ionicons
                 name="call-outline"
                 size={20}
-                color={COLORS.secondary}
+                color={COLORS.TEXT_SECONDARY}
+                style={styles.inputIcon}
               />
               <TextInput
                 style={styles.inputText}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder="05XX XXX XX XX"
-                placeholderTextColor={COLORS.muted}
+                placeholderTextColor={COLORS.PLACEHOLDER}
                 keyboardType="phone-pad"
               />
             </View>
@@ -177,11 +208,18 @@ const EditProfileScreen = ({ navigation }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={COLORS.WHITE} />
           ) : (
             <>
-              <Ionicons name="checkmark" size={20} color={COLORS.white} />
-              <Text style={styles.saveButtonText}>Kaydet</Text>
+              <Ionicons
+                name="checkmark"
+                size={20}
+                color={COLORS.WHITE}
+                style={styles.saveButtonIcon}
+              />
+              <Text style={styles.saveButtonText}>
+                {t("common.save") || "Kaydet"}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -192,133 +230,137 @@ const EditProfileScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           disabled={loading}
         >
-          <Text style={styles.cancelButtonText}>İptal</Text>
+          <Text style={styles.cancelButtonText}>
+            {t("common.cancel") || "İptal"}
+          </Text>
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: COLORS.SPACING.xxl }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    scrollView: {
+      flex: 1,
+    },
 
-  // Avatar
-  avatarSection: {
-    alignItems: "center",
-    paddingVertical: 30,
-    backgroundColor: COLORS.white,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: COLORS.white,
-  },
-  changePhotoButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  changePhotoText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: "500",
-    marginLeft: 6,
-  },
+    // Avatar
+    avatarSection: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+      backgroundColor: COLORS.SURFACE,
+    },
+    avatar: {
+      width: 96, // 8px grid: 12*8
+      height: 96,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    avatarText: {
+      ...COLORS.TYPOGRAPHY.styles.h1,
+      color: COLORS.WHITE,
+    },
+    changePhotoButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+    changePhotoText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.PRIMARY,
+      marginLeft: COLORS.SPACING.xs,
+    },
 
-  // Form
-  form: {
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.dark,
-    marginBottom: 8,
-  },
-  input: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  inputDisabled: {
-    backgroundColor: COLORS.background,
-  },
-  inputText: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.dark,
-    marginLeft: 10,
-  },
-  inputTextDisabled: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.muted,
-    marginLeft: 10,
-  },
-  helperText: {
-    fontSize: 12,
-    color: COLORS.muted,
-    marginTop: 4,
-    marginLeft: 4,
-  },
+    // Form
+    form: {
+      padding: COLORS.SPACING.md,
+    },
+    inputGroup: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    inputDisabled: {
+      backgroundColor: COLORS.DISABLED_BG,
+    },
+    inputIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    inputText: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    inputTextDisabled: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+    },
+    helperText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+      marginLeft: COLORS.SPACING.xs,
+    },
 
-  // Buttons
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  cancelButton: {
-    alignItems: "center",
-    marginHorizontal: 16,
-    paddingVertical: 14,
-    marginTop: 10,
-  },
-  cancelButtonText: {
-    color: COLORS.secondary,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-});
+    // Buttons
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      marginHorizontal: COLORS.SPACING.md,
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.button,
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.button,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    saveButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+    },
+    cancelButton: {
+      alignItems: "center",
+      marginHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.sm,
+    },
+    cancelButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_SECONDARY,
+    },
+  });
 
 export default EditProfileScreen;

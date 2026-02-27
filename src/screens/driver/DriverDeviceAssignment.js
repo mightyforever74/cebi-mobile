@@ -17,12 +17,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { theme } from "../../constants";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { deviceAPI, driverAPI } from "../../services/api";
 
-const { COLORS, SIZES } = theme;
-
 const DriverDeviceAssignment = () => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const { t } = useTranslation();
   const route = useRoute();
   const { vehicleId } = route.params || {};
@@ -259,7 +260,7 @@ const DriverDeviceAssignment = () => {
   const renderAssignableDeviceItem = ({ item }) => (
     <View style={styles.deviceCard}>
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1, paddingRight: SIZES.BASE }}>
+        <View style={{ flex: 1, paddingRight: COLORS.SPACING.md }}>
           <Text style={styles.serial}>{item.serial}</Text>
           <Text style={styles.status}>{item.status}</Text>
         </View>
@@ -388,7 +389,7 @@ const DriverDeviceAssignment = () => {
       </View>
 
       {/* Assignable Devices List */}
-      <Text style={[styles.title, { paddingHorizontal: SIZES.BASE }]}>
+      <Text style={[styles.title, { paddingHorizontal: COLORS.SPACING.md }]}>
         {t("deviceAssignment.availableDevices")} ({assignableDevices.length})
       </Text>
 
@@ -396,7 +397,7 @@ const DriverDeviceAssignment = () => {
         data={assignableDevices}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderAssignableDeviceItem}
-        contentContainerStyle={{ paddingHorizontal: SIZES.BASE }}
+        contentContainerStyle={{ paddingHorizontal: COLORS.SPACING.md }}
         ListEmptyComponent={
           <View style={styles.center}>
             <Text style={styles.value}>
@@ -430,7 +431,7 @@ const DriverDeviceAssignment = () => {
                 style={[
                   styles.btn,
                   styles.btnPrimary,
-                  { marginTop: SIZES.BASE },
+                  { marginTop: COLORS.SPACING.md },
                 ]}
                 onPress={requestPermission}
               >
@@ -451,7 +452,11 @@ const DriverDeviceAssignment = () => {
           )}
 
           <TouchableOpacity
-            style={[styles.btn, styles.btnDanger, { margin: SIZES.BASE }]}
+            style={[
+              styles.btn,
+              styles.btnDanger,
+              { margin: COLORS.SPACING.md },
+            ]}
             onPress={() => setScannerModal(false)}
           >
             <Text style={styles.btnText}>{t("deviceAssignment.close")}</Text>
@@ -506,7 +511,11 @@ const DriverDeviceAssignment = () => {
             )}
 
             <TouchableOpacity
-              style={[styles.btn, styles.btnDanger, { marginTop: SIZES.BASE }]}
+              style={[
+                styles.btn,
+                styles.btnDanger,
+                { marginTop: COLORS.SPACING.md },
+              ]}
               onPress={() => {
                 setSearchModal(false);
                 setSearchSerial("");
@@ -537,7 +546,7 @@ const DriverDeviceAssignment = () => {
                 data={assignableDevices}
                 keyExtractor={(d) => String(d.id)}
                 style={styles.listModal}
-                contentContainerStyle={{ paddingBottom: SIZES.BASE }}
+                contentContainerStyle={{ paddingBottom: COLORS.SPACING.md }}
                 renderItem={renderAssignableDeviceItem}
                 refreshing={loadingList}
                 onRefresh={handleFetchAssignableDevices}
@@ -549,7 +558,11 @@ const DriverDeviceAssignment = () => {
             )}
 
             <TouchableOpacity
-              style={[styles.btn, styles.btnDanger, { marginTop: SIZES.BASE }]}
+              style={[
+                styles.btn,
+                styles.btnDanger,
+                { marginTop: COLORS.SPACING.md },
+              ]}
               onPress={() => setDeviceListModal(false)}
             >
               <Text style={styles.btnText}>{t("deviceAssignment.close")}</Text>
@@ -561,246 +574,247 @@ const DriverDeviceAssignment = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.SECONDARY,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-  },
-  title: {
-    fontSize: SIZES.BASE + 4,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-  },
-  headerBtn: {
-    fontSize: SIZES.BASE + 3,
-  },
-  infoCard: {
-    marginHorizontal: SIZES.BASE,
-    marginVertical: SIZES.BASE / 2,
-    padding: SIZES.BASE,
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE / 2,
-    borderLeftWidth: SIZES.BASE / 4,
-    borderLeftColor: COLORS.INFO,
-  },
-  infoCardWarning: {
-    borderLeftColor: COLORS.WARNING,
-  },
-  infoLabel: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.MUTED,
-    fontWeight: "bold",
-  },
-  infoValue: {
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.TEXT,
-    marginTop: 2,
-  },
-  warningText: {
-    marginTop: SIZES.BASE / 2,
-    color: COLORS.WARNING,
-    fontSize: SIZES.BASE - 2,
-    fontWeight: "bold",
-  },
-  hintCard: {
-    marginHorizontal: SIZES.BASE,
-    marginBottom: SIZES.BASE / 2,
-    padding: SIZES.BASE,
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE / 2,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  hintText: {
-    color: COLORS.MUTED,
-    fontSize: SIZES.BASE - 2,
-  },
-  actionBar: {
-    flexDirection: "row",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    gap: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: SIZES.BASE,
-    borderRadius: SIZES.BASE / 2,
-    alignItems: "center",
-  },
-  actionBtnPrimary: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  actionBtnSecondary: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  actionBtnTertiary: {
-    backgroundColor: COLORS.INFO,
-  },
-  actionBtnText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-    fontSize: SIZES.BASE - 2,
-  },
-  deviceCard: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE / 2,
-    padding: SIZES.BASE,
-    marginBottom: SIZES.BASE / 2,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: SIZES.BASE / 2,
-  },
-  serial: {
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-    color: COLORS.TEXT,
-  },
-  status: {
-    fontSize: SIZES.BASE - 3,
-    backgroundColor: COLORS.INPUT,
-    paddingHorizontal: SIZES.BASE / 4,
-    paddingVertical: 2,
-    borderRadius: SIZES.BASE / 4,
-    marginTop: SIZES.BASE / 4,
-    color: COLORS.MUTED,
-    alignSelf: "flex-start",
-  },
-  online: {
-    fontSize: SIZES.BASE + 2,
-  },
-  value: {
-    marginTop: 6,
-    color: COLORS.MUTED,
-    fontSize: SIZES.BASE - 2,
-  },
-  disabledText: {
-    marginTop: SIZES.BASE / 2,
-    color: COLORS.MUTED,
-    fontSize: SIZES.BASE - 2,
-  },
-  btn: {
-    paddingVertical: SIZES.BASE / 2,
-    borderRadius: SIZES.BASE / 2,
-    alignItems: "center",
-    marginTop: SIZES.BASE / 2,
-  },
-  btnPrimary: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  btnAssign: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  btnDanger: {
-    backgroundColor: COLORS.WARNING,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-    fontSize: SIZES.BASE - 2,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scannerContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BLACK,
-  },
-  scanner: {
-    flex: 1,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.BLACK,
-    padding: SIZES.BASE * 2,
-  },
-  permissionText: {
-    color: COLORS.WHITE,
-    marginTop: SIZES.BASE,
-    fontSize: SIZES.BASE - 1,
-    textAlign: "center",
-  },
-  errorText: {
-    color: COLORS.WARNING,
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: SIZES.BASE,
-  },
-  modalContent: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE,
-    paddingHorizontal: SIZES.BASE * 1.5,
-    paddingVertical: SIZES.BASE * 1.5,
-    width: "100%",
-    maxHeight: "85%",
-  },
-  modalTitle: {
-    fontSize: SIZES.BASE + 2,
-    fontWeight: "bold",
-    marginBottom: SIZES.BASE,
-    color: COLORS.TEXT,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    borderRadius: SIZES.BASE / 2,
-    paddingVertical: SIZES.BASE / 2,
-    paddingHorizontal: SIZES.BASE,
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.TEXT,
-    backgroundColor: COLORS.WHITE,
-  },
-  searchList: {
-    marginTop: SIZES.BASE,
-    maxHeight: 320,
-  },
-  listModal: {
-    marginTop: SIZES.BASE,
-    maxHeight: 420,
-  },
-  searchItem: {
-    backgroundColor: COLORS.SECONDARY,
-    padding: SIZES.BASE,
-    borderRadius: SIZES.BASE / 2,
-    marginBottom: SIZES.BASE / 2,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  emptyText: {
-    marginTop: SIZES.BASE,
-    color: COLORS.MUTED,
-    fontSize: SIZES.BASE - 2,
-    textAlign: "center",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.SECONDARY,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.BORDER,
+    },
+    title: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    headerBtn: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    infoCard: {
+      marginHorizontal: COLORS.SPACING.md,
+      marginVertical: COLORS.SPACING.sm,
+      padding: COLORS.SPACING.md,
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.sm,
+      borderLeftWidth: COLORS.SPACING.xs,
+      borderLeftColor: COLORS.INFO,
+    },
+    infoCardWarning: {
+      borderLeftColor: COLORS.WARNING,
+    },
+    infoLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    infoValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
+      marginTop: 2,
+    },
+    warningText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.WARNING,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    hintCard: {
+      marginHorizontal: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+      padding: COLORS.SPACING.md,
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.sm,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+    },
+    hintText: {
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    actionBar: {
+      flexDirection: "row",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+    },
+    actionBtn: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.SPACING.sm,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    actionBtnPrimary: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    actionBtnSecondary: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    actionBtnTertiary: {
+      backgroundColor: COLORS.INFO,
+    },
+    actionBtnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    deviceCard: {
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.sm,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    serial: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+    },
+    status: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      backgroundColor: COLORS.INPUT,
+      paddingHorizontal: COLORS.SPACING.xs,
+      paddingVertical: 2,
+      borderRadius: COLORS.SPACING.xs,
+      marginTop: COLORS.SPACING.xs,
+      color: COLORS.MUTED,
+      alignSelf: "flex-start",
+    },
+    online: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    value: {
+      marginTop: COLORS.SPACING.xs,
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    disabledText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    btn: {
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.sm,
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+    },
+    btnPrimary: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    btnAssign: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    btnDanger: {
+      backgroundColor: COLORS.WARNING,
+    },
+    btnDisabled: {
+      opacity: 0.6,
+    },
+    btnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scannerContainer: {
+      flex: 1,
+      backgroundColor: COLORS.BLACK,
+    },
+    scanner: {
+      flex: 1,
+    },
+    permissionContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BLACK,
+      padding: COLORS.SPACING.xxxl,
+    },
+    permissionText: {
+      color: COLORS.WHITE,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      textAlign: "center",
+    },
+    errorText: {
+      color: COLORS.WARNING,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      textAlign: "center",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+    modalContent: {
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.lg,
+      width: "100%",
+      maxHeight: "85%",
+    },
+    modalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginBottom: COLORS.SPACING.md,
+      color: COLORS.TEXT,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+      borderRadius: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
+      backgroundColor: COLORS.WHITE,
+    },
+    searchList: {
+      marginTop: COLORS.SPACING.md,
+      maxHeight: 320,
+    },
+    listModal: {
+      marginTop: COLORS.SPACING.md,
+      maxHeight: 420,
+    },
+    searchItem: {
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      borderWidth: 1,
+      borderColor: COLORS.BORDER,
+    },
+    emptyText: {
+      marginTop: COLORS.SPACING.md,
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      textAlign: "center",
+    },
+  });
 
 export default DriverDeviceAssignment;

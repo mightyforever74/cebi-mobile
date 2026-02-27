@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
+import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
@@ -58,14 +59,14 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
     },
     loadingText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     errorText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
       paddingHorizontal: 30,
@@ -74,16 +75,16 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 10,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
       marginTop: 20,
-      gap: 8,
+      // gap removed
     },
     retryBtnText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // Header Buttons
@@ -93,30 +94,24 @@ const makeStyles = (COLORS) =>
       left: 16,
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
       elevation: 4,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      ...COLORS.SHADOWS.card,
     },
     headerBtn: {
       position: "absolute",
       top: 50,
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
       elevation: 4,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      ...COLORS.SHADOWS.card,
     },
     centerBtn: {
       right: 16,
@@ -138,7 +133,7 @@ const makeStyles = (COLORS) =>
     locationMarker: {
       backgroundColor: COLORS.PRIMARY,
       padding: 8,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       borderWidth: 3,
       borderColor: COLORS.WHITE,
       elevation: 4,
@@ -150,7 +145,7 @@ const makeStyles = (COLORS) =>
     navMarkerOuter: {
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: COLORS.RADIUS.xxl,
       backgroundColor: COLORS.PRIMARY + "33", // 0.2 opacity
       alignItems: "center",
       justifyContent: "center",
@@ -158,7 +153,7 @@ const makeStyles = (COLORS) =>
     navMarkerInner: {
       width: 36,
       height: 36,
-      borderRadius: 18,
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
       justifyContent: "center",
@@ -179,8 +174,8 @@ const makeStyles = (COLORS) =>
     },
     destinationMarker: {
       backgroundColor: COLORS.ERROR,
-      padding: 10,
-      borderRadius: 20,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
       borderWidth: 3,
       borderColor: COLORS.WHITE,
       elevation: 4,
@@ -195,29 +190,26 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.CARD,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 16,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.lg,
       elevation: 8,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
+      ...COLORS.SHADOWS.card,
     },
     compactItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      // gap removed
     },
     compactValue: {
       color: COLORS.TEXT,
-      fontSize: 15,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     compactTaskNo: {
       color: COLORS.PRIMARY,
-      fontSize: 13,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     compactDivider: {
       width: 1,
@@ -229,7 +221,7 @@ const makeStyles = (COLORS) =>
       marginLeft: "auto",
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: COLORS.RADIUS.xxl,
       backgroundColor: COLORS.SUCCESS,
       alignItems: "center",
       justifyContent: "center",
@@ -246,14 +238,14 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
-      padding: 10,
-      borderRadius: 10,
-      gap: 8,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed
     },
     routeLoadingText: {
       color: COLORS.WHITE,
-      fontSize: 13,
-      fontWeight: "500",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
 
     // Pending Review Banner
@@ -265,46 +257,43 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SURFACE,
-      padding: 16,
-      borderRadius: 16,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.lg,
       elevation: 6,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.15,
-      shadowRadius: 6,
+      ...COLORS.SHADOWS.card,
       borderLeftWidth: 4,
       borderLeftColor: COLORS.WARNING,
     },
     pendingIconContainer: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.INPUT_ERROR,
       alignItems: "center",
       justifyContent: "center",
     },
     pendingTextContainer: {
       flex: 1,
-      marginLeft: 12,
+      marginLeft: COLORS.SPACING.sm,
     },
     pendingTitle: {
-      fontSize: 15,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     pendingSubtitle: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
     pendingActions: {
       flexDirection: "row",
-      gap: 8,
+      // gap removed
     },
     rejectBtn: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.INPUT_ERROR,
       alignItems: "center",
       justifyContent: "center",
@@ -312,7 +301,7 @@ const makeStyles = (COLORS) =>
     acceptBtn: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SUCCESS,
       alignItems: "center",
       justifyContent: "center",
@@ -325,107 +314,104 @@ const makeStyles = (COLORS) =>
       right: 16,
       bottom: 30,
       backgroundColor: COLORS.SURFACE,
-      borderRadius: 20,
-      padding: 20,
+      borderRadius: COLORS.RADIUS.xl,
+      padding: COLORS.SPACING.lg,
       elevation: 8,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
+      ...COLORS.SHADOWS.card,
     },
     taskHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     taskCode: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     taskTitle: {
-      fontSize: 18,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     statusBadge: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SECONDARY,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 20,
-      gap: 4,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.xl,
+      // gap removed
     },
     statusText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
     },
     locationsContainer: {
       backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 12,
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     locationRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      gap: 12,
+      // gap removed
     },
     locationDot: {
       width: 12,
       height: 12,
-      borderRadius: 6,
-      marginTop: 4,
+      borderRadius: COLORS.RADIUS.sm,
+      marginTop: COLORS.SPACING.xs,
     },
     locationLine: {
       width: 2,
       height: 16,
       backgroundColor: COLORS.DIVIDER,
-      marginLeft: 5,
+      marginLeft: COLORS.SPACING.xs,
       marginVertical: 4,
     },
     locationInfo: {
       flex: 1,
     },
     locationLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     locationText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT,
       marginTop: 2,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     distanceContainer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      marginBottom: 16,
+      // gap removed
+      marginBottom: COLORS.SPACING.md,
     },
     distanceText: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     startBtn: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
-      paddingVertical: 14,
-      borderRadius: 12,
-      gap: 8,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed
     },
     startBtnText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 16,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
 
     // Waypoints Panel placement
@@ -440,17 +426,13 @@ const makeStyles = (COLORS) =>
     waypointMarker: {
       width: 28,
       height: 28,
-      borderRadius: 14,
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.MUTED,
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 2,
       borderColor: COLORS.WHITE,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
+      ...COLORS.SHADOWS.card,
     },
     waypointCompleted: {
       backgroundColor: COLORS.SUCCESS,
@@ -461,8 +443,8 @@ const makeStyles = (COLORS) =>
     },
     waypointMarkerText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
   });
 
@@ -1532,30 +1514,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               Alert.alert(t("routeMap.coordinateCopied"), coords);
             }}
           >
-            {isNavigating ? (
-              <View style={styles.navMarkerContainer}>
-                <View style={styles.navMarkerOuter}>
-                  <View style={styles.navMarkerInner}>
-                    <View style={styles.navArrow} />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.locationMarker}>
-                <Ionicons name="navigate" size={20} color={COLORS.WHITE} />
-              </View>
-            )}
+            <NavMarker color={COLORS.PRIMARY} />
           </Marker>
 
           {/* Destination Marker */}
           {isNavigating && getEndLocationCoords() && (
             <Marker
               coordinate={getEndLocationCoords()}
-              title={t("routeMap.target")}
+              anchor={{ x: 0.5, y: 1 }}
             >
-              <View style={styles.destinationMarker}>
-                <Ionicons name="flag" size={20} color={COLORS.WHITE} />
-              </View>
+              <DestinationMarker label={t("routeMap.target")} />
             </Marker>
           )}
 

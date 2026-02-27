@@ -11,10 +11,14 @@ import {
   View,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { COLORS, SIZES } from "../../constants/config";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { superAdminAPI } from "../../services/api";
 
 const DeviceQRManagement = () => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const [devices, setDevices] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -89,7 +93,7 @@ const DeviceQRManagement = () => {
   };
 
   const renderDeviceCard = ({ item }) => (
-    <View style={styles.card}>
+    <Card variant="flat">
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.serial}>{item.serial}</Text>
@@ -155,7 +159,7 @@ const DeviceQRManagement = () => {
           <Text style={styles.usedText}>✅ Used</Text>
         )}
       </View>
-    </View>
+    </Card>
   );
 
   if (loadingList && devices.length === 0) {
@@ -237,162 +241,156 @@ const DeviceQRManagement = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.GREY,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.GREY,
-  },
-  title: {
-    fontSize: SIZES.BASE + 4,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-  },
-  headerBtn: {
-    fontSize: SIZES.BASE + 3,
-  },
-  list: {
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-  },
-  card: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE / 2,
-    padding: SIZES.BASE,
-    marginBottom: SIZES.BASE / 2,
-    borderWidth: 1,
-    borderColor: COLORS.GREY,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: SIZES.BASE / 2,
-  },
-  serial: {
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-  },
-  status: {
-    fontSize: SIZES.BASE - 3,
-    backgroundColor: COLORS.GREY,
-    paddingHorizontal: SIZES.BASE / 4,
-    borderRadius: SIZES.BASE / 4,
-    marginTop: SIZES.BASE / 4,
-  },
-  online: {
-    fontSize: SIZES.BASE + 2,
-  },
-  cardBody: {
-    marginVertical: SIZES.BASE / 2,
-  },
-  label: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.MUTED,
-    fontWeight: "bold",
-    marginTop: SIZES.BASE / 4,
-  },
-  value: {
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.BLACK,
-  },
-  qrStatus: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.PRIMARY,
-    fontWeight: "bold",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: SIZES.BASE / 2,
-    marginTop: SIZES.BASE / 2,
-  },
-  btn: {
-    flex: 1,
-    paddingVertical: SIZES.BASE / 2,
-    borderRadius: SIZES.BASE / 2,
-    alignItems: "center",
-  },
-  btnPrimary: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  btnSuccess: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  btnWarning: {
-    backgroundColor: COLORS.WARNING,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-    fontSize: SIZES.BASE - 2,
-  },
-  usedText: {
-    color: COLORS.SUCCESS,
-    fontWeight: "bold",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE,
-    paddingHorizontal: SIZES.BASE * 1.5,
-    paddingVertical: SIZES.BASE * 1.5,
-    width: "90%",
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: SIZES.BASE + 2,
-    fontWeight: "bold",
-    marginBottom: SIZES.BASE,
-    color: COLORS.BLACK,
-  },
-  qrImage: {
-    width: 250,
-    height: 250,
-    marginBottom: SIZES.BASE,
-  },
-  qrInfo: {
-    width: "100%",
-    marginVertical: SIZES.BASE,
-  },
-  infoLabel: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.MUTED,
-    fontWeight: "bold",
-    marginTop: SIZES.BASE / 2,
-  },
-  infoValue: {
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.BLACK,
-    marginBottom: SIZES.BASE / 2,
-  },
-  usedLabel: {
-    color: COLORS.SUCCESS,
-    fontWeight: "bold",
-    marginTop: SIZES.BASE / 2,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.GREY,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.GREY,
+    },
+    title: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+    },
+    headerBtn: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    list: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    // card removed, Card component used
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    serial: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+    },
+    status: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      backgroundColor: COLORS.GREY,
+      paddingHorizontal: COLORS.SPACING.xs,
+      borderRadius: COLORS.SPACING.xs,
+      marginTop: COLORS.SPACING.xs,
+    },
+    online: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    cardBody: {
+      marginVertical: COLORS.SPACING.sm,
+    },
+    label: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginTop: COLORS.SPACING.xs,
+    },
+    value: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.BLACK,
+    },
+    qrStatus: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    actions: {
+      flexDirection: "row",
+      marginTop: COLORS.SPACING.sm,
+    },
+    btn: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.sm,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    btnPrimary: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    btnSuccess: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    btnWarning: {
+      backgroundColor: COLORS.WARNING,
+    },
+    btnDisabled: {
+      opacity: 0.6,
+    },
+    btnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    usedText: {
+      color: COLORS.SUCCESS,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.lg,
+      width: "90%",
+      alignItems: "center",
+    },
+    modalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginBottom: COLORS.SPACING.md,
+      color: COLORS.BLACK,
+    },
+    qrImage: {
+      width: 250,
+      height: 250,
+      marginBottom: COLORS.SPACING.md,
+    },
+    qrInfo: {
+      width: "100%",
+      marginVertical: COLORS.SPACING.md,
+    },
+    infoLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginTop: COLORS.SPACING.sm,
+    },
+    infoValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.BLACK,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    usedLabel: {
+      color: COLORS.SUCCESS,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginTop: COLORS.SPACING.sm,
+    },
+  });
 
 export default DeviceQRManagement;

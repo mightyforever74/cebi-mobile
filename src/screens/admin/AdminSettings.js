@@ -1,9 +1,6 @@
 // src/screens/admin/AdminSettings.js
-// TulipFleet - Admin Ayarlar Ekranı (DriverSettings seviyesi - Full Featured)
-// Updated: 11 Şubat 2026 - Theme token cleanup (UI System Guide v3)
-// ✅ SPACING/RADIUS/SHADOWS/TYPOGRAPHY tokens
-// ✅ rgba → COLORS.OVERLAY, gap → marginRight, hex concat → getLightBg
-// ⚠️ Component logic'e dokunulmadı (sadece style + icon backgroundColor fix)
+// TulipFleet - Admin Ayarlar EkranÄ± (DriverSettings seviyesi - Full Featured)
+// Updated: 23 Ocak 2026
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -45,7 +42,7 @@ const STORAGE_KEYS = {
 const BASE_URL = "https://tulipfleet.com";
 
 // ============================================
-// makeStyles - THEME TOKENS
+// makeStyles
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -64,54 +61,56 @@ const makeStyles = (COLORS) =>
     profileCard: {
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
-      paddingVertical: COLORS.SPACING.xl, // 32
-      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: 30,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
     avatarLarge: {
       width: 80,
       height: 80,
-      borderRadius: COLORS.RADIUS.full, // circle
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.WHITE,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.sm,
     },
     avatarText: {
-      ...COLORS.TYPOGRAPHY.styles.h1,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.PRIMARY,
     },
     profileName: {
-      ...COLORS.TYPOGRAPHY.styles.h3,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
-      marginBottom: COLORS.SPACING.xs, // 4
+      marginBottom: 4,
     },
     profileEmail: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.WHITE,
       opacity: 0.8,
-      marginBottom: COLORS.SPACING.md, // 16
+      marginBottom: COLORS.SPACING.sm,
     },
     roleBadge: {
       backgroundColor: COLORS.WHITE,
       opacity: 0.2,
-      paddingHorizontal: COLORS.SPACING.md, // 16
-      paddingVertical: COLORS.SPACING.sm, // 8
-      borderRadius: COLORS.RADIUS.full,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: 6,
+      borderRadius: COLORS.RADIUS.xl,
     },
     roleText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.WHITE,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     // Section Header
     sectionHeader: {
-      paddingHorizontal: COLORS.SPACING.md, // 16
-      paddingTop: COLORS.SPACING.lg, // 24
-      paddingBottom: COLORS.SPACING.sm, // 8
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: 24,
+      paddingBottom: 8,
     },
     sectionTitle: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       letterSpacing: 1,
       color: COLORS.TEXT_SECONDARY,
@@ -119,38 +118,38 @@ const makeStyles = (COLORS) =>
 
     // Setting Group
     settingGroup: {
-      marginHorizontal: COLORS.SPACING.md, // 16
-      borderRadius: COLORS.RADIUS.card, // 12
+      marginHorizontal: 12,
+      borderRadius: COLORS.RADIUS.md,
       backgroundColor: COLORS.SURFACE,
-      ...COLORS.SHADOWS.xs,
+      ...COLORS.SHADOWS.card,
     },
 
     // Setting Item
     settingItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: COLORS.SPACING.md, // 16
-      paddingHorizontal: COLORS.SPACING.md, // 16
+      paddingVertical: 14,
+      paddingHorizontal: COLORS.SPACING.md,
       backgroundColor: COLORS.SURFACE,
     },
     settingIcon: {
-      width: COLORS.SPACING.xxl, // 40
-      height: COLORS.SPACING.xxl, // 40
-      borderRadius: COLORS.RADIUS.sm, // 8
+      width: 40,
+      height: 40,
+      borderRadius: COLORS.RADIUS.md,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: COLORS.SPACING.md, // 16
+      marginRight: 12,
     },
     settingContent: {
       flex: 1,
     },
     settingTitle: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT,
     },
     settingSubtitle: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       marginTop: 2,
       color: COLORS.TEXT_SECONDARY,
     },
@@ -158,29 +157,29 @@ const makeStyles = (COLORS) =>
     // Divider
     divider: {
       height: 1,
-      marginLeft: COLORS.SPACING.xxl + COLORS.SPACING.md + COLORS.SPACING.md,
+      marginLeft: 68,
       backgroundColor: COLORS.DIVIDER,
     },
 
     // Footer
     footer: {
       alignItems: "center",
-      paddingVertical: COLORS.SPACING.xl, // 32
-      paddingHorizontal: COLORS.SPACING.lg, // 24
+      paddingVertical: 30,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
     footerText: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT_SECONDARY,
     },
     footerSubtext: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      marginTop: COLORS.SPACING.xs, // 4
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      marginTop: 4,
       color: COLORS.MUTED,
     },
     footerEmail: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs, // 10 (closest to 11)
-      marginTop: COLORS.SPACING.sm, // 8
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      marginTop: COLORS.SPACING.sm,
       color: COLORS.MUTED,
     },
 
@@ -193,60 +192,60 @@ const makeStyles = (COLORS) =>
     },
     modalContent: {
       backgroundColor: COLORS.SURFACE,
-      borderRadius: COLORS.RADIUS.modal, // 16
-      padding: COLORS.SPACING.lg, // 24
+      borderRadius: COLORS.RADIUS.lg,
+      padding: 24,
       width: "90%",
       maxWidth: 400,
-      ...COLORS.SHADOWS.modal,
     },
     modalTitle: {
-      ...COLORS.TYPOGRAPHY.styles.h4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
       textAlign: "center",
-      marginBottom: COLORS.SPACING.lg, // 24
+      marginBottom: 20,
     },
     inputLabel: {
-      ...COLORS.TYPOGRAPHY.styles.label,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT,
-      marginBottom: COLORS.SPACING.sm, // 8
-      marginTop: COLORS.SPACING.md, // 16
+      marginBottom: 6,
+      marginTop: COLORS.SPACING.sm,
     },
     modalInput: {
       borderWidth: 1,
-      borderColor: COLORS.INPUT_BORDER,
-      borderRadius: COLORS.RADIUS.input, // 8
-      paddingHorizontal: COLORS.SPACING.md, // 16
-      paddingVertical: COLORS.SPACING.md, // 16
-      ...COLORS.TYPOGRAPHY.styles.body,
+      borderColor: COLORS.BORDER,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT,
-      backgroundColor: COLORS.INPUT_BG,
+      backgroundColor: COLORS.SURFACE,
     },
     modalButtons: {
       flexDirection: "row",
-      marginTop: COLORS.SPACING.lg, // 24
+      // gap removed
+      marginTop: 24,
     },
     modalButton: {
       flex: 1,
-      height: COLORS.SPACING.buttonHeight, // 48
-      borderRadius: COLORS.RADIUS.button, // 8
+      paddingVertical: 14,
+      borderRadius: COLORS.RADIUS.sm,
       alignItems: "center",
-      justifyContent: "center",
     },
     modalButtonCancel: {
       backgroundColor: COLORS.SECONDARY,
-      marginRight: COLORS.SPACING.sm, // 8 (gap yerine)
     },
     modalButtonCancelText: {
       color: COLORS.TEXT,
-      ...COLORS.TYPOGRAPHY.styles.button,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
     modalButtonSave: {
       backgroundColor: COLORS.PRIMARY,
     },
     modalButtonSaveText: {
       color: COLORS.WHITE,
-      ...COLORS.TYPOGRAPHY.styles.button,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
   });
 
@@ -267,7 +266,7 @@ const AdminSettings = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  // Bildirim ayarları
+  // Bildirim ayarlarÄ±
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [alertNotifications, setAlertNotifications] = useState(true);
   const [taskNotifications, setTaskNotifications] = useState(true);
@@ -298,18 +297,6 @@ const AdminSettings = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // ============================================
-  // Helpers
-  // ============================================
-  const getLightBg = (color) => {
-    if (color === COLORS.SUCCESS) return COLORS.SUCCESS_LIGHT;
-    if (color === COLORS.WARNING) return COLORS.WARNING_LIGHT;
-    if (color === COLORS.ERROR) return COLORS.ERROR_LIGHT;
-    if (color === COLORS.INFO) return COLORS.INFO_LIGHT;
-    if (color === COLORS.PRIMARY) return COLORS.SECONDARY;
-    return COLORS.DIVIDER;
-  };
-
-  // ============================================
   // Nested Components
   // ============================================
 
@@ -332,7 +319,7 @@ const AdminSettings = ({ navigation }) => {
       <View
         style={[
           styles.settingIcon,
-          { backgroundColor: getLightBg(iconColor || COLORS.PRIMARY) },
+          { backgroundColor: `${iconColor || COLORS.PRIMARY}15` },
         ]}
       >
         <Ionicons name={icon} size={20} color={iconColor || COLORS.PRIMARY} />
@@ -362,7 +349,7 @@ const AdminSettings = ({ navigation }) => {
   // Settings Logic
   // ============================================
 
-  // Ayarları yükle
+  // AyarlarÄ± yÃ¼kle
   const loadSettings = useCallback(async () => {
     try {
       const keys = Object.values(STORAGE_KEYS);
@@ -434,11 +421,11 @@ const AdminSettings = ({ navigation }) => {
         Alert.alert(
           t("settings.notifications"),
           t("settings.notificationPermissionDenied") ||
-            "Bildirim izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
+            "Bildirim izni verilmedi. Ayarlardan etkinleÅŸtirebilirsiniz.",
           [
             { text: t("common.cancel"), style: "cancel" },
             {
-              text: t("settings.openSettings") || "Ayarları Aç",
+              text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
               onPress: () => Linking.openSettings(),
             },
           ]
@@ -491,11 +478,11 @@ const AdminSettings = ({ navigation }) => {
         Alert.alert(
           t("settings.locationService"),
           t("settings.locationPermissionDenied") ||
-            "Konum izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
+            "Konum izni verilmedi. Ayarlardan etkinleÅŸtirebilirsiniz.",
           [
             { text: t("common.cancel"), style: "cancel" },
             {
-              text: t("settings.openSettings") || "Ayarları Aç",
+              text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
               onPress: () => Linking.openSettings(),
             },
           ]
@@ -512,11 +499,11 @@ const AdminSettings = ({ navigation }) => {
     Alert.alert(
       t("settings.gpsAccuracy"),
       t("settings.gpsAccuracyMessage") ||
-        "GPS doğruluğu cihaz ayarlarından yönetilir.",
+        "GPS doÄŸruluÄŸu cihaz ayarlarÄ±ndan yÃ¶netilir.",
       [
         { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("settings.openSettings") || "Ayarları Aç",
+          text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
           onPress: () => {
             if (Platform.OS === "ios") {
               Linking.openURL("app-settings:");
@@ -536,9 +523,9 @@ const AdminSettings = ({ navigation }) => {
 
   const handleClearCache = () => {
     Alert.alert(
-      t("settings.clearCacheTitle") || "Önbelleği Temizle",
+      t("settings.clearCacheTitle") || "Ã–nbelleÄŸi Temizle",
       t("settings.clearCacheMessage") ||
-        "Uygulama önbelleğini temizlemek istediğinize emin misiniz?",
+        "Uygulama Ã¶nbelleÄŸini temizlemek istediÄŸinize emin misiniz?",
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -562,15 +549,15 @@ const AdminSettings = ({ navigation }) => {
               }
 
               Alert.alert(
-                t("common.success") || "Başarılı",
-                (t("settings.cacheCleared") || "Önbellek temizlendi") +
-                  ` (${cacheKeys.length} ${t("settings.itemsCleared") || "öğe"})`
+                t("common.success") || "BaÅŸarÄ±lÄ±",
+                (t("settings.cacheCleared") || "Ã–nbellek temizlendi") +
+                  ` (${cacheKeys.length} ${t("settings.itemsCleared") || "Ã¶ÄŸe"})`
               );
             } catch (error) {
               console.error("Cache clear error:", error);
               Alert.alert(
                 t("common.error") || "Hata",
-                t("settings.cacheClearFailed") || "Önbellek temizlenemedi"
+                t("settings.cacheClearFailed") || "Ã–nbellek temizlenemedi"
               );
             } finally {
               setClearingCache(false);
@@ -581,6 +568,7 @@ const AdminSettings = ({ navigation }) => {
     );
   };
 
+  // âœ… YENÄ° KOD
   const handleHelpCenter = () => {
     navigation.navigate("HelpCenterScreen");
   };
@@ -588,7 +576,7 @@ const AdminSettings = ({ navigation }) => {
   const handleSupport = () => {
     const subject = encodeURIComponent("TulipFleet Admin App - Destek Talebi");
     const body = encodeURIComponent(
-      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 2.1.0`
+      `\n\n---\nKullanÄ±cÄ±: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
     );
     Linking.openURL(
       `mailto:mightyforever74@gmail.com?subject=${subject}&body=${body}`
@@ -605,19 +593,20 @@ const AdminSettings = ({ navigation }) => {
   const handleAbout = () => {
     Alert.alert(
       "TulipFleet",
-      `${t("settings.version") || "Versiyon"} 2.1.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yönetimi için tasarlanmış profesyonel bir uygulamadır."}\n\n© 2025 TulipFleet`,
+      `${t("settings.version") || "Versiyon"} 1.0.0\n\n${t("settings.aboutDescription") || "TulipFleet, filo yÃ¶netimi iÃ§in tasarlanmÄ±ÅŸ profesyonel bir uygulamadÄ±r."}\n\nÂ© 2025 TulipFleet`,
       [{ text: t("common.ok") || "Tamam" }]
     );
   };
 
   const handleLogout = () => {
     Alert.alert(
-      t("settings.logout") || "Çıkış Yap",
-      t("settings.logoutConfirm") || "Çıkış yapmak istediğinize emin misiniz?",
+      t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap",
+      t("settings.logoutConfirm") ||
+        "Ã‡Ä±kÄ±ÅŸ yapmak istediÄŸinize emin misiniz?",
       [
-        { text: t("common.cancel") || "İptal", style: "cancel" },
+        { text: t("common.cancel") || "Ä°ptal", style: "cancel" },
         {
-          text: t("settings.logout") || "Çıkış Yap",
+          text: t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap",
           style: "destructive",
           onPress: async () => {
             try {
@@ -636,7 +625,7 @@ const AdminSettings = ({ navigation }) => {
     if (!firstName.trim()) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.firstNameRequired") || "Ad alanı zorunludur"
+        t("settings.firstNameRequired") || "Ad alanÄ± zorunludur"
       );
       return;
     }
@@ -650,8 +639,8 @@ const AdminSettings = ({ navigation }) => {
       });
 
       Alert.alert(
-        t("common.success") || "Başarılı",
-        t("settings.profileUpdated") || "Profil güncellendi"
+        t("common.success") || "BaÅŸarÄ±lÄ±",
+        t("settings.profileUpdated") || "Profil gÃ¼ncellendi"
       );
       setEditProfileModal(false);
     } catch (error) {
@@ -660,19 +649,19 @@ const AdminSettings = ({ navigation }) => {
         t("common.error") || "Hata",
         error?.response?.data?.error ||
           t("settings.profileUpdateFailed") ||
-          "Profil güncellenemedi"
+          "Profil gÃ¼ncellenemedi"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  // Şifre değiştirme
+  // Åžifre deÄŸiÅŸtirme
   const handleSavePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.allFieldsRequired") || "Tüm alanlar zorunludur"
+        t("settings.allFieldsRequired") || "TÃ¼m alanlar zorunludur"
       );
       return;
     }
@@ -681,7 +670,7 @@ const AdminSettings = ({ navigation }) => {
       Alert.alert(
         t("common.error") || "Hata",
         t("settings.passwordTooShort") ||
-          "Yeni şifre en az 6 karakter olmalıdır"
+          "Yeni ÅŸifre en az 6 karakter olmalÄ±dÄ±r"
       );
       return;
     }
@@ -689,7 +678,7 @@ const AdminSettings = ({ navigation }) => {
     if (newPassword !== confirmPassword) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.passwordsDoNotMatch") || "Şifreler eşleşmiyor"
+        t("settings.passwordsDoNotMatch") || "Åžifreler eÅŸleÅŸmiyor"
       );
       return;
     }
@@ -702,8 +691,8 @@ const AdminSettings = ({ navigation }) => {
       });
 
       Alert.alert(
-        t("common.success") || "Başarılı",
-        t("settings.passwordChanged") || "Şifre değiştirildi"
+        t("common.success") || "BaÅŸarÄ±lÄ±",
+        t("settings.passwordChanged") || "Åžifre deÄŸiÅŸtirildi"
       );
       setChangePasswordModal(false);
       setCurrentPassword("");
@@ -715,7 +704,7 @@ const AdminSettings = ({ navigation }) => {
         t("common.error") || "Hata",
         error?.response?.data?.error ||
           t("settings.passwordChangeFailed") ||
-          "Şifre değiştirilemedi"
+          "Åžifre deÄŸiÅŸtirilemedi"
       );
     } finally {
       setSaving(false);
@@ -755,7 +744,7 @@ const AdminSettings = ({ navigation }) => {
         <Text style={styles.profileEmail}>{user?.email || ""}</Text>
         <View style={styles.roleBadge}>
           <Text style={styles.roleText}>
-            {t("settings.adminRole") || "YÖNETİCİ"}
+            {t("settings.adminRole") || "YÃ–NETÄ°CÄ°"}
           </Text>
         </View>
       </View>
@@ -766,9 +755,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="person-outline"
           iconColor={COLORS.PRIMARY}
-          title={t("settings.editProfile") || "Profili Düzenle"}
+          title={t("settings.editProfile") || "Profili DÃ¼zenle"}
           subtitle={
-            t("settings.editProfileSubtitle") || "İsim, telefon bilgileri"
+            t("settings.editProfileSubtitle") || "Ä°sim, telefon bilgileri"
           }
           onPress={() => setEditProfileModal(true)}
         />
@@ -776,22 +765,24 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="lock-closed-outline"
           iconColor={COLORS.WARNING}
-          title={t("settings.changePassword") || "Şifre Değiştir"}
-          subtitle={t("settings.changePasswordSubtitle") || "Güvenlik ayarları"}
+          title={t("settings.changePassword") || "Åžifre DeÄŸiÅŸtir"}
+          subtitle={
+            t("settings.changePasswordSubtitle") || "GÃ¼venlik ayarlarÄ±"
+          }
           onPress={() => setChangePasswordModal(true)}
         />
       </View>
 
       {/* Bildirimler */}
       <SectionHeader
-        title={t("settings.sections.notifications") || "BİLDİRİMLER"}
+        title={t("settings.sections.notifications") || "BÄ°LDÄ°RÄ°MLER"}
       />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
           iconColor={COLORS.PRIMARY}
           title={t("settings.pushNotifications") || "Push Bildirimleri"}
-          subtitle={t("settings.receiveAlerts") || "Tüm bildirimleri al"}
+          subtitle={t("settings.receiveAlerts") || "TÃ¼m bildirimleri al"}
           showArrow={false}
           rightElement={
             <Switch
@@ -809,9 +800,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="warning-outline"
               iconColor={COLORS.ERROR}
-              title={t("settings.alertNotifications") || "Uyarı Bildirimleri"}
+              title={t("settings.alertNotifications") || "UyarÄ± Bildirimleri"}
               subtitle={
-                t("settings.criticalAlerts") || "Kritik uyarılar ve alarmlar"
+                t("settings.criticalAlerts") || "Kritik uyarÄ±lar ve alarmlar"
               }
               showArrow={false}
               rightElement={
@@ -830,9 +821,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="clipboard-outline"
               iconColor={COLORS.WARNING}
-              title={t("settings.taskNotifications") || "Görev Bildirimleri"}
+              title={t("settings.taskNotifications") || "GÃ¶rev Bildirimleri"}
               subtitle={
-                t("settings.taskUpdates") || "Görev durumu güncellemeleri"
+                t("settings.taskUpdates") || "GÃ¶rev durumu gÃ¼ncellemeleri"
               }
               showArrow={false}
               rightElement={
@@ -870,9 +861,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="phone-portrait-outline"
               iconColor={COLORS.TEXT_SECONDARY}
-              title={t("settings.vibration") || "Titreşim"}
+              title={t("settings.vibration") || "TitreÅŸim"}
               subtitle={
-                t("settings.notificationVibration") || "Bildirim titreşimi"
+                t("settings.notificationVibration") || "Bildirim titreÅŸimi"
               }
               showArrow={false}
               rightElement={
@@ -900,8 +891,9 @@ const AdminSettings = ({ navigation }) => {
           title={t("settings.locationService") || "Konum Servisi"}
           subtitle={
             locationPermission === "granted"
-              ? t("settings.locationGranted") || "İzin verildi ✓"
-              : t("settings.requiredForTracking") || "Araç takibi için gerekli"
+              ? t("settings.locationGranted") || "Ä°zin verildi âœ“"
+              : t("settings.requiredForTracking") ||
+                "AraÃ§ takibi iÃ§in gerekli"
           }
           showArrow={false}
           rightElement={
@@ -917,8 +909,8 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="navigate-outline"
           iconColor={COLORS.INFO}
-          title={t("settings.gpsAccuracy") || "GPS Doğruluğu"}
-          subtitle={t("settings.highAccuracy") || "Yüksek doğruluk"}
+          title={t("settings.gpsAccuracy") || "GPS DoÄŸruluÄŸu"}
+          subtitle={t("settings.highAccuracy") || "YÃ¼ksek doÄŸruluk"}
           onPress={handleGPSAccuracy}
         />
       </View>
@@ -932,11 +924,11 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon={isDark ? "moon" : "sunny"}
           iconColor={isDark ? COLORS.WARNING : COLORS.TEXT}
-          title={t("settings.darkMode") || "Karanlık Mod"}
+          title={t("settings.darkMode") || "KaranlÄ±k Mod"}
           subtitle={
             isDark
-              ? t("settings.darkModeOn") || "Açık"
-              : t("settings.darkModeOff") || "Kapalı"
+              ? t("settings.darkModeOn") || "AÃ§Ä±k ðŸŒ™"
+              : t("settings.darkModeOff") || "KapalÄ± â˜€ï¸"
           }
           showArrow={false}
           rightElement={
@@ -952,9 +944,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="trash-outline"
           iconColor={COLORS.ERROR}
-          title={t("settings.clearCache") || "Önbelleği Temizle"}
+          title={t("settings.clearCache") || "Ã–nbelleÄŸi Temizle"}
           subtitle={
-            t("settings.clearCacheSubtitle") || "Geçici dosyaları temizle"
+            t("settings.clearCacheSubtitle") || "GeÃ§ici dosyalarÄ± temizle"
           }
           onPress={handleClearCache}
           loading={clearingCache}
@@ -968,9 +960,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="help-circle-outline"
           iconColor={COLORS.INFO}
-          title={t("settings.helpCenter") || "Yardım Merkezi"}
+          title={t("settings.helpCenter") || "YardÄ±m Merkezi"}
           subtitle={
-            t("settings.helpCenterSubtitle") || "SSS ve kullanım kılavuzu"
+            t("settings.helpCenterSubtitle") || "SSS ve kullanÄ±m kÄ±lavuzu"
           }
           onPress={handleHelpCenter}
         />
@@ -978,7 +970,7 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
-          title={t("settings.contactUs") || "Bize Ulaşın"}
+          title={t("settings.contactUs") || "Bize UlaÅŸÄ±n"}
           subtitle="mightyforever74@gmail.com"
           onPress={handleSupport}
         />
@@ -986,39 +978,39 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="document-text-outline"
           iconColor={COLORS.TEXT_SECONDARY}
-          title={t("settings.privacyPolicy") || "Gizlilik Politikası"}
-          subtitle={t("settings.usageTerms") || "Kullanım koşulları"}
+          title={t("settings.privacyPolicy") || "Gizlilik PolitikasÄ±"}
+          subtitle={t("settings.usageTerms") || "KullanÄ±m koÅŸullarÄ±"}
           onPress={handlePrivacyPolicy}
         />
         <View style={styles.divider} />
         <SettingItem
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
-          title={t("settings.aboutApp") || "Uygulama Hakkında"}
-          subtitle={(t("settings.version") || "Versiyon") + " 2.1.0"}
+          title={t("settings.aboutApp") || "Uygulama HakkÄ±nda"}
+          subtitle={(t("settings.version") || "Versiyon") + " 1.0.0"}
           onPress={handleAbout}
         />
       </View>
 
-      {/* Çıkış */}
+      {/* Ã‡Ä±kÄ±ÅŸ */}
       <View style={styles.settingGroup}>
         <SettingItem
           icon="log-out-outline"
           iconColor={COLORS.ERROR}
-          title={t("settings.logout") || "Çıkış Yap"}
-          subtitle={t("settings.logoutSubtitle") || "Hesabından çıkış yap"}
+          title={t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap"}
+          subtitle={t("settings.logoutSubtitle") || "HesabÄ±ndan Ã§Ä±kÄ±ÅŸ yap"}
           onPress={handleLogout}
         />
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v2.1.0</Text>
-        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
+        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
+        <Text style={styles.footerSubtext}>Â© 2025 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
 
-      {/* Profil Düzenle Modal */}
+      {/* Profil DÃ¼zenle Modal */}
       <Modal
         visible={editProfileModal}
         transparent
@@ -1028,7 +1020,7 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {t("settings.editProfile") || "Profili Düzenle"}
+              {t("settings.editProfile") || "Profili DÃ¼zenle"}
             </Text>
 
             <Text style={styles.inputLabel}>
@@ -1038,7 +1030,7 @@ const AdminSettings = ({ navigation }) => {
               style={styles.modalInput}
               value={firstName}
               onChangeText={setFirstName}
-              placeholder={t("settings.firstNamePlaceholder") || "Adınız"}
+              placeholder={t("settings.firstNamePlaceholder") || "AdÄ±nÄ±z"}
               placeholderTextColor={COLORS.PLACEHOLDER}
             />
 
@@ -1049,7 +1041,7 @@ const AdminSettings = ({ navigation }) => {
               style={styles.modalInput}
               value={lastName}
               onChangeText={setLastName}
-              placeholder={t("settings.lastNamePlaceholder") || "Soyadınız"}
+              placeholder={t("settings.lastNamePlaceholder") || "SoyadÄ±nÄ±z"}
               placeholderTextColor={COLORS.PLACEHOLDER}
             />
 
@@ -1072,7 +1064,7 @@ const AdminSettings = ({ navigation }) => {
                 disabled={saving}
               >
                 <Text style={styles.modalButtonCancelText}>
-                  {t("common.cancel") || "İptal"}
+                  {t("common.cancel") || "Ä°ptal"}
                 </Text>
               </TouchableOpacity>
 
@@ -1094,7 +1086,7 @@ const AdminSettings = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Şifre Değiştir Modal */}
+      {/* Åžifre DeÄŸiÅŸtir Modal */}
       <Modal
         visible={changePasswordModal}
         transparent
@@ -1104,25 +1096,25 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {t("settings.changePassword") || "Şifre Değiştir"}
+              {t("settings.changePassword") || "Åžifre DeÄŸiÅŸtir"}
             </Text>
 
             <Text style={styles.inputLabel}>
-              {t("settings.currentPassword") || "Mevcut Şifre"}
+              {t("settings.currentPassword") || "Mevcut Åžifre"}
             </Text>
             <TextInput
               style={styles.modalInput}
               value={currentPassword}
               onChangeText={setCurrentPassword}
               placeholder={
-                t("settings.currentPasswordPlaceholder") || "Mevcut şifreniz"
+                t("settings.currentPasswordPlaceholder") || "Mevcut ÅŸifreniz"
               }
               placeholderTextColor={COLORS.PLACEHOLDER}
               secureTextEntry
             />
 
             <Text style={styles.inputLabel}>
-              {t("settings.newPassword") || "Yeni Şifre"}
+              {t("settings.newPassword") || "Yeni Åžifre"}
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -1136,7 +1128,7 @@ const AdminSettings = ({ navigation }) => {
             />
 
             <Text style={styles.inputLabel}>
-              {t("settings.confirmPassword") || "Yeni Şifre (Tekrar)"}
+              {t("settings.confirmPassword") || "Yeni Åžifre (Tekrar)"}
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -1144,7 +1136,7 @@ const AdminSettings = ({ navigation }) => {
               onChangeText={setConfirmPassword}
               placeholder={
                 t("settings.confirmPasswordPlaceholder") ||
-                "Yeni şifrenizi tekrarlayın"
+                "Yeni ÅŸifrenizi tekrarlayÄ±n"
               }
               placeholderTextColor={COLORS.PLACEHOLDER}
               secureTextEntry
@@ -1157,7 +1149,7 @@ const AdminSettings = ({ navigation }) => {
                 disabled={saving}
               >
                 <Text style={styles.modalButtonCancelText}>
-                  {t("common.cancel") || "İptal"}
+                  {t("common.cancel") || "Ä°ptal"}
                 </Text>
               </TouchableOpacity>
 
@@ -1170,7 +1162,7 @@ const AdminSettings = ({ navigation }) => {
                   <ActivityIndicator size="small" color={COLORS.WHITE} />
                 ) : (
                   <Text style={styles.modalButtonSaveText}>
-                    {t("settings.change") || "Değiştir"}
+                    {t("settings.change") || "DeÄŸiÅŸtir"}
                   </Text>
                 )}
               </TouchableOpacity>

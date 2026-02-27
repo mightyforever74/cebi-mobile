@@ -1,6 +1,7 @@
 // src/screens/auth/ContactScreen.js
 // TulipFleet - Bize Ulaşın (Hesabı olmayanlar için iletişim)
 // Created: 05 Şubat 2026
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -13,10 +14,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const ContactScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   const handleEmail = () => {
     const subject = encodeURIComponent(
@@ -49,7 +53,6 @@ const ContactScreen = ({ navigation }) => {
     Linking.openURL(
       `whatsapp://send?phone=${cleanNumber}&text=${message}`
     ).catch(() => {
-      // WhatsApp yoksa normal link aç
       Linking.openURL(`https://wa.me/${cleanNumber}?text=${message}`);
     });
   };
@@ -84,7 +87,7 @@ const ContactScreen = ({ navigation }) => {
       <Ionicons
         name={actionIcon || "chevron-forward"}
         size={20}
-        color={COLORS.textSecondary}
+        color={COLORS.TEXT_SECONDARY}
       />
     </TouchableOpacity>
   );
@@ -96,7 +99,7 @@ const ContactScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+        <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
         <Text style={styles.backText}>
           {t("auth.backToLogin") || "Giriş Ekranı"}
         </Text>
@@ -108,7 +111,7 @@ const ContactScreen = ({ navigation }) => {
           <Ionicons
             name="chatbubbles-outline"
             size={48}
-            color={COLORS.primary}
+            color={COLORS.PRIMARY}
           />
         </View>
         <Text style={styles.headerTitle}>
@@ -128,7 +131,7 @@ const ContactScreen = ({ navigation }) => {
 
         <ContactCard
           icon="mail-outline"
-          iconColor="#3B82F6"
+          iconColor={COLORS.INFO}
           title="E-posta"
           subtitle="info@tulipfleet.com"
           onPress={handleEmail}
@@ -137,7 +140,7 @@ const ContactScreen = ({ navigation }) => {
 
         <ContactCard
           icon="call-outline"
-          iconColor="#10B981"
+          iconColor={COLORS.SUCCESS}
           title={t("auth.phoneNL") || "Telefon (NL)"}
           subtitle="+31 6 8367 4537"
           onPress={() => handlePhone("+31683674537")}
@@ -146,7 +149,7 @@ const ContactScreen = ({ navigation }) => {
 
         <ContactCard
           icon="call-outline"
-          iconColor="#10B981"
+          iconColor={COLORS.SUCCESS}
           title={t("auth.phoneTR") || "Telefon (TR)"}
           subtitle="+90 533 325 6180"
           onPress={() => handlePhone("+905333256180")}
@@ -155,7 +158,7 @@ const ContactScreen = ({ navigation }) => {
 
         <ContactCard
           icon="logo-whatsapp"
-          iconColor="#25D366"
+          iconColor={COLORS.SUCCESS}
           title="WhatsApp"
           subtitle="+31 6 8367 4537"
           onPress={() => handleWhatsApp("+31683674537")}
@@ -164,7 +167,7 @@ const ContactScreen = ({ navigation }) => {
 
         <ContactCard
           icon="globe-outline"
-          iconColor="#8B5CF6"
+          iconColor={COLORS.PRIMARY}
           title={t("auth.website") || "Web Sitesi"}
           subtitle="tulipfleet.com"
           onPress={handleWebsite}
@@ -174,7 +177,12 @@ const ContactScreen = ({ navigation }) => {
 
       {/* Info Box */}
       <View style={styles.infoBox}>
-        <Ionicons name="information-circle" size={24} color={COLORS.primary} />
+        <Ionicons
+          name="information-circle"
+          size={24}
+          color={COLORS.PRIMARY}
+          style={styles.infoIcon}
+        />
         <Text style={styles.infoText}>
           {t("auth.contactInfo") ||
             "TulipFleet hesabınız şirket yöneticiniz tarafından oluşturulur. Hesabınız oluşturulduktan sonra giriş bilgileriniz e-posta ile gönderilecektir."}
@@ -190,119 +198,117 @@ const ContactScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-    gap: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: COLORS.text,
-    fontWeight: "500",
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  headerIcon: {
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  headerDescription: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 22,
-    paddingHorizontal: 10,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 1,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-    paddingLeft: 4,
-  },
-  contactCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  contactIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  contactSubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  infoBox: {
-    flexDirection: "row",
-    backgroundColor: "#EFF6FF",
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#DBEAFE",
-    gap: 12,
-    marginBottom: 24,
-  },
-  infoText: {
-    fontSize: 13,
-    color: "#1E40AF",
-    lineHeight: 20,
-    flex: 1,
-  },
-  footer: {
-    alignItems: "center",
-    paddingVertical: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.textSecondary,
-  },
-  footerSubtext: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingTop: 56, // SafeArea (8px grid: 7*8)
+    },
+    backButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.lg,
+    },
+    backText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_PRIMARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.xl,
+    },
+    headerIcon: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    headerTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h2,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    headerDescription: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      textAlign: "center",
+      lineHeight: 22,
+      paddingHorizontal: COLORS.SPACING.sm,
+    },
+    section: {
+      marginBottom: COLORS.SPACING.lg,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      letterSpacing: 1,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.sm,
+      paddingLeft: COLORS.SPACING.xs,
+    },
+    contactCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.CARD,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.xs,
+    },
+    contactIcon: {
+      width: 44, // 8px grid
+      height: 44,
+      borderRadius: COLORS.RADIUS.card,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.md,
+    },
+    contactContent: {
+      flex: 1,
+    },
+    contactTitle: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    contactSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    infoBox: {
+      flexDirection: "row",
+      backgroundColor: COLORS.INFO_LIGHT,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      borderWidth: 1,
+      borderColor: COLORS.INFO_LIGHT,
+      marginBottom: COLORS.SPACING.lg,
+    },
+    infoIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    infoText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.INFO,
+      lineHeight: 20,
+      flex: 1,
+    },
+    footer: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+    },
+    footerText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    footerSubtext: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
+    },
+  });
 
 export default ContactScreen;

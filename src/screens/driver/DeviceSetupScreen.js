@@ -1,7 +1,7 @@
 // src/screens/driver/DeviceSetupScreen.js
 // TulipFleet - Device Setup (BLE + QR + WiFi Provisioning)
 // FULL VERSION - Backend integrated + All states
-// Updated: 11 Şubat 2026 - Card component migration (variant="setup") + gap removal + token cleanup
+// Updated: 23 Şubat 2026 - check-status uyarısı + activation fix
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -73,24 +73,24 @@ const makeStyles = (COLORS) =>
 
     header: {
       paddingTop: Platform.OS === "ios" ? 52 : 18,
-      paddingHorizontal: COLORS.SPACING.md, // 16
-      paddingBottom: COLORS.SPACING.md, // 16 (was 14)
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingBottom: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
     },
     headerTitle: {
-      fontSize: 18,
-      fontWeight: "800",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
     },
     headerBtn: {
       width: 40,
       height: 40,
-      borderRadius: COLORS.RADIUS.md, // 12
+      borderRadius: COLORS.RADIUS.md,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
@@ -98,44 +98,44 @@ const makeStyles = (COLORS) =>
       borderColor: withAlpha(COLORS.PRIMARY, 0.18),
     },
 
-    content: { padding: COLORS.SPACING.md }, // 16
+    content: { padding: COLORS.SPACING.md },
 
-    // Card wrapper spacing (Card component provides padding/shadow/border)
     cardWrap: {
-      marginBottom: COLORS.SPACING.md, // 16 (was 14)
+      marginBottom: COLORS.SPACING.md,
     },
 
-    // Title row (no gap)
     titleRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: COLORS.SPACING.sm, // 8 (was 10)
+      marginBottom: COLORS.SPACING.sm,
     },
     titleRowRight: { flex: 1 },
-    titleRowSpacer: { width: COLORS.SPACING.sm }, // 8
+    titleRowSpacer: { width: COLORS.SPACING.sm },
 
     cardTitle: {
-      fontSize: 16,
-      fontWeight: "800",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
       flex: 1,
     },
-    cardSub: { fontSize: 13, color: COLORS.MUTED, marginTop: 2 },
+    cardSub: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
 
-    // Pills (no gap)
     stepPills: {
       flexDirection: "row",
       flexWrap: "wrap",
-      marginTop: COLORS.SPACING.md, // 16 (was 12)
+      marginTop: COLORS.SPACING.md,
     },
     pill: {
-      paddingHorizontal: 10,
-      paddingVertical: COLORS.SPACING.xs, // 4 (was 6)
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.full,
       backgroundColor: withAlpha(COLORS.MUTED, 0.12),
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.DIVIDER, 0.18),
       marginRight: COLORS.SPACING.sm,
       marginBottom: COLORS.SPACING.sm,
     },
@@ -143,13 +143,17 @@ const makeStyles = (COLORS) =>
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
       borderColor: withAlpha(COLORS.PRIMARY, 0.25),
     },
-    pillText: { fontSize: 12, fontWeight: "700", color: COLORS.MUTED },
+    pillText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.MUTED,
+    },
     pillTextActive: { color: COLORS.PRIMARY },
 
     bigIcon: {
-      width: 64,
-      height: 64,
-      borderRadius: 18,
+      width: COLORS.SPACING.xxxl,
+      height: COLORS.SPACING.xxxl,
+      borderRadius: COLORS.RADIUS.xxl,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
@@ -159,28 +163,26 @@ const makeStyles = (COLORS) =>
 
     infoBox: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: COLORS.RADIUS.md, // 12
-      padding: COLORS.SPACING.md, // 16 (was 12)
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.md,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.DIVIDER, 0.18),
     },
     infoText: {
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      fontSize: 13,
-      fontWeight: "600",
+      color: COLORS.TEXT_PRIMARY,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       lineHeight: 18,
     },
 
-    // Button row: no gap
     btnRow: {
       flexDirection: "row",
-      marginTop: COLORS.SPACING.md, // 16
+      marginTop: COLORS.SPACING.md,
     },
     btn: {
       flex: 1,
-      height: COLORS.SPACING.buttonHeight, // 48
-      borderRadius: COLORS.RADIUS.md, // 12
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.md,
       alignItems: "center",
       justifyContent: "center",
       flexDirection: "row",
@@ -188,51 +190,56 @@ const makeStyles = (COLORS) =>
     btnPrimary: { backgroundColor: COLORS.PRIMARY },
     btnMuted: { backgroundColor: withAlpha(COLORS.MUTED, 0.18) },
     btnDanger: { backgroundColor: COLORS.ERROR },
-    btnText: { color: COLORS.WHITE, fontWeight: "800" },
-    btnTextDark: { color: COLORS.TEXT ?? COLORS.DEFAULT, fontWeight: "800" },
-    btnIconSpacer: { width: COLORS.SPACING.sm }, // 8
-    btnRight: { marginRight: COLORS.SPACING.sm }, // 8 (use on left button)
+    btnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    btnTextDark: {
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    btnIconSpacer: { width: COLORS.SPACING.sm },
+    btnRight: { marginRight: COLORS.SPACING.sm },
 
     inputLabel: {
-      fontSize: 13,
-      fontWeight: "800",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginTop: COLORS.SPACING.md, // 16 (was 12)
-      marginBottom: COLORS.SPACING.sm, // 8 (was 6)
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginTop: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
     },
     input: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: COLORS.RADIUS.md, // 12
-      paddingHorizontal: COLORS.SPACING.md, // 16 (was 14)
-      paddingVertical: COLORS.SPACING.md, // 16 (was 12)
+      borderRadius: COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.md,
       borderWidth: 1,
-      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      fontWeight: "600",
+      borderColor: COLORS.INPUT_BORDER,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
     listItem: {
       backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
-      borderRadius: COLORS.RADIUS.md, // 12
-      padding: COLORS.SPACING.md, // 16 (was 12)
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.md,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.18) || (COLORS.DIVIDER ?? COLORS.BORDER),
-      marginBottom: COLORS.SPACING.sm, // 8 (was 10)
+      borderColor: withAlpha(COLORS.DIVIDER, 0.18),
+      marginBottom: COLORS.SPACING.sm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
     },
     listTitle: {
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      fontWeight: "800",
-      fontSize: 14,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       flex: 1,
     },
     listSub: {
       color: COLORS.MUTED,
-      fontWeight: "700",
-      fontSize: 12,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       marginTop: 2,
     },
 
@@ -240,34 +247,32 @@ const makeStyles = (COLORS) =>
       flex: 1,
       backgroundColor: withAlpha(COLORS.BLACK, 0.55),
       justifyContent: "center",
-      padding: COLORS.SPACING.lg, // 24 (was 18)
+      padding: COLORS.SPACING.lg,
     },
     modalCard: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: COLORS.RADIUS.modal, // 16
-      padding: COLORS.SPACING.md, // 16
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.modal,
+      padding: COLORS.SPACING.md,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.22) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.DIVIDER, 0.22),
       ...COLORS.SHADOWS.xs,
     },
     modalTitle: {
-      fontSize: 16,
-      fontWeight: "900",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginBottom: COLORS.SPACING.sm, // 8
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
     },
     modalText: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       lineHeight: 18,
     },
 
-    // common inline helpers
     centerMt: { marginTop: COLORS.SPACING.md, alignItems: "center" },
     mtMd: { marginTop: COLORS.SPACING.md },
-    bottomSpacer: { height: COLORS.SPACING.xxl }, // 40-ish bottom breathing room
+    bottomSpacer: { height: COLORS.SPACING.xxl },
   });
 
 export default function DeviceSetupScreen({ navigation, route }) {
@@ -299,6 +304,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
   const scanCleanupRef = useRef(null);
   const resultReceivedRef = useRef(false);
   const isMountedRef = useRef(true);
+  const activationStartedRef = useRef(false);
 
   const stepPills = useMemo(
     () => [
@@ -392,7 +398,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
       const response = await driverAPI.getVehicle();
       const vehicle = response?.vehicle || response;
 
-      // Debug log (Alert değil, console.log kullan)
       console.log("[DeviceSetup] Vehicle Data:", {
         esp32: vehicle?.esp32_device_id,
         status: vehicle?.device_status,
@@ -480,6 +485,42 @@ export default function DeviceSetupScreen({ navigation, route }) {
     startBLEScan();
   };
 
+  // ============================================
+  // BLE bağlantı devamı (handleDeviceSelect'ten ayrıldı)
+  // ============================================
+  const proceedWithConnection = async (device) => {
+    await bleService.connect(device.id);
+    setStatus("Bağlandı!");
+    console.log("[DeviceSetup] ✅ BLE Connected - Bundle v2.0");
+
+    if (isGuided) {
+      console.log("[DeviceSetup] ✅ isGuided=true");
+      console.log("[DeviceSetup] route.params:", route.params);
+
+      setBusy(false);
+
+      const { InteractionManager } = require("react-native");
+      InteractionManager.runAfterInteractions(() => {
+        navigation.navigate("VehiclePickerMain", {
+          serial: route.params.serial,
+          deviceInfo: route.params.deviceInfo,
+          deviceId: device.id,
+        });
+        console.log(
+          "[DeviceSetup] ✅ navigation.navigate(VehiclePickerMain) called"
+        );
+      });
+
+      return;
+    }
+
+    console.log("[DeviceSetup] Legacy mode, showing WiFi form");
+    setStep(STEPS.WIFI_FORM);
+  };
+
+  // ============================================
+  // Cihaz seçimi + aktif cihaz uyarısı
+  // ============================================
   const handleDeviceSelect = async (device) => {
     if (busy) {
       console.log("[DeviceSetup] Already connecting, ignoring tap");
@@ -497,33 +538,82 @@ export default function DeviceSetupScreen({ navigation, route }) {
     setStatus("Bağlanıyor...");
 
     try {
-      await bleService.connect(device.id);
-      setStatus("Bağlandı!");
-      console.log("[DeviceSetup] ✅ BLE Connected - Bundle v2.0");
+      // === Cihaz durumu kontrol ===
+      // BLE adından chip ID çıkar (TulipFleet-8B0AF6E8 → 8B0AF6E8)
+      const bleChipId = device.name?.replace("TulipFleet-", "") || "";
 
-      if (isGuided) {
-        console.log("[DeviceSetup] ✅ isGuided=true");
-        console.log("[DeviceSetup] route.params:", route.params);
+      if (bleChipId) {
+        try {
+          setStatus(t("deviceSetup.checkingDeviceStatus"));
+          const checkResult = await deviceAPI.checkDeviceStatus(bleChipId);
 
-        setBusy(false);
+          if (
+            checkResult?.registered &&
+            checkResult?.device?.status === "ACTIVATED" &&
+            checkResult?.device?.is_online
+          ) {
+            // Cihaz zaten aktif ve online — uyarı göster
+            const deviceInfo = checkResult.device;
+            const vehicleInfo = deviceInfo.vehicle_plate
+              ? ` (${deviceInfo.vehicle_plate})`
+              : "";
 
-        const { InteractionManager } = require("react-native");
-        InteractionManager.runAfterInteractions(() => {
-          navigation.navigate("VehiclePickerMain", {
-            serial: route.params.serial,
-            deviceInfo: route.params.deviceInfo,
-            deviceId: device.id,
-          });
+            setBusy(false);
+            return new Promise((resolve) => {
+              Alert.alert(
+                t("deviceSetup.activeWarning.title"),
+                t("deviceSetup.activeWarning.message", {
+                  serial: deviceInfo.serial,
+                  vehicle: vehicleInfo,
+                }),
+                [
+                  {
+                    text: t("deviceSetup.activeWarning.cancel"),
+                    style: "cancel",
+                    onPress: () => {
+                      setStep(STEPS.BLE_SCAN);
+                      setStatus("");
+                      resolve();
+                    },
+                  },
+                  {
+                    text: t("deviceSetup.activeWarning.continue"),
+                    style: "destructive",
+                    onPress: async () => {
+                      setBusy(true);
+                      setStep(STEPS.CONNECTING);
+                      setStatus(t("deviceSetup.connecting"));
+                      try {
+                        await proceedWithConnection(device);
+                      } catch (e) {
+                        console.error("[DeviceSetup] Connection error:", e);
+                        setError(
+                          t("deviceSetup.connectionError", { error: e.message })
+                        );
+                        setStep(STEPS.ERROR);
+                      } finally {
+                        if (!isGuided && isMountedRef.current) {
+                          setBusy(false);
+                        }
+                      }
+                      resolve();
+                    },
+                  },
+                ]
+              );
+            });
+          }
+        } catch (checkErr) {
+          // Check başarısız olursa devam et (backend erişilemez olabilir)
           console.log(
-            "[DeviceSetup] ✅ navigation.navigate(VehiclePickerMain) called"
+            "[DeviceSetup] Status check failed, continuing:",
+            checkErr.message
           );
-        });
-
-        return;
+        }
       }
+      // === Kontrol sonu ===
 
-      console.log("[DeviceSetup] Legacy mode, showing WiFi form");
-      setStep(STEPS.WIFI_FORM);
+      await proceedWithConnection(device);
     } catch (e) {
       console.error("[DeviceSetup] Connection error:", e);
       setError("Bağlantı hatası: " + e.message);
@@ -534,8 +624,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
       }
     }
   };
-
-  const activationStartedRef = useRef(false);
 
   const handleWifiFormSubmit = async () => {
     if (!wifiSsid || wifiSsid.trim().length === 0) {
@@ -879,11 +967,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           onPress={stopAndRescan}
           activeOpacity={0.85}
         >
-          <Ionicons
-            name="refresh"
-            size={18}
-            color={COLORS.TEXT ?? COLORS.DEFAULT}
-          />
+          <Ionicons name="refresh" size={18} color={COLORS.TEXT_PRIMARY} />
           <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>{t("deviceSetup.ble.rescan")}</Text>
         </TouchableOpacity>
@@ -954,11 +1038,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           onPress={() => setStep(STEPS.BLE_SCAN)}
           activeOpacity={0.85}
         >
-          <Ionicons
-            name="arrow-back"
-            size={18}
-            color={COLORS.TEXT ?? COLORS.DEFAULT}
-          />
+          <Ionicons name="arrow-back" size={18} color={COLORS.TEXT_PRIMARY} />
           <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>{t("common.back")}</Text>
         </TouchableOpacity>
@@ -1069,11 +1149,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           }}
           activeOpacity={0.85}
         >
-          <Ionicons
-            name="refresh"
-            size={18}
-            color={COLORS.TEXT ?? COLORS.DEFAULT}
-          />
+          <Ionicons name="refresh" size={18} color={COLORS.TEXT_PRIMARY} />
           <View style={styles.btnIconSpacer} />
           <Text style={styles.btnTextDark}>
             {t("deviceSetup.result.retry")}

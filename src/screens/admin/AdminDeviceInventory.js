@@ -13,12 +13,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { theme } from "../../constants";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI } from "../../services/api";
 
-const { COLORS, SIZES } = theme;
-
 const AdminDeviceInventory = () => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const scanLock = useRef(false);
 
@@ -206,7 +208,7 @@ const AdminDeviceInventory = () => {
   }, [devices]);
 
   const renderDeviceItem = ({ item }) => (
-    <View style={styles.card}>
+    <Card variant="flat">
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.serial}>{item.serial}</Text>
@@ -258,7 +260,7 @@ const AdminDeviceInventory = () => {
           )}
         </TouchableOpacity>
       )}
-    </View>
+    </Card>
   );
 
   if (loadingList && devices.length === 0) {
@@ -367,7 +369,7 @@ const AdminDeviceInventory = () => {
                 style={[
                   styles.btn,
                   styles.btnPrimary,
-                  { marginTop: SIZES.BASE },
+                  { marginTop: COLORS.SPACING.md },
                 ]}
                 onPress={requestPermission}
               >
@@ -386,7 +388,11 @@ const AdminDeviceInventory = () => {
           )}
 
           <TouchableOpacity
-            style={[styles.btn, styles.btnDanger, { margin: SIZES.BASE }]}
+            style={[
+              styles.btn,
+              styles.btnDanger,
+              { margin: COLORS.SPACING.md },
+            ]}
             onPress={() => setScannerModal(false)}
           >
             <Text style={styles.btnText}>Close</Text>
@@ -470,7 +476,11 @@ const AdminDeviceInventory = () => {
             )}
 
             <TouchableOpacity
-              style={[styles.btn, styles.btnDanger, { marginTop: SIZES.BASE }]}
+              style={[
+                styles.btn,
+                styles.btnDanger,
+                { marginTop: COLORS.SPACING.md },
+              ]}
               onPress={() => {
                 setSearchModal(false);
                 setSearchSerial("");
@@ -486,232 +496,226 @@ const AdminDeviceInventory = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.GREY,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.GREY,
-  },
-  title: {
-    fontSize: SIZES.BASE + 4,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-  },
-  headerBtn: {
-    fontSize: SIZES.BASE + 3,
-  },
-  filterBar: {
-    flexDirection: "row",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    gap: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-  },
-  filterBtn: {
-    flex: 1,
-    paddingVertical: SIZES.BASE / 2,
-    paddingHorizontal: SIZES.BASE / 2,
-    borderRadius: SIZES.BASE / 2,
-    backgroundColor: COLORS.GREY,
-    alignItems: "center",
-  },
-  filterBtnActive: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  filterBtnText: {
-    fontSize: SIZES.BASE - 2,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-  },
-  actionBar: {
-    flexDirection: "row",
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-    gap: SIZES.BASE / 2,
-    backgroundColor: COLORS.WHITE,
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: SIZES.BASE,
-    borderRadius: SIZES.BASE / 2,
-    alignItems: "center",
-  },
-  actionBtnPrimary: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  actionBtnSecondary: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  actionBtnText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-  },
-  list: {
-    paddingHorizontal: SIZES.BASE,
-    paddingVertical: SIZES.BASE / 2,
-  },
-  sectionTitle: {
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-    marginBottom: SIZES.BASE / 2,
-    marginTop: SIZES.BASE / 2,
-  },
-  card: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE / 2,
-    padding: SIZES.BASE,
-    marginBottom: SIZES.BASE / 2,
-    borderWidth: 1,
-    borderColor: COLORS.GREY,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: SIZES.BASE / 2,
-  },
-  serial: {
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
-  },
-  status: {
-    fontSize: SIZES.BASE - 3,
-    backgroundColor: COLORS.GREY,
-    paddingHorizontal: SIZES.BASE / 4,
-    borderRadius: SIZES.BASE / 4,
-    marginTop: SIZES.BASE / 4,
-  },
-  online: {
-    fontSize: SIZES.BASE + 2,
-  },
-  cardBody: {
-    marginVertical: SIZES.BASE / 2,
-  },
-  label: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.MUTED,
-    fontWeight: "bold",
-    marginTop: SIZES.BASE / 4,
-  },
-  value: {
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.BLACK,
-  },
-  qrStatus: {
-    fontSize: SIZES.BASE - 2,
-    color: COLORS.PRIMARY,
-    fontWeight: "bold",
-  },
-  btn: {
-    paddingVertical: SIZES.BASE / 2,
-    borderRadius: SIZES.BASE / 2,
-    alignItems: "center",
-    marginTop: SIZES.BASE / 2,
-  },
-  btnPrimary: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  btnAssign: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  btnDanger: {
-    backgroundColor: COLORS.WARNING,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-    fontSize: SIZES.BASE - 2,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scannerContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BLACK,
-  },
-  scanner: {
-    flex: 1,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.BLACK,
-  },
-  permissionText: {
-    color: COLORS.WHITE,
-    marginTop: SIZES.BASE,
-    fontSize: SIZES.BASE - 1,
-  },
-  errorText: {
-    color: COLORS.WARNING,
-    fontSize: SIZES.BASE,
-    fontWeight: "bold",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: SIZES.BASE,
-    paddingHorizontal: SIZES.BASE * 1.5,
-    paddingVertical: SIZES.BASE * 1.5,
-    width: "90%",
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: SIZES.BASE + 2,
-    fontWeight: "bold",
-    marginBottom: SIZES.BASE,
-    color: COLORS.BLACK,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.GREY,
-    borderRadius: SIZES.BASE / 2,
-    paddingHorizontal: SIZES.BASE / 2,
-    paddingVertical: SIZES.BASE / 2,
-    marginBottom: SIZES.BASE,
-    fontSize: SIZES.BASE - 1,
-    color: COLORS.BLACK,
-  },
-  searchList: {
-    marginTop: SIZES.BASE / 2,
-    maxHeight: 260,
-  },
-  searchItem: {
-    backgroundColor: COLORS.GREY,
-    paddingHorizontal: SIZES.BASE / 2,
-    paddingVertical: SIZES.BASE / 2,
-    borderRadius: SIZES.BASE / 2,
-    marginTop: SIZES.BASE / 2,
-    borderLeftWidth: SIZES.BASE / 4,
-    borderLeftColor: COLORS.PRIMARY,
-  },
-  disabledText: {
-    color: COLORS.MUTED,
-    fontSize: SIZES.BASE - 2,
-    marginTop: SIZES.BASE / 2,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.GREY,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.GREY,
+    },
+    title: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+    },
+    headerBtn: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    filterBar: {
+      flexDirection: "row",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+    },
+    filterBtn: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.sm,
+      backgroundColor: COLORS.GREY,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    filterBtnActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    filterBtnText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+    },
+    actionBar: {
+      flexDirection: "row",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.WHITE,
+    },
+    actionBtn: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.SPACING.sm,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    actionBtnPrimary: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    actionBtnSecondary: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    actionBtnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    list: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    sectionTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+      marginBottom: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.sm,
+    },
+    // card removed, Card component used
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    serial: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.BLACK,
+    },
+    status: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      backgroundColor: COLORS.GREY,
+      paddingHorizontal: COLORS.SPACING.xs,
+      borderRadius: COLORS.SPACING.xs,
+      marginTop: COLORS.SPACING.xs,
+    },
+    online: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+    },
+    cardBody: {
+      marginVertical: COLORS.SPACING.sm,
+    },
+    label: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginTop: COLORS.SPACING.xs,
+    },
+    value: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.BLACK,
+    },
+    qrStatus: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    btn: {
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.sm,
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+    },
+    btnPrimary: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    btnAssign: {
+      backgroundColor: COLORS.SUCCESS,
+    },
+    btnDanger: {
+      backgroundColor: COLORS.WARNING,
+    },
+    btnDisabled: {
+      opacity: 0.6,
+    },
+    btnText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scannerContainer: {
+      flex: 1,
+      backgroundColor: COLORS.BLACK,
+    },
+    scanner: {
+      flex: 1,
+    },
+    permissionContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BLACK,
+    },
+    permissionText: {
+      color: COLORS.WHITE,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+    },
+    errorText: {
+      color: COLORS.WARNING,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: COLORS.WHITE,
+      borderRadius: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.lg,
+      width: "90%",
+      maxHeight: "80%",
+    },
+    modalTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      marginBottom: COLORS.SPACING.md,
+      color: COLORS.BLACK,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: COLORS.GREY,
+      borderRadius: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.BLACK,
+    },
+    searchList: {
+      marginTop: COLORS.SPACING.sm,
+      maxHeight: 260,
+    },
+    searchItem: {
+      backgroundColor: COLORS.GREY,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.sm,
+      borderLeftWidth: COLORS.SPACING.xs,
+      borderLeftColor: COLORS.PRIMARY,
+    },
+    disabledText: {
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      marginTop: COLORS.SPACING.sm,
+    },
+  });
 
 export default AdminDeviceInventory;

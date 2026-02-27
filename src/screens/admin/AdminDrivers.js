@@ -1,5 +1,6 @@
 // src/screens/admin/AdminDrivers.js
-// TulipFleet - Admin Sürücü Listesi Ekranı (Dark Mode uyumlu)
+// TulipFleet - Admin Sürücü Listesi Ekranı
+// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -19,26 +20,24 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI } from "../../services/api";
 
-// --- helpers (hex literal kullanmadan soft background üretmek için) ---
+// --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
-  // hex: #RRGGBB
   if (
     !hex ||
     typeof hex !== "string" ||
     !hex.startsWith("#") ||
     hex.length !== 7
-  ) {
+  )
     return hex;
-  }
   const a = Math.max(0, Math.min(1, alpha01));
   const alpha = Math.round(a * 255)
     .toString(16)
     .padStart(2, "0")
     .toUpperCase();
-  return `${hex}${alpha}`; // #RRGGBBAA
+  return `${hex}${alpha}`;
 };
 
-// Durum label’ları (renkler theme token’larından türetiliyor)
+// Durum label'ları
 const STATUS_LABELS = {
   active: "Aktif",
   available: "Müsait",
@@ -48,6 +47,9 @@ const STATUS_LABELS = {
   suspended: "Askıda",
 };
 
+// ============================================
+// makeStyles - UI Guide v3 compliant
+// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: {
@@ -59,74 +61,66 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: COLORS.BACKGROUND,
-      padding: 20,
+      padding: COLORS.SPACING.lg,
     },
 
     // Header Stats
     statsHeader: {
       flexDirection: "row",
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      paddingVertical: 16,
-      paddingHorizontal: 12,
-      marginBottom: 8,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      paddingVertical: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
     },
     headerStatBox: {
       flex: 1,
       alignItems: "center",
     },
     headerStatValue: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
     headerStatLabel: {
-      fontSize: 12,
-      color: COLORS.SECONDARY,
-      marginTop: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
     },
 
     // List
     listContainer: {
-      padding: 12,
+      padding: COLORS.SPACING.sm,
       paddingBottom: 80,
     },
 
     // Card
     card: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 12,
-      marginBottom: 12,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
       overflow: "hidden",
     },
     cardContent: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 16,
+      padding: COLORS.SPACING.md,
     },
 
     // Avatar
     avatar: {
       width: 50,
       height: 50,
-      borderRadius: 25,
+      borderRadius: COLORS.RADIUS.full,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 12,
+      marginRight: COLORS.SPACING.sm,
     },
     avatarText: {
       color: COLORS.WHITE,
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
 
     // Driver Info
@@ -137,55 +131,53 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 6,
-      gap: 8,
+      marginBottom: COLORS.SPACING.xs,
     },
     driverName: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
       flex: 1,
+      marginRight: COLORS.SPACING.sm,
     },
     statusBadge: {
-      paddingHorizontal: 10,
+      paddingHorizontal: COLORS.SPACING.sm,
       paddingVertical: 3,
-      borderRadius: 10,
-      marginLeft: 8,
+      borderRadius: COLORS.RADIUS.md,
+      marginLeft: COLORS.SPACING.sm,
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     detailRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 4,
+      marginTop: COLORS.SPACING.xs,
     },
     detailText: {
-      fontSize: 13,
-      color: COLORS.SECONDARY,
-      marginLeft: 6,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.xs,
     },
     editButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor:
-        withAlpha(COLORS.INFO, 0.12) || (COLORS.SURFACE ?? COLORS.WHITE),
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      backgroundColor: withAlpha(COLORS.INFO, 0.12),
     },
     deleteButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor:
-        withAlpha(COLORS.ERROR, 0.12) || (COLORS.SURFACE ?? COLORS.WHITE),
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      backgroundColor: withAlpha(COLORS.ERROR, 0.12),
     },
 
     // Stats Row
     statsRow: {
       flexDirection: "row",
       backgroundColor: COLORS.BACKGROUND,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
     },
     statItem: {
       flex: 1,
@@ -194,20 +186,20 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
     },
     statValue: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
-      marginLeft: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginLeft: COLORS.SPACING.xs,
     },
     statLabel: {
-      fontSize: 11,
-      color: COLORS.SECONDARY,
-      marginLeft: 4,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.xs,
     },
     statDivider: {
       width: 1,
       backgroundColor: COLORS.MUTED,
-      marginHorizontal: 8,
+      marginHorizontal: COLORS.SPACING.sm,
     },
 
     // Empty State
@@ -215,67 +207,72 @@ const makeStyles = (COLORS) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 60,
+      paddingVertical: COLORS.SPACING.xxxl,
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.DEFAULT,
-      marginTop: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginTop: COLORS.SPACING.sm,
     },
     emptySubtitle: {
-      fontSize: 13,
-      color: COLORS.SECONDARY,
-      marginTop: 6,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
       textAlign: "center",
-      paddingHorizontal: 24,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
 
     // Loading / Error
     loadingText: {
-      marginTop: 8,
-      color: COLORS.SECONDARY,
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.TEXT_SECONDARY,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
     errorTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.ERROR,
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
     },
     errorText: {
-      fontSize: 13,
-      color: COLORS.SECONDARY,
-      marginTop: 6,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: COLORS.SPACING.xs,
       textAlign: "center",
-      paddingHorizontal: 24,
+      paddingHorizontal: COLORS.SPACING.lg,
     },
     retryButton: {
-      marginTop: 12,
+      marginTop: COLORS.SPACING.sm,
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 8,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
     },
     retryButtonText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // FAB
     fab: {
       position: "absolute",
-      right: 16,
-      bottom: 16,
+      right: COLORS.SPACING.md,
+      bottom: COLORS.SPACING.md,
       width: 50,
       height: 50,
-      borderRadius: 25,
+      borderRadius: COLORS.RADIUS.full,
       backgroundColor: COLORS.PRIMARY,
       justifyContent: "center",
       alignItems: "center",
-      elevation: 4,
+      ...COLORS.SHADOWS.card,
     },
   });
 
+// ============================================
+// COMPONENT
+// ============================================
 const AdminDrivers = ({ navigation }) => {
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -285,13 +282,13 @@ const AdminDrivers = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sürücü durumu renkleri (tema token’larından)
+  // Sürücü durumu renkleri (tema token'larından)
   const STATUS_COLORS = useMemo(
     () => ({
       active: COLORS.SUCCESS,
       available: COLORS.SUCCESS,
       on_duty: COLORS.INFO,
-      off_duty: COLORS.SECONDARY,
+      off_duty: COLORS.TEXT_SECONDARY,
       inactive: COLORS.MUTED,
       suspended: COLORS.ERROR,
     }),
@@ -383,7 +380,7 @@ const AdminDrivers = ({ navigation }) => {
   // Sürücü kartı
   const renderDriverCard = ({ item }) => {
     const status = item.status || "inactive";
-    const statusColor = STATUS_COLORS[status] || COLORS.SECONDARY;
+    const statusColor = STATUS_COLORS[status] || COLORS.TEXT_SECONDARY;
     const statusLabel = STATUS_LABELS[status] || status;
 
     const displayName =
@@ -421,118 +418,82 @@ const AdminDrivers = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Sürücü Bilgileri */}
+          {/* Info */}
           <View style={styles.driverInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.driverName} numberOfLines={1}>
                 {displayName}
               </Text>
-
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() =>
-                  navigation.navigate("EditDriver", { driver: item })
-                }
+              <View
+                style={[styles.statusBadge, { backgroundColor: statusColor }]}
               >
-                <Ionicons name="pencil" size={18} color={COLORS.PRIMARY} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteDriver(item)}
-              >
-                <Ionicons name="trash-outline" size={18} color={COLORS.ERROR} />
-              </TouchableOpacity>
+                <Text style={styles.statusText}>{statusLabel}</Text>
+              </View>
             </View>
 
-            <View
-              style={[styles.statusBadge, { backgroundColor: statusColor }]}
-            >
-              <Text style={styles.statusText}>{statusLabel}</Text>
-            </View>
-
+            {/* Email */}
             <View style={styles.detailRow}>
               <Ionicons
                 name="mail-outline"
                 size={14}
-                color={COLORS.SECONDARY}
+                color={COLORS.TEXT_SECONDARY}
               />
-              <Text style={styles.detailText}>{item.email || "Email yok"}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Ionicons
-                name="call-outline"
-                size={14}
-                color={COLORS.SECONDARY}
-              />
-              <Text style={styles.detailText}>
-                {item.phone || "Telefon yok"}
+              <Text style={styles.detailText} numberOfLines={1}>
+                {item.email || "-"}
               </Text>
             </View>
 
-            {item.license_number && (
+            {/* Phone */}
+            {item.phone && (
               <View style={styles.detailRow}>
                 <Ionicons
-                  name="card-outline"
+                  name="call-outline"
                   size={14}
-                  color={COLORS.SECONDARY}
+                  color={COLORS.TEXT_SECONDARY}
                 />
-                <Text style={styles.detailText}>
-                  Ehliyet: {item.license_number}
-                </Text>
-              </View>
-            )}
-
-            {item.vehicle_plate && (
-              <View style={styles.detailRow}>
-                <Ionicons name="car" size={14} color={COLORS.PRIMARY} />
-                <Text
-                  style={[
-                    styles.detailText,
-                    { color: COLORS.PRIMARY, fontWeight: "600" },
-                  ]}
-                >
-                  {item.vehicle_plate}
-                </Text>
+                <Text style={styles.detailText}>{item.phone}</Text>
               </View>
             )}
           </View>
 
-          {/* Sağ Ok */}
-          <Ionicons name="chevron-forward" size={20} color={COLORS.MUTED} />
+          {/* Actions */}
+          <View>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() =>
+                navigation.navigate("EditDriver", { driver: item })
+              }
+            >
+              <Ionicons name="create-outline" size={18} color={COLORS.INFO} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.deleteButton, { marginTop: COLORS.SPACING.xs }]}
+              onPress={() => handleDeleteDriver(item)}
+            >
+              <Ionicons name="trash-outline" size={18} color={COLORS.ERROR} />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Alt Kısım - İstatistikler */}
+        {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Ionicons
-              name="speedometer-outline"
-              size={16}
-              color={COLORS.SECONDARY}
-            />
-            <Text style={styles.statValue}>{item.total_trips || 0}</Text>
-            <Text style={styles.statLabel}>Görev</Text>
-          </View>
-
-          <View style={styles.statDivider} />
-
-          <View style={styles.statItem}>
-            <Ionicons name="star" size={16} color={COLORS.WARNING} />
+            <Ionicons name="car" size={14} color={COLORS.INFO} />
             <Text style={styles.statValue}>
-              {item.rating?.toFixed(1) || "-"}
+              {item.assigned_vehicle_plate || "-"}
             </Text>
-            <Text style={styles.statLabel}>Puan</Text>
           </View>
-
           <View style={styles.statDivider} />
-
           <View style={styles.statItem}>
-            <Ionicons name="navigate-outline" size={16} color={COLORS.INFO} />
-            <Text style={styles.statValue}>
-              {item.total_km?.toLocaleString() || 0}
-            </Text>
-            <Text style={styles.statLabel}>km</Text>
+            <Ionicons name="navigate" size={14} color={COLORS.SUCCESS} />
+            <Text style={styles.statValue}>{item.completed_tasks ?? 0}</Text>
+            <Text style={styles.statLabel}>görev</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Ionicons name="star" size={14} color={COLORS.WARNING} />
+            <Text style={styles.statValue}>{item.safety_score ?? "-"}</Text>
+            <Text style={styles.statLabel}>puan</Text>
           </View>
         </View>
       </TouchableOpacity>

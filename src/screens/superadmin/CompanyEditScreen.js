@@ -1,6 +1,6 @@
 // src/screens/superadmin/CompanyEditScreen.js
 // TulipFleet - Şirket Düzenleme Ekranı
-// Updated: 27 Aralık 2025 - data.company fix
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,10 +19,14 @@ import {
   View,
 } from "react-native";
 import { API_URL } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const CompanyEditScreen = ({ route, navigation }) => {
   const { companyId } = route.params || {};
-  
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [company, setCompany] = useState({
@@ -34,11 +38,9 @@ const CompanyEditScreen = ({ route, navigation }) => {
     is_active: true,
   });
 
-  // Şirket bilgilerini yükle
   useEffect(() => {
-    if (companyId) {
-      fetchCompany();
-    } else {
+    if (companyId) fetchCompany();
+    else {
       Alert.alert("Hata", "Şirket ID bulunamadı");
       navigation.goBack();
     }
@@ -52,9 +54,6 @@ const CompanyEditScreen = ({ route, navigation }) => {
         navigation.goBack();
         return;
       }
-
-      console.log("📡 Fetching company:", companyId);
-
       const response = await fetch(
         `${API_URL}/api/superadmin/companies/${companyId}`,
         {
@@ -64,32 +63,23 @@ const CompanyEditScreen = ({ route, navigation }) => {
           },
         }
       );
-
-      console.log("📦 Response status:", response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Company data:", data);
-        
-        // ✅ FIX: Backend data.company içinde döndürüyor
-        const companyData = data.company || data;
-        
+        const cd = data.company || data;
         setCompany({
-          name: companyData.name || "",
-          slug: companyData.slug || "",
-          address: companyData.address || "",
-          phone: companyData.phone || "",
-          email: companyData.email || "",
-          is_active: companyData.status === "active" || companyData.is_active !== false,
+          name: cd.name || "",
+          slug: cd.slug || "",
+          address: cd.address || "",
+          phone: cd.phone || "",
+          email: cd.email || "",
+          is_active: cd.status === "active" || cd.is_active !== false,
         });
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("❌ API Error:", response.status, errorData);
         Alert.alert("Hata", "Şirket bilgileri yüklenemedi");
         navigation.goBack();
       }
     } catch (error) {
-      console.error("❌ Fetch company error:", error);
+      console.error("Fetch company error:", error);
       Alert.alert("Hata", "Bağlantı hatası");
       navigation.goBack();
     } finally {
@@ -98,21 +88,17 @@ const CompanyEditScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-    // Validasyon
     if (!company.name.trim()) {
       Alert.alert("Hata", "Şirket adı zorunludur");
       return;
     }
-
     setSaving(true);
-
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
         Alert.alert("Hata", "Oturum süresi dolmuş");
         return;
       }
-
       const response = await fetch(
         `${API_URL}/api/superadmin/companies/${companyId}`,
         {
@@ -131,14 +117,13 @@ const CompanyEditScreen = ({ route, navigation }) => {
           }),
         }
       );
-
       if (response.ok) {
         Alert.alert("Başarılı", "Şirket güncellendi", [
           { text: "Tamam", onPress: () => navigation.goBack() },
         ]);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        Alert.alert("Hata", errorData.error || "Güncelleme başarısız");
+        const ed = await response.json().catch(() => ({}));
+        Alert.alert("Hata", ed.error || "Güncelleme başarısız");
       }
     } catch (error) {
       console.error("Save company error:", error);
@@ -151,7 +136,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E72E4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Yükleniyor...</Text>
       </View>
     );
@@ -163,83 +148,88 @@ const CompanyEditScreen = ({ route, navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView style={styles.scrollView}>
-        {/* Form */}
         <View style={styles.form}>
-          {/* Şirket Adı */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Şirket Adı *</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="business-outline" size={20} color="#8898AA" />
-              <TextInput
-                style={styles.input}
-                value={company.name}
-                onChangeText={(text) => setCompany({ ...company, name: text })}
-                placeholder="Şirket adı"
-                placeholderTextColor="#ADB5BD"
-              />
+          {[
+            {
+              key: "name",
+              label: "Şirket Adı *",
+              icon: "business-outline",
+              placeholder: "Şirket adı",
+            },
+            {
+              key: "slug",
+              label: "Slug",
+              icon: "link-outline",
+              placeholder: "sirket-slug",
+              autoCapitalize: "none",
+            },
+            {
+              key: "email",
+              label: "Email",
+              icon: "mail-outline",
+              placeholder: "info@sirket.com",
+              keyboardType: "email-address",
+              autoCapitalize: "none",
+            },
+            {
+              key: "phone",
+              label: "Telefon",
+              icon: "call-outline",
+              placeholder: "+90 555 123 4567",
+              keyboardType: "phone-pad",
+            },
+          ].map((field) => (
+            <View key={field.key} style={styles.inputGroup}>
+              <Text style={styles.label}>{field.label}</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name={field.icon} size={20} color={COLORS.MUTED} />
+                <TextInput
+                  style={styles.input}
+                  value={company[field.key]}
+                  onChangeText={(text) =>
+                    setCompany({
+                      ...company,
+                      [field.key]:
+                        field.key === "slug"
+                          ? text.toLowerCase().replace(/\s+/g, "-")
+                          : text,
+                    })
+                  }
+                  placeholder={field.placeholder}
+                  placeholderTextColor={COLORS.PLACEHOLDER}
+                  keyboardType={field.keyboardType}
+                  autoCapitalize={field.autoCapitalize}
+                />
+              </View>
             </View>
-          </View>
-
-          {/* Slug */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Slug</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="link-outline" size={20} color="#8898AA" />
-              <TextInput
-                style={styles.input}
-                value={company.slug}
-                onChangeText={(text) => setCompany({ ...company, slug: text.toLowerCase().replace(/\s+/g, '-') })}
-                placeholder="sirket-slug"
-                placeholderTextColor="#ADB5BD"
-                autoCapitalize="none"
-              />
-            </View>
-          </View>
-
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={20} color="#8898AA" />
-              <TextInput
-                style={styles.input}
-                value={company.email}
-                onChangeText={(text) => setCompany({ ...company, email: text })}
-                placeholder="info@sirket.com"
-                placeholderTextColor="#ADB5BD"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          </View>
-
-          {/* Telefon */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telefon</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="call-outline" size={20} color="#8898AA" />
-              <TextInput
-                style={styles.input}
-                value={company.phone}
-                onChangeText={(text) => setCompany({ ...company, phone: text })}
-                placeholder="+90 555 123 4567"
-                placeholderTextColor="#ADB5BD"
-                keyboardType="phone-pad"
-              />
-            </View>
-          </View>
+          ))}
 
           {/* Adres */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Adres</Text>
-            <View style={[styles.inputContainer, { height: 80, alignItems: "flex-start", paddingTop: 12 }]}>
-              <Ionicons name="location-outline" size={20} color="#8898AA" />
+            <View
+              style={[
+                styles.inputContainer,
+                {
+                  height: 80,
+                  alignItems: "flex-start",
+                  paddingTop: COLORS.SPACING.sm,
+                },
+              ]}
+            >
+              <Ionicons
+                name="location-outline"
+                size={20}
+                color={COLORS.MUTED}
+              />
               <TextInput
-                style={[styles.input, { height: 60, textAlignVertical: "top" }]}
+                style={[styles.input, { height: 64, textAlignVertical: "top" }]}
                 value={company.address}
-                onChangeText={(text) => setCompany({ ...company, address: text })}
+                onChangeText={(text) =>
+                  setCompany({ ...company, address: text })
+                }
                 placeholder="Şirket adresi"
-                placeholderTextColor="#ADB5BD"
+                placeholderTextColor={COLORS.PLACEHOLDER}
                 multiline
               />
             </View>
@@ -255,30 +245,31 @@ const CompanyEditScreen = ({ route, navigation }) => {
             </View>
             <Switch
               value={company.is_active}
-              onValueChange={(value) => setCompany({ ...company, is_active: value })}
-              trackColor={{ false: "#DEE2E6", true: "#5E72E4" }}
-              thumbColor={company.is_active ? "#FFF" : "#FFF"}
+              onValueChange={(v) => setCompany({ ...company, is_active: v })}
+              trackColor={{ false: COLORS.SWITCH_OFF, true: COLORS.SWITCH_ON }}
+              thumbColor={COLORS.WHITE}
             />
           </View>
         </View>
 
-        {/* Kaydet Butonu */}
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={COLORS.WHITE} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={COLORS.WHITE}
+              />
               <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
             </>
           )}
         </TouchableOpacity>
-
-        {/* İptal Butonu */}
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => navigation.goBack()}
@@ -290,95 +281,85 @@ const CompanyEditScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F5F7",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    color: "#8898AA",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  form: {
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#32325D",
-    marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
-    color: "#32325D",
-  },
-  switchGroup: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
-  },
-  switchDescription: {
-    fontSize: 12,
-    color: "#8898AA",
-    marginTop: 2,
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#2DCE89",
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#ADB5BD",
-  },
-  saveButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  cancelButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    marginBottom: 30,
-  },
-  cancelButtonText: {
-    color: "#8898AA",
-    fontSize: 16,
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+    },
+    scrollView: { flex: 1 },
+    form: { padding: COLORS.SPACING.lg },
+    inputGroup: { marginBottom: COLORS.SPACING.lg },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      paddingHorizontal: COLORS.SPACING.md,
+      height: COLORS.SPACING.inputHeight,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    input: {
+      flex: 1,
+      marginLeft: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    switchGroup: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: COLORS.CARD,
+      borderRadius: COLORS.RADIUS.input,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.lg,
+      ...COLORS.SHADOWS.xs,
+    },
+    switchDescription: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.SUCCESS,
+      marginHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.button,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.button,
+    },
+    saveButtonDisabled: { backgroundColor: COLORS.DISABLED },
+    saveButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    cancelButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.xl,
+    },
+    cancelButtonText: { ...COLORS.TYPOGRAPHY.styles.body, color: COLORS.MUTED },
+  });
 
 export default CompanyEditScreen;

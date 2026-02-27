@@ -13,11 +13,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/config";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI } from "../../services/api";
 
 const EditDriverScreen = ({ navigation, route }) => {
   const { driver } = route.params;
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: driver.first_name || "",
@@ -30,10 +35,10 @@ const EditDriverScreen = ({ navigation, route }) => {
   });
 
   const statusTypes = [
-    { value: "idle", label: "Boşta" },
+    { value: "idle", label: "Bosta" },
     { value: "active", label: "Aktif" },
-    { value: "paused", label: "Duraklatıldı" },
-    { value: "offline", label: "Çevrimdışı" },
+    { value: "paused", label: "Duraklatildi" },
+    { value: "offline", label: "Cevrimdisi" },
   ];
 
   const handleChange = (field, value) => {
@@ -42,7 +47,7 @@ const EditDriverScreen = ({ navigation, route }) => {
 
   const handleSave = async () => {
     if (!formData.license_no.trim()) {
-      Alert.alert("Hata", "Ehliyet numarası zorunludur");
+      Alert.alert("Hata", "Ehliyet numarasi zorunludur");
       return;
     }
 
@@ -52,8 +57,8 @@ const EditDriverScreen = ({ navigation, route }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "✅ Başarılı",
-          "Sürücü başarıyla güncellendi",
+          "Basarili",
+          "Surucu basariyla guncellendi",
           [{ text: "Tamam", onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
@@ -62,7 +67,7 @@ const EditDriverScreen = ({ navigation, route }) => {
       console.error("Update driver error:", error);
       Alert.alert(
         "Hata",
-        error.response?.data?.error || "Sürücü güncellenemedi"
+        error.response?.data?.error || "Surucu guncellenemedi"
       );
     } finally {
       setLoading(false);
@@ -80,7 +85,7 @@ const EditDriverScreen = ({ navigation, route }) => {
         value={formData[field]}
         onChangeText={(value) => handleChange(field, value)}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.gray}
+        placeholderTextColor={COLORS.PLACEHOLDER}
         keyboardType={options.keyboardType || "default"}
         autoCapitalize={options.autoCapitalize || "none"}
         editable={options.editable !== false}
@@ -123,54 +128,64 @@ const EditDriverScreen = ({ navigation, route }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Email (readonly) */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={[styles.input, styles.inputDisabled]}
-              value={driver.email}
-              editable={false}
-            />
-          </View>
-
-          {/* Kişisel Bilgiler */}
-          <Text style={styles.sectionTitle}>Kişisel Bilgiler</Text>
-
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              {renderInput("Ad", "first_name", "Ali", {
-                autoCapitalize: "words",
-              })}
+          <Card variant="flat">
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={[styles.input, styles.inputDisabled]}
+                value={driver.email}
+                editable={false}
+              />
             </View>
-            <View style={styles.halfInput}>
-              {renderInput("Soyad", "last_name", "Yılmaz", {
-                autoCapitalize: "words",
-              })}
-            </View>
-          </View>
+          </Card>
 
-          {renderInput("Telefon", "phone", "05XX XXX XX XX", {
-            keyboardType: "phone-pad",
-          })}
+          {/* Kisisel Bilgiler */}
+          <Text style={styles.sectionTitle}>Kisisel Bilgiler</Text>
+          <Card variant="flat">
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                {renderInput("Ad", "first_name", "Ali", {
+                  autoCapitalize: "words",
+                })}
+              </View>
+              <View style={styles.halfInput}>
+                {renderInput("Soyad", "last_name", "Yilmaz", {
+                  autoCapitalize: "words",
+                })}
+              </View>
+            </View>
+
+            {renderInput("Telefon", "phone", "05XX XXX XX XX", {
+              keyboardType: "phone-pad",
+            })}
+          </Card>
 
           {/* Ehliyet Bilgileri */}
           <Text style={styles.sectionTitle}>Ehliyet Bilgileri</Text>
+          <Card variant="flat">
+            {renderInput("Ehliyet No *", "license_no", "TR123456789", {
+              autoCapitalize: "characters",
+            })}
 
-          {renderInput("Ehliyet No *", "license_no", "TR123456789", {
-            autoCapitalize: "characters",
-          })}
-
-          {renderInput("Ehliyet Bitiş Tarihi", "license_expiry", "2025-12-31")}
+            {renderInput(
+              "Ehliyet Bitis Tarihi",
+              "license_expiry",
+              "2025-12-31"
+            )}
+          </Card>
 
           {/* Durum */}
           {renderSelector("Durum", "status", statusTypes)}
 
           {/* Acil Durum */}
           <Text style={styles.sectionTitle}>Acil Durum</Text>
-          {renderInput(
-            "Acil Durum Kişisi",
-            "emergency_contact",
-            "Ayşe Yılmaz - 05XX XXX XX XX"
-          )}
+          <Card variant="flat">
+            {renderInput(
+              "Acil Durum Kisisi",
+              "emergency_contact",
+              "Ayse Yilmaz - 05XX XXX XX XX"
+            )}
+          </Card>
 
           {/* Save Button */}
           <TouchableOpacity
@@ -179,11 +194,11 @@ const EditDriverScreen = ({ navigation, route }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <>
-                <Ionicons name="checkmark" size={20} color={COLORS.white} />
-                <Text style={styles.saveButtonText}>Güncelle</Text>
+                <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
+                <Text style={styles.saveButtonText}>Guncelle</Text>
               </>
             )}
           </TouchableOpacity>
@@ -193,97 +208,100 @@ const EditDriverScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.primary,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  inputDisabled: {
-    backgroundColor: "#F0F0F0",
-    color: COLORS.gray,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  selectorContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  selectorButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  selectorActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  selectorText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  selectorTextActive: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 32,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+      marginTop: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    inputContainer: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    label: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    input: {
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    inputDisabled: {
+      backgroundColor: COLORS.DISABLED_BG,
+      color: COLORS.DISABLED,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    halfInput: {
+      flex: 1,
+      marginRight: COLORS.SPACING.sm,
+    },
+    selectorContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginBottom: COLORS.SPACING.md,
+    },
+    selectorButton: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+      backgroundColor: COLORS.SURFACE,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    selectorActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    selectorText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    selectorTextActive: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.button,
+      marginTop: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.xl,
+      ...COLORS.SHADOWS.button,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.button,
+      marginLeft: COLORS.SPACING.sm,
+    },
+  });
 
 export default EditDriverScreen;

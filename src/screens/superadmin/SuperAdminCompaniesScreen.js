@@ -1,7 +1,6 @@
 // src/screens/superadmin/SuperAdminCompaniesScreen.js
 // TulipFleet - Super Admin Şirket Yönetimi
-// Version: 2.1 - Scroll Fix - CreateModal ayrı component
-// Date: 15.12.2025
+// Updated: UI System Guide v3 uyumlu
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -17,34 +16,50 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import api from "../../services/api";
 
 // ============================================
-// PAKET TİPLERİ
+// PAKET TİPLERİ - runtime COLORS ile
 // ============================================
-const PACKAGE_TYPES = [
+const getPackageTypes = (COLORS) => [
   {
     id: "basic",
     name: "Basic",
     maxVehicles: 10,
     maxDrivers: 15,
-    color: "#8898aa",
+    color: COLORS.MUTED,
   },
-  { id: "pro", name: "Pro", maxVehicles: 50, maxDrivers: 75, color: "#5e72e4" },
+  {
+    id: "pro",
+    name: "Pro",
+    maxVehicles: 50,
+    maxDrivers: 75,
+    color: COLORS.PRIMARY,
+  },
   {
     id: "enterprise",
     name: "Enterprise",
     maxVehicles: 500,
     maxDrivers: 750,
-    color: "#2dce89",
+    color: COLORS.SUCCESS,
   },
 ];
 
 // ============================================
-// CREATE COMPANY MODAL - AYRI COMPONENT
+// CREATE COMPANY MODAL
 // ============================================
-const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
+const CreateCompanyModal = ({
+  visible,
+  onClose,
+  onSuccess,
+  COLORS,
+  styles,
+}) => {
+  const PACKAGE_TYPES = getPackageTypes(COLORS);
   const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -59,7 +74,6 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  // Reset form when modal opens
   useEffect(() => {
     if (visible) {
       setFormData({
@@ -77,8 +91,8 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
     }
   }, [visible]);
 
-  const generateSlug = (name) => {
-    return name
+  const generateSlug = (name) =>
+    name
       .toLowerCase()
       .replace(/ğ/g, "g")
       .replace(/ü/g, "u")
@@ -90,16 +104,8 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-")
       .trim();
-  };
-
-  const handleNameChange = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      name,
-      slug: generateSlug(name),
-    }));
-  };
-
+  const handleNameChange = (name) =>
+    setFormData((prev) => ({ ...prev, name, slug: generateSlug(name) }));
   const handlePackageChange = (packageType) => {
     const pkg = PACKAGE_TYPES.find((p) => p.id === packageType);
     setFormData((prev) => ({
@@ -109,52 +115,34 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
       max_drivers: pkg?.maxDrivers.toString() || "15",
     }));
   };
-
-  const updateField = (field, value) => {
+  const updateField = (field, value) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
   const validateForm = () => {
     const errors = {};
-
-    if (!formData.name.trim()) {
-      errors.name = "Şirket adı gerekli";
-    }
-
-    if (!formData.slug.trim()) {
-      errors.slug = "Slug gerekli";
-    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+    if (!formData.name.trim()) errors.name = "Şirket adı gerekli";
+    if (!formData.slug.trim()) errors.slug = "Slug gerekli";
+    else if (!/^[a-z0-9-]+$/.test(formData.slug))
       errors.slug = "Slug sadece küçük harf, rakam ve tire içerebilir";
-    }
-
-    if (!formData.admin_email.trim()) {
+    if (!formData.admin_email.trim())
       errors.admin_email = "Admin email gerekli";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.admin_email)) {
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.admin_email))
       errors.admin_email = "Geçerli bir email adresi girin";
-    }
-
-    if (!formData.admin_password.trim()) {
+    if (!formData.admin_password.trim())
       errors.admin_password = "Admin şifre gerekli";
-    } else if (formData.admin_password.length < 6) {
+    else if (formData.admin_password.length < 6)
       errors.admin_password = "Şifre en az 6 karakter olmalı";
-    }
-
-    if (!formData.admin_first_name.trim()) {
+    if (!formData.admin_first_name.trim())
       errors.admin_first_name = "Admin adı gerekli";
-    }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleCreate = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setCreating(true);
     try {
-      const payload = {
+      await api.post("/api/superadmin/companies", {
         name: formData.name.trim(),
         slug: formData.slug.trim(),
         package_type: formData.package_type,
@@ -164,12 +152,9 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
         admin_password: formData.admin_password,
         admin_first_name: formData.admin_first_name.trim(),
         admin_last_name: formData.admin_last_name.trim(),
-      };
-
-      await api.post("/api/superadmin/companies", payload);
-
+      });
       Alert.alert(
-        "🎉 Başarılı!",
+        "Başarılı!",
         `"${formData.name}" şirketi oluşturuldu.\n\nAdmin: ${formData.admin_email}`,
         [
           {
@@ -182,23 +167,21 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
         ]
       );
     } catch (error) {
-      console.error("Şirket oluşturulamadı:", error);
-      const message =
-        error.response?.data?.message ||
-        "Şirket oluşturulurken bir hata oluştu";
-      Alert.alert("Hata", message);
+      Alert.alert(
+        "Hata",
+        error.response?.data?.message || "Şirket oluşturulurken bir hata oluştu"
+      );
     } finally {
       setCreating(false);
     }
   };
 
   if (!visible) return null;
-
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      transparent
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
@@ -208,23 +191,21 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
             keyboardShouldPersistTaps="always"
             bounces={false}
           >
-            {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🏢 Yeni Şirket Oluştur</Text>
+              <Text style={styles.modalTitle}>Yeni Şirket Oluştur</Text>
               <TouchableOpacity onPress={onClose}>
                 <Text style={styles.closeButton}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Şirket Bilgileri */}
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>📋 Şirket Bilgileri</Text>
-
+              <Text style={styles.formSectionTitle}>Şirket Bilgileri</Text>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Şirket Adı *</Text>
                 <TextInput
                   style={[styles.input, formErrors.name && styles.inputError]}
                   placeholder="Örn: ABC Lojistik"
+                  placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.name}
                   onChangeText={handleNameChange}
                   autoCapitalize="words"
@@ -233,12 +214,12 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                   <Text style={styles.errorText}>{formErrors.name}</Text>
                 )}
               </View>
-
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Slug *</Text>
                 <TextInput
                   style={[styles.input, formErrors.slug && styles.inputError]}
                   placeholder="abc-lojistik"
+                  placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.slug}
                   onChangeText={(text) =>
                     updateField("slug", text.toLowerCase())
@@ -254,10 +235,8 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
               </View>
             </View>
 
-            {/* Paket Seçimi */}
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>📦 Paket Seçimi</Text>
-
+              <Text style={styles.formSectionTitle}>Paket Seçimi</Text>
               <View style={styles.packageOptions}>
                 {PACKAGE_TYPES.map((pkg) => (
                   <TouchableOpacity
@@ -288,7 +267,6 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-
               <View style={styles.limitInputs}>
                 <View style={styles.limitInputGroup}>
                   <Text style={styles.inputLabel}>Max Araç</Text>
@@ -297,6 +275,7 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                     value={formData.max_vehicles}
                     onChangeText={(text) => updateField("max_vehicles", text)}
                     keyboardType="number-pad"
+                    placeholderTextColor={COLORS.PLACEHOLDER}
                   />
                 </View>
                 <View style={styles.limitInputGroup}>
@@ -306,17 +285,14 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                     value={formData.max_drivers}
                     onChangeText={(text) => updateField("max_drivers", text)}
                     keyboardType="number-pad"
+                    placeholderTextColor={COLORS.PLACEHOLDER}
                   />
                 </View>
               </View>
             </View>
 
-            {/* Admin Bilgileri */}
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>
-                👤 İlk Admin Kullanıcı
-              </Text>
-
+              <Text style={styles.formSectionTitle}>İlk Admin Kullanıcı</Text>
               <View style={styles.nameInputs}>
                 <View style={styles.nameInputGroup}>
                   <Text style={styles.inputLabel}>Ad *</Text>
@@ -326,6 +302,7 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                       formErrors.admin_first_name && styles.inputError,
                     ]}
                     placeholder="Ad"
+                    placeholderTextColor={COLORS.PLACEHOLDER}
                     value={formData.admin_first_name}
                     onChangeText={(text) =>
                       updateField("admin_first_name", text)
@@ -338,6 +315,7 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Soyad"
+                    placeholderTextColor={COLORS.PLACEHOLDER}
                     value={formData.admin_last_name}
                     onChangeText={(text) =>
                       updateField("admin_last_name", text)
@@ -351,7 +329,6 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                   {formErrors.admin_first_name}
                 </Text>
               )}
-
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Email *</Text>
                 <TextInput
@@ -360,17 +337,16 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                     formErrors.admin_email && styles.inputError,
                   ]}
                   placeholder="admin@sirket.com"
+                  placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.admin_email}
                   onChangeText={(text) => updateField("admin_email", text)}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  autoCorrect={false}
                 />
                 {formErrors.admin_email && (
                   <Text style={styles.errorText}>{formErrors.admin_email}</Text>
                 )}
               </View>
-
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Şifre *</Text>
                 <TextInput
@@ -379,6 +355,7 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
                     formErrors.admin_password && styles.inputError,
                   ]}
                   placeholder="Min 6 karakter"
+                  placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.admin_password}
                   onChangeText={(text) => updateField("admin_password", text)}
                   secureTextEntry
@@ -391,28 +368,23 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
               </View>
             </View>
 
-            {/* Butonlar */}
             <View style={styles.formButtons}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={styles.cancelBtn}
                 onPress={onClose}
                 disabled={creating}
               >
-                <Text style={styles.cancelButtonText}>İptal</Text>
+                <Text style={styles.cancelBtnText}>İptal</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={[
-                  styles.createButton,
-                  creating && styles.createButtonDisabled,
-                ]}
+                style={[styles.createBtn, creating && styles.createBtnDisabled]}
                 onPress={handleCreate}
                 disabled={creating}
               >
                 {creating ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={COLORS.WHITE} />
                 ) : (
-                  <Text style={styles.createButtonText}>🏢 Oluştur</Text>
+                  <Text style={styles.createBtnText}>Oluştur</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -428,29 +400,22 @@ const CreateCompanyModal = ({ visible, onClose, onSuccess }) => {
 // ============================================
 const SuperAdminCompaniesScreen = ({ navigation }) => {
   const { user } = useAuth();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
-  // Liste state'leri
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Detay modal state'leri
   const [companyDetails, setCompanyDetails] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
-
-  // Oluşturma modal
   const [createModalVisible, setCreateModalVisible] = useState(false);
 
-  // ============================================
-  // ŞİRKET LİSTESİ
-  // ============================================
   const fetchCompanies = useCallback(async () => {
     try {
       const response = await api.get("/api/superadmin/companies");
       setCompanies(response.data.companies || []);
     } catch (error) {
-      console.error("Şirketler yüklenemedi:", error);
       Alert.alert("Hata", "Şirketler yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
@@ -461,15 +426,11 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
   useEffect(() => {
     fetchCompanies();
   }, [fetchCompanies]);
-
   const onRefresh = () => {
     setRefreshing(true);
     fetchCompanies();
   };
 
-  // ============================================
-  // ŞİRKET DETAYLARI
-  // ============================================
   const fetchCompanyDetails = async (companyId) => {
     setLoadingDetails(true);
     setDetailsModalVisible(true);
@@ -477,17 +438,13 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
       const response = await api.get(`/api/superadmin/companies/${companyId}`);
       setCompanyDetails(response.data);
     } catch (error) {
-      console.error("Şirket detayları yüklenemedi:", error);
-      Alert.alert("Hata", "Şirket detayları yüklenirken bir hata oluştu");
+      Alert.alert("Hata", "Şirket detayları yüklenemedi");
       setDetailsModalVisible(false);
     } finally {
       setLoadingDetails(false);
     }
   };
 
-  // ============================================
-  // ŞİRKET SİLME
-  // ============================================
   const handleDeleteCompany = (company) => {
     Alert.alert(
       "Şirketi Sil",
@@ -503,11 +460,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
               Alert.alert("Başarılı", "Şirket silindi");
               fetchCompanies();
             } catch (error) {
-              Alert.alert(
-                "Hata",
-                error.response?.data?.message ||
-                  "Şirket silinirken bir hata oluştu"
-              );
+              Alert.alert("Hata", "Şirket silinemedi");
             }
           },
         },
@@ -515,31 +468,19 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     );
   };
 
-  // ============================================
-  // YARDIMCI FONKSİYONLAR
-  // ============================================
   const getRoleColor = (role) => {
     switch (role) {
-      case "super_admin":
-        return "#8b5cf6";
       case "company_admin":
-        return "#5e72e4";
-      case "admin":
-        return "#11cdef";
+        return COLORS.PRIMARY;
       case "driver":
-        return "#2dce89";
+        return COLORS.SUCCESS;
       default:
-        return "#8898aa";
+        return COLORS.MUTED;
     }
   };
-
   const getRoleLabel = (role) => {
     switch (role) {
-      case "super_admin":
-        return "Süper Admin";
       case "company_admin":
-        return "Şirket Admin";
-      case "admin":
         return "Admin";
       case "driver":
         return "Sürücü";
@@ -548,98 +489,115 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     }
   };
 
-  // ============================================
-  // COMPONENTS
-  // ============================================
-  const StatCard = ({ label, value, color }) => (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
+  const getStatusBadgeColor = (status) =>
+    status === "active" ? COLORS.SUCCESS : COLORS.WARNING;
 
+  // Company Card
   const CompanyCard = ({ company }) => (
-    <TouchableOpacity
-      style={styles.companyCard}
-      onPress={() => fetchCompanyDetails(company.id)}
-      onLongPress={() => handleDeleteCompany(company)}
-    >
-      <View style={styles.companyHeader}>
-        <View style={styles.companyInfo}>
-          <Text style={styles.companyName}>{company.name}</Text>
-          <Text style={styles.companySlug}>@{company.slug}</Text>
+    <Card variant="flat" style={styles.companyCard}>
+      <TouchableOpacity
+        onPress={() => fetchCompanyDetails(company.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.companyHeader}>
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>{company.name}</Text>
+            <Text style={styles.companySlug}>@{company.slug}</Text>
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusBadgeColor(company.status) },
+            ]}
+          >
+            <Text style={styles.statusText}>
+              {company.status === "active" ? "Aktif" : "Pasif"}
+            </Text>
+          </View>
         </View>
-        <View
-          style={[
-            styles.statusBadge,
+
+        <View style={styles.statsRow}>
+          {[
             {
-              backgroundColor:
-                company.status === "active" ? "#2dce89" : "#fb6340",
+              value: company.vehicle_count || 0,
+              label: "Araç",
+              color: COLORS.PRIMARY,
             },
-          ]}
-        >
-          <Text style={styles.statusText}>
-            {company.status === "active" ? "Aktif" : "Pasif"}
+            {
+              value: company.driver_count || 0,
+              label: "Sürücü",
+              color: COLORS.SUCCESS,
+            },
+            {
+              value: company.user_count || 0,
+              label: "Kullanıcı",
+              color: COLORS.INFO,
+            },
+          ].map((s, i) => (
+            <View
+              key={i}
+              style={[styles.statCard, { borderLeftColor: s.color }]}
+            >
+              <Text style={styles.statValue}>{s.value}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.companyMeta}>
+          <Text style={styles.metaText}>
+            {company.package_type?.toUpperCase() || "BASIC"}
+          </Text>
+          <Text style={styles.metaText}>
+            {company.created_at
+              ? new Date(company.created_at).toLocaleDateString("tr-TR")
+              : ""}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
-      <View style={styles.statsRow}>
-        <StatCard
-          label="Araç"
-          value={company.vehicle_count || 0}
-          color="#5e72e4"
-        />
-        <StatCard
-          label="Sürücü"
-          value={company.driver_count || 0}
-          color="#2dce89"
-        />
-        <StatCard
-          label="Kullanıcı"
-          value={company.user_count || 0}
-          color="#fb6340"
-        />
-        <StatCard
-          label="Görev"
-          value={company.task_count || 0}
-          color="#11cdef"
-        />
+      <View style={styles.cardActions}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("CompanyEdit", { companyId: company.id })
+          }
+          style={styles.cardActionBtn}
+        >
+          <Text style={[styles.cardActionText, { color: COLORS.PRIMARY }]}>
+            Düzenle
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDeleteCompany(company)}
+          style={styles.cardActionBtn}
+        >
+          <Text style={[styles.cardActionText, { color: COLORS.ERROR }]}>
+            Sil
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.companyMeta}>
-        <Text style={styles.metaText}>
-          📦 {company.package_type?.toUpperCase() || "BASIC"}
-        </Text>
-        <Text style={styles.metaText}>
-          📅 {new Date(company.created_at).toLocaleDateString("tr-TR")}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    </Card>
   );
 
-  // ============================================
-  // DETAY MODAL
-  // ============================================
+  // Details Modal
   const DetailsModal = () => (
     <Modal
       visible={detailsModalVisible}
       animationType="slide"
-      transparent={true}
+      transparent
       onRequestClose={() => setDetailsModalVisible(false)}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           {loadingDetails ? (
             <View style={styles.modalLoading}>
-              <ActivityIndicator size="large" color="#5e72e4" />
-              <Text style={styles.loadingText}>Yükleniyor...</Text>
+              <ActivityIndicator size="large" color={COLORS.PRIMARY} />
             </View>
           ) : companyDetails ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  🏢 {companyDetails.company?.name}
+                  {companyDetails.company?.name}
                 </Text>
                 <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
                   <Text style={styles.closeButton}>✕</Text>
@@ -647,88 +605,83 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📊 İstatistikler</Text>
+                <Text style={styles.sectionTitle}>İstatistikler</Text>
                 <View style={styles.statsGrid}>
-                  <View style={styles.detailStatCard}>
-                    <Text style={styles.detailStatValue}>
-                      {companyDetails.company?.vehicle_count || 0}
-                    </Text>
-                    <Text style={styles.detailStatLabel}>Araç</Text>
-                  </View>
-                  <View style={styles.detailStatCard}>
-                    <Text style={styles.detailStatValue}>
-                      {companyDetails.company?.driver_count || 0}
-                    </Text>
-                    <Text style={styles.detailStatLabel}>Sürücü</Text>
-                  </View>
-                  <View style={styles.detailStatCard}>
-                    <Text style={styles.detailStatValue}>
-                      {companyDetails.company?.user_count || 0}
-                    </Text>
-                    <Text style={styles.detailStatLabel}>Kullanıcı</Text>
-                  </View>
-                  <View style={styles.detailStatCard}>
-                    <Text style={styles.detailStatValue}>
-                      {companyDetails.company?.task_count || 0}
-                    </Text>
-                    <Text style={styles.detailStatLabel}>Görev</Text>
-                  </View>
+                  {[
+                    {
+                      value: companyDetails.company?.vehicle_count || 0,
+                      label: "Araç",
+                    },
+                    {
+                      value: companyDetails.company?.driver_count || 0,
+                      label: "Sürücü",
+                    },
+                    {
+                      value: companyDetails.company?.user_count || 0,
+                      label: "Kullanıcı",
+                    },
+                    {
+                      value: companyDetails.company?.task_count || 0,
+                      label: "Görev",
+                    },
+                  ].map((s, i) => (
+                    <View key={i} style={styles.detailStatCard}>
+                      <Text style={styles.detailStatValue}>{s.value}</Text>
+                      <Text style={styles.detailStatLabel}>{s.label}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
 
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>🏢 Şirket Bilgileri</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Slug:</Text>
-                  <Text style={styles.infoValue}>
-                    @{companyDetails.company?.slug}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Paket:</Text>
-                  <Text style={styles.infoValue}>
-                    {companyDetails.company?.package_type?.toUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Max Araç:</Text>
-                  <Text style={styles.infoValue}>
-                    {companyDetails.company?.max_vehicles}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Max Sürücü:</Text>
-                  <Text style={styles.infoValue}>
-                    {companyDetails.company?.max_drivers}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Durum:</Text>
-                  <Text
-                    style={[
-                      styles.infoValue,
-                      {
-                        color:
-                          companyDetails.company?.status === "active"
-                            ? "#2dce89"
-                            : "#fb6340",
-                      },
-                    ]}
-                  >
-                    {companyDetails.company?.status === "active"
-                      ? "✅ Aktif"
-                      : "❌ Pasif"}
-                  </Text>
-                </View>
+                <Text style={styles.sectionTitle}>Şirket Bilgileri</Text>
+                {[
+                  { label: "Slug:", value: `@${companyDetails.company?.slug}` },
+                  {
+                    label: "Paket:",
+                    value: companyDetails.company?.package_type?.toUpperCase(),
+                  },
+                  {
+                    label: "Max Araç:",
+                    value: companyDetails.company?.max_vehicles,
+                  },
+                  {
+                    label: "Max Sürücü:",
+                    value: companyDetails.company?.max_drivers,
+                  },
+                  {
+                    label: "Durum:",
+                    value:
+                      companyDetails.company?.status === "active"
+                        ? "Aktif"
+                        : "Pasif",
+                    color:
+                      companyDetails.company?.status === "active"
+                        ? COLORS.SUCCESS
+                        : COLORS.WARNING,
+                  },
+                ].map((row, i) => (
+                  <View key={i} style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>{row.label}</Text>
+                    <Text
+                      style={[
+                        styles.infoValue,
+                        row.color && { color: row.color },
+                      ]}
+                    >
+                      {row.value}
+                    </Text>
+                  </View>
+                ))}
               </View>
 
               <View style={styles.detailSection}>
                 <Text style={styles.sectionTitle}>
-                  👥 Kullanıcılar ({companyDetails.users?.length || 0})
+                  Kullanıcılar ({companyDetails.users?.length || 0})
                 </Text>
                 {companyDetails.users?.length > 0 ? (
-                  companyDetails.users.map((u, index) => (
-                    <View key={u.id || index} style={styles.userCard}>
+                  companyDetails.users.map((u, i) => (
+                    <View key={u.id || i} style={styles.userCard}>
                       <View style={styles.userInfo}>
                         <Text style={styles.userEmail}>{u.email}</Text>
                         <Text style={styles.userName}>
@@ -748,7 +701,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.emptyText}>Henüz kullanıcı yok</Text>
+                  <Text style={styles.emptySubtext}>Henüz kullanıcı yok</Text>
                 )}
               </View>
 
@@ -765,9 +718,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     </Modal>
   );
 
-  // ============================================
-  // ÖZET HEADER
-  // ============================================
+  // Summary Header
   const SummaryHeader = () => {
     const totalVehicles = companies.reduce(
       (sum, c) => sum + (c.vehicle_count || 0),
@@ -780,51 +731,38 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     const activeCompanies = companies.filter(
       (c) => c.status === "active"
     ).length;
-
     return (
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryTitle}>📊 Şirket Yönetimi</Text>
+        <Text style={styles.summaryTitle}>Şirket Yönetimi</Text>
         <View style={styles.summaryStats}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{companies.length}</Text>
-            <Text style={styles.summaryLabel}>Toplam</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{activeCompanies}</Text>
-            <Text style={styles.summaryLabel}>Aktif</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{totalVehicles}</Text>
-            <Text style={styles.summaryLabel}>Araç</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{totalDrivers}</Text>
-            <Text style={styles.summaryLabel}>Sürücü</Text>
-          </View>
+          {[
+            { value: companies.length, label: "Toplam" },
+            { value: activeCompanies, label: "Aktif" },
+            { value: totalVehicles, label: "Araç" },
+            { value: totalDrivers, label: "Sürücü" },
+          ].map((s, i) => (
+            <View key={i} style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{s.value}</Text>
+              <Text style={styles.summaryLabel}>{s.label}</Text>
+            </View>
+          ))}
         </View>
       </View>
     );
   };
 
-  // ============================================
-  // LOADING STATE
-  // ============================================
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5e72e4" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         <Text style={styles.loadingText}>Şirketler yükleniyor...</Text>
       </View>
     );
   }
 
-  // ============================================
-  // MAIN RENDER
-  // ============================================
   return (
     <View style={styles.container}>
       <SummaryHeader />
-
       <FlatList
         data={companies}
         renderItem={({ item }) => <CompanyCard company={item} />}
@@ -834,7 +772,8 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#5e72e4"]}
+            tintColor={COLORS.PRIMARY}
+            colors={[COLORS.PRIMARY]}
           />
         }
         ListEmptyComponent={
@@ -848,319 +787,380 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
         }
       />
 
-      {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setCreateModalVisible(true)}
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
-
-      {/* Modals */}
       <DetailsModal />
       <CreateCompanyModal
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}
         onSuccess={fetchCompanies}
+        COLORS={COLORS}
+        styles={styles}
       />
     </View>
   );
 };
 
-// ============================================
-// STYLES
-// ============================================
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f5f7" },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f4f5f7",
-  },
-  loadingText: { marginTop: 10, color: "#8898aa" },
-
-  // Summary
-  summaryContainer: { backgroundColor: "#5e72e4", padding: 20, paddingTop: 10 },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 15,
-  },
-  summaryStats: { flexDirection: "row", justifyContent: "space-around" },
-  summaryItem: { alignItems: "center" },
-  summaryValue: { fontSize: 24, fontWeight: "bold", color: "#fff" },
-  summaryLabel: { fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 2 },
-
-  // List
-  listContent: { padding: 15, paddingBottom: 80 },
-
-  // Company Card
-  companyCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  companyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 15,
-  },
-  companyInfo: { flex: 1 },
-  companyName: { fontSize: 18, fontWeight: "bold", color: "#32325d" },
-  companySlug: { fontSize: 14, color: "#8898aa", marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  statusText: { color: "#fff", fontSize: 12, fontWeight: "600" },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#f6f9fc",
-    padding: 10,
-    borderRadius: 8,
-    marginHorizontal: 3,
-    borderLeftWidth: 3,
-    alignItems: "center",
-  },
-  statValue: { fontSize: 20, fontWeight: "bold", color: "#32325d" },
-  statLabel: { fontSize: 11, color: "#8898aa", marginTop: 2 },
-  companyMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#e9ecef",
-  },
-  metaText: { fontSize: 12, color: "#8898aa" },
-
-  // Empty
-  emptyContainer: { alignItems: "center", padding: 40 },
-  emptyIcon: { fontSize: 48, marginBottom: 10 },
-  emptyText: { color: "#8898aa", fontSize: 16, fontWeight: "600" },
-  emptySubtext: { color: "#adb5bd", fontSize: 14, marginTop: 5 },
-
-  // FAB
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#5e72e4",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  fabText: { fontSize: 28, color: "#fff", fontWeight: "bold" },
-
-  // Modal Common
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "85%",
-    padding: 20,
-  },
-  createModalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "90%",
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: { fontSize: 20, fontWeight: "bold", color: "#32325d" },
-  closeButton: { fontSize: 24, color: "#8898aa", padding: 5 },
-  modalLoading: { padding: 40, alignItems: "center" },
-
-  // Details Modal
-  detailSection: { marginBottom: 20 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#32325d",
-    marginBottom: 10,
-  },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  detailStatCard: {
-    width: "48%",
-    backgroundColor: "#f6f9fc",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  detailStatValue: { fontSize: 28, fontWeight: "bold", color: "#5e72e4" },
-  detailStatLabel: { fontSize: 12, color: "#8898aa", marginTop: 5 },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-  },
-  infoLabel: { fontSize: 14, color: "#8898aa" },
-  infoValue: { fontSize: 14, fontWeight: "600", color: "#32325d" },
-  userCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f6f9fc",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  userInfo: { flex: 1 },
-  userEmail: { fontSize: 14, fontWeight: "600", color: "#32325d" },
-  userName: { fontSize: 12, color: "#8898aa", marginTop: 2 },
-  roleBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  roleText: { color: "#fff", fontSize: 11, fontWeight: "600" },
-  closeModalButton: {
-    backgroundColor: "#5e72e4",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  closeModalButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-
-  // Create Modal Form
-  formSection: {
-    marginBottom: 20,
-    backgroundColor: "#f8f9fa",
-    padding: 15,
-    borderRadius: 12,
-  },
-  formSectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#32325d",
-    marginBottom: 15,
-  },
-  inputGroup: { marginBottom: 15 },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#525f7f",
-    marginBottom: 5,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#dee2e6",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    color: "#32325d",
-  },
-  inputError: { borderColor: "#fb6340" },
-  inputHint: { fontSize: 11, color: "#8898aa", marginTop: 4 },
-  errorText: { fontSize: 12, color: "#fb6340", marginTop: 4 },
-
-  // Package Options
-  packageOptions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
-  packageOption: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#dee2e6",
-    marginHorizontal: 4,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  packageOptionSelected: { backgroundColor: "#f0f4ff" },
-  packageName: { fontSize: 14, fontWeight: "bold", color: "#32325d" },
-  packageLimit: {
-    fontSize: 10,
-    color: "#8898aa",
-    marginTop: 4,
-    textAlign: "center",
-  },
-
-  // Limit Inputs
-  limitInputs: { flexDirection: "row", justifyContent: "space-between" },
-  limitInputGroup: { flex: 1, marginHorizontal: 4 },
-  limitInput: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#dee2e6",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    color: "#32325d",
-    textAlign: "center",
-  },
-
-  // Name Inputs
-  nameInputs: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
-  nameInputGroup: { flex: 1, marginHorizontal: 4 },
-
-  // Form Buttons
-  formButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    marginBottom: 30,
-  },
-  cancelButton: {
-    flex: 1,
-    padding: 15,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#dee2e6",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  cancelButtonText: { color: "#8898aa", fontSize: 16, fontWeight: "600" },
-  createButton: {
-    flex: 2,
-    backgroundColor: "#2dce89",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  createButtonDisabled: { backgroundColor: "#94d3a2" },
-  createButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+    },
+    summaryContainer: {
+      backgroundColor: COLORS.PRIMARY,
+      padding: COLORS.SPACING.lg,
+      paddingTop: COLORS.SPACING.sm,
+    },
+    summaryTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.WHITE,
+      marginBottom: COLORS.SPACING.md,
+    },
+    summaryStats: { flexDirection: "row", justifyContent: "space-around" },
+    summaryItem: { alignItems: "center" },
+    summaryValue: { ...COLORS.TYPOGRAPHY.styles.h3, color: COLORS.WHITE },
+    summaryLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE_80,
+      marginTop: 2,
+    },
+    listContent: { padding: COLORS.SPACING.md, paddingBottom: 80 },
+    companyCard: { marginBottom: COLORS.SPACING.md },
+    companyHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.md,
+    },
+    companyInfo: { flex: 1 },
+    companyName: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    companySlug: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    statusBadge: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+    },
+    statusText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    statsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginHorizontal: 3,
+      borderLeftWidth: 3,
+      alignItems: "center",
+    },
+    statValue: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
+    statLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    companyMeta: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingTop: COLORS.SPACING.sm,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+    },
+    metaText: { ...COLORS.TYPOGRAPHY.styles.caption, color: COLORS.MUTED },
+    cardActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      marginTop: COLORS.SPACING.sm,
+      paddingTop: COLORS.SPACING.sm,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+    },
+    cardActionBtn: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+    },
+    cardActionText: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+    },
+    emptyContainer: { alignItems: "center", padding: COLORS.SPACING.xxxl },
+    emptyIcon: { fontSize: 48, marginBottom: COLORS.SPACING.sm },
+    emptyText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    emptySubtext: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.DISABLED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    fab: {
+      position: "absolute",
+      right: COLORS.SPACING.lg,
+      bottom: COLORS.SPACING.lg,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      ...COLORS.SHADOWS.lg,
+    },
+    fabText: { ...COLORS.TYPOGRAPHY.styles.h2, color: COLORS.WHITE },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY,
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      maxHeight: "85%",
+      padding: COLORS.SPACING.lg,
+    },
+    createModalContent: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      maxHeight: "90%",
+      padding: COLORS.SPACING.lg,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.lg,
+    },
+    modalTitle: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
+    closeButton: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.MUTED,
+      padding: COLORS.SPACING.xs,
+    },
+    modalLoading: { padding: COLORS.SPACING.xxxl, alignItems: "center" },
+    detailSection: { marginBottom: COLORS.SPACING.lg },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    statsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+    },
+    detailStatCard: {
+      width: "48%",
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    detailStatValue: { ...COLORS.TYPOGRAPHY.styles.h2, color: COLORS.PRIMARY },
+    detailStatLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    infoLabel: { ...COLORS.TYPOGRAPHY.styles.bodySmall, color: COLORS.MUTED },
+    infoValue: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    userCard: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    userInfo: { flex: 1 },
+    userEmail: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    userName: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: 2,
+    },
+    roleBadge: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+    },
+    roleText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    closeModalButton: {
+      backgroundColor: COLORS.PRIMARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.lg,
+    },
+    closeModalButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.button,
+      color: COLORS.WHITE,
+    },
+    formSection: {
+      marginBottom: COLORS.SPACING.lg,
+      backgroundColor: COLORS.SECONDARY,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.md,
+    },
+    formSectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.md,
+    },
+    inputGroup: { marginBottom: COLORS.SPACING.md },
+    inputLabel: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.xs,
+    },
+    input: {
+      backgroundColor: COLORS.INPUT_BG,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    inputError: { borderColor: COLORS.WARNING },
+    inputHint: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    errorText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.WARNING,
+      marginTop: COLORS.SPACING.xs,
+    },
+    packageOptions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.md,
+    },
+    packageOption: {
+      flex: 1,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.sm,
+      borderWidth: 2,
+      borderColor: COLORS.INPUT_BORDER,
+      marginHorizontal: COLORS.SPACING.xs,
+      alignItems: "center",
+      backgroundColor: COLORS.INPUT_BG,
+    },
+    packageOptionSelected: { backgroundColor: COLORS.SECONDARY },
+    packageName: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    packageLimit: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.xs,
+      textAlign: "center",
+    },
+    limitInputs: { flexDirection: "row", justifyContent: "space-between" },
+    limitInputGroup: { flex: 1, marginHorizontal: COLORS.SPACING.xs },
+    limitInput: {
+      backgroundColor: COLORS.INPUT_BG,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      borderRadius: COLORS.RADIUS.sm,
+      padding: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT_PRIMARY,
+      textAlign: "center",
+    },
+    nameInputs: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.md,
+    },
+    nameInputGroup: { flex: 1, marginHorizontal: COLORS.SPACING.xs },
+    formButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.xl,
+    },
+    cancelBtn: {
+      flex: 1,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    cancelBtnText: { ...COLORS.TYPOGRAPHY.styles.button, color: COLORS.MUTED },
+    createBtn: {
+      flex: 2,
+      backgroundColor: COLORS.SUCCESS,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.sm,
+      alignItems: "center",
+    },
+    createBtnDisabled: { backgroundColor: COLORS.DISABLED },
+    createBtnText: { ...COLORS.TYPOGRAPHY.styles.button, color: COLORS.WHITE },
+  });
 
 export default SuperAdminCompaniesScreen;

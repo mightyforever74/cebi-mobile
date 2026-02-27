@@ -1,5 +1,6 @@
 // src/screens/admin/AdminReportsScreen.js
-// TulipFleet - Admin Raporlar Ekranı
+// TulipFleet - Admin Raporlar Ekrani
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
@@ -13,65 +14,50 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { reportAPI } from "../../services/api";
 
-// Responsive width (rotation & split-screen safe) will be read inside component
-
-// Theme colors
-const COLORS = {
-  primary: "#5E72E4",
-  success: "#2DCE89",
-  warning: "#FB6340",
-  danger: "#F5365C",
-  info: "#11CDEF",
-  secondary: "#8392AB",
-  background: "#F4F5F7",
-  white: "#FFFFFF",
-  dark: "#172B4D",
-  muted: "#ADB5BD",
-};
-
-// Tarih seçenekleri
 const DATE_RANGES = [
-  { label: "Son 7 Gün", days: 7 },
-  { label: "Son 30 Gün", days: 30 },
-  { label: "Son 90 Gün", days: 90 },
+  { label: "Son 7 Gun", days: 7 },
+  { label: "Son 30 Gun", days: 30 },
+  { label: "Son 90 Gun", days: 90 },
 ];
 
-// Alert tip çevirileri
 const ALERT_TYPE_LABELS = {
   HARD_BRAKE: "Ani Fren",
-  HARD_ACCEL: "Sert Hızlanma",
+  HARD_ACCEL: "Sert Hizlanma",
   HARD_TURN: "Sert Viraj",
-  IMPACT: "Çarpma",
-  OVERSPEED: "Hız Aşımı",
+  IMPACT: "Carpma",
+  OVERSPEED: "Hiz Asimi",
 };
 
-// Görev durum çevirileri
 const TASK_STATUS_LABELS = {
   pending: "Bekliyor",
-  assigned: "Atandı",
+  assigned: "Atandi",
   in_progress: "Devam Ediyor",
-  completed: "Tamamlandı",
-  cancelled: "İptal",
-  pending_review: "İnceleme Bekliyor",
+  completed: "Tamamlandi",
+  cancelled: "Iptal",
+  pending_review: "Inceleme Bekliyor",
 };
 
 const AdminReportsScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRange, setSelectedRange] = useState(30);
   const [activeTab, setActiveTab] = useState("summary");
 
-  // Data states
   const [summary, setSummary] = useState(null);
   const [vehicleReport, setVehicleReport] = useState([]);
   const [driverReport, setDriverReport] = useState([]);
   const [alertReport, setAlertReport] = useState(null);
   const [taskReport, setTaskReport] = useState(null);
 
-  // Tarih hesapla
   const getDateRange = () => {
     const to = new Date().toISOString();
     const from = new Date(
@@ -80,7 +66,6 @@ const AdminReportsScreen = ({ navigation }) => {
     return { from, to };
   };
 
-  // Veri çek
   const fetchData = async () => {
     try {
       const { from, to } = getDateRange();
@@ -99,10 +84,8 @@ const AdminReportsScreen = ({ navigation }) => {
       setDriverReport(driverData?.drivers || []);
       setAlertReport(alertData);
       setTaskReport(taskData);
-
-      console.log("✅ Reports loaded");
     } catch (error) {
-      console.error("❌ Reports error:", error);
+      console.error("Reports error:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -122,7 +105,6 @@ const AdminReportsScreen = ({ navigation }) => {
   // RENDER FUNCTIONS
   // ============================================
 
-  // Özet kartı
   const renderSummaryCard = (icon, title, value, subtitle, color) => (
     <View
       style={[
@@ -141,85 +123,80 @@ const AdminReportsScreen = ({ navigation }) => {
     </View>
   );
 
-  // Özet Tab
   const renderSummaryTab = () => {
     if (!summary) {
-      return <Text style={styles.noData}>Veri yüklenemedi</Text>;
+      return <Text style={styles.noData}>Veri yuklenemedi</Text>;
     }
 
     return (
       <View>
-        {/* Araç & Sürücü */}
-        <Text style={styles.sectionTitle}>🚗 Filo Durumu</Text>
+        <Text style={styles.sectionTitle}>Filo Durumu</Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "car",
-            "Toplam Araç",
+            "Toplam Arac",
             summary.vehicles?.total_vehicles || 0,
             `${summary.vehicles?.active_vehicles || 0} aktif`,
-            COLORS.primary
+            COLORS.PRIMARY
           )}
           {renderSummaryCard(
             "people",
-            "Toplam Sürücü",
+            "Toplam Surucu",
             summary.drivers?.total_drivers || 0,
             `${summary.drivers?.active_drivers || 0} aktif`,
-            COLORS.info
+            COLORS.INFO
           )}
         </View>
 
-        {/* Görevler */}
-        <Text style={styles.sectionTitle}>📋 Görev Özeti</Text>
+        <Text style={styles.sectionTitle}>Gorev Ozeti</Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "clipboard",
-            "Toplam Görev",
+            "Toplam Gorev",
             summary.tasks?.total_tasks || 0,
             null,
-            COLORS.warning
+            COLORS.WARNING
           )}
           {renderSummaryCard(
             "checkmark-circle",
             "Tamamlanan",
             summary.tasks?.completed_tasks || 0,
             null,
-            COLORS.success
+            COLORS.SUCCESS
           )}
         </View>
 
-        {/* Uyarılar */}
-        <Text style={styles.sectionTitle}>⚠️ Uyarı Özeti</Text>
+        <Text style={styles.sectionTitle}>Uyari Ozeti</Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "warning",
-            "Toplam Uyarı",
+            "Toplam Uyari",
             summary.alerts?.total_alerts || 0,
-            `${summary.alerts?.resolved_alerts || 0} çözüldü`,
-            COLORS.danger
+            `${summary.alerts?.resolved_alerts || 0} cozuldu`,
+            COLORS.ERROR
           )}
           {renderSummaryCard(
             "alert-circle",
-            "Kritik Uyarı",
+            "Kritik Uyari",
             summary.alerts?.critical_alerts || 0,
             null,
-            COLORS.danger
+            COLORS.ERROR
           )}
         </View>
       </View>
     );
   };
 
-  // Araç Tab
   const renderVehiclesTab = () => {
     if (vehicleReport.length === 0) {
-      return <Text style={styles.noData}>Araç verisi yok</Text>;
+      return <Text style={styles.noData}>Arac verisi yok</Text>;
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>🚗 Araç Performansı</Text>
+        <Text style={styles.sectionTitle}>Arac Performansi</Text>
         {vehicleReport.map((vehicle) => (
-          <View key={vehicle.id} style={styles.reportCard}>
+          <Card key={vehicle.id} variant="flat" style={styles.reportCardMargin}>
             <View style={styles.reportHeader}>
               <Text style={styles.reportTitle}>{vehicle.plate_no}</Text>
               <View
@@ -228,13 +205,13 @@ const AdminReportsScreen = ({ navigation }) => {
                   {
                     backgroundColor:
                       vehicle.status === "in_use"
-                        ? COLORS.success
-                        : COLORS.muted,
+                        ? COLORS.SUCCESS
+                        : COLORS.MUTED,
                   },
                 ]}
               >
                 <Text style={styles.statusText}>
-                  {vehicle.status === "in_use" ? "Aktif" : "Müsait"}
+                  {vehicle.status === "in_use" ? "Aktif" : "Musait"}
                 </Text>
               </View>
             </View>
@@ -246,42 +223,39 @@ const AdminReportsScreen = ({ navigation }) => {
                 <Text style={styles.reportStatValue}>
                   {vehicle.total_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Görev</Text>
+                <Text style={styles.reportStatLabel}>Gorev</Text>
               </View>
               <View style={styles.reportStat}>
                 <Text
-                  style={[styles.reportStatValue, { color: COLORS.success }]}
+                  style={[styles.reportStatValue, { color: COLORS.SUCCESS }]}
                 >
                   {vehicle.completed_tasks || 0}
                 </Text>
                 <Text style={styles.reportStatLabel}>Tamamlanan</Text>
               </View>
               <View style={styles.reportStat}>
-                <Text
-                  style={[styles.reportStatValue, { color: COLORS.danger }]}
-                >
+                <Text style={[styles.reportStatValue, { color: COLORS.ERROR }]}>
                   {vehicle.total_alerts || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Uyarı</Text>
+                <Text style={styles.reportStatLabel}>Uyari</Text>
               </View>
             </View>
-          </View>
+          </Card>
         ))}
       </View>
     );
   };
 
-  // Sürücü Tab
   const renderDriversTab = () => {
     if (driverReport.length === 0) {
-      return <Text style={styles.noData}>Sürücü verisi yok</Text>;
+      return <Text style={styles.noData}>Surucu verisi yok</Text>;
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>👤 Sürücü Performansı</Text>
+        <Text style={styles.sectionTitle}>Surucu Performansi</Text>
         {driverReport.map((driver) => (
-          <View key={driver.id} style={styles.reportCard}>
+          <Card key={driver.id} variant="flat" style={styles.reportCardMargin}>
             <View style={styles.reportHeader}>
               <Text style={styles.reportTitle}>
                 {driver.first_name || driver.email?.split("@")[0]}{" "}
@@ -293,8 +267,8 @@ const AdminReportsScreen = ({ navigation }) => {
                   {
                     backgroundColor:
                       driver.status === "active"
-                        ? COLORS.success
-                        : COLORS.muted,
+                        ? COLORS.SUCCESS
+                        : COLORS.MUTED,
                   },
                 ]}
               >
@@ -309,11 +283,11 @@ const AdminReportsScreen = ({ navigation }) => {
                 <Text style={styles.reportStatValue}>
                   {driver.total_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Görev</Text>
+                <Text style={styles.reportStatLabel}>Gorev</Text>
               </View>
               <View style={styles.reportStat}>
                 <Text
-                  style={[styles.reportStatValue, { color: COLORS.success }]}
+                  style={[styles.reportStatValue, { color: COLORS.SUCCESS }]}
                 >
                   {driver.completed_tasks || 0}
                 </Text>
@@ -321,7 +295,7 @@ const AdminReportsScreen = ({ navigation }) => {
               </View>
               <View style={styles.reportStat}>
                 <Text
-                  style={[styles.reportStatValue, { color: COLORS.primary }]}
+                  style={[styles.reportStatValue, { color: COLORS.PRIMARY }]}
                 >
                   {driver.total_tasks > 0
                     ? Math.round(
@@ -330,29 +304,26 @@ const AdminReportsScreen = ({ navigation }) => {
                     : 0}
                   %
                 </Text>
-                <Text style={styles.reportStatLabel}>Başarı</Text>
+                <Text style={styles.reportStatLabel}>Basari</Text>
               </View>
             </View>
-          </View>
+          </Card>
         ))}
       </View>
     );
   };
 
-  // Alert Tab
   const renderAlertsTab = () => {
     if (!alertReport) {
-      return <Text style={styles.noData}>Uyarı verisi yok</Text>;
+      return <Text style={styles.noData}>Uyari verisi yok</Text>;
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>⚠️ Uyarı Dağılımı</Text>
-
-        {/* Tip bazlı */}
+        <Text style={styles.sectionTitle}>Uyari Dagilimi</Text>
         {alertReport.by_type?.length > 0 ? (
-          <View style={styles.chartCard}>
-            {alertReport.by_type.map((item, index) => {
+          <Card variant="flat">
+            {alertReport.by_type.map((item) => {
               const maxCount = Math.max(
                 ...alertReport.by_type.map((i) => parseInt(i.count))
               );
@@ -370,7 +341,7 @@ const AdminReportsScreen = ({ navigation }) => {
                         styles.bar,
                         {
                           width: `${percentage}%`,
-                          backgroundColor: COLORS.danger,
+                          backgroundColor: COLORS.ERROR,
                         },
                       ]}
                     />
@@ -379,27 +350,24 @@ const AdminReportsScreen = ({ navigation }) => {
                 </View>
               );
             })}
-          </View>
+          </Card>
         ) : (
-          <Text style={styles.noData}>Bu dönemde uyarı yok 🎉</Text>
+          <Text style={styles.noData}>Bu donemde uyari yok</Text>
         )}
       </View>
     );
   };
 
-  // Task Tab
   const renderTasksTab = () => {
     if (!taskReport) {
-      return <Text style={styles.noData}>Görev verisi yok</Text>;
+      return <Text style={styles.noData}>Gorev verisi yok</Text>;
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>📋 Görev Dağılımı</Text>
-
-        {/* Durum bazlı */}
+        <Text style={styles.sectionTitle}>Gorev Dagilimi</Text>
         {taskReport.by_status?.length > 0 ? (
-          <View style={styles.chartCard}>
+          <Card variant="flat">
             {taskReport.by_status.map((item) => {
               const maxCount = Math.max(
                 ...taskReport.by_status.map((i) => parseInt(i.count))
@@ -408,10 +376,10 @@ const AdminReportsScreen = ({ navigation }) => {
                 maxCount > 0 ? (parseInt(item.count) / maxCount) * 100 : 0;
               const color =
                 item.status === "completed"
-                  ? COLORS.success
+                  ? COLORS.SUCCESS
                   : item.status === "cancelled"
-                  ? COLORS.danger
-                  : COLORS.warning;
+                    ? COLORS.ERROR
+                    : COLORS.WARNING;
 
               return (
                 <View key={item.status} style={styles.barRow}>
@@ -430,27 +398,26 @@ const AdminReportsScreen = ({ navigation }) => {
                 </View>
               );
             })}
-          </View>
+          </Card>
         ) : (
-          <Text style={styles.noData}>Bu dönemde görev yok</Text>
+          <Text style={styles.noData}>Bu donemde gorev yok</Text>
         )}
       </View>
     );
   };
 
-  // Loading
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Raporlar yükleniyor...</Text>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+        <Text style={styles.loadingText}>Raporlar yukleniyor...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Tarih Seçici */}
+      {/* Tarih Secici */}
       <View style={styles.dateSelector}>
         {DATE_RANGES.map((range) => (
           <TouchableOpacity
@@ -481,11 +448,11 @@ const AdminReportsScreen = ({ navigation }) => {
         contentContainerStyle={styles.tabBarContent}
       >
         {[
-          { key: "summary", label: "Özet", icon: "stats-chart" },
-          { key: "vehicles", label: "Araçlar", icon: "car" },
-          { key: "drivers", label: "Sürücüler", icon: "people" },
-          { key: "alerts", label: "Uyarılar", icon: "warning" },
-          { key: "tasks", label: "Görevler", icon: "clipboard" },
+          { key: "summary", label: "Ozet", icon: "stats-chart" },
+          { key: "vehicles", label: "Araclar", icon: "car" },
+          { key: "drivers", label: "Surculer", icon: "people" },
+          { key: "alerts", label: "Uyarilar", icon: "warning" },
+          { key: "tasks", label: "Gorevler", icon: "clipboard" },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -495,7 +462,9 @@ const AdminReportsScreen = ({ navigation }) => {
             <Ionicons
               name={tab.icon}
               size={18}
-              color={activeTab === tab.key ? COLORS.primary : COLORS.secondary}
+              color={
+                activeTab === tab.key ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY
+              }
             />
             <Text
               style={[
@@ -509,14 +478,14 @@ const AdminReportsScreen = ({ navigation }) => {
         ))}
       </ScrollView>
 
-      {/* İçerik */}
+      {/* Icerik */}
       <ScrollView
         style={styles.content}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.primary]}
+            colors={[COLORS.PRIMARY]}
           />
         }
       >
@@ -526,7 +495,7 @@ const AdminReportsScreen = ({ navigation }) => {
         {activeTab === "alerts" && renderAlertsTab()}
         {activeTab === "tasks" && renderTasksTab()}
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: COLORS.SPACING.lg }} />
       </ScrollView>
     </View>
   );
@@ -536,245 +505,225 @@ const AdminReportsScreen = ({ navigation }) => {
 // STYLES
 // ============================================
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 12,
-    color: COLORS.secondary,
-  },
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+    },
 
-  // Date Selector
-  dateSelector: {
-    flexDirection: "row",
-    backgroundColor: COLORS.white,
-    padding: 12,
-    gap: 8,
-  },
-  dateButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-  },
-  dateButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  dateButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.secondary,
-  },
-  dateButtonTextActive: {
-    color: COLORS.white,
-  },
+    // Date Selector
+    dateSelector: {
+      flexDirection: "row",
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      justifyContent: "space-between",
+    },
+    dateButton: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.button,
+      backgroundColor: COLORS.BACKGROUND,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    dateButtonActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    dateButtonText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    dateButtonTextActive: {
+      color: COLORS.WHITE,
+    },
 
-  // Tab Bar
-  tabBar: {
-    backgroundColor: COLORS.white,
-    maxHeight: 50,
-  },
-  tabBarContent: {
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 6,
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-  },
-  tabActive: {
-    borderBottomColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.secondary,
-  },
-  tabTextActive: {
-    color: COLORS.primary,
-  },
+    // Tab Bar
+    tabBar: {
+      backgroundColor: COLORS.SURFACE,
+      maxHeight: COLORS.SPACING.buttonHeight,
+    },
+    tabBarContent: {
+      paddingHorizontal: COLORS.SPACING.sm,
+    },
+    tab: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderBottomWidth: 2,
+      borderBottomColor: "transparent",
+      marginRight: COLORS.SPACING.sm,
+    },
+    tabActive: {
+      borderBottomColor: COLORS.PRIMARY,
+    },
+    tabText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    tabTextActive: {
+      color: COLORS.PRIMARY,
+    },
 
-  // Content
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.dark,
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  noData: {
-    textAlign: "center",
-    color: COLORS.secondary,
-    paddingVertical: 40,
-    fontSize: 14,
-  },
+    // Content
+    content: {
+      flex: 1,
+      padding: COLORS.SPACING.md,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.sm,
+    },
+    noData: {
+      textAlign: "center",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      paddingVertical: COLORS.SPACING.xxl,
+    },
 
-  // Summary Cards
-  summaryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 8,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  summaryContent: {
-    flex: 1,
-  },
-  summaryValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.dark,
-  },
-  summaryTitle: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
-  summarySubtitle: {
-    fontSize: 11,
-    color: COLORS.muted,
-    marginTop: 2,
-  },
+    // Summary Cards
+    summaryGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    summaryCard: {
+      flex: 1,
+      backgroundColor: COLORS.CARD,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.md,
+      flexDirection: "row",
+      alignItems: "center",
+      borderLeftWidth: COLORS.SPACING.xs,
+      marginRight: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
+    },
+    summaryIcon: {
+      width: 44, // 8px grid
+      height: 44,
+      borderRadius: COLORS.RADIUS.full,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    summaryContent: {
+      flex: 1,
+    },
+    summaryValue: {
+      ...COLORS.TYPOGRAPHY.styles.h3,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    summaryTitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    summarySubtitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_MUTED,
+      marginTop: 2,
+    },
 
-  // Report Cards
-  reportCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  reportHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  reportTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.dark,
-  },
-  reportSubtitle: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    marginBottom: 12,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  statusText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  reportStats: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: COLORS.background,
-    paddingTop: 12,
-  },
-  reportStat: {
-    flex: 1,
-    alignItems: "center",
-  },
-  reportStatValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.dark,
-  },
-  reportStatLabel: {
-    fontSize: 11,
-    color: COLORS.secondary,
-    marginTop: 2,
-  },
+    // Report Cards
+    reportCardMargin: {
+      marginBottom: COLORS.SPACING.sm,
+    },
+    reportHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.xs,
+    },
+    reportTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    reportSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    statusBadge: {
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.badge,
+    },
+    statusText: {
+      color: COLORS.WHITE,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    reportStats: {
+      flexDirection: "row",
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      paddingTop: COLORS.SPACING.sm,
+    },
+    reportStat: {
+      flex: 1,
+      alignItems: "center",
+    },
+    reportStatValue: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    reportStatLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
 
-  // Chart Card
-  chartCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  barRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  barLabel: {
-    width: 100,
-    fontSize: 12,
-    color: COLORS.dark,
-  },
-  barContainer: {
-    flex: 1,
-    height: 20,
-    backgroundColor: COLORS.background,
-    borderRadius: 10,
-    marginHorizontal: 8,
-    overflow: "hidden",
-  },
-  bar: {
-    height: "100%",
-    borderRadius: 10,
-  },
-  barValue: {
-    width: 40,
-    fontSize: 14,
-    fontWeight: "bold",
-    color: COLORS.dark,
-    textAlign: "right",
-  },
-});
+    // Chart Card (bar charts)
+    barRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    barLabel: {
+      width: 96, // 12 * 8
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    barContainer: {
+      flex: 1,
+      height: COLORS.SPACING.lg,
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: COLORS.RADIUS.badge,
+      marginHorizontal: COLORS.SPACING.sm,
+      overflow: "hidden",
+    },
+    bar: {
+      height: "100%",
+      borderRadius: COLORS.RADIUS.badge,
+    },
+    barValue: {
+      width: COLORS.SPACING.xxl,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+      textAlign: "right",
+    },
+  });
 
 export default AdminReportsScreen;

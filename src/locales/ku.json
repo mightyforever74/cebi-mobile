@@ -545,6 +545,18 @@
     "activating": "Tê çalakkirin...",
     "activated": "Amûr hate çalakkirin!",
     "activationFailed": "Çalakkirin têk çû",
+    "activation": {
+      "successStatus": "Amûr bi serfirazî hate çalakkirin!",
+      "successPending": "Amûr bi serfirazî hate çalakkirin, lê hîn li benda tesdîqa rêvebirê ye. Ji kerema xwe paşê vegere!"
+    },
+    "activeWarning": {
+      "title": "Hişyarî",
+      "desc": "Ev amûr jixwe çalak e an jixwe bi hesabek têkildar e. Heke tu bawerî dikî ku ev çewtî ye, ji kerema xwe bi rêvebirê re têkilî daye."
+    },
+    "checkingDeviceStatus": {
+      "title": "Rewşa Amûrê tê kontrolkirin...",
+      "desc": "Ji kerema xwe bisekine, rewşa amûrê tê kontrolkirin."
+    },
     "complete": "Temam",
     "back": "Paşve",
     "next": "Pêşve",

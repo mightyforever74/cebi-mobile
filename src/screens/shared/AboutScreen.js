@@ -1,6 +1,7 @@
 // src/screens/shared/AboutScreen.js
 // TulipFleet - Hakkında Ekranı
 // Built with Claude Opus 4.5 by Anthropic
+// Updated: UI System Guide v3 uyumlu
 
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -13,223 +14,12 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const APP_VERSION = "1.0.0";
 const BUILD_DATE = "Şubat 2026";
-
-const makeStyles = (COLORS) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-    },
-    scrollContent: {
-      paddingBottom: 40,
-    },
-    // Hero Section
-    heroSection: {
-      alignItems: "center",
-      paddingVertical: 40,
-      paddingHorizontal: 20,
-      backgroundColor: COLORS.PRIMARY,
-    },
-    logoContainer: {
-      width: 100,
-      height: 100,
-      borderRadius: 24,
-      backgroundColor: COLORS.WHITE,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    logoEmoji: {
-      fontSize: 56,
-    },
-    appName: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: COLORS.WHITE,
-      letterSpacing: 1,
-    },
-    appTagline: {
-      fontSize: 16,
-      color: "rgba(255,255,255,0.8)",
-      marginTop: 8,
-      textAlign: "center",
-    },
-    versionBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(255,255,255,0.2)",
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 20,
-      marginTop: 16,
-    },
-    versionText: {
-      fontSize: 14,
-      color: COLORS.WHITE,
-      fontWeight: "600",
-    },
-
-    // Info Cards
-    cardSection: {
-      padding: 16,
-    },
-    card: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: 16,
-      padding: 20,
-      marginBottom: 16,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    cardTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.TEXT,
-      marginBottom: 12,
-    },
-    cardText: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-      lineHeight: 22,
-    },
-
-    // Built With Section
-    builtWithCard: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: 16,
-      padding: 20,
-      marginBottom: 16,
-      borderWidth: 2,
-      borderColor: COLORS.PRIMARY,
-    },
-    builtWithHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    builtWithIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      backgroundColor: "#F7F0E6",
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 12,
-    },
-    builtWithTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.TEXT,
-    },
-    builtWithSubtitle: {
-      fontSize: 12,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 2,
-    },
-    builtWithText: {
-      fontSize: 14,
-      color: COLORS.TEXT_SECONDARY,
-      lineHeight: 22,
-    },
-    anthropicBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#F7F0E6",
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 12,
-      marginTop: 16,
-    },
-    anthropicText: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: "#CC785C",
-      marginLeft: 8,
-    },
-
-    // Features List
-    featuresList: {
-      marginTop: 8,
-    },
-    featureItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    featureIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 12,
-    },
-    featureText: {
-      fontSize: 14,
-      color: COLORS.TEXT,
-      flex: 1,
-    },
-
-    // Links Section
-    linksSection: {
-      marginTop: 8,
-    },
-    linkItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 14,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    linkIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 12,
-    },
-    linkText: {
-      fontSize: 15,
-      color: COLORS.TEXT,
-      flex: 1,
-    },
-    linkArrow: {
-      opacity: 0.5,
-    },
-
-    // Footer
-    footer: {
-      alignItems: "center",
-      paddingVertical: 24,
-      paddingHorizontal: 20,
-    },
-    footerText: {
-      fontSize: 12,
-      color: COLORS.MUTED,
-      textAlign: "center",
-      lineHeight: 20,
-    },
-    copyright: {
-      fontSize: 12,
-      color: COLORS.MUTED,
-      marginTop: 8,
-    },
-  });
 
 const AboutScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -312,7 +102,7 @@ const AboutScreen = ({ navigation }) => {
           {t("about.tagline", "Profesyonel Filo Yönetim Sistemi")}
         </Text>
         <View style={styles.versionBadge}>
-          <Ionicons name="information-circle" size={16} color="#FFF" />
+          <Ionicons name="information-circle" size={16} color={COLORS.WHITE} />
           <Text style={styles.versionText}>
             {"  "}v{APP_VERSION} • {BUILD_DATE}
           </Text>
@@ -322,7 +112,7 @@ const AboutScreen = ({ navigation }) => {
       {/* Cards Section */}
       <View style={styles.cardSection}>
         {/* About Card */}
-        <View style={styles.card}>
+        <Card variant="flat" style={styles.cardMargin}>
           <Text style={styles.cardTitle}>
             {t("about.aboutTitle", "TulipFleet Hakkında")}
           </Text>
@@ -332,13 +122,13 @@ const AboutScreen = ({ navigation }) => {
               "TulipFleet, lojistik şirketleri için geliştirilmiş kapsamlı bir filo yönetim platformudur. Gerçek zamanlı araç takibi, sürücü yönetimi, görev atama ve yakıt takibi gibi özelliklerle filonuzu verimli bir şekilde yönetmenizi sağlar."
             )}
           </Text>
-        </View>
+        </Card>
 
         {/* Built with Claude Card */}
-        <View style={styles.builtWithCard}>
+        <Card variant="flat" style={styles.builtWithCard}>
           <View style={styles.builtWithHeader}>
             <View style={styles.builtWithIcon}>
-              <Text style={{ fontSize: 28 }}>🤖</Text>
+              <Text style={styles.emojiText}>🤖</Text>
             </View>
             <View>
               <Text style={styles.builtWithTitle}>
@@ -356,15 +146,15 @@ const AboutScreen = ({ navigation }) => {
             )}
           </Text>
           <View style={styles.anthropicBadge}>
-            <Text style={{ fontSize: 20 }}>✨</Text>
+            <Text style={styles.emojiSmall}>✨</Text>
             <Text style={styles.anthropicText}>
               Built with Claude Opus 4.5 by Anthropic
             </Text>
           </View>
-        </View>
+        </Card>
 
         {/* Features Card */}
-        <View style={styles.card}>
+        <Card variant="flat" style={styles.cardMargin}>
           <Text style={styles.cardTitle}>
             {t("about.features", "Özellikler")}
           </Text>
@@ -387,10 +177,10 @@ const AboutScreen = ({ navigation }) => {
               </View>
             ))}
           </View>
-        </View>
+        </Card>
 
         {/* Links Card */}
-        <View style={styles.card}>
+        <Card variant="flat" style={styles.cardMargin}>
           <Text style={styles.cardTitle}>
             {t("about.links", "Bağlantılar")}
           </Text>
@@ -423,7 +213,7 @@ const AboutScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </Card>
       </View>
 
       {/* Footer */}
@@ -439,5 +229,206 @@ const AboutScreen = ({ navigation }) => {
     </ScrollView>
   );
 };
+
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    scrollContent: {
+      paddingBottom: COLORS.SPACING.xxl,
+    },
+    // Hero Section
+    heroSection: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.xxl,
+      paddingHorizontal: COLORS.SPACING.md,
+      backgroundColor: COLORS.PRIMARY,
+    },
+    logoContainer: {
+      width: 96, // 8px grid: 12*8
+      height: 96,
+      borderRadius: COLORS.RADIUS.xxl,
+      backgroundColor: COLORS.WHITE,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.lg,
+    },
+    logoEmoji: {
+      fontSize: 56,
+    },
+    appName: {
+      ...COLORS.TYPOGRAPHY.styles.h1,
+      color: COLORS.WHITE,
+      letterSpacing: 1,
+    },
+    appTagline: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.WHITE_80,
+      marginTop: COLORS.SPACING.sm,
+      textAlign: "center",
+    },
+    versionBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.WHITE_20,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+      marginTop: COLORS.SPACING.md,
+    },
+    versionText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.WHITE,
+    },
+
+    // Cards Section
+    cardSection: {
+      padding: COLORS.SPACING.md,
+    },
+    cardMargin: {
+      marginBottom: COLORS.SPACING.md,
+    },
+    cardTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT_PRIMARY,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    cardText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      lineHeight: 22,
+    },
+
+    // Built With Card
+    builtWithCard: {
+      marginBottom: COLORS.SPACING.md,
+      borderWidth: 2,
+      borderColor: COLORS.PRIMARY,
+    },
+    builtWithHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.md,
+    },
+    builtWithIcon: {
+      width: 48, // 8px grid: 6*8
+      height: 48,
+      borderRadius: COLORS.RADIUS.card,
+      backgroundColor: COLORS.WARNING_LIGHT,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    emojiText: {
+      fontSize: 28,
+    },
+    emojiSmall: {
+      fontSize: 20,
+    },
+    builtWithTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    builtWithSubtitle: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    builtWithText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_SECONDARY,
+      lineHeight: 22,
+    },
+    anthropicBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.WARNING_LIGHT,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      marginTop: COLORS.SPACING.md,
+    },
+    anthropicText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.WARNING,
+      marginLeft: COLORS.SPACING.sm,
+    },
+
+    // Features List
+    featuresList: {
+      marginTop: COLORS.SPACING.sm,
+    },
+    featureItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    featureIcon: {
+      width: 32, // 8px grid: 4*8
+      height: 32,
+      borderRadius: COLORS.RADIUS.button,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    featureText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      flex: 1,
+    },
+
+    // Links Section
+    linksSection: {
+      marginTop: COLORS.SPACING.sm,
+    },
+    linkItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.sm + COLORS.SPACING.xs, // 12
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    linkIcon: {
+      width: 40, // 8px grid: 5*8
+      height: 40,
+      borderRadius: COLORS.RADIUS.sm,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    linkText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_PRIMARY,
+      flex: 1,
+    },
+    linkArrow: {
+      opacity: 0.5,
+    },
+
+    // Footer
+    footer: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+    footerText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+    copyright: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.sm,
+    },
+  });
 
 export default AboutScreen;

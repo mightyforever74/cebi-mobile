@@ -1,18 +1,15 @@
 /**
  * TulipFleet - Vehicle Track Screen
- * Faz 3: Geçmiş Rota Görüntüleme + Playback
+ * Faz 3: Gecmis Rota Goruntuleme + Playback
  *
- * Özellikler:
- * - Polyline ile geçmiş rota çizimi
- * - Start/End marker'ları
+ * Ozellikler:
+ * - Polyline ile gecmis rota cizimi
+ * - Start/End marker'lari
  * - Playback slider + Play/Pause
- * - Tarih seçimi (Bugün / Son 1 Saat / Özel)
+ * - Tarih secimi (Bugun / Son 1 Saat / Ozel)
  * - Rota istatistikleri
  *
- * Referans: TULIPFLEET_MASTER_SPEC.md > Faz 3
- *
- * @version 1.0.0
- * @date 27 Aralık 2025
+ * @version 1.1.0 - UI System Guide v3 uyumlu
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -27,7 +24,9 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import { COLORS } from "../../constants/config";
+import { StartMarker } from "../../components/map/MapMarkers";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 import { calculateDistance, toFloat } from "../../utils/mapMath";
 
@@ -48,9 +47,6 @@ const PLAYBACK_SPEEDS = [1, 2, 4];
 // HELPER FUNCTIONS
 // ============================================================================
 
-/**
- * Tarih preset'ine göre from/to hesapla
- */
 const getDateRange = (preset) => {
   const now = new Date();
   let from;
@@ -74,9 +70,6 @@ const getDateRange = (preset) => {
   };
 };
 
-/**
- * Toplam mesafe hesapla (metre)
- */
 const calculateTotalDistance = (points) => {
   if (!points || points.length < 2) return 0;
 
@@ -92,9 +85,6 @@ const calculateTotalDistance = (points) => {
   return total;
 };
 
-/**
- * Süre formatla
- */
 const formatDuration = (startTime, endTime) => {
   if (!startTime || !endTime) return "-";
 
@@ -110,9 +100,6 @@ const formatDuration = (startTime, endTime) => {
   return `${hours} sa ${mins} dk`;
 };
 
-/**
- * Zaman formatla
- */
 const formatTime = (isoString) => {
   if (!isoString) return "-";
   const d = new Date(isoString);
@@ -125,6 +112,8 @@ const formatTime = (isoString) => {
 
 const VehicleTrackScreen = ({ route, navigation }) => {
   const { vehicleId, vehiclePlate } = route.params || {};
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const mapRef = useRef(null);
 
   // Data state
@@ -146,7 +135,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
 
   const fetchTrack = useCallback(async () => {
     if (!vehicleId) {
-      setError("Araç ID bulunamadı");
+      setError("Arac ID bulunamadi");
       setLoading(false);
       return;
     }
@@ -168,7 +157,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
       }
     } catch (e) {
       console.error("[VehicleTrack] Fetch error:", e);
-      setError("Rota verisi alınamadı");
+      setError("Rota verisi alinamadi");
     } finally {
       setLoading(false);
     }
@@ -192,7 +181,6 @@ const VehicleTrackScreen = ({ route, navigation }) => {
           longitude: toFloat(p.longitude),
         }));
 
-        // Koordinat sınırlarını hesapla
         const lats = coords.map((c) => c.latitude);
         const lngs = coords.map((c) => c.longitude);
         const minLat = Math.min(...lats);
@@ -200,11 +188,9 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         const minLng = Math.min(...lngs);
         const maxLng = Math.max(...lngs);
 
-        // Delta hesapla (minimum 0.005 ~ 500m görüş)
         const latDelta = Math.max(maxLat - minLat, 0.005) * 1.5;
         const lngDelta = Math.max(maxLng - minLng, 0.005) * 1.5;
 
-        // Merkez hesapla ve bölgeye animasyon yap
         const centerLat = (minLat + maxLat) / 2;
         const centerLng = (minLng + maxLng) / 2;
 
@@ -242,7 +228,6 @@ const VehicleTrackScreen = ({ route, navigation }) => {
     return () => clearTimeout(timer);
   }, [playing, playIndex, points.length, playbackSpeed]);
 
-  // Playback pozisyonu değişince kamerayı takip et
   useEffect(() => {
     if (!playing || !mapRef.current || !points[playIndex]) return;
 
@@ -332,8 +317,8 @@ const VehicleTrackScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Rota yükleniyor...</Text>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+        <Text style={styles.loadingText}>Rota yukleniyor...</Text>
       </View>
     );
   }
@@ -341,11 +326,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
   if (error) {
     return (
       <View style={styles.center}>
-        <Ionicons
-          name="alert-circle"
-          size={48}
-          color={COLORS.error || "#EF4444"}
-        />
+        <Ionicons name="alert-circle" size={48} color={COLORS.ERROR} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={fetchTrack}>
           <Text style={styles.retryText}>Tekrar Dene</Text>
@@ -373,36 +354,30 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         showsUserLocation={false}
         showsMyLocationButton={false}
       >
-        {/* Polyline - Rota çizgisi */}
+        {/* Polyline */}
         {polylineCoords.length > 1 && (
           <Polyline
             coordinates={polylineCoords}
             strokeWidth={4}
-            strokeColor={COLORS.primary}
+            strokeColor={COLORS.PRIMARY}
           />
         )}
 
-        {/* Start Marker - Yeşil */}
+        {/* Start Marker */}
         {startPoint && (
           <Marker coordinate={startPoint} anchor={{ x: 0.5, y: 1 }}>
-            <View style={styles.markerContainer}>
-              <Ionicons name="flag" size={28} color="#10B981" />
-              <Text style={styles.markerLabel}>Başlangıç</Text>
-            </View>
+            <StartMarker />
           </Marker>
         )}
 
-        {/* End Marker - Kırmızı */}
+        {/* End Marker */}
         {endPoint && polylineCoords.length > 1 && (
           <Marker coordinate={endPoint} anchor={{ x: 0.5, y: 1 }}>
-            <View style={styles.markerContainer}>
-              <Ionicons name="flag" size={28} color="#EF4444" />
-              <Text style={styles.markerLabel}>Bitiş</Text>
-            </View>
+            <EndMarker />
           </Marker>
         )}
 
-        {/* Playback Marker - Mavi araç */}
+        {/* Playback Marker */}
         {currentPoint && (
           <Marker
             coordinate={{
@@ -411,9 +386,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
             }}
             anchor={{ x: 0.5, y: 0.5 }}
           >
-            <View style={styles.playbackMarker}>
-              <Ionicons name="car" size={24} color="#FFFFFF" />
-            </View>
+            <PlaybackMarker heading={currentPoint.heading || 0} />
           </Marker>
         )}
       </MapView>
@@ -423,14 +396,14 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
+        <Ionicons name="arrow-back" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
       {/* Title */}
       <View style={styles.titleBar}>
-        <Ionicons name="navigate" size={18} color={COLORS.primary} />
+        <Ionicons name="navigate" size={18} color={COLORS.PRIMARY} />
         <Text style={styles.titleText}>
-          {vehiclePlate || "Araç"} - Geçmiş Rota
+          {vehiclePlate || "Arac"} - Gecmis Rota
         </Text>
       </View>
 
@@ -439,7 +412,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         {[
           { key: TIME_PRESETS.LAST_HOUR, label: "Son 1 Saat" },
           { key: TIME_PRESETS.LAST_3_HOURS, label: "Son 3 Saat" },
-          { key: TIME_PRESETS.TODAY, label: "Bugün" },
+          { key: TIME_PRESETS.TODAY, label: "Bugun" },
         ].map((preset) => (
           <TouchableOpacity
             key={preset.key}
@@ -467,7 +440,11 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         {stats && (
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Ionicons name="location-outline" size={16} color={COLORS.gray} />
+              <Ionicons
+                name="location-outline"
+                size={16}
+                color={COLORS.TEXT_MUTED}
+              />
               <Text style={styles.statValue}>{stats.pointCount}</Text>
               <Text style={styles.statLabel}>nokta</Text>
             </View>
@@ -475,16 +452,24 @@ const VehicleTrackScreen = ({ route, navigation }) => {
               <Ionicons
                 name="speedometer-outline"
                 size={16}
-                color={COLORS.gray}
+                color={COLORS.TEXT_MUTED}
               />
               <Text style={styles.statValue}>{stats.distance}</Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={16} color={COLORS.gray} />
+              <Ionicons
+                name="time-outline"
+                size={16}
+                color={COLORS.TEXT_MUTED}
+              />
               <Text style={styles.statValue}>{stats.duration}</Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="play-outline" size={16} color={COLORS.gray} />
+              <Ionicons
+                name="play-outline"
+                size={16}
+                color={COLORS.TEXT_MUTED}
+              />
               <Text style={styles.statValue}>
                 {stats.startTime} - {stats.endTime}
               </Text>
@@ -495,9 +480,9 @@ const VehicleTrackScreen = ({ route, navigation }) => {
         {/* No Data Message */}
         {points.length === 0 && (
           <View style={styles.noDataContainer}>
-            <Ionicons name="map-outline" size={32} color={COLORS.gray} />
+            <Ionicons name="map-outline" size={32} color={COLORS.TEXT_MUTED} />
             <Text style={styles.noDataText}>
-              Bu zaman aralığında rota verisi bulunamadı
+              Bu zaman araliginda rota verisi bulunamadi
             </Text>
           </View>
         )}
@@ -516,15 +501,15 @@ const VehicleTrackScreen = ({ route, navigation }) => {
                 maximumValue={points.length - 1}
                 value={playIndex}
                 onValueChange={handleSliderChange}
-                minimumTrackTintColor={COLORS.primary}
-                maximumTrackTintColor="#E5E7EB"
-                thumbTintColor={COLORS.primary}
+                minimumTrackTintColor={COLORS.PRIMARY}
+                maximumTrackTintColor={COLORS.DIVIDER}
+                thumbTintColor={COLORS.PRIMARY}
               />
               {currentPoint && (
                 <Text style={styles.timeLabel}>
                   {formatTime(currentPoint.time)}
                   {currentPoint.speed != null &&
-                    ` • ${Math.round(currentPoint.speed)} km/h`}
+                    ` \u2022 ${Math.round(currentPoint.speed)} km/h`}
                 </Text>
               )}
             </View>
@@ -536,7 +521,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
                 style={styles.controlBtn}
                 onPress={resetPlayback}
               >
-                <Ionicons name="refresh" size={20} color={COLORS.gray} />
+                <Ionicons name="refresh" size={20} color={COLORS.TEXT_MUTED} />
               </TouchableOpacity>
 
               {/* Play/Pause */}
@@ -547,7 +532,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
                 <Ionicons
                   name={playing ? "pause" : "play"}
                   size={24}
-                  color="#FFFFFF"
+                  color={COLORS.WHITE}
                 />
               </TouchableOpacity>
 
@@ -567,267 +552,213 @@ const VehicleTrackScreen = ({ route, navigation }) => {
 // STYLES
 // ============================================================================
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background || "#F9FAFB",
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.background || "#F9FAFB",
-  },
-  loadingText: {
-    marginTop: 12,
-    color: COLORS.gray,
-    fontSize: 14,
-  },
-  errorText: {
-    marginTop: 12,
-    color: COLORS.error || "#EF4444",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  retryBtn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  map: {
-    flex: 1,
-  },
-  backButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    left: 14,
-    backgroundColor: COLORS.white,
-    padding: 10,
-    borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  titleBar: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    left: 60,
-    right: 14,
-    backgroundColor: COLORS.white,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  titleText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  presetBar: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 100 : 64,
-    left: 14,
-    right: 14,
-    flexDirection: "row",
-    gap: 8,
-  },
-  presetBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  presetBtnActive: {
-    backgroundColor: COLORS.primary,
-  },
-  presetText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  presetTextActive: {
-    color: "#FFFFFF",
-  },
-  bottomPanel: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === "ios" ? 34 : 16,
-    paddingHorizontal: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  statItem: {
-    alignItems: "center",
-    gap: 2,
-  },
-  statValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  statLabel: {
-    fontSize: 10,
-    color: COLORS.gray,
-  },
-  noDataContainer: {
-    alignItems: "center",
-    paddingVertical: 24,
-  },
-  noDataText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: COLORS.gray,
-    textAlign: "center",
-  },
-  playbackControls: {
-    marginTop: 12,
-  },
-  sliderContainer: {
-    marginBottom: 12,
-  },
-  sliderLabel: {
-    fontSize: 12,
-    color: COLORS.gray,
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  slider: {
-    width: "100%",
-    height: 40,
-  },
-  timeLabel: {
-    fontSize: 12,
-    color: COLORS.text,
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-  },
-  controlBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  playBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-  },
-  speedText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  markerContainer: {
-    alignItems: "center",
-  },
-  markerLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: COLORS.text,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 2,
-    overflow: "hidden",
-  },
-  playbackMarker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-});
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    center: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.TEXT_MUTED,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    errorText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.ERROR,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      textAlign: "center",
+    },
+    retryBtn: {
+      marginTop: COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      backgroundColor: COLORS.PRIMARY,
+      borderRadius: COLORS.RADIUS.button,
+    },
+    retryText: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    map: {
+      flex: 1,
+    },
+    backButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      left: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    titleBar: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      left: 56, // 16 + 32 + 8
+      right: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      flexDirection: "row",
+      alignItems: "center",
+      ...COLORS.SHADOWS.card,
+    },
+    titleText: {
+      ...COLORS.TYPOGRAPHY.styles.label,
+      color: COLORS.TEXT_PRIMARY,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    presetBar: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 104 : 64,
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    presetBtn: {
+      flex: 1,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.sm,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.button,
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.xs,
+    },
+    presetBtnActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    presetText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    presetTextActive: {
+      color: COLORS.WHITE,
+    },
+    bottomPanel: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      paddingTop: COLORS.SPACING.md,
+      paddingBottom: Platform.OS === "ios" ? 34 : COLORS.SPACING.md,
+      paddingHorizontal: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.lg,
+    },
+    statsRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingBottom: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    statItem: {
+      alignItems: "center",
+    },
+    statValue: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    statLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.TEXT_MUTED,
+    },
+    noDataContainer: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+    },
+    noDataText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_MUTED,
+      textAlign: "center",
+    },
+    playbackControls: {
+      marginTop: COLORS.SPACING.sm,
+    },
+    sliderContainer: {
+      marginBottom: COLORS.SPACING.sm,
+    },
+    sliderLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_MUTED,
+      textAlign: "center",
+      marginBottom: COLORS.SPACING.xs,
+    },
+    slider: {
+      width: "100%",
+      height: COLORS.SPACING.xxl,
+    },
+    timeLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_PRIMARY,
+      textAlign: "center",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    controlBtn: {
+      width: 44, // 8px grid
+      height: 44,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.SECONDARY,
+      alignItems: "center",
+      justifyContent: "center",
+      marginHorizontal: COLORS.SPACING.sm,
+    },
+    playBtn: {
+      width: 56,
+      height: 56,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+    },
+    speedText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    markerContainer: {
+      alignItems: "center",
+    },
+    markerLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT_PRIMARY,
+      backgroundColor: COLORS.SURFACE,
+      paddingHorizontal: COLORS.SPACING.xs,
+      paddingVertical: 2,
+      borderRadius: COLORS.RADIUS.xs,
+      marginTop: 2,
+      overflow: "hidden",
+    },
+    playbackMarker: {
+      width: COLORS.SPACING.xxl,
+      height: COLORS.SPACING.xxl,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: COLORS.WHITE,
+      ...COLORS.SHADOWS.md,
+    },
+  });
 
 export default VehicleTrackScreen;

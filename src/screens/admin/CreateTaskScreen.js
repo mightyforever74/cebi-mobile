@@ -104,8 +104,8 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
     },
     loadingText: {
-      marginTop: 12,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.MUTED,
     },
 
@@ -114,79 +114,73 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 16,
+      paddingHorizontal: COLORS.SPACING.md,
       paddingTop: Platform.OS === "ios" ? 50 : 16,
-      paddingBottom: 16,
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      paddingBottom: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
     },
     backButton: {
       width: 40,
       height: 40,
-      borderRadius: 12,
+      borderRadius: COLORS.RADIUS.md,
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
       justifyContent: "center",
       alignItems: "center",
     },
     headerTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
 
     // Content
     content: {
       flex: 1,
-      padding: 16,
+      padding: COLORS.SPACING.md,
     },
 
     // Section
     section: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-      shadowColor: COLORS.BLACK,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      elevation: 2,
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.lg,
+      padding: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.md,
+      ...COLORS.SHADOWS.card,
       borderWidth: 1,
-      borderColor:
-        withAlpha(COLORS.BORDER, 0.35) || (COLORS.DIVIDER ?? COLORS.BORDER),
+      borderColor: withAlpha(COLORS.BORDER, 0.35),
     },
     sectionTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginBottom: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.md,
     },
 
     // Input
     inputGroup: {
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     inputLabel: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.MUTED,
-      marginBottom: 8,
+      marginBottom: COLORS.SPACING.sm,
     },
     textInput: {
-      backgroundColor:
-        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
       borderWidth: 1,
-      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
     },
     textArea: {
       minHeight: 80,
-      paddingTop: 14,
+      paddingTop: COLORS.SPACING.sm,
     },
 
     // Select Button
@@ -194,24 +188,23 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor:
-        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
       borderWidth: 1,
-      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
     },
     selectContent: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      // gap removed - children use marginRight
       flex: 1,
-      paddingRight: 10,
+      paddingRight: COLORS.SPACING.sm,
     },
     selectText: {
-      fontSize: 16,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
       flex: 1,
     },
     selectPlaceholder: {
@@ -220,48 +213,47 @@ const makeStyles = (COLORS) =>
 
     // DateTime
     dateTimeSection: {
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     dateTimeGroupLabel: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
-      marginBottom: 10,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+      marginBottom: COLORS.SPACING.sm,
     },
     dateTimeRow: {
       flexDirection: "row",
-      gap: 12,
+      // gap removed - children use marginRight
     },
     dateTimeButton: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor:
-        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
-      borderRadius: 12,
-      padding: 12,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.sm,
       borderWidth: 1,
-      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
     },
     dateTimeIconBox: {
       width: 40,
       height: 40,
-      borderRadius: 10,
+      borderRadius: COLORS.RADIUS.md,
       justifyContent: "center",
       alignItems: "center",
     },
     dateTimeContent: {
       flex: 1,
-      marginLeft: 10,
+      marginLeft: COLORS.SPACING.sm,
     },
     dateTimeLabel: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.MUTED,
     },
     dateTimeValue: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
       marginTop: 2,
     },
 
@@ -270,17 +262,17 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
-      borderRadius: 10,
-      gap: 8,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed - children use marginRight
       borderWidth: 1,
       borderColor: withAlpha(COLORS.PRIMARY, 0.18),
     },
     durationText: {
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
     },
 
@@ -288,26 +280,25 @@ const makeStyles = (COLORS) =>
     locationInputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor:
-        withAlpha(COLORS.SECONDARY, 0.65) || (COLORS.SURFACE ?? COLORS.WHITE),
-      borderRadius: 12,
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: COLORS.RADIUS.md,
       borderWidth: 1,
-      borderColor: COLORS.INPUT ?? COLORS.DIVIDER ?? COLORS.BORDER,
-      paddingHorizontal: 12,
+      borderColor: COLORS.DIVIDER,
+      paddingHorizontal: COLORS.SPACING.sm,
     },
     locationIcon: {
-      marginRight: 10,
+      marginRight: COLORS.SPACING.sm,
     },
     locationInput: {
       flex: 1,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      paddingVertical: COLORS.SPACING.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      color: COLORS.TEXT,
     },
 
     // Route Line
     routeLine: {
-      paddingVertical: 8,
+      paddingVertical: COLORS.SPACING.xs,
       paddingLeft: 28,
     },
     routeDots: {
@@ -317,12 +308,12 @@ const makeStyles = (COLORS) =>
     routeDot: {
       width: 10,
       height: 10,
-      borderRadius: 5,
+      borderRadius: COLORS.RADIUS.xs,
     },
     routeLineVertical: {
       width: 2,
       flex: 1,
-      backgroundColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      backgroundColor: COLORS.DIVIDER,
       marginVertical: 2,
     },
 
@@ -332,15 +323,11 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
-      borderRadius: 14,
-      paddingVertical: 16,
-      marginTop: 8,
-      gap: 10,
-      shadowColor: COLORS.PRIMARY,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      elevation: 4,
+      borderRadius: COLORS.RADIUS.lg,
+      paddingVertical: COLORS.SPACING.md,
+      marginTop: COLORS.SPACING.sm,
+      // gap removed - children use marginRight
+      ...COLORS.SHADOWS.card,
     },
     submitButtonDisabled: {
       backgroundColor: COLORS.MUTED,
@@ -348,8 +335,8 @@ const makeStyles = (COLORS) =>
       elevation: 0,
     },
     submitButtonText: {
-      fontSize: 17,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.WHITE,
     },
 
@@ -360,36 +347,36 @@ const makeStyles = (COLORS) =>
       justifyContent: "flex-end",
     },
     modalContent: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      backgroundColor: COLORS.SURFACE,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       maxHeight: "70%",
       borderWidth: 1,
-      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
     },
     modalHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: 20,
+      padding: COLORS.SPACING.lg,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
     },
     modalTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.TEXT,
     },
     modalList: {
-      padding: 12,
+      padding: COLORS.SPACING.sm,
     },
     modalItem: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: 14,
-      borderRadius: 12,
-      marginBottom: 8,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      marginBottom: COLORS.SPACING.sm,
     },
     modalItemSelected: {
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.08),
@@ -397,64 +384,64 @@ const makeStyles = (COLORS) =>
     modalItemContent: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      // gap removed - children use marginRight
       flex: 1,
-      paddingRight: 12,
+      paddingRight: COLORS.SPACING.sm,
     },
     avatarCircle: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
       justifyContent: "center",
       alignItems: "center",
     },
     modalItemTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
     },
     modalItemSubtitle: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.MUTED,
       marginTop: 2,
     },
     emptyText: {
       textAlign: "center",
       color: COLORS.MUTED,
-      fontSize: 15,
-      paddingVertical: 30,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      paddingVertical: COLORS.SPACING.xxl,
     },
 
     // iOS DateTime Picker Modal
     iosPickerModal: {
-      backgroundColor: COLORS.SURFACE ?? COLORS.CARD ?? COLORS.WHITE,
+      backgroundColor: COLORS.SURFACE,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       borderWidth: 1,
-      borderColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderColor: COLORS.DIVIDER,
     },
     iosPickerHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.md,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER ?? COLORS.BORDER,
+      borderBottomColor: COLORS.DIVIDER,
     },
     iosPickerTitle: {
-      fontSize: 17,
-      fontWeight: "600",
-      color: COLORS.TEXT ?? COLORS.DEFAULT,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
     },
     iosPickerCancel: {
-      fontSize: 16,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.MUTED,
     },
     iosPickerDone: {
-      fontSize: 16,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
     },
     iosPicker: {
@@ -982,11 +969,7 @@ export default function CreateTaskScreen({ navigation }) {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons
-                name="close"
-                size={24}
-                color={COLORS.TEXT ?? COLORS.DEFAULT}
-              />
+              <Ionicons name="close" size={24} color={COLORS.TEXT} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.modalList}>
@@ -1056,11 +1039,7 @@ export default function CreateTaskScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color={COLORS.TEXT ?? COLORS.DEFAULT}
-          />
+          <Ionicons name="arrow-back" size={24} color={COLORS.TEXT} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {getText(t, "new_task", "Yeni Gorev", "New Task", isEn)}

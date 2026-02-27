@@ -595,13 +595,22 @@
     "activation": {
       "activating": "Apparaat activeren...",
       "success": "Apparaat Geactiveerd",
-      "failed": "Activering Mislukt"
+      "failed": "Activering Mislukt",
+      "successStatus": "Apparaat succesvol geactiveerd!",
+      "successPending": "Apparaatinstallatie voltooid. Wachten op activeringsbevestiging..."
     },
     "complete": {
       "title": "Installatie Voltooid!",
       "message": "Uw apparaat is succesvol geÃƒÂ¯nstalleerd en geactiveerd.",
       "done": "Voltooien"
     },
+    "activeWarning": {
+      "title": "⚠️ Apparaat Reeds Actief",
+      "message": "Apparaat {{serial}} is al actief en verbonden via WiFi{{vehicle}}.\n\nWilt u opnieuw installeren?",
+      "cancel": "Annuleren",
+      "continue": "Toch Doorgaan"
+    },
+    "checkingDeviceStatus": "Apparaatstatus controleren...",
     "buttons": {
       "retry": "Opnieuw",
       "cancel": "Annuleren",

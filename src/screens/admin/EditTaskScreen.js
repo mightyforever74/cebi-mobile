@@ -14,26 +14,32 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WaypointEditor from "../../components/admin/WaypointEditor";
-import { COLORS } from "../../constants/config";
+import Card from "../../components/ui/Card";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
-
-const STATUS_OPTIONS = [
-  { value: "pending", label: "Bekliyor", color: "#FB6340" },
-  { value: "assigned", label: "Atandi", color: "#11CDEF" },
-  { value: "in_progress", label: "Devam Ediyor", color: "#5E72E4" },
-  { value: "completed", label: "Tamamlandi", color: "#2DCE89" },
-  { value: "cancelled", label: "ptal", color: "#F5365C" },
-];
-
-const PRIORITY_OPTIONS = [
-  { value: "low", label: "Dusuk", color: "#2DCE89" },
-  { value: "normal", label: "Normal", color: "#11CDEF" },
-  { value: "high", label: "Yuksek", color: "#FB6340" },
-  { value: "urgent", label: "Acil", color: "#F5365C" },
-];
 
 const EditTaskScreen = ({ navigation, route }) => {
   const { task } = route.params;
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  // Status/Priority options use semantic COLORS tokens
+  const STATUS_OPTIONS = [
+    { value: "pending", label: "Bekliyor", color: COLORS.WARNING },
+    { value: "assigned", label: "Atandi", color: COLORS.INFO },
+    { value: "in_progress", label: "Devam Ediyor", color: COLORS.PRIMARY },
+    { value: "completed", label: "Tamamlandi", color: COLORS.SUCCESS },
+    { value: "cancelled", label: "Iptal", color: COLORS.ERROR },
+  ];
+
+  const PRIORITY_OPTIONS = [
+    { value: "low", label: "Dusuk", color: COLORS.SUCCESS },
+    { value: "normal", label: "Normal", color: COLORS.INFO },
+    { value: "high", label: "Yuksek", color: COLORS.WARNING },
+    { value: "urgent", label: "Acil", color: COLORS.ERROR },
+  ];
+
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [drivers, setDrivers] = useState([]);
@@ -79,7 +85,6 @@ const EditTaskScreen = ({ navigation, route }) => {
       setDrivers(driversList);
       setVehicles(vehiclesList);
 
-      // Set selected driver and vehicle
       const currentDriver = driversList.find((d) => d.id === task.driver_id);
       const currentVehicle = vehiclesList.find((v) => v.id === task.vehicle_id);
       setSelectedDriver(currentDriver || null);
@@ -136,7 +141,7 @@ const EditTaskScreen = ({ navigation, route }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "u Basarili",
+          "Basarili",
           "Gorev basariyla guncellendi",
           [{ text: "Tamam", onPress: () => navigation.goBack() }],
           { cancelable: false }
@@ -157,7 +162,7 @@ const EditTaskScreen = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
           <Text style={styles.loadingText}>Yukleniyor...</Text>
         </View>
       </SafeAreaView>
@@ -172,10 +177,12 @@ const EditTaskScreen = ({ navigation, route }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Task Code (Readonly) */}
-          <View style={styles.taskCodeContainer}>
-            <Text style={styles.taskCodeLabel}>Gorev Kodu</Text>
-            <Text style={styles.taskCode}>{task.task_code}</Text>
-          </View>
+          <Card variant="elevated">
+            <View style={styles.taskCodeInner}>
+              <Text style={styles.taskCodeLabel}>Gorev Kodu</Text>
+              <Text style={styles.taskCode}>{task.task_code}</Text>
+            </View>
+          </Card>
 
           {/* Status Selection */}
           <Text style={styles.sectionTitle}>Durum</Text>
@@ -188,6 +195,7 @@ const EditTaskScreen = ({ navigation, route }) => {
                     styles.optionButton,
                     formData.status === option.value && {
                       backgroundColor: option.color,
+                      borderColor: option.color,
                     },
                   ]}
                   onPress={() => handleChange("status", option.value)}
@@ -207,7 +215,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Priority Selection */}
-          <Text style={styles.sectionTitle}>ncelik</Text>
+          <Text style={styles.sectionTitle}>Oncelik</Text>
           <View style={styles.optionRow}>
             {PRIORITY_OPTIONS.map((option) => (
               <TouchableOpacity
@@ -216,6 +224,7 @@ const EditTaskScreen = ({ navigation, route }) => {
                   styles.optionButton,
                   formData.priority === option.value && {
                     backgroundColor: option.color,
+                    borderColor: option.color,
                   },
                 ]}
                 onPress={() => handleChange("priority", option.value)}
@@ -237,35 +246,32 @@ const EditTaskScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Surucu</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
-              {drivers.map((driver) => (
+              {drivers.map((d) => (
                 <TouchableOpacity
-                  key={driver.id}
+                  key={d.id}
                   style={[
                     styles.optionButton,
-                    selectedDriver?.id === driver.id && styles.optionActive,
-                    driver.is_busy &&
-                      driver.id !== task.driver_id &&
-                      styles.optionBusy,
+                    selectedDriver?.id === d.id && styles.optionActive,
+                    d.is_busy && d.id !== task.driver_id && styles.optionBusy,
                   ]}
-                  onPress={() => setSelectedDriver(driver)}
+                  onPress={() => setSelectedDriver(d)}
                 >
                   <Ionicons
                     name="person"
                     size={16}
                     color={
-                      selectedDriver?.id === driver.id
-                        ? COLORS.white
-                        : COLORS.primary
+                      selectedDriver?.id === d.id
+                        ? COLORS.WHITE
+                        : COLORS.PRIMARY
                     }
                   />
                   <Text
                     style={[
                       styles.optionText,
-                      selectedDriver?.id === driver.id &&
-                        styles.optionTextActive,
+                      selectedDriver?.id === d.id && styles.optionTextActive,
                     ]}
                   >
-                    {driver.first_name || driver.email?.split("@")[0]}
+                    {d.first_name || d.email?.split("@")[0]}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -276,35 +282,32 @@ const EditTaskScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Arac</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
-              {vehicles.map((vehicle) => (
+              {vehicles.map((v) => (
                 <TouchableOpacity
-                  key={vehicle.id}
+                  key={v.id}
                   style={[
                     styles.optionButton,
-                    selectedVehicle?.id === vehicle.id && styles.optionActive,
-                    vehicle.is_busy &&
-                      vehicle.id !== task.vehicle_id &&
-                      styles.optionBusy,
+                    selectedVehicle?.id === v.id && styles.optionActive,
+                    v.is_busy && v.id !== task.vehicle_id && styles.optionBusy,
                   ]}
-                  onPress={() => setSelectedVehicle(vehicle)}
+                  onPress={() => setSelectedVehicle(v)}
                 >
                   <Ionicons
                     name="car"
                     size={16}
                     color={
-                      selectedVehicle?.id === vehicle.id
-                        ? COLORS.white
-                        : COLORS.primary
+                      selectedVehicle?.id === v.id
+                        ? COLORS.WHITE
+                        : COLORS.PRIMARY
                     }
                   />
                   <Text
                     style={[
                       styles.optionText,
-                      selectedVehicle?.id === vehicle.id &&
-                        styles.optionTextActive,
+                      selectedVehicle?.id === v.id && styles.optionTextActive,
                     ]}
                   >
-                    {vehicle.plate_no}
+                    {v.plate_no}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -317,8 +320,8 @@ const EditTaskScreen = ({ navigation, route }) => {
             style={styles.input}
             value={formData.title}
             onChangeText={(v) => handleChange("title", v)}
-            placeholder="Gorev basliIi"
-            placeholderTextColor={COLORS.gray}
+            placeholder="Gorev basligi"
+            placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
           {/* Locations */}
@@ -328,31 +331,31 @@ const EditTaskScreen = ({ navigation, route }) => {
             value={formData.startLocation}
             onChangeText={(v) => handleChange("startLocation", v)}
             placeholder="Baslangic adresi"
-            placeholderTextColor={COLORS.gray}
+            placeholderTextColor={COLORS.PLACEHOLDER}
           />
           <TextInput
-            style={[styles.input, { marginTop: 12 }]}
+            style={[styles.input, { marginTop: COLORS.SPACING.sm }]}
             value={formData.endLocation}
             onChangeText={(v) => handleChange("endLocation", v)}
             placeholder="Bitis adresi"
-            placeholderTextColor={COLORS.gray}
+            placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
           {/* Waypoints / Stops */}
-          <View style={{ marginTop: 16 }}>
+          <View style={{ marginTop: COLORS.SPACING.md }}>
             <WaypointEditor
               waypoints={waypoints}
               setWaypoints={setWaypoints}
               COLORS={{
-                PRIMARY: COLORS.primary || "#5E72E4",
-                SECONDARY: COLORS.secondary || "#F4F5F7",
-                SURFACE: COLORS.white || "#FFF",
-                TEXT: COLORS.text || "#32325D",
-                MUTED: COLORS.gray || "#8898AA",
-                ERROR: COLORS.error || "#F5365C",
-                WHITE: COLORS.white || "#FFF",
-                DIVIDER: COLORS.borderColor || "#E6E6E6",
-                PLACEHOLDER: COLORS.gray || "#8898AA",
+                PRIMARY: COLORS.PRIMARY,
+                SECONDARY: COLORS.SECONDARY,
+                SURFACE: COLORS.SURFACE,
+                TEXT: COLORS.TEXT_PRIMARY,
+                MUTED: COLORS.TEXT_MUTED,
+                ERROR: COLORS.ERROR,
+                WHITE: COLORS.WHITE,
+                DIVIDER: COLORS.DIVIDER,
+                PLACEHOLDER: COLORS.PLACEHOLDER,
               }}
               inputStyle={styles.input}
               maxStops={10}
@@ -378,7 +381,7 @@ const EditTaskScreen = ({ navigation, route }) => {
             value={formData.description}
             onChangeText={(v) => handleChange("description", v)}
             placeholder="Gorev detaylari..."
-            placeholderTextColor={COLORS.gray}
+            placeholderTextColor={COLORS.PLACEHOLDER}
             multiline
             numberOfLines={3}
           />
@@ -390,13 +393,13 @@ const EditTaskScreen = ({ navigation, route }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.WHITE} />
             ) : (
               <>
                 <Ionicons
                   name="checkmark-circle"
                   size={20}
-                  color={COLORS.white}
+                  color={COLORS.WHITE}
                 />
                 <Text style={styles.saveButtonText}>Kaydet</Text>
               </>
@@ -408,114 +411,111 @@ const EditTaskScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: COLORS.gray,
-  },
-  taskCodeContainer: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    alignItems: "center",
-  },
-  taskCodeLabel: {
-    fontSize: 12,
-    color: COLORS.gray,
-    marginBottom: 4,
-  },
-  taskCode: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.primary,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  optionRow: {
-    flexDirection: "row",
-    gap: 10,
-    paddingVertical: 4,
-  },
-  optionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    gap: 6,
-  },
-  optionActive: {
-    backgroundColor: COLORS.primary,
-  },
-  optionBusy: {
-    borderColor: "#FB6340",
-    backgroundColor: "#FFF8F0",
-  },
-  optionText: {
-    fontSize: 14,
-    color: COLORS.primary,
-  },
-  optionTextActive: {
-    color: COLORS.white,
-    fontWeight: "600",
-  },
-  input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border || "#E5E5E5",
-  },
-  inputMultiline: {
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 32,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: COLORS.SPACING.md,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_MUTED,
+    },
+    taskCodeInner: {
+      alignItems: "center",
+    },
+    taskCodeLabel: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_MUTED,
+      marginBottom: COLORS.SPACING.xs,
+    },
+    taskCode: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.PRIMARY,
+    },
+    sectionTitle: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.PRIMARY,
+      marginTop: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.sm,
+    },
+    optionRow: {
+      flexDirection: "row",
+      paddingVertical: COLORS.SPACING.xs,
+    },
+    optionButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+      backgroundColor: COLORS.SURFACE,
+      borderWidth: 1,
+      borderColor: COLORS.PRIMARY,
+      marginRight: COLORS.SPACING.sm,
+    },
+    optionActive: {
+      backgroundColor: COLORS.PRIMARY,
+      borderColor: COLORS.PRIMARY,
+    },
+    optionBusy: {
+      borderColor: COLORS.WARNING,
+      backgroundColor: COLORS.WARNING_LIGHT,
+    },
+    optionText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.PRIMARY,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    optionTextActive: {
+      color: COLORS.WHITE,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    input: {
+      backgroundColor: COLORS.INPUT_BG,
+      borderRadius: COLORS.RADIUS.input,
+      padding: COLORS.SPACING.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    inputMultiline: {
+      minHeight: 96, // 8px grid: 12 * 8
+      textAlignVertical: "top",
+    },
+    saveButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.PRIMARY,
+      height: COLORS.SPACING.buttonHeight,
+      borderRadius: COLORS.RADIUS.button,
+      marginTop: COLORS.SPACING.lg,
+      marginBottom: COLORS.SPACING.xl,
+      ...COLORS.SHADOWS.button,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.button,
+      marginLeft: COLORS.SPACING.sm,
+    },
+  });
 
 export default EditTaskScreen;

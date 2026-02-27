@@ -1,21 +1,20 @@
 /**
  * TulipFleet - Fleet Map Screen
- * Çoklu Araç Yönetimi ile Güncellenmiş
+ * Coklu Arac Yonetimi ile Guncellenmis
  *
- * Özellikler:
+ * Ozellikler:
  * - Real-time vehicle tracking
- * - VehicleListModal ile araç seçimi
+ * - Google Maps style modern markers
+ * - VehicleListModal ile arac secimi
  * - Follow mode with drag-to-disable
- * - Stats bar tıklanabilir
+ * - Stats bar tiklanabilir
  *
- * @version 1.3.0
- * @date 11 Ocak 2026 - Location endpoint fix
+ * @version 1.5.0 - Modern vehicle markers
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Platform,
   StyleSheet,
   Text,
@@ -25,7 +24,8 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import VehicleInfoSheet from "../../components/map/VehicleInfoSheet";
 import VehicleListModal from "../../components/map/VehicleListModal";
-import { COLORS } from "../../constants/config";
+import { useTheme } from "../../context/ThemeContext";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 import {
   createFollowRegion,
@@ -38,7 +38,7 @@ import {
 // CONSTANTS
 // ============================================================================
 
-const REFRESH_INTERVAL = 10000; // 10 saniye
+const REFRESH_INTERVAL = 10000;
 const INITIAL_REGION = {
   latitude: 41.015137,
   longitude: 28.97953,
@@ -46,14 +46,163 @@ const INITIAL_REGION = {
   longitudeDelta: 0.15,
 };
 
-// Debug mode - production'da false
 const DEBUG = __DEV__;
+
+// Marker colors by status
+const MARKER_COLORS = {
+  in_use: "#10B981", // Green - active
+  available: "#3B82F6", // Blue - available
+  maintenance: "#F59E0B", // Yellow - maintenance
+  offline: "#9CA3AF", // Gray - offline
+  default: "#6366F1", // Indigo - default
+};
+
+// ============================================================================
+// VEHICLE MARKER COMPONENT
+// ============================================================================
+
+const VehicleMarker = ({ vehicle, isSelected, onPress }) => {
+  const now = Date.now();
+  const lastTime = vehicle.last_location_time
+    ? new Date(vehicle.last_location_time).getTime()
+    : 0;
+  const isOnline = now - lastTime < 5 * 60 * 1000;
+  const heading = parseFloat(vehicle.heading) || 0;
+  const speed = parseFloat(vehicle.speed) || 0;
+  const isMoving = speed > 2;
+
+  const markerColor = isOnline
+    ? MARKER_COLORS[vehicle.status] || MARKER_COLORS.default
+    : MARKER_COLORS.offline;
+
+  return (
+    <Marker
+      identifier={vehicle.id}
+      coordinate={{
+        latitude: toFloat(vehicle.latitude),
+        longitude: toFloat(vehicle.longitude),
+      }}
+      title={vehicle.plate_no}
+      description={`${speed.toFixed(0)} km/h`}
+      onPress={() => onPress(vehicle)}
+      anchor={{ x: 0.5, y: 0.5 }}
+      flat={isMoving}
+      rotation={isMoving ? heading : 0}
+      tracksViewChanges={isSelected}
+    >
+      <View style={mStyles.container}>
+        {/* Direction arrow - only when moving */}
+        {isMoving && (
+          <View style={mStyles.arrowContainer}>
+            <View style={[mStyles.arrow, { borderBottomColor: markerColor }]} />
+          </View>
+        )}
+
+        {/* Main marker body */}
+        <View
+          style={[
+            mStyles.body,
+            { backgroundColor: markerColor },
+            isSelected && mStyles.bodySelected,
+          ]}
+        >
+          <Ionicons
+            name={isMoving ? "car-sport" : "car"}
+            size={isSelected ? 18 : 14}
+            color="#FFFFFF"
+          />
+        </View>
+
+        {/* Online pulse ring */}
+        {isOnline && isSelected && (
+          <View style={[mStyles.pulse, { borderColor: markerColor }]} />
+        )}
+
+        {/* Plate label - only for selected */}
+        {isSelected && (
+          <View style={[mStyles.label, { backgroundColor: markerColor }]}>
+            <Text style={mStyles.labelText}>{vehicle.plate_no}</Text>
+          </View>
+        )}
+      </View>
+    </Marker>
+  );
+};
+
+const mStyles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  arrowContainer: {
+    alignItems: "center",
+    marginBottom: -4,
+  },
+  arrow: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 10,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#3B82F6",
+  },
+  body: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2.5,
+    borderColor: "#FFFFFF",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  bodySelected: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+  },
+  pulse: {
+    position: "absolute",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    opacity: 0.3,
+  },
+  label: {
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  labelText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+});
 
 // ============================================================================
 // FLEET MAP SCREEN COMPONENT
 // ============================================================================
 
 const FleetMapScreen = ({ navigation }) => {
+  const { COLORS } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
   // Refs
   const mapRef = useRef(null);
   const previousVehiclesRef = useRef([]);
@@ -71,19 +220,16 @@ const FleetMapScreen = ({ navigation }) => {
   // DERIVED STATE
   // ============================================================================
 
-  // Normalize edilmiş araçlar
   const normalizedVehicles = useMemo(() => {
     return vehicles
       .map(normalizeVehicle)
       .filter((v) => v && v.latitude && v.longitude);
   }, [vehicles]);
 
-  // Tüm araçlar (konum olmayanlar dahil) - Modal için
   const allVehicles = useMemo(() => {
     return vehicles.map(normalizeVehicle).filter((v) => v);
   }, [vehicles]);
 
-  // Debug log
   useEffect(() => {
     if (DEBUG) {
       console.log(
@@ -93,16 +239,14 @@ const FleetMapScreen = ({ navigation }) => {
     }
   }, [normalizedVehicles]);
 
-  // Seçili araç
   const selectedVehicle = useMemo(() => {
     if (!selectedVehicleId) return null;
     return normalizedVehicles.find((v) => v.id === selectedVehicleId) || null;
   }, [normalizedVehicles, selectedVehicleId]);
 
-  // İstatistikler - Online = son 5 dakikada konum gönderen
   const stats = useMemo(() => {
     const now = Date.now();
-    const ONLINE_THRESHOLD = 5 * 60 * 1000; // 5 dakika
+    const ONLINE_THRESHOLD = 5 * 60 * 1000;
 
     const withOnlineStatus = allVehicles.map((v) => {
       const lastTime = v.last_location_time
@@ -128,7 +272,6 @@ const FleetMapScreen = ({ navigation }) => {
 
   const fetchVehicles = useCallback(async () => {
     try {
-      // FIX: Önce araçları, sonra konumları al ve birleştir
       const [vehiclesRes, locationsRes] = await Promise.all([
         vehicleAPI.getAll(),
         vehicleAPI.getAllWithLocations().catch(() => ({ locations: [] })),
@@ -137,7 +280,6 @@ const FleetMapScreen = ({ navigation }) => {
       const vehicleList = vehiclesRes.vehicles || [];
       const locationList = locationsRes.locations || [];
 
-      // Konum verilerini araçlarla birleştir
       const locationMap = new Map();
       locationList.forEach((loc) => {
         if (loc.vehicle_id) {
@@ -145,7 +287,6 @@ const FleetMapScreen = ({ navigation }) => {
         }
       });
 
-      // Araçlara konum ekle
       const mergedList = vehicleList.map((vehicle) => {
         const location = locationMap.get(vehicle.id);
         if (location) {
@@ -161,7 +302,6 @@ const FleetMapScreen = ({ navigation }) => {
         return vehicle;
       });
 
-      // Debug log
       if (DEBUG) {
         const withLoc = mergedList.filter((v) => v.latitude && v.longitude);
         console.log(
@@ -169,12 +309,10 @@ const FleetMapScreen = ({ navigation }) => {
         );
       }
 
-      // State güncelle
       setVehicles(mergedList);
       setLastUpdate(new Date());
       previousVehiclesRef.current = mergedList;
 
-      // İlk yüklemede fit to coordinates
       if (loading && mergedList.length > 0) {
         const located = mergedList.filter((v) => v.latitude && v.longitude);
         if (mapRef.current && located.length > 0) {
@@ -203,14 +341,12 @@ const FleetMapScreen = ({ navigation }) => {
   // EFFECTS
   // ============================================================================
 
-  // Initial fetch & interval
   useEffect(() => {
     fetchVehicles();
     const interval = setInterval(fetchVehicles, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchVehicles]);
 
-  // Follow Mode: Kamera takibi
   useEffect(() => {
     if (!followMode || !selectedVehicle || !mapRef.current) return;
 
@@ -226,7 +362,6 @@ const FleetMapScreen = ({ navigation }) => {
   // EVENT HANDLERS
   // ============================================================================
 
-  // Araç seçimi (marker'dan)
   const handleVehiclePress = useCallback(
     (vehicle) => {
       const isSameVehicle = selectedVehicleId === vehicle.id;
@@ -251,12 +386,10 @@ const FleetMapScreen = ({ navigation }) => {
     [selectedVehicleId]
   );
 
-  // Araç seçimi (modal'dan)
   const handleSelectFromModal = useCallback((vehicle) => {
     setSelectedVehicleId(vehicle.id);
     setFollowMode(true);
 
-    // Haritada araca zoom yap
     if (mapRef.current && vehicle.latitude && vehicle.longitude) {
       const region = createFollowRegion(vehicle);
       if (region) {
@@ -268,41 +401,34 @@ const FleetMapScreen = ({ navigation }) => {
     }
   }, []);
 
-  // Harita drag → follow kapat
   const handleMapPanDrag = useCallback(() => {
-    if (followModeActiveRef.current) {
-      if (DEBUG) console.log("[FleetMap] User dragged, follow disabled");
+    if (followMode) {
       setFollowMode(false);
       followModeActiveRef.current = false;
     }
-  }, []);
+  }, [followMode]);
 
-  // Sheet kapat
+  const toggleFollowMode = useCallback(() => {
+    const newMode = !followMode;
+    setFollowMode(newMode);
+    followModeActiveRef.current = newMode;
+
+    if (newMode && selectedVehicle && mapRef.current) {
+      const region = createFollowRegion(selectedVehicle);
+      if (region) {
+        mapRef.current.animateToRegion(
+          region,
+          FOLLOW_CONFIG.ANIMATION_DURATION
+        );
+      }
+    }
+  }, [followMode, selectedVehicle]);
+
   const handleCloseSheet = useCallback(() => {
     setSelectedVehicleId(null);
     setFollowMode(false);
     followModeActiveRef.current = false;
   }, []);
-
-  // Follow toggle
-  const toggleFollowMode = useCallback(() => {
-    if (selectedVehicle) {
-      setFollowMode((prev) => !prev);
-    }
-  }, [selectedVehicle]);
-
-  // ============================================================================
-  // LOADING STATE
-  // ============================================================================
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Harita yükleniyor...</Text>
-      </View>
-    );
-  }
 
   // ============================================================================
   // RENDER
@@ -323,16 +449,11 @@ const FleetMapScreen = ({ navigation }) => {
         toolbarEnabled={false}
       >
         {normalizedVehicles.map((vehicle) => (
-          <Marker
+          <VehicleMarker
             key={vehicle.id}
-            identifier={vehicle.id}
-            coordinate={{
-              latitude: toFloat(vehicle.latitude),
-              longitude: toFloat(vehicle.longitude),
-            }}
-            title={vehicle.plate_no}
-            description={`${vehicle.speed || 0} km/h`}
-            onPress={() => handleVehiclePress(vehicle)}
+            vehicle={vehicle}
+            isSelected={selectedVehicleId === vehicle.id}
+            onPress={handleVehiclePress}
           />
         ))}
       </MapView>
@@ -342,7 +463,7 @@ const FleetMapScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
+        <Ionicons name="arrow-back" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
       {/* Vehicle List Button */}
@@ -350,7 +471,7 @@ const FleetMapScreen = ({ navigation }) => {
         style={styles.listButton}
         onPress={() => setShowVehicleList(true)}
       >
-        <Ionicons name="list" size={22} color={COLORS.primary} />
+        <Ionicons name="list" size={22} color={COLORS.PRIMARY} />
         {stats.total > 0 && (
           <View style={styles.listBadge}>
             <Text style={styles.listBadgeText}>{stats.total}</Text>
@@ -360,10 +481,10 @@ const FleetMapScreen = ({ navigation }) => {
 
       {/* Refresh Button */}
       <TouchableOpacity style={styles.refreshButton} onPress={fetchVehicles}>
-        <Ionicons name="refresh" size={22} color={COLORS.primary} />
+        <Ionicons name="refresh" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
-      {/* Follow Mode Button (sadece seçili araç varken) */}
+      {/* Follow Mode Button */}
       {selectedVehicle && (
         <TouchableOpacity
           style={[styles.followButton, followMode && styles.followButtonActive]}
@@ -372,12 +493,12 @@ const FleetMapScreen = ({ navigation }) => {
           <Ionicons
             name={followMode ? "locate" : "locate-outline"}
             size={22}
-            color={followMode ? "#fff" : COLORS.primary}
+            color={followMode ? COLORS.WHITE : COLORS.PRIMARY}
           />
         </TouchableOpacity>
       )}
 
-      {/* Stats Bar - Tıklanabilir - Sheet açıkken gizle */}
+      {/* Stats Bar */}
       {!selectedVehicle && (
         <TouchableOpacity
           style={styles.statsBar}
@@ -385,23 +506,23 @@ const FleetMapScreen = ({ navigation }) => {
           activeOpacity={0.8}
         >
           <Text style={styles.statsText}>
-            {"🚗"} {stats.total} Araç{" | "}
+            {"\uD83D\uDE97"} {stats.total} Arac{" | "}
             <Text style={styles.activeText}>
-              {"●"} {stats.online} Online
+              {"\u25CF"} {stats.online} Online
             </Text>
             {" | "}
             <Text style={styles.offlineText}>
-              {"●"} {stats.offline} Offline
+              {"\u25CF"} {stats.offline} Offline
             </Text>
           </Text>
           {lastUpdate && (
             <Text style={styles.updateText}>
-              Son güncelleme: {lastUpdate.toLocaleTimeString("tr-TR")}
+              Son guncelleme: {lastUpdate.toLocaleTimeString("tr-TR")}
             </Text>
           )}
           <View style={styles.statsHint}>
-            <Ionicons name="chevron-up" size={14} color={COLORS.gray} />
-            <Text style={styles.statsHintText}>Liste için dokun</Text>
+            <Ionicons name="chevron-up" size={14} color={COLORS.TEXT_MUTED} />
+            <Text style={styles.statsHintText}>Liste icin dokun</Text>
           </View>
         </TouchableOpacity>
       )}
@@ -439,178 +560,123 @@ const FleetMapScreen = ({ navigation }) => {
 // STYLES
 // ============================================================================
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 10,
-    color: COLORS.gray,
-    fontSize: 14,
-  },
-  map: {
-    flex: 1,
-  },
-  backButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    left: 14,
-    backgroundColor: COLORS.white,
-    padding: 10,
-    borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  listButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    left: 70,
-    backgroundColor: COLORS.white,
-    padding: 10,
-    borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  listBadge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-  listBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  refreshButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    right: 14,
-    backgroundColor: COLORS.white,
-    padding: 10,
-    borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  followButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 14,
-    right: 70,
-    backgroundColor: COLORS.white,
-    padding: 10,
-    borderRadius: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  followButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  statsBar: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: Platform.OS === "ios" ? 34 : 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: COLORS.white,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  statsText: {
-    textAlign: "center",
-    fontSize: 14,
-    color: COLORS.text,
-    fontWeight: "500",
-  },
-  activeText: {
-    color: "#10B981",
-  },
-  availableText: {
-    color: "#3B82F6",
-  },
-  offlineText: {
-    color: COLORS.danger,
-  },
-  updateText: {
-    textAlign: "center",
-    fontSize: 11,
-    color: COLORS.gray,
-    marginTop: 4,
-  },
-  statsHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 6,
-    gap: 4,
-  },
-  statsHintText: {
-    fontSize: 11,
-    color: COLORS.gray,
-  },
-});
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    center: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    loadingText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.TEXT_MUTED,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    map: {
+      flex: 1,
+    },
+    backButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      left: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    listButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      left: 72,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    listBadge: {
+      position: "absolute",
+      top: -COLORS.SPACING.xs,
+      right: -COLORS.SPACING.xs,
+      minWidth: COLORS.SPACING.md,
+      height: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: COLORS.SPACING.xs,
+    },
+    listBadgeText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    refreshButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    followButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      right: 72,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    followButtonActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    statsBar: {
+      position: "absolute",
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      bottom: Platform.OS === "ios" ? 34 : COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      backgroundColor: COLORS.SURFACE,
+      ...COLORS.SHADOWS.card,
+    },
+    statsText: {
+      textAlign: "center",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    activeText: {
+      color: COLORS.SUCCESS,
+    },
+    offlineText: {
+      color: COLORS.ERROR,
+    },
+    updateText: {
+      textAlign: "center",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+    statsHint: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.xs,
+    },
+    statsHintText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_MUTED,
+      marginLeft: COLORS.SPACING.xs,
+    },
+  });
 
 export default FleetMapScreen;
