@@ -17,7 +17,7 @@
       "bundleIdentifier": "com.tulipfleet.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
-        "googleMapsApiKey": "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk"
+        "googleMapsApiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
       },
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "Cihaz kurulumu için Bluetooth gereklidir",
@@ -36,7 +36,7 @@
       "package": "com.tulipfleet.app",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCF0dHTuw9SJULB56eiimUt3RJIRnph3gk"
+          "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
         }
       },
       "permissions": [
