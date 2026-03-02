@@ -897,43 +897,6 @@ const DriverDashboard = () => {
         )}
       </Card>
 
-      {/* Safety Score Card */}
-      <Card>
-        <Text style={styles.cardTitle}>{t("dashboard.safetyScore")}</Text>
-        <View style={styles.safetyScoreContainer}>
-          <View style={styles.safetyScoreCircle}>
-            <Text
-              style={[
-                styles.safetyScoreNumber,
-                { color: getSafetyColor(stats?.safety_score, COLORS) },
-              ]}
-            >
-              {(stats?.safety_score || 5.0).toFixed(1)}
-            </Text>
-            <Text style={styles.safetyScoreMax}>/5.0</Text>
-          </View>
-          <View style={styles.safetyScoreBar}>
-            <View style={styles.safetyBarTrack}>
-              <View
-                style={[
-                  styles.safetyBarFill,
-                  {
-                    width: `${((stats?.safety_score || 5.0) / 5) * 100}%`,
-                    backgroundColor: getSafetyColor(
-                      stats?.safety_score,
-                      COLORS
-                    ),
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.safetyScoreLabel}>
-              {getSafetyLabel(stats?.safety_score, t)}
-            </Text>
-          </View>
-        </View>
-      </Card>
-
       {/* Stats Card */}
       <Card>
         <Text style={styles.cardTitle}>{t("dashboard.myStats")}</Text>

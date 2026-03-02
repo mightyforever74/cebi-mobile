@@ -1,10 +1,22 @@
-// src/screens/admin/AdminTasks.js
-// TulipFleet - Admin Görev Listesi Ekranı
-// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
+/**
+ * AdminTasks.js - v2.0
+ * TulipFleet - Admin Task Management
+ *
+ * Features:
+ * - Full i18n support (7 languages)
+ * - Status filter tabs (All / Pending / Active / Completed)
+ * - Expandable FlatList cards (tap to expand details)
+ * - DB-aligned statuses: pending_review, accepted, in_progress, completed, rejected
+ * - Theme-aware (UI System Guide v3)
+ * - Pull-to-refresh
+ *
+ * Created: 01 Mart 2026
+ */
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -20,7 +32,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { taskAPI } from "../../services/api";
 
-// --- helper: #RRGGBB => #RRGGBBAA ---
+// --- helper ---
 const withAlpha = (hex, alpha01) => {
   if (
     !hex ||
@@ -29,43 +41,44 @@ const withAlpha = (hex, alpha01) => {
     hex.length !== 7
   )
     return hex;
-  const a = Math.max(0, Math.min(1, alpha01));
-  const alpha = Math.round(a * 255)
+  const a = Math.round(Math.max(0, Math.min(1, alpha01)) * 255)
     .toString(16)
     .padStart(2, "0")
     .toUpperCase();
-  return `${hex}${alpha}`;
-};
-
-// Görev durumu Türkçe karşılıkları
-const STATUS_LABELS = {
-  pending: "Bekliyor",
-  assigned: "Atandı",
-  in_progress: "Devam Ediyor",
-  completed: "Tamamlandı",
-  cancelled: "İptal",
-  failed: "Başarısız",
-  pending_review: "İnceleme Bekliyor",
-};
-
-// Öncelik Türkçe karşılıkları
-const PRIORITY_LABELS = {
-  low: "Düşük",
-  normal: "Normal",
-  medium: "Orta",
-  high: "Yüksek",
-  urgent: "Acil",
+  return `${hex}${a}`;
 };
 
 // ============================================
-// makeStyles - UI Guide v3 compliant
+// FILTER TABS (DB-aligned statuses)
+// ============================================
+const FILTER_TABS = [
+  { key: "all", i18nKey: "adminTasks.filterAll", icon: "list" },
+  {
+    key: "pending",
+    i18nKey: "adminTasks.filterPending",
+    icon: "time-outline",
+    statuses: ["pending_review", "accepted"],
+  },
+  {
+    key: "active",
+    i18nKey: "adminTasks.filterActive",
+    icon: "play-circle-outline",
+    statuses: ["in_progress"],
+  },
+  {
+    key: "completed",
+    i18nKey: "adminTasks.filterCompleted",
+    icon: "checkmark-circle-outline",
+    statuses: ["completed"],
+  },
+];
+
+// ============================================
+// STYLES
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-    },
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
     centerContainer: {
       flex: 1,
       justifyContent: "center",
@@ -74,35 +87,40 @@ const makeStyles = (COLORS) =>
       padding: COLORS.SPACING.lg,
     },
 
-    // Header Stats
+    // Stats Header
     statsHeader: {
       flexDirection: "row",
       backgroundColor: COLORS.SURFACE,
       paddingVertical: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.sm,
-      marginBottom: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.xs,
       ...COLORS.SHADOWS.card,
     },
-    headerStatBox: {
+    statBox: {
       flex: 1,
       alignItems: "center",
+      paddingVertical: COLORS.SPACING.xs,
     },
-    headerStatValue: {
+    statBoxActive: {
+      borderBottomWidth: 3,
+      borderBottomColor: COLORS.PRIMARY,
+    },
+    statValue: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
-    headerStatLabel: {
+    statLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
       marginTop: 2,
     },
+    statLabelActive: {
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
 
     // List
-    listContainer: {
-      padding: COLORS.SPACING.sm,
-      paddingBottom: 80,
-    },
+    listContainer: { padding: COLORS.SPACING.sm, paddingBottom: 80 },
 
     // Card
     card: {
@@ -117,166 +135,169 @@ const makeStyles = (COLORS) =>
       justifyContent: "space-between",
       alignItems: "center",
       padding: COLORS.SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
     },
-    taskTitleContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-      minWidth: 140,
-    },
+    cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
     priorityDot: {
       width: COLORS.SPACING.sm,
       height: COLORS.SPACING.sm,
       borderRadius: COLORS.RADIUS.full,
       marginRight: COLORS.SPACING.sm,
     },
+    taskInfo: { flex: 1 },
     taskCode: {
       fontSize: COLORS.TYPOGRAPHY.sizes.md,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      flex: 1,
     },
-    headerActions: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginLeft: COLORS.SPACING.sm,
-    },
-    actionButton: {
-      padding: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.sm,
-      marginLeft: COLORS.SPACING.xs,
+    taskTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.MUTED,
+      marginTop: 2,
     },
     statusBadge: {
       paddingHorizontal: COLORS.SPACING.sm,
       paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.md,
-      marginLeft: COLORS.SPACING.xs,
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
-    cardBody: {
-      padding: COLORS.SPACING.sm,
-    },
-    taskTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      color: COLORS.TEXT,
-      marginBottom: COLORS.SPACING.xs,
-    },
-    taskDescription: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.MUTED,
-      marginBottom: COLORS.SPACING.sm,
-    },
-    infoGrid: {
-      marginTop: COLORS.SPACING.sm,
-    },
-    infoItem: {
+    // Compact info row
+    compactRow: {
       flexDirection: "row",
-      alignItems: "center",
-      marginBottom: COLORS.SPACING.xs,
-    },
-    infoText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.TEXT,
-      marginLeft: COLORS.SPACING.sm,
-      flex: 1,
-    },
-
-    cardFooter: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-      paddingVertical: COLORS.SPACING.sm,
       paddingHorizontal: COLORS.SPACING.sm,
+      paddingBottom: COLORS.SPACING.sm,
+      flexWrap: "wrap",
     },
-    footerItem: {
+    compactItem: {
       flexDirection: "row",
       alignItems: "center",
-      flex: 1,
+      marginRight: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.xs,
     },
-    footerText: {
+    compactText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.MUTED,
+      color: COLORS.TEXT_SECONDARY || COLORS.MUTED,
       marginLeft: COLORS.SPACING.xs,
     },
-    priorityBadge: {
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.sm,
-      marginLeft: COLORS.SPACING.sm,
+
+    // Expanded details
+    expandedSection: {
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      padding: COLORS.SPACING.sm,
     },
-    priorityText: {
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    detailIcon: { width: 24, alignItems: "center", marginTop: 2 },
+    detailLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.MUTED,
+      width: 80,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      flex: 1,
     },
 
-    // Empty State
-    emptyContainer: {
+    // Action buttons
+    actionRow: {
+      flexDirection: "row",
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      marginTop: COLORS.SPACING.sm,
+    },
+    actionBtn: {
       flex: 1,
-      justifyContent: "center",
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    actionBtnText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    actionDivider: {
+      width: 1,
+      backgroundColor: COLORS.DIVIDER,
+    },
+
+    // Priority badge
+    priorityBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: 2,
+      borderRadius: COLORS.RADIUS.sm,
+    },
+    priorityText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: 2,
+    },
+
+    // Empty & loading
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: COLORS.SPACING.xxxl,
     },
     emptyTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.TEXT,
       marginTop: COLORS.SPACING.md,
     },
     emptySubtitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.MUTED,
       textAlign: "center",
       marginTop: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.xxl,
+      paddingHorizontal: COLORS.SPACING.xl,
     },
-
-    // Error State
+    loadingText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.md,
+    },
     errorTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.ERROR,
       marginTop: COLORS.SPACING.md,
     },
     errorText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.MUTED,
       textAlign: "center",
       marginTop: COLORS.SPACING.sm,
     },
     retryButton: {
-      marginTop: COLORS.SPACING.lg,
+      marginTop: COLORS.SPACING.md,
       backgroundColor: COLORS.PRIMARY,
       paddingHorizontal: COLORS.SPACING.lg,
       paddingVertical: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.sm,
+      borderRadius: COLORS.RADIUS.md,
     },
     retryButtonText: {
       color: COLORS.WHITE,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-    },
-
-    // Loading
-    loadingText: {
-      marginTop: COLORS.SPACING.sm,
-      color: COLORS.MUTED,
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // FAB
     fab: {
       position: "absolute",
-      right: COLORS.SPACING.lg,
-      bottom: COLORS.SPACING.lg,
+      right: COLORS.SPACING.md,
+      bottom: COLORS.SPACING.md,
       width: 56,
       height: 56,
       borderRadius: COLORS.RADIUS.full,
@@ -293,40 +314,26 @@ const makeStyles = (COLORS) =>
 const AdminTasks = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
+  const { t, i18n } = useTranslation();
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [expandedId, setExpandedId] = useState(null);
 
-  // İstatistik hesaplamaları
-  const pendingCount = useMemo(
-    () =>
-      tasks.filter((t) => ["pending", "pending_review"].includes(t.status))
-        .length,
-    [tasks]
-  );
-  const inProgressCount = useMemo(
-    () =>
-      tasks.filter((t) => ["in_progress", "assigned"].includes(t.status))
-        .length,
-    [tasks]
-  );
-  const completedCount = useMemo(
-    () => tasks.filter((t) => t.status === "completed").length,
-    [tasks]
-  );
-
-  // Theme tabanlı durum/öncelik renkleri
+  // ============================================
+  // STATUS / PRIORITY CONFIG
+  // ============================================
   const STATUS_COLORS = useMemo(
     () => ({
-      pending: COLORS.WARNING,
-      assigned: COLORS.INFO,
+      pending_review: COLORS.WARNING,
+      accepted: COLORS.INFO,
       in_progress: COLORS.PRIMARY,
       completed: COLORS.SUCCESS,
+      rejected: COLORS.ERROR,
       cancelled: COLORS.ERROR,
-      failed: COLORS.ERROR,
-      pending_review: COLORS.INFO,
     }),
     [COLORS]
   );
@@ -335,51 +342,81 @@ const AdminTasks = ({ navigation }) => {
     () => ({
       low: COLORS.SUCCESS,
       normal: COLORS.INFO,
-      medium: COLORS.WARNING,
-      high: COLORS.ERROR,
+      high: COLORS.WARNING,
       urgent: COLORS.ERROR,
     }),
     [COLORS]
   );
 
-  // API'den görevleri çek
+  const getStatusLabel = (status) => t(`adminTasks.status.${status}`, status);
+  const getPriorityLabel = (priority) =>
+    t(`adminTasks.priority.${priority}`, priority);
+
+  // ============================================
+  // DATA
+  // ============================================
   const fetchTasks = async () => {
     try {
       setError(null);
-      console.log("📋 Fetching tasks...");
-
       const data = await taskAPI.getList();
-      console.log("✅ Tasks loaded:", data);
-
       const taskList = data.tasks || data || [];
       setTasks(Array.isArray(taskList) ? taskList : []);
     } catch (err) {
-      console.error("❌ Fetch tasks error:", err);
-      setError(err.message || "Görevler yüklenemedi");
+      setError(err.message || t("adminTasks.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Ekrana her dönüşte yenile
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchTasks();
     }, [])
   );
 
-  // Pull-to-refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTasks();
   }, []);
 
-  // Tarih formatla
+  // ============================================
+  // COUNTS & FILTER
+  // ============================================
+  const counts = useMemo(() => {
+    const c = { all: tasks.length, pending: 0, active: 0, completed: 0 };
+    tasks.forEach((tk) => {
+      if (["pending_review", "accepted"].includes(tk.status)) c.pending++;
+      else if (tk.status === "in_progress") c.active++;
+      else if (tk.status === "completed") c.completed++;
+    });
+    return c;
+  }, [tasks]);
+
+  const filteredTasks = useMemo(() => {
+    if (activeFilter === "all") return tasks;
+    const tab = FILTER_TABS.find((f) => f.key === activeFilter);
+    if (!tab?.statuses) return tasks;
+    return tasks.filter((tk) => tab.statuses.includes(tk.status));
+  }, [tasks, activeFilter]);
+
+  // ============================================
+  // FORMATTERS
+  // ============================================
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("tr-TR", {
+    const d = new Date(dateString);
+    const localeMap = {
+      tr: "tr-TR",
+      en: "en-US",
+      nl: "nl-NL",
+      it: "it-IT",
+      bg: "bg-BG",
+      es: "es-ES",
+      ku: "ku",
+    };
+    const locale = localeMap[i18n.language] || "en-US";
+    return d.toLocaleDateString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -388,32 +425,34 @@ const AdminTasks = ({ navigation }) => {
     });
   };
 
-  // Görev için teklif gönder
+  // ============================================
+  // ACTIONS
+  // ============================================
   const handleSendOffer = async (task) => {
     if (!task.driver_id) {
-      Alert.alert("Uyarı", "Bu göreve henüz sürücü atanmamış!");
+      Alert.alert(t("common.warning"), t("adminTasks.noDriverAssigned"));
       return;
     }
-
+    const driverName =
+      task.driver_first_name ||
+      task.driver_email?.split("@")[0] ||
+      t("adminTasks.driver");
     Alert.alert(
-      "Teklif Gönder",
-      `${
-        task.driver_first_name || task.driver_email?.split("@")[0] || "Sürücüye"
-      } görev teklifi göndermek istiyor musunuz?`,
+      t("adminTasks.sendOffer"),
+      t("adminTasks.sendOfferConfirm", { driver: driverName }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Gönder",
+          text: t("adminTasks.send"),
           onPress: async () => {
             try {
               await taskAPI.sendOffer(task.id, task.driver_id);
-              Alert.alert("✅ Başarılı", "Görev teklifi gönderildi!");
+              Alert.alert(t("common.success"), t("adminTasks.offerSent"));
               fetchTasks();
-            } catch (error) {
-              console.error("Send offer error:", error);
+            } catch (e) {
               Alert.alert(
-                "Hata",
-                error.response?.data?.error || "Teklif gönderilemedi"
+                t("common.error"),
+                e.response?.data?.error || t("adminTasks.offerFailed")
               );
             }
           },
@@ -422,25 +461,25 @@ const AdminTasks = ({ navigation }) => {
     );
   };
 
-  // Görev sil
   const handleDeleteTask = (task) => {
+    const taskName = task.title || task.task_no || "-";
     Alert.alert(
-      "Görevi Sil",
-      `"${task.title || task.task_no}" görevini silmek istediğinize emin misiniz?`,
+      t("adminTasks.deleteTask"),
+      t("adminTasks.deleteConfirm", { task: taskName }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Sil",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await taskAPI.delete(task.id);
-              Alert.alert("✅ Başarılı", "Görev silindi");
+              Alert.alert(t("common.success"), t("adminTasks.taskDeleted"));
               fetchTasks();
-            } catch (error) {
+            } catch (e) {
               Alert.alert(
-                "Hata",
-                error.response?.data?.error || "Görev silinemedi"
+                t("common.error"),
+                e.response?.data?.error || t("adminTasks.deleteFailed")
               );
             }
           },
@@ -449,239 +488,323 @@ const AdminTasks = ({ navigation }) => {
     );
   };
 
-  // Görev kartı
+  // ============================================
+  // RENDER CARD
+  // ============================================
   const renderTaskCard = ({ item }) => {
-    const status = item.status || "pending";
-    const statusColor = STATUS_COLORS[status] || COLORS.TEXT_SECONDARY;
-    const statusLabel = STATUS_LABELS[status] || status;
-
+    const status = item.status || "pending_review";
+    const statusColor = STATUS_COLORS[status] || COLORS.MUTED;
     const priority = item.priority || "normal";
     const priorityColor = PRIORITY_COLORS[priority] || COLORS.INFO;
-    const priorityLabel = PRIORITY_LABELS[priority] || priority;
+    const isExpanded = expandedId === item.id;
+    const canSendOffer = ["pending_review", "accepted"].includes(status);
 
-    const canSendOffer = ["pending", "assigned", "pending_review"].includes(
-      status
-    );
-
-    const taskCodeText =
-      item.title ||
-      item.task_code ||
+    const taskCode =
       item.task_no ||
+      item.task_code ||
       (item.id ? `TSK-${String(item.id).slice(0, 6)}` : "TSK");
+    const driverName = item.driver_first_name
+      ? `${item.driver_first_name} ${item.driver_last_name || ""}`.trim()
+      : item.driver_email?.split("@")[0] || t("adminTasks.noDriver");
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => {
-          Alert.alert(
-            "📋 Görev Detayı",
-            `Görev: ${item.title || item.task_code || "-"}\n` +
-              `Durum: ${statusLabel}\n` +
-              `Öncelik: ${priorityLabel}\n` +
-              `Açıklama: ${item.description || "-"}\n` +
-              `Başlangıç: ${item.start_location || "-"}\n` +
-              `Varış: ${item.end_location || "-"}`,
-            [{ text: "Tamam" }]
-          );
-        }}
+        onPress={() => setExpandedId(isExpanded ? null : item.id)}
         activeOpacity={0.7}
       >
-        {/* Üst Kısım */}
+        {/* Header: Task code + status badge */}
         <View style={styles.cardHeader}>
-          <View style={styles.taskTitleContainer}>
+          <View style={styles.cardLeft}>
             <View
               style={[styles.priorityDot, { backgroundColor: priorityColor }]}
             />
-            <Text style={styles.taskCode} numberOfLines={1}>
-              {taskCodeText}
-            </Text>
-          </View>
-
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate("EditTask", { task: item })}
-            >
-              <Ionicons name="pencil" size={18} color={COLORS.PRIMARY} />
-            </TouchableOpacity>
-
-            {canSendOffer && (
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: withAlpha(COLORS.SUCCESS, 0.12) },
-                ]}
-                onPress={() => handleSendOffer(item)}
-              >
-                <Ionicons name="send" size={18} color={COLORS.SUCCESS} />
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: withAlpha(COLORS.ERROR, 0.12) },
-              ]}
-              onPress={() => handleDeleteTask(item)}
-            >
-              <Ionicons name="trash-outline" size={18} color={COLORS.ERROR} />
-            </TouchableOpacity>
-
-            <View
-              style={[styles.statusBadge, { backgroundColor: statusColor }]}
-            >
-              <Text style={styles.statusText}>{statusLabel}</Text>
+            <View style={styles.taskInfo}>
+              <Text style={styles.taskCode} numberOfLines={1}>
+                {taskCode}
+              </Text>
+              {item.title ? (
+                <Text style={styles.taskTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+              ) : null}
             </View>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+            <Text style={styles.statusText}>{getStatusLabel(status)}</Text>
           </View>
         </View>
 
-        {/* Orta Kısım */}
-        <View style={styles.cardBody}>
-          {item.title && <Text style={styles.taskTitle}>{item.title}</Text>}
-
-          {item.description && (
-            <Text style={styles.taskDescription} numberOfLines={2}>
-              {item.description}
+        {/* Compact info: driver + vehicle + date */}
+        <View style={styles.compactRow}>
+          <View style={styles.compactItem}>
+            <Ionicons name="person-outline" size={14} color={COLORS.MUTED} />
+            <Text style={styles.compactText} numberOfLines={1}>
+              {driverName}
             </Text>
-          )}
+          </View>
+          <View style={styles.compactItem}>
+            <Ionicons name="car-outline" size={14} color={COLORS.MUTED} />
+            <Text style={styles.compactText} numberOfLines={1}>
+              {item.vehicle_plate || t("adminTasks.noVehicle")}
+            </Text>
+          </View>
+          <View style={styles.compactItem}>
+            <Ionicons name="calendar-outline" size={14} color={COLORS.MUTED} />
+            <Text style={styles.compactText}>
+              {formatDate(item.scheduled_start || item.created_at)}
+            </Text>
+          </View>
+        </View>
 
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Ionicons name="car" size={14} color={COLORS.MUTED} />
-              <Text style={styles.infoText} numberOfLines={1}>
-                {item.vehicle_plate || "Araç atanmadı"}
+        {/* Expanded details */}
+        {isExpanded && (
+          <View style={styles.expandedSection}>
+            {item.description ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={16}
+                    color={COLORS.MUTED}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminTasks.description")}
+                </Text>
+                <Text style={styles.detailValue}>{item.description}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Ionicons name="flag-outline" size={16} color={priorityColor} />
+              </View>
+              <Text style={styles.detailLabel}>
+                {t("adminTasks.priorityLabel")}
               </Text>
+              <View
+                style={[
+                  styles.priorityBadge,
+                  { backgroundColor: withAlpha(priorityColor, 0.12) },
+                ]}
+              >
+                <Ionicons name="flag" size={12} color={priorityColor} />
+                <Text style={[styles.priorityText, { color: priorityColor }]}>
+                  {getPriorityLabel(priority)}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.infoItem}>
-              <Ionicons name="person" size={14} color={COLORS.MUTED} />
-              <Text style={styles.infoText} numberOfLines={1}>
-                {item.driver_first_name
-                  ? `${item.driver_first_name} ${item.driver_last_name || ""}`.trim()
-                  : item.driver_email?.split("@")[0] || "Sürücü atanmadı"}
-              </Text>
-            </View>
-
-            {item.start_location && (
-              <View style={styles.infoItem}>
-                <Ionicons name="location" size={14} color={COLORS.SUCCESS} />
-                <Text style={styles.infoText} numberOfLines={1}>
+            {item.start_location ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="location-outline"
+                    size={16}
+                    color={COLORS.SUCCESS}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>{t("adminTasks.from")}</Text>
+                <Text style={styles.detailValue} numberOfLines={2}>
                   {item.start_location}
                 </Text>
               </View>
-            )}
+            ) : null}
 
-            {item.end_location && (
-              <View style={styles.infoItem}>
-                <Ionicons name="flag" size={14} color={COLORS.ERROR} />
-                <Text style={styles.infoText} numberOfLines={1}>
+            {item.end_location ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="flag-outline"
+                    size={16}
+                    color={COLORS.ERROR}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>{t("adminTasks.to")}</Text>
+                <Text style={styles.detailValue} numberOfLines={2}>
                   {item.end_location}
                 </Text>
               </View>
-            )}
-          </View>
-        </View>
+            ) : null}
 
-        {/* Alt Kısım */}
-        <View style={styles.cardFooter}>
-          <View style={styles.footerItem}>
-            <Ionicons name="calendar-outline" size={14} color={COLORS.MUTED} />
-            <Text style={styles.footerText}>
-              {formatDate(item.scheduled_date || item.created_at)}
-            </Text>
-          </View>
+            {item.total_distance_km ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={16}
+                    color={COLORS.INFO}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminTasks.distance")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {item.total_distance_km} km
+                </Text>
+              </View>
+            ) : null}
 
-          <View
-            style={[
-              styles.priorityBadge,
-              { backgroundColor: withAlpha(priorityColor, 0.12) },
-            ]}
-          >
-            <Text style={[styles.priorityText, { color: priorityColor }]}>
-              {priorityLabel}
-            </Text>
+            {item.scheduled_start ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="time-outline"
+                    size={16}
+                    color={COLORS.WARNING}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminTasks.scheduled")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {formatDate(item.scheduled_start)}
+                </Text>
+              </View>
+            ) : null}
+
+            {item.notes ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="chatbubble-outline"
+                    size={16}
+                    color={COLORS.MUTED}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>{t("adminTasks.notes")}</Text>
+                <Text style={styles.detailValue}>{item.notes}</Text>
+              </View>
+            ) : null}
+
+            {/* Action buttons */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("EditTask", { task: item })}
+              >
+                <Ionicons name="pencil" size={16} color={COLORS.PRIMARY} />
+                <Text style={[styles.actionBtnText, { color: COLORS.PRIMARY }]}>
+                  {t("common.edit")}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.actionDivider} />
+
+              {canSendOffer && (
+                <>
+                  <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={() => handleSendOffer(item)}
+                  >
+                    <Ionicons name="send" size={16} color={COLORS.SUCCESS} />
+                    <Text
+                      style={[styles.actionBtnText, { color: COLORS.SUCCESS }]}
+                    >
+                      {t("adminTasks.sendOffer")}
+                    </Text>
+                  </TouchableOpacity>
+                  <View style={styles.actionDivider} />
+                </>
+              )}
+
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => handleDeleteTask(item)}
+              >
+                <Ionicons name="trash-outline" size={16} color={COLORS.ERROR} />
+                <Text style={[styles.actionBtnText, { color: COLORS.ERROR }]}>
+                  {t("common.delete")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </TouchableOpacity>
     );
   };
 
-  // Boş liste
+  // ============================================
+  // EMPTY LIST
+  // ============================================
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="clipboard-outline" size={64} color={COLORS.MUTED} />
-      <Text style={styles.emptyTitle}>Görev Bulunamadı</Text>
-      <Text style={styles.emptySubtitle}>
-        Henüz kayıtlı görev yok veya yetkiniz dahilinde görev bulunmuyor.
-      </Text>
+      <Text style={styles.emptyTitle}>{t("adminTasks.noTasks")}</Text>
+      <Text style={styles.emptySubtitle}>{t("adminTasks.noTasksDesc")}</Text>
     </View>
   );
 
-  // Loading state
+  // ============================================
+  // LOADING / ERROR
+  // ============================================
   if (loading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Görevler yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("adminTasks.loading")}</Text>
       </View>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={64} color={COLORS.ERROR} />
-        <Text style={styles.errorTitle}>Hata Oluştu</Text>
+        <Text style={styles.errorTitle}>{t("common.error")}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchTasks}>
-          <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+          <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const handleAddTask = () => {
-    navigation.navigate("CreateTask");
-  };
-
+  // ============================================
+  // MAIN RENDER
+  // ============================================
   return (
     <View style={styles.container}>
-      {/* Header Stats */}
+      {/* Filter Tabs */}
       <View style={styles.statsHeader}>
-        <View style={styles.headerStatBox}>
-          <Text style={styles.headerStatValue}>{tasks.length}</Text>
-          <Text style={styles.headerStatLabel}>Toplam</Text>
-        </View>
+        {FILTER_TABS.map((tab) => {
+          const isActive = activeFilter === tab.key;
+          const count = counts[tab.key] || 0;
+          const colorMap = {
+            all: COLORS.TEXT,
+            pending: COLORS.WARNING,
+            active: COLORS.PRIMARY,
+            completed: COLORS.SUCCESS,
+          };
+          const tabColor = colorMap[tab.key] || COLORS.TEXT;
 
-        <View style={styles.headerStatBox}>
-          <Text style={[styles.headerStatValue, { color: COLORS.WARNING }]}>
-            {pendingCount}
-          </Text>
-          <Text style={styles.headerStatLabel}>Bekleyen</Text>
-        </View>
-
-        <View style={styles.headerStatBox}>
-          <Text style={[styles.headerStatValue, { color: COLORS.PRIMARY }]}>
-            {inProgressCount}
-          </Text>
-          <Text style={styles.headerStatLabel}>Devam Eden</Text>
-        </View>
-
-        <View style={styles.headerStatBox}>
-          <Text style={[styles.headerStatValue, { color: COLORS.SUCCESS }]}>
-            {completedCount}
-          </Text>
-          <Text style={styles.headerStatLabel}>Tamamlanan</Text>
-        </View>
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.statBox, isActive && styles.statBoxActive]}
+              onPress={() => setActiveFilter(tab.key)}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.statValue, isActive && { color: tabColor }]}>
+                {count}
+              </Text>
+              <Text
+                style={[styles.statLabel, isActive && styles.statLabelActive]}
+              >
+                {t(tab.i18nKey)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {/* Görev Listesi */}
+      {/* Task List */}
       <FlatList
-        data={tasks}
+        data={filteredTasks}
         renderItem={renderTaskCard}
         keyExtractor={(item) =>
-          item.id?.toString() || item.task_code || String(item.title || "")
+          item.id?.toString() || item.task_no || String(Math.random())
         }
         contentContainerStyle={styles.listContainer}
         refreshControl={
@@ -697,7 +820,10 @@ const AdminTasks = ({ navigation }) => {
       />
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddTask}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate("CreateTask")}
+      >
         <Ionicons name="add" size={28} color={COLORS.WHITE} />
       </TouchableOpacity>
     </View>

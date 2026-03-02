@@ -285,7 +285,7 @@ const DriverProfile = ({ navigation }) => {
       { text: t("profile.cancel"), style: "cancel" },
       {
         text: t("profile.sendEmail"),
-        onPress: () => Linking.openURL("mailto:mightyforever74@gmail.com"),
+        onPress: () => Linking.openURL("mailto:info@tulipfleet.com"),
       },
     ]);
   };
@@ -414,7 +414,7 @@ const DriverProfile = ({ navigation }) => {
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
           title={t("profile.contactUs")}
-          subtitle="mightyforever74@gmail.com"
+          subtitle="info@tulipfleet.com"
           onPress={handleSupport}
         />
         <View style={styles.divider} />

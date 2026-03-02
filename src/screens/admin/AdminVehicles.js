@@ -1,10 +1,22 @@
-// src/screens/admin/AdminVehicles.js
-// TulipFleet - Admin Araç Listesi Ekranı
-// Updated: 22 Şubat 2026 - UI Guide v3 full compliance
+/**
+ * AdminVehicles.js - v2.0
+ * TulipFleet - Admin Vehicle Management
+ *
+ * Features:
+ * - Full i18n (7 languages)
+ * - DB-aligned: available, in_use, maintenance, retired
+ * - Filter tabs (All / Available / In Use / Other)
+ * - Expandable cards
+ * - Online/offline ESP32
+ * - UI System Guide v3
+ *
+ * Created: 01 Mart 2026
+ */
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -20,8 +32,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 
-// --- helper: #RRGGBB => #RRGGBBAA ---
-const withAlpha = (hex, alpha01) => {
+const withAlpha = (hex, a) => {
   if (
     !hex ||
     typeof hex !== "string" ||
@@ -29,32 +40,30 @@ const withAlpha = (hex, alpha01) => {
     hex.length !== 7
   )
     return hex;
-  const a = Math.max(0, Math.min(1, alpha01));
-  const alpha = Math.round(a * 255)
+  return `${hex}${Math.round(Math.max(0, Math.min(1, a)) * 255)
     .toString(16)
     .padStart(2, "0")
-    .toUpperCase();
-  return `${hex}${alpha}`;
+    .toUpperCase()}`;
 };
 
-// Araç durumu Türkçe karşılıkları
-const STATUS_LABELS = {
-  active: "Aktif",
-  available: "Müsait",
-  inactive: "Pasif",
-  maintenance: "Bakımda",
-  offline: "Çevrimdışı",
-};
+const FILTER_TABS = [
+  { key: "all", i18nKey: "adminVehicles.filterAll" },
+  {
+    key: "available",
+    i18nKey: "adminVehicles.filterAvailable",
+    statuses: ["available"],
+  },
+  { key: "in_use", i18nKey: "adminVehicles.filterInUse", statuses: ["in_use"] },
+  {
+    key: "other",
+    i18nKey: "adminVehicles.filterOther",
+    statuses: ["maintenance", "retired"],
+  },
+];
 
-// ============================================
-// makeStyles - UI Guide v3 compliant
-// ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-    },
+    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
     centerContainer: {
       flex: 1,
       justifyContent: "center",
@@ -62,38 +71,34 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
       padding: COLORS.SPACING.lg,
     },
-
-    // Stats Header
     statsHeader: {
       flexDirection: "row",
       backgroundColor: COLORS.SURFACE,
-      paddingVertical: COLORS.SPACING.md,
-      paddingHorizontal: COLORS.SPACING.sm,
-      marginBottom: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.xs,
       ...COLORS.SHADOWS.card,
     },
     statBox: {
       flex: 1,
       alignItems: "center",
+      paddingVertical: COLORS.SPACING.xs,
     },
+    statBoxActive: { borderBottomWidth: 3, borderBottomColor: COLORS.PRIMARY },
     statValue: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     statLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
-
-    // List
-    listContainer: {
-      padding: COLORS.SPACING.sm,
-      paddingBottom: 80,
+    statLabelActive: {
+      color: COLORS.PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
-
-    // Card
+    listContainer: { padding: COLORS.SPACING.sm, paddingBottom: 80 },
     card: {
       backgroundColor: COLORS.SURFACE,
       borderRadius: COLORS.RADIUS.md,
@@ -105,37 +110,14 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: COLORS.SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
+      padding: COLORS.SPACING.sm,
     },
-    plateContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    plateRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginLeft: COLORS.SPACING.sm,
-      minWidth: 140,
-    },
+    cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
     plateText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      color: COLORS.PRIMARY,
-      marginRight: COLORS.SPACING.sm,
-    },
-    editButton: {
-      padding: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.sm,
-      backgroundColor: withAlpha(COLORS.PRIMARY, 0.12),
-      marginRight: COLORS.SPACING.xs,
-    },
-    deleteButton: {
-      padding: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.sm,
-      backgroundColor: withAlpha(COLORS.ERROR, 0.12),
+      color: COLORS.TEXT,
+      marginLeft: COLORS.SPACING.sm,
     },
     statusBadge: {
       paddingHorizontal: COLORS.SPACING.sm,
@@ -144,110 +126,141 @@ const makeStyles = (COLORS) =>
     },
     statusText: {
       color: COLORS.WHITE,
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
-
-    cardBody: {
-      padding: COLORS.SPACING.md,
+    compactRow: {
+      flexDirection: "row",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingBottom: COLORS.SPACING.sm,
+      flexWrap: "wrap",
     },
-    infoRow: {
+    compactItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: COLORS.SPACING.sm,
+      marginRight: COLORS.SPACING.md,
+      marginBottom: COLORS.SPACING.xs,
     },
-    infoText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.TEXT,
-      marginLeft: COLORS.SPACING.sm,
+    compactText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_SECONDARY || COLORS.MUTED,
+      marginLeft: COLORS.SPACING.xs,
     },
-
-    cardFooter: {
+    metricsRow: {
       flexDirection: "row",
-      backgroundColor: COLORS.BACKGROUND,
-      paddingVertical: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.md,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
     },
     metric: {
       flex: 1,
       alignItems: "center",
-      justifyContent: "center",
+      paddingVertical: COLORS.SPACING.sm,
     },
     metricValue: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     metricLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
       marginTop: 2,
     },
     metricDivider: {
       width: 1,
-      backgroundColor: COLORS.MUTED,
-      marginHorizontal: COLORS.SPACING.sm,
+      backgroundColor: COLORS.DIVIDER,
+      marginVertical: COLORS.SPACING.xs,
     },
-
-    // Empty State
-    emptyContainer: {
+    expandedSection: {
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      padding: COLORS.SPACING.sm,
+    },
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    detailIcon: { width: 24, alignItems: "center", marginTop: 2 },
+    detailLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.MUTED,
+      width: 90,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    detailValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       flex: 1,
-      justifyContent: "center",
+    },
+    actionRow: {
+      flexDirection: "row",
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+      marginTop: COLORS.SPACING.sm,
+    },
+    actionBtn: {
+      flex: 1,
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    actionBtnText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    actionDivider: { width: 1, backgroundColor: COLORS.DIVIDER },
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: COLORS.SPACING.xxxl,
     },
     emptyTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.TEXT,
       marginTop: COLORS.SPACING.md,
     },
     emptySubtitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.MUTED,
       textAlign: "center",
       marginTop: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.lg,
+      paddingHorizontal: COLORS.SPACING.xl,
     },
-
-    // Error State
+    loadingText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.MUTED,
+      marginTop: COLORS.SPACING.md,
+    },
     errorTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      ...COLORS.TYPOGRAPHY.styles.h3,
       color: COLORS.ERROR,
       marginTop: COLORS.SPACING.md,
     },
     errorText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      ...COLORS.TYPOGRAPHY.styles.body,
       color: COLORS.MUTED,
       textAlign: "center",
       marginTop: COLORS.SPACING.sm,
     },
     retryButton: {
-      marginTop: COLORS.SPACING.lg,
+      marginTop: COLORS.SPACING.md,
       backgroundColor: COLORS.PRIMARY,
       paddingHorizontal: COLORS.SPACING.lg,
       paddingVertical: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.sm,
+      borderRadius: COLORS.RADIUS.md,
     },
     retryButtonText: {
       color: COLORS.WHITE,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
-
-    // Loading
-    loadingText: {
-      marginTop: COLORS.SPACING.sm,
-      color: COLORS.MUTED,
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-    },
-
-    // FAB
     fab: {
       position: "absolute",
-      right: COLORS.SPACING.lg,
-      bottom: COLORS.SPACING.lg,
+      right: COLORS.SPACING.md,
+      bottom: COLORS.SPACING.md,
       width: 56,
       height: 56,
       borderRadius: COLORS.RADIUS.full,
@@ -258,87 +271,92 @@ const makeStyles = (COLORS) =>
     },
   });
 
-// ============================================
-// COMPONENT
-// ============================================
 const AdminVehicles = ({ navigation }) => {
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
+  const { t } = useTranslation();
 
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [expandedId, setExpandedId] = useState(null);
 
-  // Araç durumu renkleri (tema token'larından)
   const STATUS_COLORS = useMemo(
     () => ({
-      active: COLORS.SUCCESS,
       available: COLORS.SUCCESS,
       in_use: COLORS.INFO,
-      inactive: COLORS.MUTED,
       maintenance: COLORS.WARNING,
-      offline: COLORS.ERROR,
+      retired: COLORS.MUTED,
     }),
     [COLORS]
   );
 
-  // API'den araçları çek
+  const getStatusLabel = (s) => t(`adminVehicles.status.${s}`, s);
+
   const fetchVehicles = async () => {
     try {
       setError(null);
-      console.log("🚗 Fetching vehicles...");
-
       const data = await vehicleAPI.getList();
-      console.log("✅ Vehicles loaded:", data);
-
-      const vehicleList = data.vehicles || data || [];
-      setVehicles(Array.isArray(vehicleList) ? vehicleList : []);
+      const list = data.vehicles || data || [];
+      setVehicles(Array.isArray(list) ? list : []);
     } catch (err) {
-      console.error("❌ Fetch vehicles error:", err);
-      setError(err.message || "Araçlar yüklenemedi");
+      setError(err.message || t("adminVehicles.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // İlk yükleme
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchVehicles();
     }, [])
   );
-
-  // Pull-to-refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchVehicles();
   }, []);
 
-  const handleAddVehicle = () => {
-    navigation.navigate("CreateVehicle");
-  };
+  const counts = useMemo(() => {
+    const c = { all: vehicles.length, available: 0, in_use: 0, other: 0 };
+    vehicles.forEach((v) => {
+      if (v.status === "available") c.available++;
+      else if (v.status === "in_use") c.in_use++;
+      else c.other++;
+    });
+    return c;
+  }, [vehicles]);
 
-  // Silme işlemi
+  const filteredVehicles = useMemo(() => {
+    if (activeFilter === "all") return vehicles;
+    const tab = FILTER_TABS.find((f) => f.key === activeFilter);
+    if (!tab?.statuses) return vehicles;
+    return vehicles.filter((v) => tab.statuses.includes(v.status));
+  }, [vehicles, activeFilter]);
+
   const handleDeleteVehicle = (vehicle) => {
     Alert.alert(
-      "🗑️ Aracı Sil",
-      `"${vehicle.plate_no}" plakalı aracı silmek istediğinize emin misiniz?`,
+      t("adminVehicles.deleteVehicle"),
+      t("adminVehicles.deleteConfirm", { plate: vehicle.plate_no }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Sil",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await vehicleAPI.delete(vehicle.id);
-              Alert.alert("✅ Başarılı", "Araç silindi");
+              Alert.alert(
+                t("common.success"),
+                t("adminVehicles.vehicleDeleted")
+              );
               fetchVehicles();
             } catch (e) {
               Alert.alert(
-                "Hata",
-                e?.response?.data?.error || "Araç silinemedi"
+                t("common.error"),
+                e?.response?.data?.error || t("adminVehicles.deleteFailed")
               );
             }
           },
@@ -347,187 +365,304 @@ const AdminVehicles = ({ navigation }) => {
     );
   };
 
-  // Araç kartı
   const renderVehicleCard = ({ item: vehicle }) => {
-    const status = vehicle.status || "inactive";
+    const status = vehicle.status || "available";
     const statusColor = STATUS_COLORS[status] || COLORS.MUTED;
-    const statusLabel = STATUS_LABELS[status] || status;
+    const isExpanded = expandedId === vehicle.id;
+    const now = Date.now();
+    const lastTime = vehicle.last_location_time
+      ? new Date(vehicle.last_location_time).getTime()
+      : 0;
+    const isOnline = now - lastTime < 5 * 60 * 1000;
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => {
-          Alert.alert(
-            "🚗 " + vehicle.plate_no,
-            `Marka: ${vehicle.brand || "-"}\nModel: ${vehicle.model || "-"}\nYıl: ${
-              vehicle.year || "-"
-            }\nDurum: ${statusLabel}`,
-            [{ text: "Tamam" }]
-          );
-        }}
+        onPress={() => setExpandedId(isExpanded ? null : vehicle.id)}
         activeOpacity={0.7}
       >
-        {/* Üst Kısım - Plaka ve Durum */}
         <View style={styles.cardHeader}>
-          <View style={styles.plateContainer}>
-            <Ionicons name="car" size={24} color={COLORS.PRIMARY} />
-
-            <View style={styles.plateRow}>
-              <Text style={styles.plateText}>{vehicle.plate_no}</Text>
-
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => navigation.navigate("EditVehicle", { vehicle })}
-              >
-                <Ionicons name="pencil" size={18} color={COLORS.PRIMARY} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteVehicle(vehicle)}
-              >
-                <Ionicons name="trash-outline" size={18} color={COLORS.ERROR} />
-              </TouchableOpacity>
-            </View>
+          <View style={styles.cardLeft}>
+            <Ionicons name="car" size={22} color={COLORS.PRIMARY} />
+            <Text style={styles.plateText}>{vehicle.plate_no}</Text>
           </View>
-
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{statusLabel}</Text>
+            <Text style={styles.statusText}>{getStatusLabel(status)}</Text>
           </View>
         </View>
 
-        {/* Orta Kısım - Araç Bilgileri */}
-        <View style={styles.cardBody}>
-          <View style={styles.infoRow}>
-            <Ionicons name="construct" size={16} color={COLORS.MUTED} />
-            <Text style={styles.infoText}>
-              {vehicle.brand || "Marka"} {vehicle.model || "Model"}
+        <View style={styles.compactRow}>
+          <View style={styles.compactItem}>
+            <Ionicons name="construct-outline" size={14} color={COLORS.MUTED} />
+            <Text style={styles.compactText}>
+              {vehicle.brand || "-"} {vehicle.model || ""}
             </Text>
           </View>
-
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar" size={16} color={COLORS.MUTED} />
-            <Text style={styles.infoText}>{vehicle.year || "-"}</Text>
+          <View style={styles.compactItem}>
+            <Ionicons name="calendar-outline" size={14} color={COLORS.MUTED} />
+            <Text style={styles.compactText}>{vehicle.year || "-"}</Text>
           </View>
-
-          {vehicle.esp32_device_id && (
-            <View style={styles.infoRow}>
-              <Ionicons name="hardware-chip" size={16} color={COLORS.SUCCESS} />
-              <Text style={styles.infoText}>
-                ESP32: {vehicle.esp32_device_id.substring(0, 12)}...
-              </Text>
+          {vehicle.esp32_device_id ? (
+            <View style={styles.compactItem}>
+              <Ionicons
+                name="hardware-chip-outline"
+                size={14}
+                color={isOnline ? COLORS.SUCCESS : COLORS.MUTED}
+              />
+              <Text style={styles.compactText}>ESP32</Text>
             </View>
-          )}
+          ) : null}
         </View>
 
-        {/* Alt Kısım - Metrikler */}
-        <View style={styles.cardFooter}>
+        <View style={styles.metricsRow}>
           <View style={styles.metric}>
             <Text style={styles.metricValue}>
-              {vehicle.total_km?.toLocaleString() ||
-                vehicle.current_km?.toLocaleString() ||
-                "0"}
+              {vehicle.total_km
+                ? Number(vehicle.total_km).toLocaleString()
+                : "0"}
             </Text>
             <Text style={styles.metricLabel}>km</Text>
           </View>
-
           <View style={styles.metricDivider} />
-
           <View style={styles.metric}>
-            <Text style={styles.metricValue}>{vehicle.fuel_level || "0"}%</Text>
-            <Text style={styles.metricLabel}>Yakıt</Text>
+            <Text style={styles.metricValue}>
+              {vehicle.current_fuel_level || "0"}%
+            </Text>
+            <Text style={styles.metricLabel}>{t("adminVehicles.fuel")}</Text>
           </View>
-
           <View style={styles.metricDivider} />
-
           <View style={styles.metric}>
-            {(() => {
-              const now = Date.now();
-              const lastTime = vehicle.last_location_time
-                ? new Date(vehicle.last_location_time).getTime()
-                : 0;
-              const isOnline = now - lastTime < 5 * 60 * 1000;
-              return (
-                <Ionicons
-                  name={isOnline ? "wifi" : "wifi-outline"}
-                  size={20}
-                  color={isOnline ? COLORS.SUCCESS : COLORS.MUTED}
-                />
-              );
-            })()}
-            <Text style={styles.metricLabel}>ESP32</Text>
+            <Ionicons
+              name={isOnline ? "wifi" : "wifi-outline"}
+              size={20}
+              color={isOnline ? COLORS.SUCCESS : COLORS.MUTED}
+            />
+            <Text style={styles.metricLabel}>
+              {isOnline
+                ? t("adminVehicles.online")
+                : t("adminVehicles.offline")}
+            </Text>
           </View>
         </View>
+
+        {isExpanded && (
+          <View style={styles.expandedSection}>
+            {vehicle.fuel_type ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="flame-outline"
+                    size={16}
+                    color={COLORS.WARNING}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.fuelType")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {t(
+                    `adminVehicles.fuelTypes.${vehicle.fuel_type}`,
+                    vehicle.fuel_type
+                  )}
+                </Text>
+              </View>
+            ) : null}
+
+            {vehicle.fuel_capacity ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="beaker-outline"
+                    size={16}
+                    color={COLORS.INFO}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.tankCapacity")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {vehicle.fuel_capacity} L
+                </Text>
+              </View>
+            ) : null}
+
+            {vehicle.color ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="color-palette-outline"
+                    size={16}
+                    color={COLORS.PRIMARY}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.color")}
+                </Text>
+                <Text style={styles.detailValue}>{vehicle.color}</Text>
+              </View>
+            ) : null}
+
+            {vehicle.esp32_device_id ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="hardware-chip-outline"
+                    size={16}
+                    color={COLORS.SUCCESS}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.device")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {vehicle.esp32_device_id}
+                </Text>
+              </View>
+            ) : null}
+
+            {vehicle.vehicle_category ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={16}
+                    color={COLORS.MUTED}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.category")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {t(
+                    `adminVehicles.categories.${vehicle.vehicle_category}`,
+                    vehicle.vehicle_category
+                  )}
+                </Text>
+              </View>
+            ) : null}
+
+            {vehicle.last_maintenance_date ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons
+                    name="build-outline"
+                    size={16}
+                    color={COLORS.WARNING}
+                  />
+                </View>
+                <Text style={styles.detailLabel}>
+                  {t("adminVehicles.lastMaint")}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {new Date(vehicle.last_maintenance_date).toLocaleDateString()}
+                </Text>
+              </View>
+            ) : null}
+
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("EditVehicle", { vehicle })}
+              >
+                <Ionicons name="pencil" size={16} color={COLORS.PRIMARY} />
+                <Text style={[styles.actionBtnText, { color: COLORS.PRIMARY }]}>
+                  {t("common.edit")}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.actionDivider} />
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("VehicleTrack", { vehicle })}
+              >
+                <Ionicons name="location" size={16} color={COLORS.INFO} />
+                <Text style={[styles.actionBtnText, { color: COLORS.INFO }]}>
+                  {t("adminVehicles.track")}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.actionDivider} />
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => handleDeleteVehicle(vehicle)}
+              >
+                <Ionicons name="trash-outline" size={16} color={COLORS.ERROR} />
+                <Text style={[styles.actionBtnText, { color: COLORS.ERROR }]}>
+                  {t("common.delete")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
 
-  // Boş liste
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="car-outline" size={64} color={COLORS.MUTED} />
-      <Text style={styles.emptyTitle}>Araç Bulunamadı</Text>
+      <Text style={styles.emptyTitle}>{t("adminVehicles.noVehicles")}</Text>
       <Text style={styles.emptySubtitle}>
-        Henüz kayıtlı araç yok veya yetkiniz dahilinde araç bulunmuyor.
+        {t("adminVehicles.noVehiclesDesc")}
       </Text>
     </View>
   );
 
-  // Hata durumu
-  if (error && !loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle" size={64} color={COLORS.ERROR} />
-        <Text style={styles.errorTitle}>Hata Oluştu</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchVehicles}>
-          <Text style={styles.retryButtonText}>Tekrar Dene</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // Yükleniyor
   if (loading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Araçlar yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("adminVehicles.loading")}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle" size={64} color={COLORS.ERROR} />
+        <Text style={styles.errorTitle}>{t("common.error")}</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchVehicles}>
+          <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header Stats */}
       <View style={styles.statsHeader}>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{vehicles.length}</Text>
-          <Text style={styles.statLabel}>Toplam Araç</Text>
-        </View>
-
-        <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: COLORS.SUCCESS }]}>
-            {
-              vehicles.filter(
-                (v) => v.status === "active" || v.status === "available"
-              ).length
-            }
-          </Text>
-          <Text style={styles.statLabel}>Aktif</Text>
-        </View>
-
-        <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: COLORS.WARNING }]}>
-            {vehicles.filter((v) => v.status === "maintenance").length}
-          </Text>
-          <Text style={styles.statLabel}>Bakımda</Text>
-        </View>
+        {FILTER_TABS.map((tab) => {
+          const isActive = activeFilter === tab.key;
+          const count = counts[tab.key] || 0;
+          const colorMap = {
+            all: COLORS.TEXT,
+            available: COLORS.SUCCESS,
+            in_use: COLORS.INFO,
+            other: COLORS.WARNING,
+          };
+          const tabColor = colorMap[tab.key] || COLORS.TEXT;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.statBox, isActive && styles.statBoxActive]}
+              onPress={() => setActiveFilter(tab.key)}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.statValue, isActive && { color: tabColor }]}>
+                {count}
+              </Text>
+              <Text
+                style={[styles.statLabel, isActive && styles.statLabelActive]}
+              >
+                {t(tab.i18nKey)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {/* Araç Listesi */}
       <FlatList
-        data={vehicles}
+        data={filteredVehicles}
         renderItem={renderVehicleCard}
         keyExtractor={(item) => item.id?.toString() || item.plate_no}
         contentContainerStyle={styles.listContainer}
@@ -543,8 +678,10 @@ const AdminVehicles = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* FAB - Yeni Araç Ekle */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddVehicle}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate("CreateVehicle")}
+      >
         <Ionicons name="add" size={28} color={COLORS.WHITE} />
       </TouchableOpacity>
     </View>

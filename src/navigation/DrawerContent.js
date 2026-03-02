@@ -307,6 +307,14 @@ const DrawerContent = ({ navigation, state }) => {
 
   const [offersCount, setOffersCount] = useState(0);
   const [langModalVisible, setLangModalVisible] = useState(false);
+  const [, forceUpdate] = useState(0);
+
+  // Re-render drawer when language changes from ANY screen
+  useEffect(() => {
+    const onLangChanged = () => forceUpdate((n) => n + 1);
+    i18n.on("languageChanged", onLangChanged);
+    return () => i18n.off("languageChanged", onLangChanged);
+  }, [i18n]);
 
   // Get current route name (Drawer level)
   const currentDrawerRoute = state?.routes?.[state.index]?.name || "";

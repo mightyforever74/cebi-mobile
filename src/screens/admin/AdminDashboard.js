@@ -812,7 +812,7 @@ const makeStyles = (COLORS) =>
 const AdminDashboard = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
   // Güvenli fallback - INFO token yoksa PRIMARY kullan
@@ -866,6 +866,23 @@ const AdminDashboard = () => {
     loading: false,
   });
   const [detailSearch, setDetailSearch] = useState("");
+  const [showLangModal, setShowLangModal] = useState(false);
+
+  // Language options
+  const LANGUAGES = [
+    { code: "tr", label: "Türkçe", flag: "🇹🇷" },
+    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "nl", label: "Nederlands", flag: "🇳🇱" },
+    { code: "it", label: "Italiano", flag: "🇮🇹" },
+    { code: "bg", label: "Български", flag: "🇧🇬" },
+    { code: "es", label: "Español", flag: "🇪🇸" },
+    { code: "ku", label: "Kurdî", flag: "🏳️" },
+  ];
+  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+  const handleChangeLanguage = (langCode) => {
+    i18n.changeLanguage(langCode);
+    setShowLangModal(false);
+  };
 
   // CSV helper
   const generateCSV = (rows, columns) => {
@@ -1285,9 +1302,17 @@ const AdminDashboard = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.WHITE} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity
+              style={[styles.logoutButton, { marginRight: COLORS.SPACING.xs }]}
+              onPress={() => setShowLangModal(true)}
+            >
+              <Text style={{ fontSize: 16 }}>{currentLang.flag}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color={COLORS.WHITE} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Error */}
@@ -2015,6 +2040,69 @@ const AdminDashboard = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLangModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowLangModal(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}
+          activeOpacity={1}
+          onPress={() => setShowLangModal(false)}
+        >
+          <View style={{
+            backgroundColor: COLORS.SURFACE,
+            borderRadius: COLORS.RADIUS.lg,
+            padding: COLORS.SPACING.lg,
+            width: "80%",
+            maxWidth: 320,
+            ...COLORS.SHADOWS.card,
+          }}>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+              fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+              color: COLORS.TEXT,
+              marginBottom: COLORS.SPACING.md,
+              textAlign: "center",
+            }}>
+              {t("admin.selectLanguage", "Dil Seçin")}
+            </Text>
+            {LANGUAGES.map((lang) => {
+              const isActive = i18n.language === lang.code;
+              return (
+                <TouchableOpacity
+                  key={lang.code}
+                  onPress={() => handleChangeLanguage(lang.code)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: COLORS.SPACING.sm,
+                    paddingHorizontal: COLORS.SPACING.md,
+                    borderRadius: COLORS.RADIUS.md,
+                    marginBottom: COLORS.SPACING.xs,
+                    backgroundColor: isActive ? withAlpha(COLORS.PRIMARY, 0.12) : "transparent",
+                  }}
+                >
+                  <Text style={{ fontSize: 22, marginRight: COLORS.SPACING.sm }}>{lang.flag}</Text>
+                  <Text style={{
+                    flex: 1,
+                    fontSize: COLORS.TYPOGRAPHY.sizes.md,
+                    fontWeight: isActive ? COLORS.TYPOGRAPHY.weights.bold : COLORS.TYPOGRAPHY.weights.regular,
+                    color: isActive ? COLORS.PRIMARY : COLORS.TEXT,
+                  }}>
+                    {lang.label}
+                  </Text>
+                  {isActive && <Ionicons name="checkmark-circle" size={20} color={COLORS.PRIMARY} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </>
   );
 };

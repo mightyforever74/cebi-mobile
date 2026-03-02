@@ -1,11 +1,12 @@
-﻿// src/navigation/AppNavigator.js
+// src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliği
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizli�i
 // Updated: 21 Ocak 2026 - Hardcoded labels (no i18n prefixes) (korundu)
 
 import { Ionicons } from "@expo/vector-icons";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -208,8 +209,16 @@ const makeStyles = (COLORS) =>
 const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
   const { user, logout } = useAuth();
   const { COLORS } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useThemedStyles(makeStyles);
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render when language changes from Settings or anywhere
+  useEffect(() => {
+    const onLangChanged = () => forceUpdate((n) => n + 1);
+    i18n.on("languageChanged", onLangChanged);
+    return () => i18n.off("languageChanged", onLangChanged);
+  }, [i18n]);
 
   const handleLogout = () => {
     Alert.alert(t("auth.logout"), t("auth.logoutConfirm"), [
@@ -280,6 +289,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
       >
         {menuItems.map((item) => {
           const isActive = currentRoute === item.name;
+          const label = item.i18nKey ? t(item.i18nKey) : item.label;
           return (
             <TouchableOpacity
               key={item.name}
@@ -296,7 +306,7 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
               <Text
                 style={[styles.menuText, isActive && styles.menuTextActive]}
               >
-                {item.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );
@@ -334,41 +344,41 @@ const DriverNavigator = () => {
   const { COLORS } = useTheme();
   const { t } = useTranslation();
 
-  const headerColor = COLORS.SUCCESS; // önce #2DCE89
+  const headerColor = COLORS.SUCCESS; // �nce #2DCE89
   const menuItems = [
     {
       name: "DriverDashboard",
-      label: t("navigation.dashboard"),
+      i18nKey: "navigation.dashboard",
       icon: "speedometer-outline",
     },
-    { name: "MyTasks", label: t("navigation.myTasks"), icon: "list-outline" },
+    { name: "MyTasks", i18nKey: "navigation.myTasks", icon: "list-outline" },
     {
       name: "Navigation",
-      label: t("navigation.navigation"),
+      i18nKey: "navigation.navigation",
       icon: "navigate-outline",
     },
     {
       name: "FuelEntry",
-      label: t("navigation.fuelEntry"),
+      i18nKey: "navigation.fuelEntry",
       icon: "flame-outline",
     },
     {
       name: "MyVehicle",
-      label: t("navigation.myVehicle"),
+      i18nKey: "navigation.myVehicle",
       icon: "car-sport-outline",
     },
     {
       name: "DeviceSetup",
-      label: t("navigation.deviceSetup"),
+      i18nKey: "navigation.deviceSetup",
       icon: "bluetooth-outline",
     },
-    { name: "Profile", label: t("navigation.profile"), icon: "person-outline" },
+    { name: "Profile", i18nKey: "navigation.profile", icon: "person-outline" },
     {
       name: "DriverSettings",
-      label: t("navigation.settings"),
+      i18nKey: "navigation.settings",
       icon: "settings-outline",
     },
-    { name: "SOS", label: t("navigation.sos"), icon: "warning-outline" },
+    { name: "SOS", i18nKey: "navigation.sos", icon: "warning-outline" },
   ];
 
   return (
@@ -445,7 +455,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
       />
       <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
       <Text style={styles.placeholderDesc}>
-        {t(descriptionKey) || "Yakında..."}
+        {t(descriptionKey) || "Yak�nda..."}
       </Text>
     </View>
   );
@@ -453,7 +463,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
 
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Raporları"
+    titleKey="Platform Raporlar�"
     icon="bar-chart-outline"
     descriptionKey="Platform istatistikleri"
   />
@@ -461,9 +471,9 @@ const PlatformReportsScreen = () => (
 
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Ayarları"
+    titleKey="Platform Ayarlar�"
     icon="settings-outline"
-    descriptionKey="Sistem konfigürasyonu"
+    descriptionKey="Sistem konfig�rasyonu"
   />
 );
 
@@ -471,7 +481,7 @@ const DriverSOSScreen = () => (
   <PlaceholderScreen
     titleKey="Acil Durum"
     icon="warning-outline"
-    descriptionKey="SOS gönder"
+    descriptionKey="SOS g�nder"
   />
 );
 
@@ -505,14 +515,35 @@ const SADevicesStack = () => (
 // ============================================================================
 const SuperAdminNavigator = () => {
   const { COLORS } = useTheme();
+  const { t } = useTranslation();
 
-  const headerColor = COLORS.ERROR; // önce #F5365C
+  const headerColor = COLORS.ERROR; // �nce #F5365C
   const menuItems = [
-    { name: "SADashboard", label: "Dashboard", icon: "speedometer-outline" },
-    { name: "Companies", label: "Şirketler", icon: "business-outline" },
-    { name: "SADevices", label: "Cihazlar", icon: "hardware-chip-outline" },
-    { name: "PlatformUsers", label: "Kullanıcılar", icon: "people-outline" },
-    { name: "PlatformSettings", label: "Ayarlar", icon: "settings-outline" },
+    {
+      name: "SADashboard",
+      i18nKey: "navigation.dashboard",
+      icon: "speedometer-outline",
+    },
+    {
+      name: "Companies",
+      i18nKey: "navigation.companies",
+      icon: "business-outline",
+    },
+    {
+      name: "SADevices",
+      i18nKey: "navigation.devices",
+      icon: "hardware-chip-outline",
+    },
+    {
+      name: "PlatformUsers",
+      i18nKey: "navigation.platformUsers",
+      icon: "people-outline",
+    },
+    {
+      name: "PlatformSettings",
+      i18nKey: "navigation.settings",
+      icon: "settings-outline",
+    },
   ];
 
   return (
@@ -526,13 +557,13 @@ const SuperAdminNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          SADashboard: "Dashboard",
-          Companies: "Şirketler",
-          SADevices: "Cihazlar",
-          PlatformUsers: "Kullanıcılar",
-          SystemHealth: "Sistem Sağlığı",
-          PlatformReports: "Raporlar",
-          PlatformSettings: "Ayarlar",
+          SADashboard: t("navigation.dashboard"),
+          Companies: t("navigation.companies"),
+          SADevices: t("navigation.devices"),
+          PlatformUsers: t("navigation.platformUsers"),
+          SystemHealth: t("navigation.systemHealth"),
+          PlatformReports: t("navigation.reports"),
+          PlatformSettings: t("navigation.settings"),
         };
         return {
           headerStyle: { backgroundColor: headerColor, elevation: 4 },
@@ -598,22 +629,43 @@ const AdminFleetMapStack = () => (
 // ============================================================================
 const CompanyAdminNavigator = () => {
   const { COLORS } = useTheme();
+  const { t } = useTranslation();
 
-  const headerColor = COLORS.WARNING; // önce #FB6340
+  const headerColor = COLORS.WARNING; // �nce #FB6340
   const menuItems = [
-    { name: "AdminDashboard", label: "Dashboard", icon: "speedometer-outline" },
-    { name: "Vehicles", label: "Araçlar", icon: "car-sport-outline" },
-    { name: "Drivers", label: "Sürücüler", icon: "people-outline" },
-    { name: "Tasks", label: "Görevler", icon: "clipboard-outline" },
-    { name: "FleetMap", label: "Canlı Harita", icon: "map-outline" },
-    { name: "Reports", label: "Raporlar", icon: "bar-chart-outline" },
+    {
+      name: "AdminDashboard",
+      i18nKey: "navigation.dashboard",
+      icon: "speedometer-outline",
+    },
+    {
+      name: "Vehicles",
+      i18nKey: "navigation.vehicles",
+      icon: "car-sport-outline",
+    },
+    { name: "Drivers", i18nKey: "navigation.drivers", icon: "people-outline" },
+    { name: "Tasks", i18nKey: "navigation.tasks", icon: "clipboard-outline" },
+    { name: "FleetMap", i18nKey: "navigation.fleetMap", icon: "map-outline" },
+    {
+      name: "Reports",
+      i18nKey: "navigation.reports",
+      icon: "bar-chart-outline",
+    },
     {
       name: "FuelDashboard",
-      label: "Yakıt Analizi",
+      i18nKey: "navigation.fuelAnalysis",
       icon: "analytics-outline",
     },
-    { name: "Alerts", label: "Uyarılar", icon: "notifications-outline" },
-    { name: "Settings", label: "Ayarlar", icon: "settings-outline" },
+    {
+      name: "Alerts",
+      i18nKey: "navigation.alerts",
+      icon: "notifications-outline",
+    },
+    {
+      name: "Settings",
+      i18nKey: "navigation.settings",
+      icon: "settings-outline",
+    },
   ];
 
   return (
@@ -627,15 +679,15 @@ const CompanyAdminNavigator = () => {
       )}
       screenOptions={({ route }) => {
         const titles = {
-          AdminDashboard: "Dashboard",
-          Vehicles: "Araçlar",
-          Drivers: "Sürücüler",
-          Tasks: "Görevler",
-          FleetMap: "Canlı Harita",
-          Reports: "Raporlar",
-          FuelDashboard: "Yakıt Analizi",
-          Alerts: "Uyarılar",
-          Settings: "Ayarlar",
+          AdminDashboard: t("navigation.dashboard"),
+          Vehicles: t("navigation.vehicles"),
+          Drivers: t("navigation.drivers"),
+          Tasks: t("navigation.tasks"),
+          FleetMap: t("navigation.fleetMap"),
+          Reports: t("navigation.reports"),
+          FuelDashboard: t("navigation.fuelAnalysis"),
+          Alerts: t("navigation.alerts"),
+          Settings: t("navigation.settings"),
         };
         return {
           headerStyle: { backgroundColor: headerColor, elevation: 4 },
@@ -714,23 +766,23 @@ const AdminSettingsStack = () => (
 const AppNavigator = () => {
   const { user } = useAuth();
 
-  console.log("📱 AppNavigator - User:", user?.email, "Role:", user?.role);
+  console.log("?? AppNavigator - User:", user?.email, "Role:", user?.role);
 
   switch (user?.role) {
     case "super_admin":
-      console.log("🔴 Loading SuperAdmin Navigator");
+      console.log("?? Loading SuperAdmin Navigator");
       return <SuperAdminNavigator />;
 
     case "company_admin":
-      console.log("🟠 Loading CompanyAdmin Navigator");
+      console.log("?? Loading CompanyAdmin Navigator");
       return <CompanyAdminNavigator />;
 
     case "driver":
-      console.log("🟢 Loading Driver Navigator");
+      console.log("?? Loading Driver Navigator");
       return <DriverNavigator />;
 
     default:
-      console.log("⚠️ Unknown role:", user?.role, "- defaulting to Driver");
+      console.log("?? Unknown role:", user?.role, "- defaulting to Driver");
       return <DriverNavigator />;
   }
 };

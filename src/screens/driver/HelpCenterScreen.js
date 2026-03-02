@@ -569,7 +569,7 @@ const HelpCenterScreen = ({ navigation }) => {
   );
 
   const handleContactSupport = useCallback(() => {
-    const email = "mightyforever74@gmail.com";
+    const email = "info@tulipfleet.com";
     const subject = encodeURIComponent("TulipFleet - Destek Talebi");
     const body = encodeURIComponent(
       `\n\n---\nPlatform: ${Platform.OS} ${Platform.Version}\nUygulama: TulipFleet`
@@ -702,7 +702,7 @@ const HelpCenterScreen = ({ navigation }) => {
 
           <View style={styles.contactRow}>
             <Ionicons name="mail-outline" size={18} color={COLORS.MUTED} />
-            <Text style={styles.contactText}>mightyforever74@gmail.com</Text>
+            <Text style={styles.contactText}>info@tulipfleet.com</Text>
           </View>
           <View style={styles.contactRow}>
             <Ionicons name="call-outline" size={18} color={COLORS.MUTED} />

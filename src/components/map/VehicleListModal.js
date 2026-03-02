@@ -1,19 +1,21 @@
 /**
  * TulipFleet - Vehicle List Modal
- * Çoklu araç yönetimi için araç listesi modal'ı
+ * Fleet Map araç listesi modal
  *
- * Özellikler:
- * - Araç listesi görüntüleme
- * - Plaka ile arama
- * - Durum filtreleme (Tümü/Aktif/Müsait/Offline)
- * - Araç seçimi → Haritada zoom
+ * Features:
+ * - i18n (7 languages)
+ * - Online detection via last_location_time (5 min threshold)
+ * - DB-aligned statuses: available, in_use, maintenance, retired
+ * - Theme tokens (no hardcoded hex)
+ * - UI Guide v3 compliant (no gap property)
  *
- * @version 1.0.0
- * @date 28 Aralık 2025
+ * @version 2.0.0
+ * @date 01 Mart 2026
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   FlatList,
@@ -25,52 +27,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/config";
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
+import { useTheme } from "../../context/ThemeContext";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const MODAL_HEIGHT = SCREEN_HEIGHT * 0.7;
-
-const STATUS_CONFIG = {
-  in_use: {
-    label: "Aktif",
-    color: "#10B981",
-    icon: "car",
-    filterLabel: "Aktif",
-  },
-  available: {
-    label: "Müsait",
-    color: "#3B82F6",
-    icon: "car-outline",
-    filterLabel: "Müsait",
-  },
-  maintenance: {
-    label: "Bakımda",
-    color: "#F59E0B",
-    icon: "construct",
-    filterLabel: "Bakımda",
-  },
-  offline: {
-    label: "Offline",
-    color: "#6B7280",
-    icon: "cloud-offline",
-    filterLabel: "Offline",
-  },
-};
-
-const FILTER_OPTIONS = [
-  { key: "all", label: "Tümü" },
-  { key: "in_use", label: "Aktif" },
-  { key: "available", label: "Müsait" },
-  { key: "offline", label: "Offline" },
-];
-
-// ============================================================================
-// VEHICLE LIST MODAL COMPONENT
-// ============================================================================
+const ONLINE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
 
 const VehicleListModal = ({
   visible,
@@ -79,23 +40,93 @@ const VehicleListModal = ({
   onSelectVehicle,
   selectedVehicleId,
 }) => {
-  // State
+  const { COLORS } = useTheme();
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
-  // ============================================================================
-  // FILTERED VEHICLES
-  // ============================================================================
+  // Online check helper
+  const isVehicleOnline = (v) => {
+    if (!v.last_location_time) return false;
+    return (
+      Date.now() - new Date(v.last_location_time).getTime() < ONLINE_THRESHOLD
+    );
+  };
 
+  // STATUS CONFIG with theme colors
+  const STATUS_CONFIG = useMemo(
+    () => ({
+      in_use: {
+        i18nKey: "vehicleList.statusInUse",
+        color: COLORS.SUCCESS,
+        icon: "car",
+      },
+      available: {
+        i18nKey: "vehicleList.statusAvailable",
+        color: COLORS.INFO,
+        icon: "car-outline",
+      },
+      maintenance: {
+        i18nKey: "vehicleList.statusMaintenance",
+        color: COLORS.WARNING,
+        icon: "construct",
+      },
+      retired: {
+        i18nKey: "vehicleList.statusRetired",
+        color: COLORS.MUTED,
+        icon: "archive-outline",
+      },
+      offline: {
+        i18nKey: "vehicleList.statusOffline",
+        color: COLORS.MUTED,
+        icon: "cloud-offline",
+      },
+    }),
+    [COLORS]
+  );
+
+  // Determine effective status (online check overrides DB status)
+  const getEffectiveStatus = (vehicle) => {
+    const online = isVehicleOnline(vehicle);
+    if (!online) return "offline";
+    // If online, use DB status
+    return vehicle.status || "available";
+  };
+
+  // FILTER OPTIONS
+  const FILTER_OPTIONS = useMemo(
+    () => [
+      { key: "all", i18nKey: "vehicleList.filterAll" },
+      { key: "online", i18nKey: "vehicleList.filterOnline" },
+      { key: "available", i18nKey: "vehicleList.filterAvailable" },
+      { key: "offline", i18nKey: "vehicleList.filterOffline" },
+    ],
+    []
+  );
+
+  // Stats
+  const stats = useMemo(() => {
+    const online = vehicles.filter((v) => isVehicleOnline(v)).length;
+    return {
+      total: vehicles.length,
+      online,
+      available: vehicles.filter((v) => v.status === "available").length,
+      offline: vehicles.length - online,
+    };
+  }, [vehicles]);
+
+  // Filter
   const filteredVehicles = useMemo(() => {
     let result = vehicles;
 
-    // Durum filtresi
-    if (activeFilter !== "all") {
-      result = result.filter((v) => v.status === activeFilter);
+    if (activeFilter === "online") {
+      result = result.filter((v) => isVehicleOnline(v));
+    } else if (activeFilter === "available") {
+      result = result.filter((v) => v.status === "available");
+    } else if (activeFilter === "offline") {
+      result = result.filter((v) => !isVehicleOnline(v));
     }
 
-    // Arama filtresi
     if (searchText.trim()) {
       const search = searchText.toLowerCase().trim();
       result = result.filter((v) => {
@@ -113,33 +144,7 @@ const VehicleListModal = ({
     return result;
   }, [vehicles, activeFilter, searchText]);
 
-  // ============================================================================
-  // STATS
-  // ============================================================================
-
-  // Stats - Online = son 5 dakikada konum gönderen
-  const stats = useMemo(() => {
-    const now = Date.now();
-    const ONLINE_THRESHOLD = 5 * 60 * 1000; // 5 dakika
-
-    const isOnline = (v) => {
-      if (!v.last_location_time) return false;
-      return now - new Date(v.last_location_time).getTime() < ONLINE_THRESHOLD;
-    };
-
-    return {
-      total: vehicles.length,
-      in_use: vehicles.filter((v) => v.status === "in_use").length,
-      available: vehicles.filter((v) => v.status === "available").length,
-      offline: vehicles.filter((v) => !isOnline(v)).length,
-      online: vehicles.filter((v) => isOnline(v)).length,
-    };
-  }, [vehicles]);
-
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
-
+  // Handlers
   const handleSelectVehicle = useCallback(
     (vehicle) => {
       onSelectVehicle && onSelectVehicle(vehicle);
@@ -148,43 +153,47 @@ const VehicleListModal = ({
     [onSelectVehicle, onClose]
   );
 
-  const handleClearSearch = useCallback(() => {
-    setSearchText("");
-  }, []);
-
-  // ============================================================================
-  // RENDER VEHICLE ITEM
-  // ============================================================================
-
+  // Render vehicle item
   const renderVehicleItem = useCallback(
     ({ item: vehicle }) => {
-      const status = STATUS_CONFIG[vehicle.status] || STATUS_CONFIG.offline;
+      const effectiveStatus = getEffectiveStatus(vehicle);
+      const statusConfig =
+        STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.offline;
       const isSelected = vehicle.id === selectedVehicleId;
       const hasLocation = vehicle.latitude && vehicle.longitude;
+      const online = isVehicleOnline(vehicle);
 
       return (
         <TouchableOpacity
           style={[
             styles.vehicleItem,
-            isSelected && styles.vehicleItemSelected,
-            !hasLocation && styles.vehicleItemNoLocation,
+            { backgroundColor: COLORS.SURFACE, borderColor: COLORS.DIVIDER },
+            isSelected && {
+              backgroundColor: COLORS.PRIMARY + "15",
+              borderColor: COLORS.PRIMARY,
+            },
+            !hasLocation && { opacity: 0.5 },
           ]}
           onPress={() => handleSelectVehicle(vehicle)}
           disabled={!hasLocation}
         >
           {/* Status Icon */}
-          <View style={[styles.statusIcon, { backgroundColor: status.color }]}>
-            <Ionicons name={status.icon} size={18} color="#fff" />
+          <View
+            style={[styles.statusIcon, { backgroundColor: statusConfig.color }]}
+          >
+            <Ionicons name={statusConfig.icon} size={18} color={COLORS.WHITE} />
           </View>
 
           {/* Vehicle Info */}
           <View style={styles.vehicleInfo}>
-            <Text style={styles.plateText}>{vehicle.plate_no}</Text>
-            <Text style={styles.vehicleModel}>
+            <Text style={[styles.plateText, { color: COLORS.TEXT }]}>
+              {vehicle.plate_no}
+            </Text>
+            <Text style={[styles.vehicleModel, { color: COLORS.MUTED }]}>
               {vehicle.brand} {vehicle.model}
             </Text>
-            {vehicle.speed != null && hasLocation && (
-              <Text style={styles.speedText}>
+            {vehicle.speed != null && hasLocation && online && (
+              <Text style={[styles.speedText, { color: COLORS.SUCCESS }]}>
                 {Math.round(vehicle.speed)} km/s
               </Text>
             )}
@@ -195,40 +204,55 @@ const VehicleListModal = ({
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: `${status.color}20` },
+                { backgroundColor: statusConfig.color + "20" },
               ]}
             >
               <View
-                style={[styles.statusDot, { backgroundColor: status.color }]}
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: statusConfig.color },
+                ]}
               />
-              <Text style={[styles.statusText, { color: status.color }]}>
-                {status.label}
+              <Text
+                style={[styles.statusTextBadge, { color: statusConfig.color }]}
+              >
+                {t(statusConfig.i18nKey)}
               </Text>
             </View>
             {!hasLocation && (
-              <Text style={styles.noLocationText}>Konum yok</Text>
+              <Text style={[styles.noLocationText, { color: COLORS.MUTED }]}>
+                {t("vehicleList.noLocation")}
+              </Text>
             )}
           </View>
 
-          {/* Selection Indicator */}
+          {/* Selection */}
           {isSelected && (
             <View style={styles.selectedIndicator}>
               <Ionicons
                 name="checkmark-circle"
                 size={20}
-                color={COLORS.primary}
+                color={COLORS.PRIMARY}
               />
             </View>
           )}
         </TouchableOpacity>
       );
     },
-    [selectedVehicleId, handleSelectVehicle]
+    [selectedVehicleId, handleSelectVehicle, COLORS, STATUS_CONFIG, t]
   );
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
+  // Dynamic styles
+  const dynamicStyles = useMemo(
+    () => ({
+      modalBg: { backgroundColor: COLORS.SURFACE },
+      headerBorder: { borderBottomColor: COLORS.DIVIDER },
+      searchBg: { backgroundColor: COLORS.BACKGROUND },
+      filterBg: { backgroundColor: COLORS.BACKGROUND },
+      filterActiveBg: { backgroundColor: COLORS.PRIMARY },
+    }),
+    [COLORS]
+  );
 
   return (
     <Modal
@@ -240,50 +264,61 @@ const VehicleListModal = ({
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} onPress={onClose} />
 
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, dynamicStyles.modalBg]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, dynamicStyles.headerBorder]}>
             <View style={styles.handleContainer}>
-              <View style={styles.handle} />
+              <View
+                style={[styles.handle, { backgroundColor: COLORS.DIVIDER }]}
+              />
             </View>
 
             <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>Araç Listesi</Text>
+              <Text style={[styles.headerTitle, { color: COLORS.TEXT }]}>
+                {t("vehicleList.title")}
+              </Text>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Ionicons name="close" size={24} color={COLORS.gray} />
+                <Ionicons name="close" size={24} color={COLORS.MUTED} />
               </TouchableOpacity>
             </View>
 
             {/* Stats */}
             <View style={styles.statsRow}>
-              <Text style={styles.statsText}>
-                Toplam: <Text style={styles.statsBold}>{stats.total}</Text>
+              <Text style={[styles.statsText, { color: COLORS.MUTED }]}>
+                {t("vehicleList.total")}:{" "}
+                <Text style={styles.statsBold}>{stats.total}</Text>
               </Text>
-              <Text style={[styles.statsText, { color: "#10B981" }]}>
-                Aktif: <Text style={styles.statsBold}>{stats.in_use}</Text>
+              <Text style={[styles.statsText, { color: COLORS.SUCCESS }]}>
+                {t("vehicleList.online")}:{" "}
+                <Text style={styles.statsBold}>{stats.online}</Text>
               </Text>
-              <Text style={[styles.statsText, { color: "#3B82F6" }]}>
-                Müsait: <Text style={styles.statsBold}>{stats.available}</Text>
+              <Text style={[styles.statsText, { color: COLORS.MUTED }]}>
+                {t("vehicleList.offline")}:{" "}
+                <Text style={styles.statsBold}>{stats.offline}</Text>
               </Text>
             </View>
           </View>
 
-          {/* Search Bar */}
+          {/* Search */}
           <View style={styles.searchContainer}>
-            <View style={styles.searchInputWrapper}>
-              <Ionicons name="search" size={18} color={COLORS.gray} />
+            <View style={[styles.searchInputWrapper, dynamicStyles.searchBg]}>
+              <Ionicons name="search" size={18} color={COLORS.MUTED} />
               <TextInput
-                style={styles.searchInput}
-                placeholder="Plaka veya model ara..."
-                placeholderTextColor={COLORS.gray}
+                style={[styles.searchInput, { color: COLORS.TEXT }]}
+                placeholder={t("vehicleList.searchPlaceholder")}
+                placeholderTextColor={COLORS.MUTED}
                 value={searchText}
                 onChangeText={setSearchText}
                 autoCapitalize="characters"
                 autoCorrect={false}
               />
               {searchText.length > 0 && (
-                <TouchableOpacity onPress={handleClearSearch}>
-                  <Ionicons name="close-circle" size={18} color={COLORS.gray} />
+                <TouchableOpacity onPress={() => setSearchText("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={COLORS.MUTED}
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -294,21 +329,25 @@ const VehicleListModal = ({
             {FILTER_OPTIONS.map((filter) => {
               const isActive = activeFilter === filter.key;
               const count =
-                filter.key === "all" ? stats.total : stats[filter.key] || 0;
-
+                stats[filter.key] || (filter.key === "all" ? stats.total : 0);
               return (
                 <TouchableOpacity
                   key={filter.key}
-                  style={[styles.filterTab, isActive && styles.filterTabActive]}
+                  style={[
+                    styles.filterTab,
+                    isActive
+                      ? dynamicStyles.filterActiveBg
+                      : dynamicStyles.filterBg,
+                  ]}
                   onPress={() => setActiveFilter(filter.key)}
                 >
                   <Text
                     style={[
                       styles.filterText,
-                      isActive && styles.filterTextActive,
+                      { color: isActive ? COLORS.WHITE : COLORS.MUTED },
                     ]}
                   >
-                    {filter.label}
+                    {t(filter.i18nKey)}
                   </Text>
                   <View
                     style={[
@@ -319,7 +358,7 @@ const VehicleListModal = ({
                     <Text
                       style={[
                         styles.filterBadgeText,
-                        isActive && styles.filterBadgeTextActive,
+                        { color: isActive ? COLORS.WHITE : COLORS.MUTED },
                       ]}
                     >
                       {count}
@@ -334,15 +373,17 @@ const VehicleListModal = ({
           <FlatList
             data={filteredVehicles}
             renderItem={renderVehicleItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id?.toString()}
             style={styles.list}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Ionicons name="car-outline" size={48} color={COLORS.gray} />
-                <Text style={styles.emptyText}>
-                  {searchText ? "Araç bulunamadı" : "Henüz araç yok"}
+                <Ionicons name="car-outline" size={48} color={COLORS.MUTED} />
+                <Text style={[styles.emptyText, { color: COLORS.MUTED }]}>
+                  {searchText
+                    ? t("vehicleList.notFound")
+                    : t("vehicleList.empty")}
                 </Text>
               </View>
             }
@@ -353,22 +394,14 @@ const VehicleListModal = ({
   );
 };
 
-// ============================================================================
-// STYLES
-// ============================================================================
-
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
+  overlay: { flex: 1, justifyContent: "flex-end" },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
     height: MODAL_HEIGHT,
-    backgroundColor: COLORS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     ...Platform.select({
@@ -378,77 +411,41 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
       },
-      android: {
-        elevation: 16,
-      },
+      android: { elevation: 16 },
     }),
   },
-  header: {
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  handleContainer: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 2,
-  },
+  header: { paddingBottom: 12, borderBottomWidth: 1 },
+  handleContainer: { alignItems: "center", paddingVertical: 12 },
+  handle: { width: 40, height: 4, borderRadius: 2 },
   headerContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  closeButton: {
-    padding: 4,
-  },
+  headerTitle: { fontSize: 18, fontWeight: "700" },
+  closeButton: { padding: 4 },
   statsRow: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 16,
     marginTop: 8,
-  },
-  statsText: {
-    fontSize: 12,
-    color: COLORS.gray,
-  },
-  statsBold: {
-    fontWeight: "700",
-  },
-  searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
+  statsText: { fontSize: 12, marginRight: 16 },
+  statsBold: { fontWeight: "700" },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 12 },
   searchInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F3F4F6",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    gap: 8,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.text,
-    padding: 0,
-  },
+  searchInput: { flex: 1, fontSize: 14, padding: 0, marginHorizontal: 8 },
   filterContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingBottom: 12,
-    gap: 8,
   },
   filterTab: {
     flex: 1,
@@ -456,45 +453,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-    gap: 4,
+    marginRight: 8,
   },
-  filterTabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.gray,
-  },
-  filterTextActive: {
-    color: "#fff",
-  },
+  filterText: { fontSize: 12, fontWeight: "600" },
   filterBadge: {
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "rgba(0,0,0,0.08)",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,
+    marginLeft: 4,
   },
-  filterBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  filterBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: COLORS.gray,
-  },
-  filterBadgeTextActive: {
-    color: "#fff",
-  },
-  list: {
-    flex: 1,
-  },
+  filterBadgeActive: { backgroundColor: "rgba(255, 255, 255, 0.3)" },
+  filterBadgeText: { fontSize: 10, fontWeight: "700" },
+  list: { flex: 1 },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === "ios" ? 34 : 16,
@@ -504,17 +480,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     marginBottom: 8,
-    backgroundColor: "#FAFAFA",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#F3F4F6",
-  },
-  vehicleItemSelected: {
-    backgroundColor: "#EEF2FF",
-    borderColor: COLORS.primary,
-  },
-  vehicleItemNoLocation: {
-    opacity: 0.5,
   },
   statusIcon: {
     width: 40,
@@ -523,74 +490,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  vehicleInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  plateText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  vehicleModel: {
-    fontSize: 12,
-    color: COLORS.gray,
-    marginTop: 2,
-  },
-  speedText: {
-    fontSize: 11,
-    color: "#10B981",
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  espActiveText: {
-    fontSize: 11,
-    color: "#10B981",
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  rightSection: {
-    alignItems: "flex-end",
-  },
+  vehicleInfo: { flex: 1, marginLeft: 12 },
+  plateText: { fontSize: 15, fontWeight: "700" },
+  vehicleModel: { fontSize: 12, marginTop: 2 },
+  speedText: { fontSize: 11, fontWeight: "600", marginTop: 2 },
+  rightSection: { alignItems: "flex-end" },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    gap: 4,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  noLocationText: {
-    fontSize: 10,
-    color: COLORS.gray,
-    marginTop: 4,
-  },
-  selectedIndicator: {
-    marginLeft: 8,
-  },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
+  statusTextBadge: { fontSize: 11, fontWeight: "600" },
+  noLocationText: { fontSize: 10, marginTop: 4 },
+  selectedIndicator: { marginLeft: 8 },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 48,
   },
-  emptyText: {
-    fontSize: 14,
-    color: COLORS.gray,
-    marginTop: 12,
-  },
+  emptyText: { fontSize: 14, marginTop: 12 },
 });
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
 
 export default VehicleListModal;

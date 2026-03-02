@@ -15,6 +15,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
@@ -161,6 +162,7 @@ const DriverSettings = ({ navigation }) => {
   // Konum
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [locationPermission, setLocationPermission] = useState(null);
+  const [privacyModal, setPrivacyModal] = useState(false);
 
   // ============================================
   // Helpers
@@ -447,15 +449,12 @@ const DriverSettings = ({ navigation }) => {
       `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nPlatform: ${Platform.OS}\nVersiyon: 2.1.0`
     );
     Linking.openURL(
-      `mailto:mightyforever74@gmail.com?subject=${subject}&body=${body}`
+      `mailto:info@tulipfleet.com?subject=${subject}&body=${body}`
     );
   };
 
   const handlePrivacyPolicy = () => {
-    const url = `${BASE_URL}/${currentLang}/privacy`;
-    Linking.openURL(url).catch((err) =>
-      console.error("Error opening privacy policy:", err)
-    );
+    setPrivacyModal(true);
   };
 
   const handleAbout = () => {
@@ -658,7 +657,7 @@ const DriverSettings = ({ navigation }) => {
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
           title={t("settings.contactUs")}
-          subtitle="mightyforever74@gmail.com"
+          subtitle="info@tulipfleet.com"
           onPress={handleSupport}
         />
         <View style={styles.divider} />
@@ -696,6 +695,101 @@ const DriverSettings = ({ navigation }) => {
         <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        visible={privacyModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setPrivacyModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: COLORS.BACKGROUND }}>
+          <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: COLORS.SPACING.md,
+            paddingTop: Platform.OS === "ios" ? 56 : COLORS.SPACING.lg,
+            paddingBottom: COLORS.SPACING.md,
+            backgroundColor: COLORS.SURFACE,
+            borderBottomWidth: 1,
+            borderBottomColor: COLORS.DIVIDER,
+          }}>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+              fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+              color: COLORS.TEXT,
+            }}>
+              {t("settings.privacyPolicy") || "Privacy Policy"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setPrivacyModal(false)}
+              style={{
+                width: 36, height: 36, borderRadius: 18,
+                backgroundColor: COLORS.CARD,
+                alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <Ionicons name="close" size={20} color={COLORS.MUTED} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: COLORS.SPACING.lg, paddingBottom: 40 }}>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.MUTED, marginBottom: COLORS.SPACING.md }}>
+              Last updated: 01.03.2026
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              1. Introduction
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"TulipFleet (\"we\", \"our\", \"us\") operates a fleet management platform including mobile applications and IoT devices. This Privacy Policy explains how we collect, use, store, and protect your personal data in compliance with the General Data Protection Regulation (GDPR) and applicable data protection laws."}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              2. Data We Collect
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"• Account Information: Name, email, phone, company\n• Vehicle Data: Plate, brand, model, fuel type, mileage\n• Location Data: Real-time GPS from IoT devices\n• Driving Data: Speed, acceleration, braking, routes\n• Device Data: ESP32 identifiers, firmware, connectivity\n• Usage Data: App patterns, login timestamps"}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              3. How We Use Your Data
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"• Fleet Management: Vehicle tracking, route optimization\n• Safety Monitoring: Hard braking, acceleration events\n• Reporting: Performance reports, fuel analytics\n• Communication: Push notifications for tasks and alerts\n• Service Improvement: Usage analysis"}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              4. Data Storage & Security
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"• Servers located in the EU (Germany)\n• TLS/SSL encryption for all data\n• MQTT with TLS encryption\n• Passwords hashed with bcrypt\n• JWT authentication with auto-expiry\n• Location data retained 7 days\n• Regular security audits"}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              5. Data Sharing
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"We do not sell your personal data.\n\n• Your Company Admin can view fleet data\n• Google Maps API for routing\n• Firebase for push notifications\n• Legal requirements when applicable"}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              6. Your Rights (GDPR)
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"• Access: Request a copy of your data\n• Rectification: Correct inaccurate data\n• Erasure: Request deletion\n• Portability: Receive data in structured format\n• Restriction: Restrict processing\n• Objection: Object to processing\n\nContact: destek@tulipfleet.com"}
+            </Text>
+
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              7. Contact
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: COLORS.SPACING.lg }}>
+              {"TulipFleet\nEmail: destek@tulipfleet.com\nWeb: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. All rights reserved."}
+            </Text>
+          </ScrollView>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 };

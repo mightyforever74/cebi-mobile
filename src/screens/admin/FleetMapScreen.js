@@ -14,6 +14,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Platform,
   StyleSheet,
@@ -202,6 +203,7 @@ const mStyles = StyleSheet.create({
 const FleetMapScreen = ({ navigation }) => {
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
+  const { t, i18n } = useTranslation();
 
   // Refs
   const mapRef = useRef(null);
@@ -506,23 +508,31 @@ const FleetMapScreen = ({ navigation }) => {
           activeOpacity={0.8}
         >
           <Text style={styles.statsText}>
-            {"\uD83D\uDE97"} {stats.total} Arac{" | "}
+            {"\uD83D\uDE97"} {stats.total} {t("fleetMap.vehicle")}
+            {" | "}
             <Text style={styles.activeText}>
-              {"\u25CF"} {stats.online} Online
+              {"\u25CF"} {stats.online} {t("fleetMap.online")}
             </Text>
             {" | "}
             <Text style={styles.offlineText}>
-              {"\u25CF"} {stats.offline} Offline
+              {"\u25CF"} {stats.offline} {t("fleetMap.offline")}
             </Text>
           </Text>
           {lastUpdate && (
             <Text style={styles.updateText}>
-              Son guncelleme: {lastUpdate.toLocaleTimeString("tr-TR")}
+              {t("fleetMap.lastUpdate")}:{" "}
+              {lastUpdate.toLocaleTimeString(
+                i18n.language === "tr"
+                  ? "tr-TR"
+                  : i18n.language === "nl"
+                    ? "nl-NL"
+                    : "en-US"
+              )}
             </Text>
           )}
           <View style={styles.statsHint}>
             <Ionicons name="chevron-up" size={14} color={COLORS.TEXT_MUTED} />
-            <Text style={styles.statsHintText}>Liste icin dokun</Text>
+            <Text style={styles.statsHintText}>{t("fleetMap.tapForList")}</Text>
           </View>
         </TouchableOpacity>
       )}
