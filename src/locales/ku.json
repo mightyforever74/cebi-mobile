@@ -1675,5 +1675,29 @@
     "noResultsYet": "Hêj encam tune ne",
     "availableDevices": "Cîhazên Amade",
     "noDevicesAvailable": "Cîhazên amade tune ne"
+  },
+  "createDriver": {
+    "accountInfo": "Agahiyên hesabê",
+    "email": "E-posta",
+    "password": "Şîfre",
+    "passwordPlaceholder": "Herî kêm 6 tîp",
+    "personalInfo": "Agahiyên kesane",
+    "firstName": "Nav",
+    "lastName": "Paşnav",
+    "phone": "Telefon",
+    "licenseInfo": "Agahiyên lîsansê",
+    "licenseNo": "Jimareya lîsansê",
+    "licenseExpiry": "Dema bitemê ya lîsansê",
+    "emergency": "Têkiliya acîl",
+    "emergencyContact": "Têkiliya acîl (Nav - Telefon)",
+    "addDriver": "Ajokar zêde bike",
+    "success": "✅ Serkeftin",
+    "driverAdded": "Ajokar bi serfirazî hat zêdekirin",
+    "error": "Çewtî",
+    "emailRequired": "E-posta pêwîst e",
+    "passwordRequired": "Şîfre pêwîst e",
+    "passwordMinLength": "Şîfre divê herî kêm 6 tîp be",
+    "licenseRequired": "Jimareya lîsansê pêwîst e",
+    "createFailed": "Ajokar nehat afirandin"
   }
 }

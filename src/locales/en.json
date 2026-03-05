@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -1513,5 +1513,29 @@
     "s6Body": "Under GDPR, you have the right to:\n\n• Access: Request a copy of your personal data\n• Rectification: Correct inaccurate personal data\n• Erasure: Request deletion of your personal data\n• Portability: Receive your data in a structured, machine-readable format\n• Restriction: Restrict the processing of your data\n• Objection: Object to data processing based on legitimate interests\n\nTo exercise these rights, contact us at: destek@tulipfleet.com",
     "s7Title": "7. Contact",
     "s7Body": "TulipFleet\nEmail: destek@tulipfleet.com\nWebsite: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. All rights reserved."
+  },
+  "createDriver": {
+    "accountInfo": "Account Info",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "personalInfo": "Personal Info",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone",
+    "licenseInfo": "License Info",
+    "licenseNo": "License No",
+    "licenseExpiry": "License Expiry",
+    "emergency": "Emergency Contact",
+    "emergencyContact": "Emergency Contact (Name - Phone)",
+    "addDriver": "Add Driver",
+    "success": "✅ Success",
+    "driverAdded": "Driver added successfully",
+    "error": "Error",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "licenseRequired": "License number is required",
+    "createFailed": "Failed to create driver"
   }
 }

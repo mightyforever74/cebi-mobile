@@ -1533,5 +1533,29 @@
     "disconnected": "Прекъснат",
     "noDevices": "Няма намерени устройства",
     "permissionRequired": "Необходимо е разрешение за Bluetooth"
+  },
+  "createDriver": {
+    "accountInfo": "Информация за акаунт",
+    "email": "Имейл",
+    "password": "Парола",
+    "passwordPlaceholder": "Поне 6 символа",
+    "personalInfo": "Лична информация",
+    "firstName": "Име",
+    "lastName": "Фамилия",
+    "phone": "Телефон",
+    "licenseInfo": "Информация за лиценз",
+    "licenseNo": "Номер на лиценз",
+    "licenseExpiry": "Валидност на лиценза",
+    "emergency": "Спешен контакт",
+    "emergencyContact": "Спешен контакт (Име - Телефон)",
+    "addDriver": "Добави шофьор",
+    "success": "✅ Успешно",
+    "driverAdded": "Шофьорът е добавен успешно",
+    "error": "Грешка",
+    "emailRequired": "Имейлът е задължителен",
+    "passwordRequired": "Паролата е задължителна",
+    "passwordMinLength": "Паролата трябва да е поне 6 символа",
+    "licenseRequired": "Номерът на лиценза е задължителен",
+    "createFailed": "Неуспешно създаване на шофьор"
   }
 }

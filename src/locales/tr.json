@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Yükleniyor...",
     "save": "Kaydet",
@@ -1535,5 +1535,29 @@
   "drawer": {
     "fleetManagement": "Filo Yönetim Sistemi",
     "user": "Kullanıcı"
+  },
+  "createDriver": {
+    "accountInfo": "Hesap Bilgileri",
+    "email": "Email",
+    "password": "Şifre",
+    "passwordPlaceholder": "En az 6 karakter",
+    "personalInfo": "Kişisel Bilgiler",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "phone": "Telefon",
+    "licenseInfo": "Ehliyet Bilgileri",
+    "licenseNo": "Ehliyet No",
+    "licenseExpiry": "Ehliyet Geçerlilik",
+    "emergency": "Acil Durum",
+    "emergencyContact": "Acil Durum Kişisi (Ad - Telefon)",
+    "addDriver": "Sürücü Ekle",
+    "success": "✅ Başarılı",
+    "driverAdded": "Sürücü başarıyla eklendi",
+    "error": "Hata",
+    "emailRequired": "Email zorunludur",
+    "passwordRequired": "Şifre zorunludur",
+    "passwordMinLength": "Şifre en az 6 karakter olmalı",
+    "licenseRequired": "Ehliyet numarası zorunludur",
+    "createFailed": "Sürücü oluşturulamadı"
   }
 }

@@ -417,7 +417,7 @@ const DrawerContent = ({ navigation, state }) => {
         {
           title: t("navigation.drivers"),
           icon: "people-outline",
-          screen: "Drivers",
+          screen: "AdminDrivers",
         },
         {
           title: t("navigation.tasks"),
@@ -457,7 +457,7 @@ const DrawerContent = ({ navigation, state }) => {
         {
           title: t("navigation.drivers"),
           icon: "people-outline",
-          screen: "Drivers",
+          screen: "AdminDrivers",
         },
         {
           title: t("navigation.tasks"),

@@ -21,34 +21,7 @@
     "retry": "Opnieuw proberen",
     "all": "Alle",
     "none": "Geen",
-    "user": "Gebruiker",
-    "led": {
-      "title": "LED Indicatoren",
-      "deviceSubtitle": "LED-statussen op uw apparaat",
-      "quickStatus": "SNELLE STATUSTABEL",
-      "wifiLed": "WiFi LED (Blauw)",
-      "gpsLed": "GPS LED (Rood)",
-      "wifiConnected": "Constant aan",
-      "wifiConnectedMeaning": "WiFi verbonden, data wordt verzonden",
-      "wifiConnecting": "Knippert (500ms)",
-      "wifiConnectingMeaning": "Geen WiFi of verbinding maken",
-      "gpsFixed": "Constant aan",
-      "gpsFixedMeaning": "GPS vergrendeld, locatie bekend",
-      "gpsSearching": "Knippert (300ms)",
-      "gpsSearchingMeaning": "GPS-signaal zoeken; binnen of antenneprobleem",
-      "statusAllOk": "Alles goed",
-      "statusAllOkMeaning": "WiFi en GPS verbonden; systeem normaal",
-      "statusNoWifi": "WiFi probleem",
-      "statusNoWifiMeaning": "Data kan server niet bereiken",
-      "statusNoGps": "GPS probleem",
-      "statusNoGpsMeaning": "Geen locatie; controleer binnen/antenne",
-      "statusBothIssue": "Verbindingsprobleem",
-      "statusBothIssueMeaning": "Zowel WiFi als GPS falen; apparaat inspecteren",
-      "infoNote": "LEDs bevinden zich op het voorpaneel van het apparaat. Continu knipperen duidt op een probleem."
-    },
-    "superAdmin": "Super Admin",
-    "companyAdmin": "Manager",
-    "driver": "Chauffeur"
+    "user": "Gebruiker"
   },
   "profile": {
     "title": "Profiel",
@@ -100,8 +73,7 @@
     "supportMessage": "Heeft u hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
-    "ok": "OK"
+    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden."
   },
   "auth": {
     "login": "Inloggen",
@@ -193,39 +165,37 @@
     "platformUsers": "Gebruikers",
     "systemHealth": "Systeemstatus",
     "logout": "Uitloggen",
-    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?",
-    "navigation": "Navigatie",
-    "sos": "SOS"
+    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
   },
   "device": {
-    "title": "Apparaten",
+    "title": "Apparaatbeheer",
     "serial": "Serienummer",
     "status": "Status",
     "online": "Online",
     "offline": "Offline",
     "assigned": "Toegewezen",
     "unassigned": "Niet toegewezen",
-    "generateQR": "QR genereren",
-    "showQR": "QR tonen",
-    "refreshQR": "QR vernieuwen",
-    "qrGenerated": "QR gegenereerd",
-    "qrExpires": "Verloopt",
-    "scanQR": "QR scannen",
+    "generateQR": "QR Genereren",
+    "showQR": "QR Tonen",
+    "refreshQR": "QR Vernieuwen",
+    "qrGenerated": "QR-code gegenereerd",
+    "qrExpires": "Verloopt over",
+    "scanQR": "QR Scannen",
     "searchBySerial": "Zoeken op serienummer",
-    "addToStock": "Aan voorraad toevoegen",
-    "assignToVehicle": "Aan voertuig toewijzen",
+    "addToStock": "Toevoegen aan voorraad",
+    "assignToVehicle": "Toewijzen aan voertuig",
     "assignDevice": "Apparaat toewijzen",
     "deviceAssigned": "Apparaat toegewezen",
-    "noDevices": "Geen apparaten",
+    "noDevices": "Geen apparaten gevonden",
     "claimDevice": "Apparaat claimen",
     "activating": "Activeren...",
     "activated": "Geactiveerd",
     "statuses": {
       "CREATED": "Aangemaakt",
-      "PRINTED": "Gedrukt",
+      "PRINTED": "Geprint",
       "IN_STOCK": "Op voorraad",
       "ASSIGNED": "Toegewezen",
-      "ACTIVATED": "Geactiveerd",
+      "ACTIVATED": "Actief",
       "SUSPENDED": "Opgeschort",
       "RETIRED": "Buiten dienst",
       "LOST": "Verloren"
@@ -308,12 +278,12 @@
     "resolve": "Oplossen",
     "resolved": "Opgelost",
     "active": "Actief",
-    "noAlerts": "Geen meldingen",
+    "noAlerts": "Geen meldingen gevonden",
     "types": {
-      "HARD_BRAKE": "Harde rem",
-      "HARD_ACCEL": "Harde versnelling",
+      "HARD_BRAKE": "Hard remmen",
+      "HARD_ACCEL": "Hard accelereren",
       "HARD_TURN": "Scherpe bocht",
-      "IMPACT": "Impact",
+      "IMPACT": "Botsing",
       "speeding": "Te hard rijden",
       "idle_too_long": "Te lang stationair"
     }
@@ -416,22 +386,22 @@
     "privacyPolicyText": "Ons privacybeleid is beschikbaar op: tulipfleet.com/privacy"
   },
   "wifi": {
-    "ssid": "Netwerknaam",
-    "password": "Wachtwoord",
+    "ssid": "WiFi-netwerk",
+    "password": "WiFi-wachtwoord",
     "connect": "Verbinden",
     "connecting": "Verbinden...",
     "connected": "Verbonden",
     "errors": {
-      "authFailed": "Verkeerd wachtwoord",
-      "timeout": "Verbindingstijd verlopen",
-      "notFound": "Netwerk niet gevonden"
+      "authFailed": "Onjuist WiFi-wachtwoord",
+      "timeout": "Verbinding time-out",
+      "notFound": "WiFi-netwerk niet gevonden"
     }
   },
   "ble": {
-    "scanning": "Scannen...",
+    "scanning": "Apparaten zoeken...",
     "connecting": "Verbinden...",
     "connected": "Verbonden",
-    "disconnected": "Verbroken",
+    "disconnected": "Verbinding verbroken",
     "noDevices": "Geen apparaten gevonden",
     "permissionRequired": "Bluetooth-toestemming vereist"
   },
@@ -545,75 +515,72 @@
     "couldNotAcceptTask": "Kon taak niet accepteren",
     "rejectTask": "Taak Weigeren",
     "rejectTaskConfirm": "Weet u zeker dat u \"{{title}}\" wilt weigeren?",
-    "info": "Informatie",
+    "info": "Info",
     "taskRejected": "Taak geweigerd. Uw manager is op de hoogte gebracht.",
     "couldNotRejectTask": "Kon taak niet weigeren",
     "error": "Fout",
-    "withdrawTask": "Taak intrekken",
-    "withdrawConfirm": "Ja, intrekken",
+    "withdrawTask": "Taak Intrekken",
+    "withdrawConfirm": "Ja, Intrekken",
     "withdraw": "Intrekken",
-    "taskWithdrawn": "Taak ingetrokken",
-    "viewHistory": "Geschiedenis bekijken",
-    "couldNotWithdrawTask": "Taak kon niet worden ingetrokken",
+    "taskWithdrawn": "Taak ingetrokken. Uw manager is op de hoogte gebracht.",
+    "viewHistory": "Bekijk Geschiedenis",
+    "couldNotWithdrawTask": "Kon taak niet intrekken",
     "statuses": {
-      "pending_review": "In afwachting",
+      "pending_review": "Nieuwe Taak!",
       "accepted": "Geaccepteerd",
       "in_progress": "Bezig",
       "completed": "Voltooid",
-      "rejected": "Afgewezen",
-      "pending": "In behandeling",
+      "rejected": "Geweigerd",
+      "pending": "Wachtend",
       "assigned": "Toegewezen",
       "cancelled": "Geannuleerd",
       "withdrawn": "Ingetrokken"
-    },
-    "withdrawTaskConfirm": "Weet u zeker dat u deze taak wilt intrekken?"
+    }
   },
   "deviceSetup": {
     "title": "Apparaat Instellen",
-    "checkingStatus": "Status controleren...",
+    "checkingStatus": "Apparaatstatus controleren...",
     "loading": "Laden...",
-    "setupNotRequired": "Installatie niet vereist",
-    "deviceActiveMessage": "Apparaat is actief en werkt",
-    "deviceReinstall": "Apparaat opnieuw installeren",
-    "deviceWaitingReinstall": "Apparaat wacht op herinstallatie",
+    "setupNotRequired": "Installatie Niet Vereist âœ…",
+    "deviceActiveMessage": "Het apparaat verbonden met uw voertuig is actief.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
+    "deviceReinstall": "Apparaat Herinstallatie",
+    "deviceWaitingReinstall": "Apparaat wacht op herinstallatie...",
     "steps": {
-      "qrScan": "QR Scannen",
-      "bleScan": "Bluetooth zoeken",
+      "qrScan": "Scan QR Code",
+      "bleScan": "Apparaat Zoeken",
       "connecting": "Verbinden",
-      "wifiForm": "WiFi gegevens",
-      "wifiProvisioning": "WiFi instellen",
+      "wifiForm": "WiFi Instellingen",
+      "wifiProvisioning": "WiFi Verbinding",
       "activating": "Activeren",
-      "success": "Geslaagd",
+      "success": "Voltooid",
       "error": "Fout"
     },
     "bluetooth": {
-      "off": "Bluetooth uit",
-      "offMessage": "Schakel Bluetooth in",
-      "unauthorized": "Geen toestemming",
-      "unauthorizedMessage": "Bluetooth-toestemming vereist",
-      "unsupported": "Niet ondersteund",
-      "unsupportedMessage": "Uw apparaat ondersteunt geen Bluetooth",
-      "permissionsDenied": "Toestemming geweigerd",
-      "permissionsDeniedMessage": "Bluetooth-rechten vereist",
-      "locationDenied": "Locatietoestemming geweigerd",
-      "locationDeniedMessage": "Locatietoestemming vereist voor Bluetooth",
-      "error": "Bluetooth fout",
-      "notReady": "Bluetooth niet gereed",
-      "notReadyMessage": "Schakel Bluetooth in"
+      "off": "Bluetooth Uit",
+      "offMessage": "Zet Bluetooth aan voor apparaatinstallatie",
+      "unauthorized": "Bluetooth Toestemming Vereist",
+      "unauthorizedMessage": "Geef Bluetooth toestemming in instellingen",
+      "unsupported": "Bluetooth Niet Ondersteund",
+      "unsupportedMessage": "Dit apparaat ondersteunt geen Bluetooth Low Energy",
+      "permissionsDenied": "Toestemming Vereist",
+      "permissionsDeniedMessage": "Geef Bluetooth en locatietoestemmingen",
+      "locationDenied": "Locatietoestemming Vereist",
+      "locationDeniedMessage": "Locatietoestemming vereist voor Bluetooth scannen",
+      "error": "Bluetooth Fout",
+      "notReady": "Bluetooth Niet Gereed",
+      "notReadyMessage": "Wacht terwijl Bluetooth start..."
     },
     "qr": {
-      "invalidCode": "Ongeldige code",
-      "invalidCodeMessage": "QR-code wordt niet herkend",
-      "scanHint": "Scan de QR-code van het apparaat",
-      "manualEntry": "Handmatige invoer"
+      "invalidCode": "Ongeldige QR Code",
+      "invalidCodeMessage": "QR codeformaat niet herkend. Scan de QR code op het apparaat.",
+      "scanHint": "📱 Scan de QR code op het apparaat",
+      "manualEntry": "⌨️ Handmatige Serienummer Invoer"
     },
     "serial": {
-      "validating": "Valideren...",
-      "invalid": "Ongeldig serienummer",
-      "invalidFormat": "Verkeerd serieformaat",
-      "notRegistered": "Serienummer niet geregistreerd",
-      "enterSerial": "Voer serienummer in",
-      "example": "Voorbeeld: TF-XXXX-XXXX"
+      "validating": "Serienummer valideren...",
+      "invalid": "Ongeldig Serienummer",
+      "invalidFormat": "Serienummerformaat is onjuist. Voorbeeld: TF-2025-00008-5",
+      "notRegistered": "Dit serienummer is niet geregistreerd in het systeem"
     },
     "scan": {
       "scanning": "Zoeken naar apparaat...",
@@ -623,38 +590,25 @@
       "rescan": "Opnieuw Scannen"
     },
     "wifi": {
-      "title": "WiFi gegevens",
-      "ssidPlaceholder": "WiFi-naam invoeren",
-      "passwordPlaceholder": "WiFi-wachtwoord invoeren",
+      "title": "WiFi Configuratie",
+      "ssidPlaceholder": "WiFi-netwerknaam",
+      "passwordPlaceholder": "WiFi-wachtwoord",
       "connect": "Verbinden",
-      "connecting": "Verbinden...",
+      "connecting": "Verbinding maken met WiFi...",
       "success": "WiFi Verbonden",
       "failed": "WiFi Verbinding Mislukt",
       "failedMessage": "Controleer de netwerknaam en het wachtwoord.",
-      "warning5GHz": "Dit SSID kan een 5GHz-netwerk zijn. ESP32 ondersteunt alleen 2.4GHz. Gebruik uw 2.4GHz-netwerk.",
-      "subtitle": "Voer netwerkgegevens in",
-      "ssidLabel": "Netwerknaam",
-      "passwordLabel": "Wachtwoord",
-      "lastUsed": "Laatst gebruikt",
-      "hint": "Opmerking: Apparaat wordt verbonden met dit netwerk",
-      "enterCredentials": "Voer netwerkgegevens in",
-      "emptySSID": "Netwerknaam mag niet leeg zijn",
-      "shortPassword": "Wachtwoord te kort",
-      "sendingCredentials": "Gegevens verzenden...",
-      "connectionFailed": "Verbinding mislukt",
-      "network": "Netwerk",
-      "deviceConnecting": "Apparaat verbinden..."
+      "warning5GHz": "Dit SSID kan een 5GHz-netwerk zijn. ESP32 ondersteunt alleen 2.4GHz. Gebruik uw 2.4GHz-netwerk."
     },
     "activation": {
-      "activating": "Activeren...",
-      "success": "Activering geslaagd",
-      "failed": "Activering mislukt",
+      "activating": "Apparaat activeren...",
+      "success": "Apparaat Geactiveerd",
+      "failed": "Activering Mislukt",
       "successStatus": "Apparaat succesvol geactiveerd!",
       "successPending": "Apparaatinstallatie voltooid. Wachten op activeringsbevestiging...",
       "pendingTitle": "Installatie wordt afgerond...",
       "verifyButton": "Status controleren",
-      "verifyFailed": "Activering kon nog niet worden geverifieerd. Start het apparaat opnieuw of controleer de internetverbinding.",
-      "serverCommunication": "Verbinding met server..."
+      "verifyFailed": "Activering kon nog niet worden geverifieerd. Start het apparaat opnieuw of controleer de internetverbinding."
     },
     "complete": {
       "title": "Installatie Voltooid!",
@@ -663,9 +617,9 @@
     },
     "activeWarning": {
       "title": "⚠️ Apparaat Reeds Actief",
-      "message": "Apparaat is actief. Wilt u doorgaan?",
+      "message": "Apparaat {{serial}} is al actief en verbonden via WiFi{{vehicle}}.\n\nWilt u opnieuw installeren?",
       "cancel": "Annuleren",
-      "continue": "Doorgaan"
+      "continue": "Toch Doorgaan"
     },
     "checkingDeviceStatus": "Apparaatstatus controleren...",
     "buttons": {
@@ -673,57 +627,11 @@
       "cancel": "Annuleren",
       "back": "Terug",
       "next": "Volgende",
-      "done": "Klaar",
-      "settings": "Instellingen",
-      "ok": "OK",
-      "continue": "Doorgaan"
+      "done": "Klaar"
     },
     "ble": {
       "bootWindowHint": "De BLE-modus van het ESP32-apparaat is 5 minuten actief na het inschakelen. Als het apparaat niet wordt gevonden, start het opnieuw door de USB-kabel los te koppelen en opnieuw aan te sluiten.",
-      "deviceNameHint": "Apparaatnaam verschijnt als \"TulipFleet-XXXX\". Kom binnen 1-2 meter.",
-      "searchingDevices": "Apparaten zoeken...",
-      "deviceNotFound": "Apparaat niet gevonden",
-      "devicesFound": "Apparaten gevonden",
-      "searchingBluetooth": "Bluetooth zoeken...",
-      "deviceHint": "Selecteer uw apparaat",
-      "rescan": "Opnieuw scannen",
-      "strong": "Sterk",
-      "medium": "Gemiddeld",
-      "weak": "Zwak"
-    },
-    "connection": {
-      "connecting": "Verbinden...",
-      "connected": "Verbonden",
-      "disconnected": "Verbroken",
-      "unknownError": "Onbekende fout"
-    },
-    "result": {
-      "setupComplete": "Installatie voltooid",
-      "deviceReady": "Apparaat gereed",
-      "errorOccurred": "Er is een fout opgetreden",
-      "done": "Klaar",
-      "retry": "Opnieuw proberen",
-      "cancel": "Annuleren"
-    },
-    "camera": {
-      "permissionRequired": "Cameratoestemming vereist",
-      "permissionMessage": "Cameratoestemming vereist voor QR-scanning",
-      "grantPermission": "Toestemming verlenen"
-    },
-    "status": {
-      "waitingSerial": "Wacht op serienummer",
-      "serialReceived": "Serienummer ontvangen",
-      "activating": "Activeren",
-      "wifiConnecting": "WiFi verbinden",
-      "wifiConnected": "WiFi verbonden",
-      "callingApi": "API aanroepen",
-      "apiSuccess": "API geslaagd",
-      "apiFailed": "API mislukt",
-      "savingNvs": "NVS opslaan",
-      "complete": "Voltooid",
-      "wifiCredReceived": "WiFi-gegevens ontvangen",
-      "wifiProvisionOk": "WiFi-instelling geslaagd",
-      "wifiProvisionFail": "WiFi-instelling mislukt"
+      "deviceNameHint": "Apparaatnaam verschijnt als \"TulipFleet-XXXX\". Kom binnen 1-2 meter."
     }
   },
   "editProfile": {
@@ -1053,60 +961,7 @@
       "saved": "Opgeslagen",
       "kmTraveled": "{{km}} km",
       "consumptionPer100km": "{{value}} L/100km",
-      "costPerKm": "{{value}}/km",
-      "message": "Brandstof succesvol opgeslagen"
-    },
-    "title": "Brandstof",
-    "vehicleInfo": "Voertuiginformatie",
-    "plate": "Kenteken",
-    "lastOdometer": "Laatste kilometerstand",
-    "tankCapacity": "Tankinhoud",
-    "fuelType": "Brandstoftype",
-    "currentOdometer": "Huidige kilometerstand",
-    "odometerPlaceholder": "Kilometer invoeren",
-    "litersFilled": "Gevulde liters",
-    "litersPlaceholder": "Liters invoeren",
-    "totalCost": "Totale kosten",
-    "costPlaceholder": "Kosten invoeren",
-    "pricePerLiter": "Prijs per liter",
-    "isFullTank": "Volledig getankt",
-    "fullTankNote": "Volledige tank",
-    "save": "Opslaan",
-    "calculation": "Berekening",
-    "kmTraveled": "Gereden kilometers",
-    "consumption": "Verbruik",
-    "costPerKm": "Kosten per km",
-    "lastRecord": "Laatste record",
-    "editVehicle": "Voertuig bewerken",
-    "vehicleUpdated": "Voertuig bijgewerkt",
-    "plateReadonly": "Kenteken is alleen-lezen",
-    "firstRecordNote": "Eerste record",
-    "validation": {
-      "odometerRequired": "Kilometerstand vereist",
-      "odometerMustBeHigher": "Moet hoger zijn dan vorige",
-      "litersRequired": "Liters vereist",
-      "litersExceedsTank": "Overschrijdt tankinhoud",
-      "consumptionUnrealistic": "Onrealistisch verbruik",
-      "kmTooHigh": "Kilometer te hoog"
-    },
-    "error": {
-      "title": "Fout",
-      "loadFailed": "Laden mislukt",
-      "saveFailed": "Opslaan mislukt",
-      "noVehicle": "Geen voertuig",
-      "vehicleUpdateFailed": "Bijwerken mislukt"
-    },
-    "notFullTankWarning": {
-      "title": "Niet vol getankt",
-      "message": "Tank is niet volledig gevuld. Toch opslaan?",
-      "cancel": "Annuleren",
-      "saveAnyway": "Toch opslaan"
-    },
-    "fuelTypes": {
-      "diesel": "Diesel",
-      "gasoline": "Benzine",
-      "lpg": "LPG",
-      "electric": "Elektrisch"
+      "costPerKm": "{{value}}/km"
     }
   },
   "help": {
@@ -1292,8 +1147,7 @@
       "emailReport": "E-mail Verzenden",
       "emailReportDesc": "Deel rapport via e-mail",
       "download": "Downloaden",
-      "send": "Verzenden",
-      "comingSoon": "Binnenkort"
+      "send": "Verzenden"
     }
   },
   "admin": {
@@ -1530,145 +1384,28 @@
     "s7Title": "7. Contact",
     "s7Body": "TulipFleet\nE-mail: destek@tulipfleet.com\nWebsite: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Alle rechten voorbehouden."
   },
-  "taskOffers": {
-    "title": "Taakaanbiedingen",
-    "loading": "Laden...",
-    "connectionIssue": "Verbindingsprobleem",
-    "sessionExpired": "Sessie verlopen",
-    "noPermission": "Geen toestemming",
-    "offersNotFound": "Aanbiedingen niet gevonden",
-    "serverError": "Serverfout",
-    "checkInternet": "Internetverbinding controleren",
-    "genericError": "Er is een fout opgetreden",
-    "retry": "Opnieuw proberen",
-    "statuses": {
-      "pending": "In afwachting",
-      "accepted": "Geaccepteerd",
-      "rejected": "Afgewezen",
-      "expired": "Verlopen"
-    },
-    "filters": {
-      "pending": "In afwachting",
-      "accepted": "Geaccepteerd",
-      "rejected": "Afgewezen",
-      "all": "Alles"
-    },
-    "timeRemaining": {
-      "expired": "Verlopen",
-      "minutes": "minuten",
-      "hours": "uur"
-    },
-    "tapForDetails": "Tik voor details",
-    "empty": {
-      "error": "Fout",
-      "normal": "Geen aanbiedingen",
-      "couldNotLoad": "Kon niet laden",
-      "noPending": "Geen openstaande aanbiedingen",
-      "notFound": "Niet gevonden"
-    }
-  },
-  "taskDetail": {
-    "title": "Taakdetails",
-    "loading": "Laden...",
-    "notFound": "Taak niet gevonden",
-    "taskIdNotFound": "Taak-ID niet gevonden",
-    "statuses": {
-      "pending_review": "In afwachting",
-      "accepted": "Geaccepteerd",
-      "in_progress": "Bezig",
-      "completed": "Voltooid",
-      "rejected": "Afgewezen",
-      "pending": "In behandeling",
-      "assigned": "Toegewezen",
-      "cancelled": "Geannuleerd"
-    },
-    "info": {
-      "taskNo": "Taaknummer",
-      "vehicle": "Voertuig",
-      "scheduledStart": "Geplande start",
-      "actualStart": "Werkelijke start",
-      "completedAt": "Voltooid op",
-      "notSpecified": "Niet opgegeven"
-    },
-    "route": {
-      "title": "Route",
-      "origin": "Herkomst",
-      "destination": "Bestemming",
-      "distance": "Afstand"
-    },
-    "notes": {
-      "title": "Notities"
-    },
-    "actions": {
-      "acceptTask": "Taak accepteren",
-      "acceptConfirm": "Weet u zeker dat u deze taak wilt accepteren?",
-      "accept": "Accepteren",
-      "cancel": "Annuleren",
-      "success": "Geslaagd",
-      "taskAccepted": "Taak geaccepteerd",
-      "rejectTask": "Taak afwijzen",
-      "rejectReason": "Reden",
-      "rejectReasonPlaceholder": "Reden voor afwijzing invoeren",
-      "rejectReasonRequired": "Reden vereist",
-      "reject": "Afwijzen",
-      "info": "Informatie",
-      "taskRejected": "Taak afgewezen",
-      "startTask": "Taak starten",
-      "startConfirm": "Weet u zeker dat u deze taak wilt starten?",
-      "start": "Starten",
-      "taskStarted": "Taak gestart",
-      "taskStartedMessage": "Taak is gestart",
-      "goToNavigation": "Naar navigatie",
-      "stayHere": "Hier blijven",
-      "completeTask": "Taak voltooien",
-      "completeConfirm": "Weet u zeker dat u deze taak wilt voltooien?",
-      "complete": "Voltooien",
-      "congratulations": "Gefeliciteerd",
-      "taskCompleted": "Taak voltooid",
-      "error": "Fout",
-      "operationFailed": "Operatie mislukt"
-    },
-    "statusInfo": {
-      "completed": "Taak voltooid",
-      "rejected": "Taak afgewezen",
-      "cancelled": "Taak geannuleerd"
-    }
-  },
-  "routeMap": {
-    "loading": "Locatie ophalen...",
-    "vehicleNotFound": "Voertuig niet gevonden",
-    "locationNotAvailable": "Locatie niet beschikbaar",
-    "calculatingRoute": "Route berekenen...",
-    "coordinateCopied": "Coördinaat gekopieerd",
-    "retry": "Opnieuw",
-    "completeTask": "Taak voltooien",
-    "completeConfirm": "Weet u zeker dat u deze taak wilt voltooien?",
-    "cancel": "Annuleren",
-    "complete": "Voltooien",
-    "success": "Geslaagd",
-    "taskCompleted": "Taak voltooid!",
-    "ok": "OK",
+  "createDriver": {
+    "accountInfo": "Accountgegevens",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "passwordPlaceholder": "Minimaal 6 tekens",
+    "personalInfo": "Persoonlijke gegevens",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "phone": "Telefoon",
+    "licenseInfo": "Rijbewijsgegevens",
+    "licenseNo": "Rijbewijsnummer",
+    "licenseExpiry": "Rijbewijs geldig tot",
+    "emergency": "Noodcontact",
+    "emergencyContact": "Noodcontact (Naam - Telefoon)",
+    "addDriver": "Chauffeur toevoegen",
+    "success": "✅ Gelukt",
+    "driverAdded": "Chauffeur succesvol toegevoegd",
     "error": "Fout",
-    "taskCouldNotComplete": "Taak kon niet worden voltooid",
-    "taskCouldNotStart": "Taak kon niet worden gestart",
-    "taskCouldNotAccept": "Taak kon niet worden geaccepteerd",
-    "taskCouldNotReject": "Taak kon niet worden afgewezen",
-    "rejectTask": "Taak afwijzen",
-    "rejectConfirm": "Weet u zeker dat u deze taak wilt afwijzen?",
-    "reject": "Afwijzen",
-    "taskRejected": "Taak afgewezen",
-    "waitForOtherTasks": "U kunt wachten op andere taken.",
-    "pendingTask": "Wachtende taak",
-    "newTaskOffer": "Nieuw taakaanbod",
-    "deliveryTask": "Bezorgtaak",
-    "readyToStart": "Klaar om te starten",
-    "origin": "Herkomst",
-    "currentLocation": "Huidige locatie",
-    "destination": "Bestemming",
-    "notDetermined": "Niet bepaald",
-    "total": "Totaal",
-    "startTask": "Taak starten",
-    "target": "Doel",
-    "min": "min"
+    "emailRequired": "E-mail is verplicht",
+    "passwordRequired": "Wachtwoord is verplicht",
+    "passwordMinLength": "Wachtwoord moet minimaal 6 tekens bevatten",
+    "licenseRequired": "Rijbewijsnummer is verplicht",
+    "createFailed": "Aanmaken chauffeur mislukt"
   }
 }
