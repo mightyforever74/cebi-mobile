@@ -281,7 +281,10 @@
       "assigned": "Atandı",
       "in_progress": "Devam Ediyor",
       "completed": "Tamamlandı",
-      "cancelled": "İptal Edildi"
+      "cancelled": "İptal Edildi",
+      "pending_review": "İncelemede",
+      "accepted": "Kabul Edildi",
+      "rejected": "Reddedildi"
     }
   },
   "alert": {
@@ -786,6 +789,16 @@
       "completed": "Bu görev tamamlandı",
       "rejected": "Bu görev reddedildi",
       "cancelled": "Bu görev iptal edildi"
+    },
+    "events": {
+      "title": "Görev Olayları"
+    },
+    "waypoints": {
+      "title": "Duraklar",
+      "stop": "Durak",
+      "arrived": "Varıldı",
+      "departed": "Ayrıldı",
+      "complete": "Tamamla"
     }
   },
   "routeMap": {
@@ -1536,6 +1549,110 @@
     "fleetManagement": "Filo Yönetim Sistemi",
     "user": "Kullanıcı"
   },
+  "adminDrivers": {
+    "filterAll": "Tümü",
+    "filterAvailable": "Müsait",
+    "filterOnTask": "Görevde",
+    "filterOffline": "Çevrimdışı",
+    "vehicle": "Araç",
+    "tasks": "Görevler",
+    "score": "Puan",
+    "assignedVehicle": "Atanan Araç",
+    "license": "Ehliyet",
+    "phone": "Telefon",
+    "emergency": "Acil Durum",
+    "totalKm": "Toplam KM",
+    "unnamed": "İsimsiz",
+    "noDrivers": "Sürücü Yok",
+    "noDriversDesc": "Kayıtlı sürücü bulunamadı",
+    "loading": "Sürücüler yükleniyor...",
+    "loadError": "Sürücüler yüklenemedi",
+    "deleteDriver": "Sürücüyü Sil",
+    "deleteConfirm": "Bu sürücüyü silmek istediğinizden emin misiniz?",
+    "driverDeleted": "Sürücü başarıyla silindi",
+    "deleteFailed": "Sürücü silinemedi"
+  },
+  "adminVehicles": {
+    "filterAll": "Tümü",
+    "filterAvailable": "Müsait",
+    "filterInUse": "Kullanımda",
+    "filterOther": "Diğer",
+    "fuel": "Yakıt",
+    "offline": "Çevrimdışı",
+    "online": "Çevrimiçi",
+    "track": "Takip",
+    "device": "Cihaz",
+    "color": "Renk",
+    "category": "Kategori",
+    "fuelType": "Yakıt Tipi",
+    "tankCapacity": "Depo Kapasitesi",
+    "lastMaint": "Son Bakım",
+    "loading": "Araçlar yükleniyor...",
+    "loadError": "Araçlar yüklenemedi",
+    "noVehicles": "Araç Yok",
+    "noVehiclesDesc": "Kayıtlı araç bulunamadı",
+    "deleteVehicle": "Aracı Sil",
+    "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?",
+    "vehicleDeleted": "Araç başarıyla silindi",
+    "deleteFailed": "Araç silinemedi"
+  },
+  "adminTasks": {
+    "filterAll": "Tümü",
+    "filterPending": "Bekleyen",
+    "filterActive": "Aktif",
+    "filterCompleted": "Tamamlanan",
+    "driver": "Sürücü",
+    "noDriver": "Sürücü Yok",
+    "noDriverAssigned": "Sürücü atanmamış",
+    "noVehicle": "Araç Yok",
+    "distance": "Mesafe",
+    "from": "Nereden",
+    "to": "Nereye",
+    "scheduled": "Planlanan",
+    "notes": "Notlar",
+    "description": "Açıklama",
+    "priorityLabel": "Öncelik",
+    "sendOffer": "Teklif Gönder",
+    "sendOfferConfirm": "Bu görevi sürücüye teklif olarak gönder?",
+    "send": "Gönder",
+    "offerSent": "Teklif başarıyla gönderildi",
+    "offerFailed": "Teklif gönderilemedi",
+    "loading": "Görevler yükleniyor...",
+    "loadError": "Görevler yüklenemedi",
+    "noTasks": "Görev Yok",
+    "noTasksDesc": "Kayıtlı görev bulunamadı",
+    "deleteTask": "Görevi Sil",
+    "deleteConfirm": "Bu görevi silmek istediğinizden emin misiniz?",
+    "taskDeleted": "Görev başarıyla silindi",
+    "deleteFailed": "Görev silinemedi"
+  },
+  "adminAlerts": {
+    "filterAll": "Tümü",
+    "filterActive": "Aktif",
+    "filterResolved": "Çözüldü",
+    "statusActive": "Aktif",
+    "statusResolved": "Çözüldü",
+    "resolve": "Çöz",
+    "resolveBtn": "Çöz",
+    "resolveConfirm": "Bu uyarıyı çözüldü olarak işaretle?",
+    "resolved": "Uyarı çözüldü",
+    "resolveFailed": "Uyarı çözülemedi",
+    "alreadyResolved": "Zaten çözüldü",
+    "deleteAlert": "Uyarıyı Sil",
+    "deleteConfirm": "Bu uyarıyı silmek istediğinizden emin misiniz?",
+    "alertDeleted": "Uyarı başarıyla silindi",
+    "deleteFailed": "Uyarı silinemedi",
+    "deleteAll": "Tümünü Sil",
+    "deleteAllBtn": "Tümünü Sil",
+    "deleteAllConfirm": "Tüm uyarıları silmek istediğinizden emin misiniz?",
+    "allDeleted": "Tüm uyarılar silindi",
+    "deleteAllFailed": "Uyarılar silinemedi",
+    "noAlertsToDelete": "Silinecek uyarı yok",
+    "loading": "Uyarılar yükleniyor...",
+    "loadError": "Uyarılar yüklenemedi",
+    "noAlerts": "Uyarı Yok",
+    "noAlertsDesc": "Kayıtlı uyarı bulunamadı"
+  },
   "createDriver": {
     "accountInfo": "Hesap Bilgileri",
     "email": "Email",
@@ -1559,5 +1676,11 @@
     "passwordMinLength": "Şifre en az 6 karakter olmalı",
     "licenseRequired": "Ehliyet numarası zorunludur",
     "createFailed": "Sürücü oluşturulamadı"
+  },
+  "camera": {
+    "permissionDenied": "Kamera izni reddedildi",
+    "grantPermission": "İzin Ver",
+    "enableInSettings": "Lütfen ayarlardan kamera erişimine izin verin",
+    "requestingPermission": "Kamera izni isteniyor..."
   }
 }

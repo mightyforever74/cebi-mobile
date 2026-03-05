@@ -236,7 +236,10 @@
       "assigned": "Assigned",
       "in_progress": "In Progress",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "pending_review": "Pending Review",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
     }
   },
   "alert": {
@@ -777,6 +780,16 @@
       "completed": "This task has been completed",
       "rejected": "This task has been rejected",
       "cancelled": "This task has been cancelled"
+    },
+    "events": {
+      "title": "Task Events"
+    },
+    "waypoints": {
+      "title": "Stops",
+      "stop": "Stop",
+      "arrived": "Arrived",
+      "departed": "Departed",
+      "complete": "Complete"
     }
   },
   "routeMap": {
@@ -1514,6 +1527,110 @@
     "s7Title": "7. Contact",
     "s7Body": "TulipFleet\nEmail: destek@tulipfleet.com\nWebsite: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. All rights reserved."
   },
+  "adminDrivers": {
+    "filterAll": "All",
+    "filterAvailable": "Available",
+    "filterOnTask": "On Task",
+    "filterOffline": "Offline",
+    "vehicle": "Vehicle",
+    "tasks": "Tasks",
+    "score": "Score",
+    "assignedVehicle": "Assigned Vehicle",
+    "license": "License",
+    "phone": "Phone",
+    "emergency": "Emergency",
+    "totalKm": "Total KM",
+    "unnamed": "Unnamed",
+    "noDrivers": "No Drivers",
+    "noDriversDesc": "No drivers found",
+    "loading": "Loading drivers...",
+    "loadError": "Failed to load drivers",
+    "deleteDriver": "Delete Driver",
+    "deleteConfirm": "Are you sure you want to delete this driver?",
+    "driverDeleted": "Driver deleted successfully",
+    "deleteFailed": "Failed to delete driver"
+  },
+  "adminVehicles": {
+    "filterAll": "All",
+    "filterAvailable": "Available",
+    "filterInUse": "In Use",
+    "filterOther": "Other",
+    "fuel": "Fuel",
+    "offline": "Offline",
+    "online": "Online",
+    "track": "Track",
+    "device": "Device",
+    "color": "Color",
+    "category": "Category",
+    "fuelType": "Fuel Type",
+    "tankCapacity": "Tank Capacity",
+    "lastMaint": "Last Maintenance",
+    "loading": "Loading vehicles...",
+    "loadError": "Failed to load vehicles",
+    "noVehicles": "No Vehicles",
+    "noVehiclesDesc": "No vehicles found",
+    "deleteVehicle": "Delete Vehicle",
+    "deleteConfirm": "Are you sure you want to delete this vehicle?",
+    "vehicleDeleted": "Vehicle deleted successfully",
+    "deleteFailed": "Failed to delete vehicle"
+  },
+  "adminTasks": {
+    "filterAll": "All",
+    "filterPending": "Pending",
+    "filterActive": "Active",
+    "filterCompleted": "Completed",
+    "driver": "Driver",
+    "noDriver": "No Driver",
+    "noDriverAssigned": "No driver assigned",
+    "noVehicle": "No Vehicle",
+    "distance": "Distance",
+    "from": "From",
+    "to": "To",
+    "scheduled": "Scheduled",
+    "notes": "Notes",
+    "description": "Description",
+    "priorityLabel": "Priority",
+    "sendOffer": "Send Offer",
+    "sendOfferConfirm": "Send this task offer to the driver?",
+    "send": "Send",
+    "offerSent": "Offer sent successfully",
+    "offerFailed": "Failed to send offer",
+    "loading": "Loading tasks...",
+    "loadError": "Failed to load tasks",
+    "noTasks": "No Tasks",
+    "noTasksDesc": "No tasks found",
+    "deleteTask": "Delete Task",
+    "deleteConfirm": "Are you sure you want to delete this task?",
+    "taskDeleted": "Task deleted successfully",
+    "deleteFailed": "Failed to delete task"
+  },
+  "adminAlerts": {
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterResolved": "Resolved",
+    "statusActive": "Active",
+    "statusResolved": "Resolved",
+    "resolve": "Resolve",
+    "resolveBtn": "Resolve",
+    "resolveConfirm": "Mark this alert as resolved?",
+    "resolved": "Alert resolved",
+    "resolveFailed": "Failed to resolve alert",
+    "alreadyResolved": "Already resolved",
+    "deleteAlert": "Delete Alert",
+    "deleteConfirm": "Are you sure you want to delete this alert?",
+    "alertDeleted": "Alert deleted successfully",
+    "deleteFailed": "Failed to delete alert",
+    "deleteAll": "Delete All",
+    "deleteAllBtn": "Delete All",
+    "deleteAllConfirm": "Are you sure you want to delete all alerts?",
+    "allDeleted": "All alerts deleted",
+    "deleteAllFailed": "Failed to delete alerts",
+    "noAlertsToDelete": "No alerts to delete",
+    "loading": "Loading alerts...",
+    "loadError": "Failed to load alerts",
+    "noAlerts": "No Alerts",
+    "noAlertsDesc": "No alerts found"
+  },
   "createDriver": {
     "accountInfo": "Account Info",
     "email": "Email",
@@ -1537,5 +1654,11 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "licenseRequired": "License number is required",
     "createFailed": "Failed to create driver"
+  },
+  "camera": {
+    "permissionDenied": "Camera permission denied",
+    "grantPermission": "Grant Permission",
+    "enableInSettings": "Please enable camera access in settings",
+    "requestingPermission": "Requesting camera permission..."
   }
 }

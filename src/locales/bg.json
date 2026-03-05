@@ -393,7 +393,10 @@
       "assigned": "Назначена",
       "in_progress": "В процес",
       "completed": "Завършена",
-      "cancelled": "Отменена"
+      "cancelled": "Отменена",
+      "pending_review": "В преглед",
+      "accepted": "Приета",
+      "rejected": "Отхвърлена"
     }
   },
   "drawer": {
@@ -720,6 +723,16 @@
       "completed": "Тази задача е завършена",
       "rejected": "Тази задача е отхвърлена",
       "cancelled": "Тази задача е отменена"
+    },
+    "events": {
+      "title": "Събития на задачата"
+    },
+    "waypoints": {
+      "title": "Спирки",
+      "stop": "Спирка",
+      "arrived": "Пристигнал",
+      "departed": "Заминал",
+      "complete": "Завърши"
     }
   },
   "routeMap": {
@@ -1534,6 +1547,110 @@
     "noDevices": "Няма намерени устройства",
     "permissionRequired": "Необходимо е разрешение за Bluetooth"
   },
+  "adminDrivers": {
+    "filterAll": "Всички",
+    "filterAvailable": "Свободен",
+    "filterOnTask": "На задача",
+    "filterOffline": "Офлайн",
+    "vehicle": "Превозно средство",
+    "tasks": "Задачи",
+    "score": "Оценка",
+    "assignedVehicle": "Назначено превозно средство",
+    "license": "Лиценз",
+    "phone": "Телефон",
+    "emergency": "Спешен случай",
+    "totalKm": "Общо KM",
+    "unnamed": "Без име",
+    "noDrivers": "Няма шофьори",
+    "noDriversDesc": "Не са намерени шофьори",
+    "loading": "Зареждане на шофьори...",
+    "loadError": "Неуспешно зареждане",
+    "deleteDriver": "Изтрий шофьор",
+    "deleteConfirm": "Сигурни ли сте, че искате да изтриете този шофьор?",
+    "driverDeleted": "Шофьорът е изтрит успешно",
+    "deleteFailed": "Неуспешно изтриване"
+  },
+  "adminVehicles": {
+    "filterAll": "Всички",
+    "filterAvailable": "Свободно",
+    "filterInUse": "В употреба",
+    "filterOther": "Друго",
+    "fuel": "Гориво",
+    "offline": "Офлайн",
+    "online": "Онлайн",
+    "track": "Проследяване",
+    "device": "Устройство",
+    "color": "Цвят",
+    "category": "Категория",
+    "fuelType": "Вид гориво",
+    "tankCapacity": "Капацитет на резервоара",
+    "lastMaint": "Последна поддръжка",
+    "loading": "Зареждане на превозни средства...",
+    "loadError": "Неуспешно зареждане",
+    "noVehicles": "Няма превозни средства",
+    "noVehiclesDesc": "Не са намерени превозни средства",
+    "deleteVehicle": "Изтрий превозното средство",
+    "deleteConfirm": "Сигурни ли сте, че искате да изтриете това превозно средство?",
+    "vehicleDeleted": "Превозното средство е изтрито успешно",
+    "deleteFailed": "Неуспешно изтриване"
+  },
+  "adminTasks": {
+    "filterAll": "Всички",
+    "filterPending": "В очакване",
+    "filterActive": "Активно",
+    "filterCompleted": "Завършено",
+    "driver": "Шофьор",
+    "noDriver": "Няма шофьор",
+    "noDriverAssigned": "Няма назначен шофьор",
+    "noVehicle": "Няма превозно средство",
+    "distance": "Разстояние",
+    "from": "От",
+    "to": "До",
+    "scheduled": "Планирано",
+    "notes": "Бележки",
+    "description": "Описание",
+    "priorityLabel": "Приоритет",
+    "sendOffer": "Изпрати оферта",
+    "sendOfferConfirm": "Да изпратите ли тази задача като оферта на шофьора?",
+    "send": "Изпрати",
+    "offerSent": "Офертата е изпратена успешно",
+    "offerFailed": "Неуспешно изпращане",
+    "loading": "Зареждане на задачи...",
+    "loadError": "Неуспешно зареждане",
+    "noTasks": "Няма задачи",
+    "noTasksDesc": "Не са намерени задачи",
+    "deleteTask": "Изтрий задача",
+    "deleteConfirm": "Сигурни ли сте, че искате да изтриете тази задача?",
+    "taskDeleted": "Задачата е изтрита успешно",
+    "deleteFailed": "Неуспешно изтриване"
+  },
+  "adminAlerts": {
+    "filterAll": "Всички",
+    "filterActive": "Активно",
+    "filterResolved": "Разрешено",
+    "statusActive": "Активно",
+    "statusResolved": "Разрешено",
+    "resolve": "Разреши",
+    "resolveBtn": "Разреши",
+    "resolveConfirm": "Да маркирате ли това предупреждение като разрешено?",
+    "resolved": "Предупреждението е разрешено",
+    "resolveFailed": "Неуспешно разрешаване",
+    "alreadyResolved": "Вече разрешено",
+    "deleteAlert": "Изтрий предупреждение",
+    "deleteConfirm": "Сигурни ли сте, че искате да изтриете това предупреждение?",
+    "alertDeleted": "Предупреждението е изтрито успешно",
+    "deleteFailed": "Неуспешно изтриване",
+    "deleteAll": "Изтрий всички",
+    "deleteAllBtn": "Изтрий всички",
+    "deleteAllConfirm": "Сигурни ли сте, че искате да изтриете всички предупреждения?",
+    "allDeleted": "Всички предупреждения са изтрити",
+    "deleteAllFailed": "Неуспешно изтриване",
+    "noAlertsToDelete": "Няма предупреждения за изтриване",
+    "loading": "Зареждане на предупреждения...",
+    "loadError": "Неуспешно зареждане",
+    "noAlerts": "Няма предупреждения",
+    "noAlertsDesc": "Не са намерени предупреждения"
+  },
   "createDriver": {
     "accountInfo": "Информация за акаунт",
     "email": "Имейл",
@@ -1557,5 +1674,11 @@
     "passwordMinLength": "Паролата трябва да е поне 6 символа",
     "licenseRequired": "Номерът на лиценза е задължителен",
     "createFailed": "Неуспешно създаване на шофьор"
+  },
+  "camera": {
+    "permissionDenied": "Достъпът до камерата е отказан",
+    "grantPermission": "Дай разрешение",
+    "enableInSettings": "Моля, разрешете достъп до камерата в настройките",
+    "requestingPermission": "Искане на разрешение за камера..."
   }
 }

@@ -353,7 +353,10 @@
       "assigned": "Hatiye tayînkirin",
       "in_progress": "Derdikeve",
       "completed": "Qediyayî",
-      "cancelled": "Hatiye betalkirin"
+      "cancelled": "Hatiye betalkirin",
+      "pending_review": "Di nirxandinê de",
+      "accepted": "Qebûl kir",
+      "rejected": "Red kir"
     }
   },
   "alert": {
@@ -1573,6 +1576,16 @@
       "completed": "Peywir temam bû",
       "rejected": "Peywir hate redkirin",
       "cancelled": "Peywir hate betalkirim"
+    },
+    "events": {
+      "title": "Bûyerên karê"
+    },
+    "waypoints": {
+      "title": "Rawestgehên",
+      "stop": "Rawestgeh",
+      "arrived": "Gihîşt",
+      "departed": "Çû",
+      "complete": "Biqedîne"
     }
   },
   "welcome": {
@@ -1676,6 +1689,110 @@
     "availableDevices": "Cîhazên Amade",
     "noDevicesAvailable": "Cîhazên amade tune ne"
   },
+  "adminDrivers": {
+    "filterAll": "Hemû",
+    "filterAvailable": "Berdest",
+    "filterOnTask": "Di karê de",
+    "filterOffline": "Derveyî xetê",
+    "vehicle": "Wesayît",
+    "tasks": "Kar",
+    "score": "Pûan",
+    "assignedVehicle": "Wesayîta hatî destnîşankirin",
+    "license": "Lîsans",
+    "phone": "Telefon",
+    "emergency": "Acîl",
+    "totalKm": "Giştî KM",
+    "unnamed": "Bê nav",
+    "noDrivers": "Ajokar tune",
+    "noDriversDesc": "Ajokar nehat dîtin",
+    "loading": "Ajokar tên barkirin...",
+    "loadError": "Barkirin têk çû",
+    "deleteDriver": "Ajokar jê bibe",
+    "deleteConfirm": "Hûn dixin ewle in ku hûn vî ajokarî jêbirin?",
+    "driverDeleted": "Ajokar bi serfirazî hat jêbirin",
+    "deleteFailed": "Jêbirin têk çû"
+  },
+  "adminVehicles": {
+    "filterAll": "Hemû",
+    "filterAvailable": "Berdest",
+    "filterInUse": "Di karanînê de",
+    "filterOther": "Yên din",
+    "fuel": "Sotemenî",
+    "offline": "Derveyî xetê",
+    "online": "Serhêl",
+    "track": "Şopandin",
+    "device": "Amûr",
+    "color": "Reng",
+    "category": "Kategorî",
+    "fuelType": "Cureyê sotemeniyê",
+    "tankCapacity": "Kapasîteya tankê",
+    "lastMaint": "Parastina dawî",
+    "loading": "Wesayît tên barkirin...",
+    "loadError": "Barkirin têk çû",
+    "noVehicles": "Wesayît tune",
+    "noVehiclesDesc": "Wesayît nehat dîtin",
+    "deleteVehicle": "Wesayîtê jê bibe",
+    "deleteConfirm": "Hûn dixin ewle in ku hûn vê wesayîtê jêbirin?",
+    "vehicleDeleted": "Wesayît bi serfirazî hat jêbirin",
+    "deleteFailed": "Jêbirin têk çû"
+  },
+  "adminTasks": {
+    "filterAll": "Hemû",
+    "filterPending": "Li bendê",
+    "filterActive": "Çalak",
+    "filterCompleted": "Qediyayî",
+    "driver": "Ajokar",
+    "noDriver": "Ajokar tune",
+    "noDriverAssigned": "Ajokar nehatiye destnîşankirin",
+    "noVehicle": "Wesayît tune",
+    "distance": "Dûrahî",
+    "from": "Ji",
+    "to": "Bo",
+    "scheduled": "Plankirî",
+    "notes": "Notên",
+    "description": "Danasîn",
+    "priorityLabel": "Pêşîn",
+    "sendOffer": "Pêşniyar bişîne",
+    "sendOfferConfirm": "Vê karê wekî pêşniyarê ji ajokarê re bişîne?",
+    "send": "Bişîne",
+    "offerSent": "Pêşniyar bi serfirazî hat şandin",
+    "offerFailed": "Şandin têk çû",
+    "loading": "Kar tên barkirin...",
+    "loadError": "Barkirin têk çû",
+    "noTasks": "Kar tune",
+    "noTasksDesc": "Kar nehat dîtin",
+    "deleteTask": "Karê jê bibe",
+    "deleteConfirm": "Hûn dixin ewle in ku hûn vî karî jêbirin?",
+    "taskDeleted": "Kar bi serfirazî hat jêbirin",
+    "deleteFailed": "Jêbirin têk çû"
+  },
+  "adminAlerts": {
+    "filterAll": "Hemû",
+    "filterActive": "Çalak",
+    "filterResolved": "Çareser bû",
+    "statusActive": "Çalak",
+    "statusResolved": "Çareser bû",
+    "resolve": "Çareser bike",
+    "resolveBtn": "Çareser bike",
+    "resolveConfirm": "Vê hişyariyê wekî çareserkirî nîşan bide?",
+    "resolved": "Hişyarî çareser bû",
+    "resolveFailed": "Çareser kirin têk çû",
+    "alreadyResolved": "Berê çareser bûye",
+    "deleteAlert": "Hişyariyê jê bibe",
+    "deleteConfirm": "Hûn dixin ewle in ku hûn vê hişyariyê jêbirin?",
+    "alertDeleted": "Hişyarî bi serfirazî hat jêbirin",
+    "deleteFailed": "Jêbirin têk çû",
+    "deleteAll": "Hemûyan jê bibe",
+    "deleteAllBtn": "Hemûyan jê bibe",
+    "deleteAllConfirm": "Hûn dixin ewle in ku hûn hemû hişyariyê jêbirin?",
+    "allDeleted": "Hemû hişyarî hat jêbirin",
+    "deleteAllFailed": "Jêbirin têk çû",
+    "noAlertsToDelete": "Hişyariya ji bo jêbirinê tune",
+    "loading": "Hişyarî tên barkirin...",
+    "loadError": "Barkirin têk çû",
+    "noAlerts": "Hişyarî tune",
+    "noAlertsDesc": "Hişyarî nehat dîtin"
+  },
   "createDriver": {
     "accountInfo": "Agahiyên hesabê",
     "email": "E-posta",
@@ -1699,5 +1816,11 @@
     "passwordMinLength": "Şîfre divê herî kêm 6 tîp be",
     "licenseRequired": "Jimareya lîsansê pêwîst e",
     "createFailed": "Ajokar nehat afirandin"
+  },
+  "camera": {
+    "permissionDenied": "Destûra kamerayê hat red kirin",
+    "grantPermission": "Destûrê bide",
+    "enableInSettings": "Ji kerema xwe di mîhengan de gihîştina kamerayê çalak bike",
+    "requestingPermission": "Destûra kamerayê tê xwestin..."
   }
 }
