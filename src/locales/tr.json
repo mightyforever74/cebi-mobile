@@ -21,7 +21,34 @@
     "all": "Tümü",
     "none": "Hiçbiri",
     "continue": "Devam",
-    "user": "Kullanıcı"
+    "user": "Kullanıcı",
+    "led": {
+      "title": "LED Göstergeleri",
+      "deviceSubtitle": "Cihazınızdaki LED durumları",
+      "quickStatus": "HIZLI DURUM TABLOSU",
+      "wifiLed": "WiFi LED (Mavi)",
+      "gpsLed": "GPS LED (Kırmızı)",
+      "wifiConnected": "Sabit Açık",
+      "wifiConnectedMeaning": "WiFi bağlı, veri gönderiliyor",
+      "wifiConnecting": "Yanıp Sönüyor (500ms)",
+      "wifiConnectingMeaning": "WiFi yok veya bağlanıyor",
+      "gpsFixed": "Sabit Açık",
+      "gpsFixedMeaning": "GPS kilitledi, konum biliniyor",
+      "gpsSearching": "Yanıp Sönüyor (300ms)",
+      "gpsSearchingMeaning": "GPS sinyali aranıyor; kapalı alan veya anten sorunu",
+      "statusAllOk": "Her Şey İyi",
+      "statusAllOkMeaning": "WiFi ve GPS bağlı; sistem normal",
+      "statusNoWifi": "WiFi Sorunu",
+      "statusNoWifiMeaning": "Veri sunucuya ulaşamıyor",
+      "statusNoGps": "GPS Sorunu",
+      "statusNoGpsMeaning": "Konum yok; kapalı alan/anten kontrolü yapın",
+      "statusBothIssue": "Bağlantı Problemi",
+      "statusBothIssueMeaning": "Hem WiFi hem GPS arızalı; cihazı kontrol edin",
+      "infoNote": "LED'ler cihazın ön panelindedir. Sürekli yanıp sönme sorun olduğunu gösterir."
+    },
+    "superAdmin": "Süper Admin",
+    "companyAdmin": "Yönetici",
+    "driver": "Sürücü"
   },
   "profile": {
     "title": "Profil",
@@ -1378,7 +1405,22 @@
     "validationEnterStart": "Başlangıç konumu girin",
     "validationEnterEnd": "Varış konumu girin",
     "validationEndAfterStart": "Bitiş saati başlangıçtan sonra olmalı",
-    "noOptions": "Seçenek bulunamadı"
+    "noOptions": "Seçenek bulunamadı",
+    "templateDelivery": "Teslimat",
+    "templateTransfer": "Transfer",
+    "templateService": "Servis",
+    "templateWarehouse": "Depo",
+    "assignment": "Atama",
+    "schedule": "Zamanlama",
+    "duration": "Süre",
+    "driver": "Sürücü",
+    "vehicle": "Araç",
+    "date": "Tarih",
+    "time": "Saat",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "done": "Tamam",
+    "cancel": "İptal"
   },
   "editTask": {
     "title": "Görevi Düzenle",
@@ -1405,7 +1447,10 @@
     "stopAddress": "Durak Adresi",
     "plannedArrival": "Planlanan Varış",
     "invalidCoords": "Koordinatlar geçersiz",
-    "noStops": "Henüz durak eklenmedi"
+    "noStops": "Henüz durak eklenmedi",
+    "coordinates": "Koordinatlar",
+    "removeStopConfirm": "Bu durağı kaldırmak istediğinize emin misiniz?",
+    "remove": "Kaldır"
   },
   "fuelDash": {
     "avgConsumption": "Ort. Tüketim",
@@ -1486,5 +1531,9 @@
     "s6Body": "GDPR kapsamında aşağıdaki haklara sahipsiniz:\n\n• Erişim: Kişisel verilerinizin bir kopyasını talep etme\n• Düzeltme: Yanlış kişisel verilerin düzeltilmesi\n• Silme: Kişisel verilerinizin silinmesini talep etme\n• Taşınabilirlik: Verilerinizi yapılandırılmış, makine tarafından okunabilir formatta alma\n• Kısıtlama: Verilerinizin işlenmesini kısıtlama\n• İtiraz: Meşru menfaatlere dayalı veri işlemeye itiraz etme\n\nBu haklarınızı kullanmak için bize ulaşın: destek@tulipfleet.com",
     "s7Title": "7. İletişim",
     "s7Body": "TulipFleet\nE-posta: destek@tulipfleet.com\nWeb: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Tüm hakları saklıdır."
+  },
+  "drawer": {
+    "fleetManagement": "Filo Yönetim Sistemi",
+    "user": "Kullanıcı"
   }
 }

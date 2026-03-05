@@ -21,7 +21,34 @@
     "retry": "Riprova",
     "all": "Tutti",
     "none": "Nessuno",
-    "user": "Utente"
+    "user": "Utente",
+    "led": {
+      "title": "Indicatori LED",
+      "deviceSubtitle": "Stati LED sul tuo dispositivo",
+      "quickStatus": "TABELLA STATO RAPIDO",
+      "wifiLed": "LED WiFi (Blu)",
+      "gpsLed": "LED GPS (Rosso)",
+      "wifiConnected": "Acceso fisso",
+      "wifiConnectedMeaning": "WiFi connesso, dati in invio",
+      "wifiConnecting": "Lampeggiante (500ms)",
+      "wifiConnectingMeaning": "Nessun WiFi o in connessione",
+      "gpsFixed": "Acceso fisso",
+      "gpsFixedMeaning": "GPS agganciato, posizione nota",
+      "gpsSearching": "Lampeggiante (300ms)",
+      "gpsSearchingMeaning": "Ricerca segnale GPS; interno o problema antenna",
+      "statusAllOk": "Tutto bene",
+      "statusAllOkMeaning": "WiFi e GPS connessi; sistema normale",
+      "statusNoWifi": "Problema WiFi",
+      "statusNoWifiMeaning": "I dati non possono raggiungere il server",
+      "statusNoGps": "Problema GPS",
+      "statusNoGpsMeaning": "Nessuna posizione; controllare interno/antenna",
+      "statusBothIssue": "Problema di connessione",
+      "statusBothIssueMeaning": "WiFi e GPS entrambi in errore; ispezionare dispositivo",
+      "infoNote": "I LED si trovano sul pannello anteriore del dispositivo. Il lampeggio continuo indica un problema."
+    },
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Manager",
+    "driver": "Autista"
   },
   "auth": {
     "login": "Accedi",
@@ -105,7 +132,16 @@
     "platformUsers": "Utenti",
     "systemHealth": "Stato Sistema",
     "logout": "Esci",
-    "logoutConfirm": "Sei sicuro di voler uscire?"
+    "logoutConfirm": "Sei sicuro di voler uscire?",
+    "alerts": "Avvisi",
+    "reports": "Rapporti",
+    "settings": "Impostazioni",
+    "profile": "Profilo",
+    "companies": "Aziende",
+    "devices": "Dispositivi",
+    "taskHistory": "Cronologia",
+    "navigation": "Navigazione",
+    "sos": "SOS"
   },
   "settings": {
     "aboutDescription": "TulipFleet è un'applicazione professionale progettata per la gestione della flotta.",
@@ -388,7 +424,27 @@
     "rejectTaskConfirm": "Sei sicuro di voler rifiutare \"{{title}}\"?",
     "taskRejected": "Attività Rifiutata",
     "taskRejectedMessage": "Puoi vedere altre offerte nella schermata Le Mie Attività.",
-    "couldNotRejectTask": "Impossibile rifiutare l'attività"
+    "couldNotRejectTask": "Impossibile rifiutare l'attività",
+    "info": "Informazioni",
+    "error": "Errore",
+    "withdrawTask": "Ritira attività",
+    "withdrawTaskConfirm": "Sei sicuro di voler ritirare questa attività?",
+    "withdrawConfirm": "Sì, ritira",
+    "withdraw": "Ritira",
+    "taskWithdrawn": "Attività ritirata",
+    "viewHistory": "Visualizza cronologia",
+    "couldNotWithdrawTask": "Impossibile ritirare l'attività",
+    "statuses": {
+      "pending_review": "In revisione",
+      "accepted": "Accettata",
+      "in_progress": "In corso",
+      "completed": "Completata",
+      "rejected": "Rifiutata",
+      "pending": "In attesa",
+      "assigned": "Assegnata",
+      "cancelled": "Annullata",
+      "withdrawn": "Ritirata"
+    }
   },
   "profile": {
     "title": "Profilo",
@@ -504,7 +560,9 @@
     "supportMessage": "Hai bisogno di aiuto?",
     "sendEmail": "Invia Email",
     "aboutTitle": "Informazioni su TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nSistema di Gestione Flotta\n© 2025 TulipFleet\n\nTutti i diritti riservati."
+    "aboutMessage": "TulipFleet v1.0.0\n\nSistema di Gestione Flotta\n© 2025 TulipFleet\n\nTutti i diritti riservati.",
+    "ok": "OK",
+    "supportTitle": "Supporto"
   },
   "editProfile": {
     "title": "Modifica Profilo",
@@ -539,21 +597,136 @@
       "successPending": "Configurazione completata. In attesa di conferma attivazione...",
       "pendingTitle": "Completamento configurazione...",
       "verifyButton": "Controlla stato",
-      "verifyFailed": "L'attivazione non è ancora stata verificata. Riavviare il dispositivo o controllare la connessione internet."
+      "verifyFailed": "L'attivazione non è ancora stata verificata. Riavviare il dispositivo o controllare la connessione internet.",
+      "activating": "Attivazione...",
+      "success": "Attivazione riuscita",
+      "failed": "Attivazione fallita",
+      "serverCommunication": "Comunicazione con server..."
     },
     "activeWarning": {
       "title": "⚠️ Dispositivo Già Attivo",
-      "message": "Il dispositivo {{serial}} è già attivo e connesso via WiFi{{vehicle}}.\n\nVuoi reinstallare?",
+      "message": "Il dispositivo è attivo. Continuare?",
       "cancel": "Annulla",
-      "continue": "Continua Comunque"
+      "continue": "Continua"
     },
     "checkingDeviceStatus": "Verifica stato dispositivo...",
     "ble": {
       "bootWindowHint": "La modalità BLE del dispositivo ESP32 è attiva per 5 minuti dopo l'accensione. Se il dispositivo non viene trovato, riavviarlo scollegando e ricollegando il cavo USB.",
-      "deviceNameHint": "Il nome del dispositivo appare come \"TulipFleet-XXXX\". Avvicinarsi a 1-2 metri."
+      "deviceNameHint": "Il nome del dispositivo appare come \"TulipFleet-XXXX\". Avvicinarsi a 1-2 metri.",
+      "searchingDevices": "Ricerca dispositivi...",
+      "deviceNotFound": "Dispositivo non trovato",
+      "devicesFound": "Dispositivi trovati",
+      "searchingBluetooth": "Ricerca Bluetooth...",
+      "deviceHint": "Seleziona il tuo dispositivo",
+      "rescan": "Scansiona di nuovo",
+      "strong": "Forte",
+      "medium": "Medio",
+      "weak": "Debole"
     },
     "wifi": {
-      "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz."
+      "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz.",
+      "title": "Dati WiFi",
+      "subtitle": "Inserisci dati di rete",
+      "ssidLabel": "Nome rete",
+      "ssidPlaceholder": "Inserisci nome WiFi",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Inserisci password WiFi",
+      "lastUsed": "Ultimo utilizzo",
+      "hint": "Il dispositivo si connetterà a questa rete",
+      "connect": "Connetti",
+      "enterCredentials": "Inserisci dati di rete",
+      "emptySSID": "Il nome rete non può essere vuoto",
+      "shortPassword": "Password troppo corta",
+      "sendingCredentials": "Invio dati...",
+      "connectionFailed": "Connessione fallita",
+      "connecting": "Connessione...",
+      "network": "Rete",
+      "deviceConnecting": "Dispositivo in connessione..."
+    },
+    "checkingStatus": "Verifica stato...",
+    "loading": "Caricamento...",
+    "setupNotRequired": "Configurazione non richiesta",
+    "deviceActiveMessage": "Il dispositivo è attivo",
+    "deviceReinstall": "Reinstalla dispositivo",
+    "deviceWaitingReinstall": "Dispositivo in attesa di reinstallazione",
+    "steps": {
+      "qrScan": "Scansiona QR",
+      "bleScan": "Cerca Bluetooth",
+      "connecting": "Connessione",
+      "wifiForm": "Dati WiFi",
+      "wifiProvisioning": "Configura WiFi",
+      "activating": "Attivazione",
+      "success": "Riuscito",
+      "error": "Errore"
+    },
+    "bluetooth": {
+      "off": "Bluetooth spento",
+      "offMessage": "Attiva il Bluetooth",
+      "unauthorized": "Non autorizzato",
+      "unauthorizedMessage": "Autorizzazione Bluetooth richiesta",
+      "unsupported": "Non supportato",
+      "unsupportedMessage": "Il dispositivo non supporta il Bluetooth",
+      "permissionsDenied": "Autorizzazione negata",
+      "permissionsDeniedMessage": "Autorizzazioni Bluetooth richieste",
+      "locationDenied": "Posizione negata",
+      "locationDeniedMessage": "Posizione richiesta per Bluetooth",
+      "error": "Errore Bluetooth",
+      "notReady": "Bluetooth non pronto",
+      "notReadyMessage": "Attiva il Bluetooth"
+    },
+    "qr": {
+      "invalidCode": "Codice non valido",
+      "invalidCodeMessage": "Codice QR non riconosciuto",
+      "scanHint": "Scansiona il codice QR del dispositivo",
+      "manualEntry": "Inserimento manuale"
+    },
+    "serial": {
+      "validating": "Validazione...",
+      "invalid": "Numero di serie non valido",
+      "invalidFormat": "Formato serie errato",
+      "notRegistered": "Serie non registrata",
+      "enterSerial": "Inserisci numero di serie",
+      "example": "Esempio: TF-XXXX-XXXX"
+    },
+    "connection": {
+      "connecting": "Connessione...",
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "unknownError": "Errore sconosciuto"
+    },
+    "result": {
+      "setupComplete": "Configurazione completata",
+      "deviceReady": "Dispositivo pronto",
+      "errorOccurred": "Si è verificato un errore",
+      "done": "Fatto",
+      "retry": "Riprova",
+      "cancel": "Annulla"
+    },
+    "camera": {
+      "permissionRequired": "Autorizzazione fotocamera richiesta",
+      "permissionMessage": "Fotocamera richiesta per scansione QR",
+      "grantPermission": "Concedi autorizzazione"
+    },
+    "buttons": {
+      "settings": "Impostazioni",
+      "cancel": "Annulla",
+      "ok": "OK",
+      "continue": "Continua"
+    },
+    "status": {
+      "waitingSerial": "In attesa di serie",
+      "serialReceived": "Serie ricevuta",
+      "activating": "Attivazione",
+      "wifiConnecting": "Connessione WiFi",
+      "wifiConnected": "WiFi connesso",
+      "callingApi": "Chiamata API",
+      "apiSuccess": "API riuscita",
+      "apiFailed": "API fallita",
+      "savingNvs": "Salvataggio NVS",
+      "complete": "Completato",
+      "wifiCredReceived": "Credenziali WiFi ricevute",
+      "wifiProvisionOk": "WiFi configurato",
+      "wifiProvisionFail": "Configurazione WiFi fallita"
     }
   },
   "navigator": {
@@ -784,7 +957,60 @@
       "saved": "Salvato",
       "kmTraveled": "{{km}} km",
       "consumptionPer100km": "{{value}} L/100km",
-      "costPerKm": "{{value}}/km"
+      "costPerKm": "{{value}}/km",
+      "message": "Carburante salvato con successo"
+    },
+    "title": "Carburante",
+    "vehicleInfo": "Informazioni veicolo",
+    "plate": "Targa",
+    "lastOdometer": "Ultimo odometro",
+    "tankCapacity": "Capacità serbatoio",
+    "fuelType": "Tipo carburante",
+    "currentOdometer": "Odometro attuale",
+    "odometerPlaceholder": "Inserisci km",
+    "litersFilled": "Litri riforniti",
+    "litersPlaceholder": "Inserisci litri",
+    "totalCost": "Costo totale",
+    "costPlaceholder": "Inserisci costo",
+    "pricePerLiter": "Prezzo al litro",
+    "isFullTank": "Pieno",
+    "fullTankNote": "Serbatoio pieno",
+    "save": "Salva",
+    "calculation": "Calcolo",
+    "kmTraveled": "Km percorsi",
+    "consumption": "Consumo",
+    "costPerKm": "Costo per km",
+    "lastRecord": "Ultimo record",
+    "editVehicle": "Modifica veicolo",
+    "vehicleUpdated": "Veicolo aggiornato",
+    "plateReadonly": "Targa in sola lettura",
+    "firstRecordNote": "Primo record",
+    "validation": {
+      "odometerRequired": "Odometro richiesto",
+      "odometerMustBeHigher": "Deve essere maggiore del precedente",
+      "litersRequired": "Litri richiesti",
+      "litersExceedsTank": "Supera la capacità",
+      "consumptionUnrealistic": "Consumo irrealistico",
+      "kmTooHigh": "Km troppo alto"
+    },
+    "error": {
+      "title": "Errore",
+      "loadFailed": "Caricamento fallito",
+      "saveFailed": "Salvataggio fallito",
+      "noVehicle": "Nessun veicolo",
+      "vehicleUpdateFailed": "Aggiornamento fallito"
+    },
+    "notFullTankWarning": {
+      "title": "Serbatoio incompleto",
+      "message": "Il serbatoio non è pieno. Salvare comunque?",
+      "cancel": "Annulla",
+      "saveAnyway": "Salva comunque"
+    },
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "gasoline": "Benzina",
+      "lpg": "GPL",
+      "electric": "Elettrico"
     }
   },
   "led": {
@@ -872,7 +1098,8 @@
       "emailReport": "Invia Email",
       "emailReportDesc": "Condividi report via email",
       "download": "Scarica",
-      "send": "Invia"
+      "send": "Invia",
+      "comingSoon": "Prossimamente"
     }
   },
   "admin": {
@@ -1108,5 +1335,313 @@
     "s6Body": "Ai sensi del GDPR, avete il diritto di:\n\n• Accesso: Richiedere una copia dei vostri dati personali\n• Rettifica: Correggere dati personali inesatti\n• Cancellazione: Richiedere la cancellazione dei vostri dati personali\n• Portabilità: Ricevere i vostri dati in un formato strutturato e leggibile da macchina\n• Limitazione: Limitare il trattamento dei vostri dati\n• Opposizione: Opporsi al trattamento dei dati basato su interessi legittimi\n\nPer esercitare questi diritti, contattateci a: destek@tulipfleet.com",
     "s7Title": "7. Contatti",
     "s7Body": "TulipFleet\nEmail: destek@tulipfleet.com\nSito web: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Tutti i diritti riservati."
+  },
+  "device": {
+    "title": "Dispositivi",
+    "serial": "Numero di serie",
+    "status": "Stato",
+    "online": "Online",
+    "offline": "Offline",
+    "assigned": "Assegnato",
+    "unassigned": "Non assegnato",
+    "generateQR": "Genera QR",
+    "showQR": "Mostra QR",
+    "refreshQR": "Aggiorna QR",
+    "qrGenerated": "QR generato",
+    "qrExpires": "Scade",
+    "scanQR": "Scansiona QR",
+    "searchBySerial": "Cerca per serie",
+    "addToStock": "Aggiungi al magazzino",
+    "assignToVehicle": "Assegna al veicolo",
+    "assignDevice": "Assegna dispositivo",
+    "deviceAssigned": "Dispositivo assegnato",
+    "noDevices": "Nessun dispositivo",
+    "claimDevice": "Richiedi dispositivo",
+    "activating": "Attivazione...",
+    "activated": "Attivato",
+    "statuses": {
+      "CREATED": "Creato",
+      "PRINTED": "Stampato",
+      "IN_STOCK": "In magazzino",
+      "ASSIGNED": "Assegnato",
+      "ACTIVATED": "Attivato",
+      "SUSPENDED": "Sospeso",
+      "RETIRED": "Ritirato",
+      "LOST": "Perso"
+    }
+  },
+  "alert": {
+    "title": "Avvisi",
+    "resolve": "Risolvi",
+    "resolved": "Risolto",
+    "active": "Attivo",
+    "noAlerts": "Nessun avviso",
+    "types": {
+      "HARD_BRAKE": "Frenata brusca",
+      "HARD_ACCEL": "Accelerazione brusca",
+      "HARD_TURN": "Curva brusca",
+      "IMPACT": "Impatto",
+      "speeding": "Eccesso di velocità",
+      "idle_too_long": "Troppo tempo in folle"
+    }
+  },
+  "wifi": {
+    "ssid": "Nome rete",
+    "password": "Password",
+    "connect": "Connetti",
+    "connecting": "Connessione...",
+    "connected": "Connesso",
+    "errors": {
+      "authFailed": "Password errata",
+      "timeout": "Timeout connessione",
+      "notFound": "Rete non trovata"
+    }
+  },
+  "ble": {
+    "scanning": "Scansione...",
+    "connecting": "Connessione...",
+    "connected": "Connesso",
+    "disconnected": "Disconnesso",
+    "noDevices": "Nessun dispositivo trovato",
+    "permissionRequired": "Autorizzazione Bluetooth richiesta"
+  },
+  "taskOffers": {
+    "title": "Offerte attività",
+    "loading": "Caricamento...",
+    "connectionIssue": "Problema di connessione",
+    "sessionExpired": "Sessione scaduta",
+    "noPermission": "Nessuna autorizzazione",
+    "offersNotFound": "Offerte non trovate",
+    "serverError": "Errore server",
+    "checkInternet": "Verifica connessione internet",
+    "genericError": "Si è verificato un errore",
+    "retry": "Riprova",
+    "statuses": {
+      "pending": "In attesa",
+      "accepted": "Accettata",
+      "rejected": "Rifiutata",
+      "expired": "Scaduta"
+    },
+    "filters": {
+      "pending": "In attesa",
+      "accepted": "Accettata",
+      "rejected": "Rifiutata",
+      "all": "Tutte"
+    },
+    "timeRemaining": {
+      "expired": "Scaduto",
+      "minutes": "minuti",
+      "hours": "ore"
+    },
+    "tapForDetails": "Tocca per i dettagli",
+    "empty": {
+      "error": "Errore",
+      "normal": "Nessuna offerta",
+      "couldNotLoad": "Impossibile caricare",
+      "noPending": "Nessuna offerta in attesa",
+      "notFound": "Non trovato"
+    }
+  },
+  "taskDetail": {
+    "title": "Dettagli attività",
+    "loading": "Caricamento...",
+    "notFound": "Attività non trovata",
+    "taskIdNotFound": "ID attività non trovato",
+    "statuses": {
+      "pending_review": "In revisione",
+      "accepted": "Accettata",
+      "in_progress": "In corso",
+      "completed": "Completata",
+      "rejected": "Rifiutata",
+      "pending": "In attesa",
+      "assigned": "Assegnata",
+      "cancelled": "Annullata"
+    },
+    "info": {
+      "taskNo": "Numero attività",
+      "vehicle": "Veicolo",
+      "scheduledStart": "Inizio pianificato",
+      "actualStart": "Inizio effettivo",
+      "completedAt": "Completata il",
+      "notSpecified": "Non specificato"
+    },
+    "route": {
+      "title": "Percorso",
+      "origin": "Origine",
+      "destination": "Destinazione",
+      "distance": "Distanza"
+    },
+    "notes": {
+      "title": "Note"
+    },
+    "actions": {
+      "acceptTask": "Accetta attività",
+      "acceptConfirm": "Accettare questa attività?",
+      "accept": "Accetta",
+      "cancel": "Annulla",
+      "success": "Riuscito",
+      "taskAccepted": "Attività accettata",
+      "rejectTask": "Rifiuta attività",
+      "rejectReason": "Motivo",
+      "rejectReasonPlaceholder": "Inserisci motivo",
+      "rejectReasonRequired": "Motivo richiesto",
+      "reject": "Rifiuta",
+      "info": "Informazioni",
+      "taskRejected": "Attività rifiutata",
+      "startTask": "Avvia attività",
+      "startConfirm": "Avviare questa attività?",
+      "start": "Avvia",
+      "taskStarted": "Attività avviata",
+      "taskStartedMessage": "L'attività è iniziata",
+      "goToNavigation": "Vai alla navigazione",
+      "stayHere": "Rimani qui",
+      "completeTask": "Completa attività",
+      "completeConfirm": "Completare questa attività?",
+      "complete": "Completa",
+      "congratulations": "Congratulazioni",
+      "taskCompleted": "Attività completata",
+      "error": "Errore",
+      "operationFailed": "Operazione fallita"
+    },
+    "statusInfo": {
+      "completed": "Attività completata",
+      "rejected": "Attività rifiutata",
+      "cancelled": "Attività annullata"
+    }
+  },
+  "routeMap": {
+    "loading": "Ottenimento posizione...",
+    "vehicleNotFound": "Veicolo non trovato",
+    "locationNotAvailable": "Posizione non disponibile",
+    "calculatingRoute": "Calcolo percorso...",
+    "coordinateCopied": "Coordinate copiate",
+    "retry": "Riprova",
+    "completeTask": "Completa attività",
+    "completeConfirm": "Completare questa attività?",
+    "cancel": "Annulla",
+    "complete": "Completa",
+    "success": "Riuscito",
+    "taskCompleted": "Attività completata!",
+    "ok": "OK",
+    "error": "Errore",
+    "taskCouldNotComplete": "Impossibile completare",
+    "taskCouldNotStart": "Impossibile avviare",
+    "taskCouldNotAccept": "Impossibile accettare",
+    "taskCouldNotReject": "Impossibile rifiutare",
+    "rejectTask": "Rifiuta attività",
+    "rejectConfirm": "Rifiutare questa attività?",
+    "reject": "Rifiuta",
+    "taskRejected": "Attività rifiutata",
+    "waitForOtherTasks": "Puoi aspettare altre attività.",
+    "pendingTask": "Attività in attesa",
+    "newTaskOffer": "Nuova offerta",
+    "deliveryTask": "Attività consegna",
+    "readyToStart": "Pronto per iniziare",
+    "origin": "Origine",
+    "currentLocation": "Posizione attuale",
+    "destination": "Destinazione",
+    "notDetermined": "Non determinato",
+    "total": "Totale",
+    "startTask": "Avvia attività",
+    "target": "Obiettivo",
+    "min": "min"
+  },
+  "help": {
+    "title": "Centro assistenza",
+    "subtitle": "Come possiamo aiutarti?",
+    "heroTitle": "Assistenza TulipFleet",
+    "heroSubtitle": "Trova risposte alle tue domande",
+    "heroHint": "Tocca una sezione per espandere",
+    "quickHelp": "Aiuto rapido",
+    "troubleshooting": "Risoluzione problemi",
+    "ledIndicators": "Indicatori LED",
+    "faqTitle": "Domande frequenti",
+    "questionCount": "domande",
+    "account": {
+      "title": "Account",
+      "q1": "Come cambio la password?",
+      "a1": "Vai su Impostazioni > Cambia password",
+      "q2": "Come aggiorno il mio profilo?",
+      "a2": "Vai su Impostazioni > Profilo",
+      "q3": "Come contatto il supporto?",
+      "a3": "Usa il modulo di contatto"
+    },
+    "vehicles": {
+      "title": "Veicoli",
+      "q1": "Come aggiungo un veicolo?",
+      "a1": "Vai su Veicoli > Aggiungi",
+      "q2": "Come assegno un autista?",
+      "a2": "Modifica il veicolo e seleziona l'autista",
+      "q3": "Come monitoro la posizione?",
+      "a3": "Usa la mappa della flotta"
+    },
+    "tasks": {
+      "title": "Attività",
+      "q1": "Come creo un'attività?",
+      "a1": "Vai su Attività > Nuova attività",
+      "q2": "Come assegno un'attività?",
+      "a2": "Seleziona l'autista durante la creazione",
+      "q3": "Come monitoro le attività?",
+      "a3": "Usa la dashboard"
+    },
+    "technical": {
+      "title": "Tecnico",
+      "q1": "Il dispositivo non si connette",
+      "a1": "Controlla il WiFi e riavvia",
+      "q2": "Il GPS non funziona",
+      "a2": "Assicurati di essere all'aperto",
+      "q3": "L'app si blocca",
+      "a3": "Svuota la cache e riavvia"
+    },
+    "contact": {
+      "title": "Contatto",
+      "subtitle": "Non hai trovato la risposta?",
+      "button": "Contattaci"
+    },
+    "footer": "TulipFleet - Sistema di gestione flotta"
+  },
+  "troubleshooting": {
+    "title": "Risoluzione problemi",
+    "tapToExpand": "Tocca per espandere",
+    "solution": "Soluzione",
+    "stepsToTry": "Passi da seguire",
+    "stillNeedHelp": "Hai ancora bisogno di aiuto?",
+    "contactUs": "Contattaci",
+    "problems": {
+      "noPower": "Nessuna alimentazione",
+      "noGps": "Nessun GPS",
+      "noWifi": "Nessun WiFi",
+      "noBle": "Nessun Bluetooth",
+      "noUpdate": "Nessun aggiornamento",
+      "appCrash": "App si blocca"
+    },
+    "solutions": {
+      "noPower": "Controlla la connessione di alimentazione",
+      "noGps": "Spostati all'aperto",
+      "noWifi": "Controlla la password WiFi",
+      "noBle": "Abilita il Bluetooth",
+      "noUpdate": "Controlla la connessione internet",
+      "appCrash": "Riavvia l'app"
+    },
+    "steps": {
+      "checkPowerConnection": "Controlla il cavo di alimentazione",
+      "checkFuse": "Controlla il fusibile",
+      "checkVoltage": "Verifica la tensione",
+      "moveOutdoors": "Spostati all'esterno",
+      "checkAntenna": "Controlla l'antenna",
+      "avoidMetal": "Evita superfici metalliche",
+      "checkPassword": "Verifica la password",
+      "use24Ghz": "Usa rete 2.4GHz",
+      "checkSignal": "Controlla il segnale",
+      "restartDevice": "Riavvia il dispositivo",
+      "connect60sec": "Attendi 60 secondi",
+      "enableBluetooth": "Abilita Bluetooth",
+      "checkInternet": "Controlla internet",
+      "checkServer": "Controlla il server",
+      "restartApp": "Riavvia l'app",
+      "updateApp": "Aggiorna l'app",
+      "clearCache": "Svuota la cache",
+      "reinstall": "Reinstalla"
+    }
   }
 }

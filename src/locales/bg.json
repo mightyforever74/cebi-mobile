@@ -21,7 +21,34 @@
     "all": "Всички",
     "none": "Няма",
     "continue": "Продължи",
-    "user": "Потребител"
+    "user": "Потребител",
+    "led": {
+      "title": "LED Индикатори",
+      "deviceSubtitle": "LED статуси на вашето устройство",
+      "quickStatus": "ТАБЛИЦА ЗА БЪРЗ СТАТУС",
+      "wifiLed": "WiFi LED (Синьо)",
+      "gpsLed": "GPS LED (Червено)",
+      "wifiConnected": "Постоянно свети",
+      "wifiConnectedMeaning": "WiFi е свързан, данните се изпращат",
+      "wifiConnecting": "Мигащо (500ms)",
+      "wifiConnectingMeaning": "Няма WiFi или се свързва",
+      "gpsFixed": "Постоянно свети",
+      "gpsFixedMeaning": "GPS фиксиран, местоположението е известно",
+      "gpsSearching": "Мигащо (300ms)",
+      "gpsSearchingMeaning": "Търсене на GPS сигнал; закрито пространство или проблем с антена",
+      "statusAllOk": "Всичко е наред",
+      "statusAllOkMeaning": "WiFi и GPS са свързани; системата е нормална",
+      "statusNoWifi": "Проблем с WiFi",
+      "statusNoWifiMeaning": "Данните не могат да достигнат до сървъра",
+      "statusNoGps": "Проблем с GPS",
+      "statusNoGpsMeaning": "Няма местоположение; проверете закрито пространство/антена",
+      "statusBothIssue": "Проблем с връзката",
+      "statusBothIssueMeaning": "WiFi и GPS се провалят; проверете устройството",
+      "infoNote": "LED-овете са на предния панел на устройството. Постоянното мигане показва проблем."
+    },
+    "superAdmin": "Супер Администратор",
+    "companyAdmin": "Мениджър",
+    "driver": "Шофьор"
   },
   "auth": {
     "login": "Вход",
@@ -370,8 +397,8 @@
     }
   },
   "drawer": {
-    "fleetManagement": "Fleet Management System",
-    "user": "User"
+    "fleetManagement": "Система за управление на флота",
+    "user": "Потребител"
   },
   "tasks": {
     "title": "Моите Задачи",
@@ -1199,7 +1226,8 @@
       "emailReport": "Изпрати имейл",
       "emailReportDesc": "Сподели отчета по имейл",
       "download": "Изтегли",
-      "send": "Изпрати"
+      "send": "Изпрати",
+      "comingSoon": "Скоро"
     }
   },
   "admin": {
@@ -1310,7 +1338,22 @@
     "validationEnterStart": "Въведете начална локация",
     "validationEnterEnd": "Въведете дестинация",
     "validationEndAfterStart": "Крайното време трябва да е след началното",
-    "noOptions": "Няма намерени опции"
+    "noOptions": "Няма намерени опции",
+    "templateDelivery": "Доставка",
+    "templateTransfer": "Трансфер",
+    "templateService": "Сервиз",
+    "templateWarehouse": "Склад",
+    "assignment": "Назначаване",
+    "schedule": "График",
+    "duration": "Продължителност",
+    "driver": "Шофьор",
+    "vehicle": "Превозно средство",
+    "date": "Дата",
+    "time": "Час",
+    "start": "Начало",
+    "end": "Край",
+    "done": "Готово",
+    "cancel": "Отказ"
   },
   "editTask": {
     "title": "Редактиране на задача",
@@ -1337,7 +1380,10 @@
     "stopAddress": "Адрес на спирка",
     "plannedArrival": "Планирано пристигане",
     "invalidCoords": "Невалидни координати",
-    "noStops": "Все още няма добавени спирки"
+    "noStops": "Все още няма добавени спирки",
+    "coordinates": "Координати",
+    "removeStopConfirm": "Сигурни ли сте, че искате да премахнете тази спирка?",
+    "remove": "Премахни"
   },
   "fuelDash": {
     "avgConsumption": "Ср. Разход",
@@ -1418,5 +1464,74 @@
     "s6Body": "Съгласно GDPR имате право на:\n\n• Достъп: Заявка за копие на вашите лични данни\n• Коригиране: Коригиране на неточни лични данни\n• Изтриване: Заявка за изтриване на вашите лични данни\n• Преносимост: Получаване на данните ви в структуриран, машинно четим формат\n• Ограничаване: Ограничаване на обработката на вашите данни\n• Възражение: Възражение срещу обработка на данни, основана на законни интереси\n\nЗа упражняване на тези права се свържете с нас на: destek@tulipfleet.com",
     "s7Title": "7. Контакт",
     "s7Body": "TulipFleet\nИмейл: destek@tulipfleet.com\nУебсайт: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Всички права запазени."
+  },
+  "device": {
+    "title": "Устройства",
+    "serial": "Сериен номер",
+    "status": "Статус",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "assigned": "Назначено",
+    "unassigned": "Не е назначено",
+    "generateQR": "Генериране на QR",
+    "showQR": "Покажи QR",
+    "refreshQR": "Обнови QR",
+    "qrGenerated": "QR е генериран",
+    "qrExpires": "Изтича",
+    "scanQR": "Сканирай QR",
+    "searchBySerial": "Търсене по сериен номер",
+    "addToStock": "Добави в склад",
+    "assignToVehicle": "Назначи към превозно средство",
+    "assignDevice": "Назначи устройство",
+    "deviceAssigned": "Устройството е назначено",
+    "noDevices": "Няма устройства",
+    "claimDevice": "Заяви устройство",
+    "activating": "Активиране...",
+    "activated": "Активирано",
+    "statuses": {
+      "CREATED": "Създадено",
+      "PRINTED": "Отпечатано",
+      "IN_STOCK": "В склад",
+      "ASSIGNED": "Назначено",
+      "ACTIVATED": "Активирано",
+      "SUSPENDED": "Спряно",
+      "RETIRED": "Пенсионирано",
+      "LOST": "Изгубено"
+    }
+  },
+  "alert": {
+    "title": "Сигнали",
+    "resolve": "Реши",
+    "resolved": "Решен",
+    "active": "Активен",
+    "noAlerts": "Няма сигнали",
+    "types": {
+      "HARD_BRAKE": "Рязко спиране",
+      "HARD_ACCEL": "Рязко ускоряване",
+      "HARD_TURN": "Рязък завой",
+      "IMPACT": "Удар",
+      "speeding": "Превишена скорост",
+      "idle_too_long": "Твърде дълъг престой"
+    }
+  },
+  "wifi": {
+    "ssid": "Мрежово Ime",
+    "password": "Парола",
+    "connect": "Свързване",
+    "connecting": "Свързване...",
+    "connected": "Свързан",
+    "errors": {
+      "authFailed": "Грешна парола",
+      "timeout": "Времето за изчакване изтече",
+      "notFound": "Мрежата не е намерена"
+    }
+  },
+  "ble": {
+    "scanning": "Сканиране...",
+    "connecting": "Свързване...",
+    "connected": "Свързан",
+    "disconnected": "Прекъснат",
+    "noDevices": "Няма намерени устройства",
+    "permissionRequired": "Необходимо е разрешение за Bluetooth"
   }
 }
