@@ -14,11 +14,11 @@ let inMemoryToken = null;
 // 401 event callback (AuthContext tarafÄ±ndan set edilir)
 let onUnauthorizedCallback = null;
 
-// KRÄ°TÄ°K B: Spam lock - aynÄ± anda birden fazla 401 iÃ§in
+// KİRİTİK B: Spam lock - aynı anda birden fazla 401
 let unauthorizedHandled = false;
 
 /**
- * Token'Ä± memory'ye set et (AuthContext'ten Ã§aÄŸrÄ±lÄ±r)
+ * Token memory'ye set et (AuthContext'ten )
  */
 export const setAuthToken = (token) => {
   inMemoryToken = token;
@@ -29,7 +29,7 @@ export const setAuthToken = (token) => {
 };
 
 /**
- * Token'Ä± memory'den temizle
+ * Token' memory'den temizle
  */
 export const clearAuthToken = () => {
   inMemoryToken = null;
@@ -37,7 +37,7 @@ export const clearAuthToken = () => {
 };
 
 /**
- * 401 callback'i set et (AuthContext logout iÃ§in)
+ * 401 callback'i set et (AuthContext logout )
  * Type guard eklendi
  */
 export const setOnUnauthorized = (callback) => {
@@ -45,10 +45,10 @@ export const setOnUnauthorized = (callback) => {
 };
 
 /**
- * Token'Ä± al - Ã¶nce memory, sonra storage utils
+ * Token' al - Ã¶nce memory, sonra storage utils
  */
 const getToken = async () => {
-  // 1. Ã–nce memory'den dene (en hÄ±zlÄ±)
+  // 1. Ã–nce memory'den dene
   if (inMemoryToken) {
     return inMemoryToken;
   }
@@ -67,8 +67,7 @@ const getToken = async () => {
 };
 
 // ============================================
-// KRÄ°TÄ°K A: Auth endpoint'leri iÃ§in INTERCEPTOR'SIZ client
-// Login/logout/refresh bu client'Ä± kullanÄ±r
+// KRÄ°TÄ°K A: Auth endpoint'leri
 // ============================================
 const authClient = axios.create({
   baseURL: API_BASE_URL,
@@ -79,7 +78,7 @@ const authClient = axios.create({
 });
 
 // ============================================
-// Normal API istekleri iÃ§in interceptor'lÃ¼ client
+// Normal API istekleri
 // ============================================
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -91,7 +90,6 @@ const api = axios.create({
 
 // ============================================
 // S6: ETag / 304 Cache (network cost reduction)
-// AdminDashboard 30s polling → veri degismediyse 304 = bos body
 // ============================================
 const etagCache = new Map(); // key: fullUrl → { etag, data }
 
@@ -163,7 +161,7 @@ api.interceptors.response.use(
       url.includes("/api/auth/refresh") ||
       url.includes("/api/auth/register");
 
-    // Handle 401 Unauthorized (auth endpoint'leri hariÃ§)
+    // Handle 401 Unauthorized
     if (status === 401 && !isAuthEndpoint && !unauthorizedHandled) {
       console.log("ðŸ”’ [API] 401 - Token expired or invalid");
 
@@ -206,7 +204,7 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// AUTH ENDPOINTS (interceptor'sÄ±z authClient kullanÄ±r)
+// AUTH ENDPOINTS
 // ============================================
 
 export const authAPI = {
@@ -269,7 +267,7 @@ export const authAPI = {
 
   // Change password - token gerektirir
   changePassword: async (data) => {
-    const response = await api.put("/api/auth/change-password", data);
+    const response = await api.put("/api/users/password", data);
     return response.data;
   },
 
@@ -298,7 +296,7 @@ export const userAPI = {
   },
 
   changePassword: async (data) => {
-    const response = await api.put("/api/user/change-password", data);
+    const response = await api.put("/api/users/password", data);
     return response.data;
   },
 };
@@ -639,9 +637,9 @@ export const driverAPI = {
     return response.data;
   },
 
-  // Update vehicle settings (uses authClient per request)
+  // Update vehicle settings
   updateVehicleSettings: async (vehicleId, data) => {
-    const response = await authClient.put(
+    const response = await api.put(
       `/api/driver/vehicle/${vehicleId}/settings`,
       data
     );
