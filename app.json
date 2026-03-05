@@ -3,11 +3,11 @@
     "name": "TulipFleet",
     "slug": "tulipfleet",
     "platforms": ["ios", "android"],
-    "version": "2.0.1",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "updates": {
-      "enabled": false,
+      "enabled": true,
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/7c0ea9e5-7cc1-4723-ad38-3fbe23256d50"
     },
@@ -49,7 +49,9 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "runtimeVersion": "1.0.0"
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "plugins": [
       "expo-asset",
@@ -77,9 +79,9 @@
             "ccacheEnabled": false
           },
           "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0"
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
           }
         }
       ],
