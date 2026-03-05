@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "loading": "Yükleniyor...",
     "save": "Kaydet",
@@ -21,8 +21,7 @@
     "all": "Tümü",
     "none": "Hiçbiri",
     "continue": "Devam",
-    "user": "Kullanıcı",
-    "info": "Bilgi"
+    "user": "Kullanıcı"
   },
   "profile": {
     "title": "Profil",
@@ -575,7 +574,9 @@
       "rescan": "🔄 Tekrar Tara",
       "strong": "🟢 Güçlü",
       "medium": "🟡 Orta",
-      "weak": "🔴 Zayıf"
+      "weak": "🔴 Zayıf",
+      "bootWindowHint": "ESP32 cihazının BLE modu açılıştan sonra 5 dakika aktiftir. Cihaz bulunamazsa USB'yi çıkarıp tekrar takarak cihazı yeniden başlatın.",
+      "deviceNameHint": "Cihaz adı \"TulipFleet-XXXX\" şeklinde görünür. 1-2 metre yaklaşın."
     },
     "connection": {
       "connecting": "Bağlanıyor...",
@@ -600,7 +601,8 @@
       "connectionFailed": "WiFi bağlantısı başarısız",
       "connecting": "📶 WiFi Bağlantısı",
       "network": "Ağ: {{ssid}}",
-      "deviceConnecting": "ESP32 cihazı WiFi ağına bağlanıyor, lütfen bekleyin..."
+      "deviceConnecting": "ESP32 cihazı WiFi ağına bağlanıyor, lütfen bekleyin...",
+      "warning5GHz": "Bu SSID 5GHz ağa ait olabilir. ESP32 sadece 2.4GHz destekler. Lütfen 2.4GHz ağınızı kullanın."
     },
     "activation": {
       "activating": "Cihaz aktive ediliyor...",
@@ -608,7 +610,10 @@
       "failed": "Aktivasyon başarısız",
       "serverCommunication": "Cihaz sunucu ile iletişim kuruyor...",
       "successStatus": "Cihaz başarıyla aktive edildi!",
-      "successPending": "Cihaz kurulumu tamamlandı. Aktivasyon onayı bekleniyor..."
+      "successPending": "Cihaz kurulumu tamamlandı. Aktivasyon onayı bekleniyor...",
+      "pendingTitle": "Kurulum Tamamlanıyor...",
+      "verifyButton": "Durumu Kontrol Et",
+      "verifyFailed": "Aktivasyon henüz doğrulanamadı. Cihazı yeniden başlatın veya internet bağlantısını kontrol edin."
     },
     "result": {
       "setupComplete": "Kurulum Tamamlandı!",
@@ -1465,197 +1470,21 @@
     "bmVan": "Panelvan",
     "bmCar": "Binek"
   },
-  "adminTasks": {
-    "filterAll": "Tümü",
-    "filterPending": "Bekleyen",
-    "filterActive": "Devam Eden",
-    "filterCompleted": "Tamamlanan",
-    "status": {
-      "pending_review": "İncelemede",
-      "accepted": "Kabul Edildi",
-      "in_progress": "Devam Ediyor",
-      "completed": "Tamamlandı",
-      "rejected": "Reddedildi",
-      "cancelled": "İptal Edildi"
-    },
-    "priority": {
-      "low": "Düşük",
-      "normal": "Normal",
-      "high": "Yüksek",
-      "urgent": "Acil"
-    },
-    "loading": "Görevler yükleniyor...",
-    "loadError": "Görevler yüklenemedi",
-    "noTasks": "Görev Bulunamadı",
-    "noTasksDesc": "Henüz kayıtlı görev yok.",
-    "noDriver": "Sürücü atanmadı",
-    "noVehicle": "Araç atanmadı",
-    "noDriverAssigned": "Bu göreve henüz sürücü atanmamış!",
-    "driver": "Sürücü",
-    "description": "Açıklama",
-    "priorityLabel": "Öncelik",
-    "from": "Kalkış",
-    "to": "Varış",
-    "distance": "Mesafe",
-    "scheduled": "Planlanan",
-    "notes": "Notlar",
-    "sendOffer": "Teklif Gönder",
-    "sendOfferConfirm": "{{driver}} sürücüsüne görev teklifi göndermek istiyor musunuz?",
-    "send": "Gönder",
-    "offerSent": "Görev teklifi gönderildi!",
-    "offerFailed": "Teklif gönderilemedi",
-    "deleteTask": "Görevi Sil",
-    "deleteConfirm": "\"{{task}}\" görevini silmek istediğinize emin misiniz?",
-    "taskDeleted": "Görev silindi",
-    "deleteFailed": "Görev silinemedi"
-  },
-  "adminVehicles": {
-    "filterAll": "Tümü",
-    "filterAvailable": "Müsait",
-    "filterInUse": "Görevde",
-    "filterOther": "Diğer",
-    "status": {
-      "available": "Müsait",
-      "in_use": "Görevde",
-      "maintenance": "Bakımda",
-      "retired": "Emekli"
-    },
-    "loading": "Araçlar yükleniyor...",
-    "loadError": "Araçlar yüklenemedi",
-    "noVehicles": "Araç Bulunamadı",
-    "noVehiclesDesc": "Henüz kayıtlı araç yok.",
-    "fuel": "Yakıt",
-    "online": "Çevrimiçi",
-    "offline": "Çevrimdışı",
-    "fuelType": "Yakıt Tipi",
-    "tankCapacity": "Tank",
-    "color": "Renk",
-    "device": "Cihaz",
-    "category": "Kategori",
-    "lastMaint": "Son Bakım",
-    "track": "Takip",
-    "deleteVehicle": "Aracı Sil",
-    "deleteConfirm": "\"{{plate}}\" plakalı aracı silmek istediğinize emin misiniz?",
-    "vehicleDeleted": "Araç silindi",
-    "deleteFailed": "Araç silinemedi",
-    "fuelTypes": {
-      "diesel": "Dizel",
-      "gasoline": "Benzin",
-      "lpg": "LPG",
-      "electric": "Elektrik"
-    },
-    "categories": {
-      "truck_heavy": "Ağır Kamyon",
-      "truck_medium": "Orta Kamyon",
-      "light_commercial": "Hafif Ticari",
-      "van": "Panelvan",
-      "car": "Binek"
-    }
-  },
-  "adminDrivers": {
-    "filterAll": "Tümü",
-    "filterAvailable": "Müsait",
-    "filterOnTask": "Görevde",
-    "filterOffline": "Çevrimdışı",
-    "status": {
-      "available": "Müsait",
-      "on_task": "Görevde",
-      "task_pending": "Görev Bekliyor",
-      "on_leave": "İzinli",
-      "offline": "Çevrimdışı"
-    },
-    "loading": "Sürücüler yükleniyor...",
-    "loadError": "Sürücüler yüklenemedi",
-    "noDrivers": "Sürücü Bulunamadı",
-    "noDriversDesc": "Henüz kayıtlı sürücü yok.",
-    "unnamed": "İsimsiz Sürücü",
-    "vehicle": "Araç",
-    "tasks": "Görev",
-    "score": "Puan",
-    "phone": "Telefon",
-    "license": "Ehliyet",
-    "emergency": "Acil İletişim",
-    "totalKm": "Toplam km",
-    "assignedVehicle": "Atanan Araç",
-    "deleteDriver": "Sürücüyü Sil",
-    "deleteConfirm": "\"{{name}}\" sürücüsünü silmek istediğinize emin misiniz?\n\nDikkat: Kullanıcı hesabı da silinecek!",
-    "driverDeleted": "Sürücü silindi",
-    "deleteFailed": "Sürücü silinemedi"
-  },
-  "fleetMap": {
-    "loading": "Harita yükleniyor...",
-    "vehicle": "Araç",
-    "online": "Çevrimiçi",
-    "offline": "Çevrimdışı",
-    "lastUpdate": "Son güncelleme",
-    "tapForList": "Liste için dokun"
-  },
-  "vehicleList": {
-    "title": "Araç Listesi",
-    "total": "Toplam",
-    "online": "Çevrimiçi",
-    "offline": "Çevrimdışı",
-    "filterAll": "Tümü",
-    "filterOnline": "Çevrimiçi",
-    "filterAvailable": "Müsait",
-    "filterOffline": "Çevrimdışı",
-    "statusInUse": "Aktif",
-    "statusAvailable": "Müsait",
-    "statusMaintenance": "Bakımda",
-    "statusRetired": "Emekli",
-    "statusOffline": "Çevrimdışı",
-    "searchPlaceholder": "Plaka veya model ara...",
-    "noLocation": "Konum yok",
-    "notFound": "Araç bulunamadı",
-    "empty": "Henüz araç yok"
-  },
-  "adminAlerts": {
-    "filterAll": "Tümü",
-    "filterActive": "Aktif",
-    "filterResolved": "Çözüldü",
-    "statusActive": "Aktif",
-    "statusResolved": "Çözüldü",
-    "loading": "Uyarılar yükleniyor...",
-    "loadError": "Uyarılar yüklenemedi",
-    "noAlerts": "Harika!",
-    "noAlertsDesc": "Şu anda hiç uyarı yok",
-    "resolve": "Uyarıyı Çözümle",
-    "resolveConfirm": "Bu uyarıyı çözümlenmiş olarak işaretlemek istiyor musunuz?",
-    "resolveBtn": "Çözümle",
-    "resolved": "Uyarı çözümlendi",
-    "resolveFailed": "Çözümlenemedi",
-    "alreadyResolved": "Bu uyarı zaten çözümlenmiş",
-    "deleteAlert": "Uyarıyı Sil",
-    "deleteConfirm": "Bu uyarıyı silmek istediğinize emin misiniz?",
-    "alertDeleted": "Uyarı silindi",
-    "deleteFailed": "Uyarı silinemedi",
-    "deleteAll": "Tüm Uyarıları Sil",
-    "deleteAllConfirm": "{{count}} uyarının tamamını silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!",
-    "deleteAllBtn": "Tümünü Sil",
-    "allDeleted": "Tüm uyarılar silindi",
-    "deleteAllFailed": "Uyarılar silinemedi",
-    "noAlertsToDelete": "Silinecek uyarı yok",
-    "types": {
-      "hardBrake": "Ani Fren",
-      "hardAccel": "Sert Hızlanma",
-      "hardTurn": "Sert Viraj",
-      "sharpTurn": "Keskin Viraj",
-      "impact": "Çarpma/Kaza",
-      "overspeed": "Hız Aşımı",
-      "speed": "Hız İhlali",
-      "geofence": "Bölge İhlali",
-      "fuel": "Yakıt Uyarısı",
-      "maintenance": "Bakım Uyarısı",
-      "battery": "Akü Uyarısı",
-      "idle": "Rölanti",
-      "sos": "SOS",
-      "default": "Uyarı"
-    },
-    "time": {
-      "justNow": "Az önce",
-      "minsAgo": "{{count}} dk önce",
-      "hoursAgo": "{{count}} saat önce",
-      "daysAgo": "{{count}} gün önce"
-    }
+  "privacy": {
+    "lastUpdated": "Son güncelleme",
+    "s1Title": "1. Giriş",
+    "s1Body": "TulipFleet (\"biz\", \"bizim\") mobil uygulamalar ve IoT cihazları içeren bir filo yönetim platformu işletmektedir. Bu Gizlilik Politikası, Genel Veri Koruma Tüzüğü (GDPR) ve yürürlükteki veri koruma yasalarına uygun olarak kişisel verilerinizi nasıl topladığımızı, kullandığımızı, sakladığımızı ve koruduğumuzu açıklamaktadır.",
+    "s2Title": "2. Topladığımız Veriler",
+    "s2Body": "Aşağıdaki kategorilerde veri topluyoruz:\n\n• Hesap Bilgileri: Ad, soyad, e-posta adresi, telefon numarası, şirket adı\n• Araç Verileri: Plaka, marka, model, yakıt tipi, kilometre\n• Konum Verileri: Araçlara takılı IoT cihazlarından alınan anlık GPS koordinatları\n• Sürüş Verileri: Hız, ani hızlanma olayları, fren kalıpları, rota geçmişi\n• Cihaz Verileri: ESP32 cihaz tanımlayıcıları, firmware sürümü, bağlantı durumu\n• Kullanım Verileri: Uygulama kullanım kalıpları, özellik etkileşimleri, giriş zaman damgaları",
+    "s3Title": "3. Verilerinizi Nasıl Kullanıyoruz",
+    "s3Body": "Verileriniz şu amaçlarla kullanılmaktadır:\n\n• Filo Yönetimi: Anlık araç takibi, rota optimizasyonu, görev atama\n• Güvenlik İzleme: Ani fren, hızlanma ve çarpma olaylarının tespiti\n• Raporlama: Filo performans raporları, yakıt tüketimi analizleri\n• İletişim: Görev güncellemeleri, uyarılar ve sistem mesajları için bildirimler\n• Hizmet İyileştirme: Platformu geliştirmek için kullanım kalıplarının analizi",
+    "s4Title": "4. Veri Saklama ve Güvenlik",
+    "s4Body": "• Tüm veriler Avrupa Birliği içindeki güvenli sunucularda saklanmaktadır (Hetzner, Almanya)\n• Veri aktarımı TLS/SSL ile şifrelenmektedir\n• MQTT iletişimi TLS şifreleme kullanmaktadır\n• Şifreler bcrypt ile hashlenmektedir\n• Kimlik doğrulama için otomatik süre dolumu olan JWT token'lar kullanılmaktadır\n• Konum verileri 7 gün boyunca saklanır, ardından otomatik olarak silinir\n• Düzenli güvenlik denetimleri ve sızma testleri yapılmaktadır",
+    "s5Title": "5. Veri Paylaşımı",
+    "s5Body": "Kişisel verilerinizi üçüncü taraflara satmıyoruz. Veriler şu taraflarla paylaşılabilir:\n\n• Şirket Yöneticiniz: Filo yöneticileri kendi organizasyonlarındaki araç ve sürücü verilerini görüntüleyebilir\n• Google Maps API: Rota hesaplama ve harita görüntüleme için (anonimleştirilmiş)\n• Firebase: Bildirim gönderimi için\n• Yasal Gereklilikler: Yasa veya yasal işlemler gerektirdiğinde",
+    "s6Title": "6. Haklarınız (GDPR)",
+    "s6Body": "GDPR kapsamında aşağıdaki haklara sahipsiniz:\n\n• Erişim: Kişisel verilerinizin bir kopyasını talep etme\n• Düzeltme: Yanlış kişisel verilerin düzeltilmesi\n• Silme: Kişisel verilerinizin silinmesini talep etme\n• Taşınabilirlik: Verilerinizi yapılandırılmış, makine tarafından okunabilir formatta alma\n• Kısıtlama: Verilerinizin işlenmesini kısıtlama\n• İtiraz: Meşru menfaatlere dayalı veri işlemeye itiraz etme\n\nBu haklarınızı kullanmak için bize ulaşın: destek@tulipfleet.com",
+    "s7Title": "7. İletişim",
+    "s7Body": "TulipFleet\nE-posta: destek@tulipfleet.com\nWeb: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Tüm hakları saklıdır."
   }
 }

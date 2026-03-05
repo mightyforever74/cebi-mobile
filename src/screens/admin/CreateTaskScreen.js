@@ -87,7 +87,10 @@ const PRIORITY_OPTIONS = [
 // i18n fallback helper
 const getText = (t, key, fallbackTr, fallbackEn, isEn) => {
   const translated = t(key);
-  if (translated === key) return isEn ? fallbackEn : fallbackTr;
+  // Obje döndüyse (nested namespace) veya key bulunamadıysa fallback kullan
+  if (translated === key || typeof translated === "object") {
+    return isEn ? fallbackEn : fallbackTr;
+  }
   return translated;
 };
 
@@ -340,6 +343,41 @@ const makeStyles = (COLORS) =>
       color: COLORS.WHITE,
     },
 
+    // Zorunlu alan vurgusu
+    requiredStar: {
+      color: COLORS.ERROR || "#FF3B30",
+      fontWeight: "700",
+    },
+    inputError: {
+      borderColor: COLORS.ERROR || "#FF3B30",
+      borderWidth: 1.5,
+    },
+    locationInputError: {
+      borderColor: COLORS.ERROR || "#FF3B30",
+      borderWidth: 1.5,
+    },
+
+    // Hızlı şablon butonları
+    templateRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginBottom: 16,
+      gap: 8,
+    },
+    templateButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      gap: 6,
+    },
+    templateText: {
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
     // Modal
     modalOverlay: {
       flex: 1,
@@ -498,6 +536,61 @@ export default function CreateTaskScreen({ navigation }) {
   // Loading State
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+
+  // Touched state — zorunlu alanlar boşken kırmızı border göstermek için
+  const [touched, setTouched] = useState({
+    title: false,
+    startLocation: false,
+    endLocation: false,
+  });
+
+  // Hızlı şablon preset'leri
+  const TASK_TEMPLATES = useMemo(
+    () => [
+      {
+        key: "delivery",
+        icon: "cube-outline",
+        labelTr: "Teslimat",
+        labelEn: "Delivery",
+        title: isEn ? "Delivery" : "Teslimat",
+        priority: "normal",
+        color: COLORS.PRIMARY,
+      },
+      {
+        key: "transfer",
+        icon: "swap-horizontal-outline",
+        labelTr: "Transfer",
+        labelEn: "Transfer",
+        title: isEn ? "Transfer" : "Transfer",
+        priority: "high",
+        color: COLORS.WARNING,
+      },
+      {
+        key: "service",
+        icon: "construct-outline",
+        labelTr: "Servis",
+        labelEn: "Service",
+        title: isEn ? "Service" : "Servis",
+        priority: "normal",
+        color: COLORS.SUCCESS,
+      },
+      {
+        key: "warehouse",
+        icon: "business-outline",
+        labelTr: "Depo",
+        labelEn: "Warehouse",
+        title: isEn ? "Warehouse Run" : "Depo Görevi",
+        priority: "low",
+        color: COLORS.MUTED,
+      },
+    ],
+    [isEn, COLORS]
+  );
+
+  const applyTemplate = (tpl) => {
+    setTitle(tpl.title);
+    setPriority(tpl.priority);
+  };
 
   // Priority colors from theme
   const PRIORITY_RESOLVED = useMemo(() => {
@@ -1048,7 +1141,7 @@ export default function CreateTaskScreen({ navigation }) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Task Info Section */}
+        {/* ── 1. Task Info Section (şablonlar + title + description + priority) ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             <Ionicons
@@ -1066,15 +1159,43 @@ export default function CreateTaskScreen({ navigation }) {
             )}
           </Text>
 
-          {/* Title */}
+          {/* Hızlı Şablonlar */}
+          <View style={styles.templateRow}>
+            {TASK_TEMPLATES.map((tpl) => (
+              <TouchableOpacity
+                key={tpl.key}
+                style={[
+                  styles.templateButton,
+                  {
+                    backgroundColor: withAlpha(tpl.color, 0.08),
+                    borderColor: withAlpha(tpl.color, 0.2),
+                  },
+                ]}
+                onPress={() => applyTemplate(tpl)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name={tpl.icon} size={16} color={tpl.color} />
+                <Text style={[styles.templateText, { color: tpl.color }]}>
+                  {isEn ? tpl.labelEn : tpl.labelTr}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Title — zorunlu */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "title", "Baslik", "Title", isEn)} *
+              {getText(t, "title", "Baslik", "Title", isEn)}{" "}
+              <Text style={styles.requiredStar}>*</Text>
             </Text>
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                touched.title && !title.trim() && styles.inputError,
+              ]}
               value={title}
               onChangeText={setTitle}
+              onBlur={() => setTouched((p) => ({ ...p, title: true }))}
               placeholder={getText(
                 t,
                 "task_title_placeholder",
@@ -1127,7 +1248,64 @@ export default function CreateTaskScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Schedule Section */}
+        {/* ── 2. Assignment Section (sürücü + araç) ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            <Ionicons name="people-outline" size={18} color={COLORS.PRIMARY} />
+            {"  "}
+            {getText(t, "assignment", "Atama", "Assignment", isEn)}
+          </Text>
+
+          {/* Driver */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {getText(t, "driverLabel", "Surucu", "Driver", isEn)}
+            </Text>
+            <TouchableOpacity
+              style={styles.selectButton}
+              onPress={() => setShowDriverPicker(true)}
+            >
+              <View style={styles.selectContent}>
+                <Ionicons name="person" size={20} color={COLORS.PRIMARY} />
+                <Text
+                  style={[
+                    styles.selectText,
+                    !driverId && styles.selectPlaceholder,
+                  ]}
+                >
+                  {getDriverName()}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Vehicle */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {getText(t, "vehicleLabel", "Arac", "Vehicle", isEn)}
+            </Text>
+            <TouchableOpacity
+              style={styles.selectButton}
+              onPress={() => setShowVehiclePicker(true)}
+            >
+              <View style={styles.selectContent}>
+                <Ionicons name="car" size={20} color={COLORS.PRIMARY} />
+                <Text
+                  style={[
+                    styles.selectText,
+                    !vehicleId && styles.selectPlaceholder,
+                  ]}
+                >
+                  {getVehicleName()}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── 3. Schedule Section (tarih/saat) ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             <Ionicons
@@ -1211,64 +1389,7 @@ export default function CreateTaskScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Assignment Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Ionicons name="people-outline" size={18} color={COLORS.PRIMARY} />
-            {"  "}
-            {getText(t, "assignment", "Atama", "Assignment", isEn)}
-          </Text>
-
-          {/* Driver */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {getText(t, "driver", "Surucu", "Driver", isEn)}
-            </Text>
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={() => setShowDriverPicker(true)}
-            >
-              <View style={styles.selectContent}>
-                <Ionicons name="person" size={20} color={COLORS.PRIMARY} />
-                <Text
-                  style={[
-                    styles.selectText,
-                    !driverId && styles.selectPlaceholder,
-                  ]}
-                >
-                  {getDriverName()}
-                </Text>
-              </View>
-              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Vehicle */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {getText(t, "vehicle", "Arac", "Vehicle", isEn)}
-            </Text>
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={() => setShowVehiclePicker(true)}
-            >
-              <View style={styles.selectContent}>
-                <Ionicons name="car" size={20} color={COLORS.PRIMARY} />
-                <Text
-                  style={[
-                    styles.selectText,
-                    !vehicleId && styles.selectPlaceholder,
-                  ]}
-                >
-                  {getVehicleName()}
-                </Text>
-              </View>
-              <Ionicons name="chevron-down" size={18} color={COLORS.MUTED} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Route Section */}
+        {/* ── 4. Route Section (konum) ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             <Ionicons
@@ -1280,7 +1401,7 @@ export default function CreateTaskScreen({ navigation }) {
             {getText(t, "route", "Rota", "Route", isEn)}
           </Text>
 
-          {/* Start Location */}
+          {/* Start Location — zorunlu */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
               {getText(
@@ -1290,9 +1411,16 @@ export default function CreateTaskScreen({ navigation }) {
                 "Start Location",
                 isEn
               )}{" "}
-              *
+              <Text style={styles.requiredStar}>*</Text>
             </Text>
-            <View style={styles.locationInputContainer}>
+            <View
+              style={[
+                styles.locationInputContainer,
+                touched.startLocation &&
+                  !startLocation.trim() &&
+                  styles.locationInputError,
+              ]}
+            >
               <Ionicons
                 name="location"
                 size={20}
@@ -1303,6 +1431,9 @@ export default function CreateTaskScreen({ navigation }) {
                 style={styles.locationInput}
                 value={startLocation}
                 onChangeText={setStartLocation}
+                onBlur={() =>
+                  setTouched((p) => ({ ...p, startLocation: true }))
+                }
                 placeholder={getText(
                   t,
                   "enter_start_address",
@@ -1328,12 +1459,20 @@ export default function CreateTaskScreen({ navigation }) {
             </View>
           </View>
 
-          {/* End Location */}
+          {/* End Location — zorunlu */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {getText(t, "destination", "Varis Konumu", "Destination", isEn)} *
+              {getText(t, "destination", "Varis Konumu", "Destination", isEn)}{" "}
+              <Text style={styles.requiredStar}>*</Text>
             </Text>
-            <View style={styles.locationInputContainer}>
+            <View
+              style={[
+                styles.locationInputContainer,
+                touched.endLocation &&
+                  !endLocation.trim() &&
+                  styles.locationInputError,
+              ]}
+            >
               <Ionicons
                 name="flag"
                 size={20}
@@ -1344,6 +1483,7 @@ export default function CreateTaskScreen({ navigation }) {
                 style={styles.locationInput}
                 value={endLocation}
                 onChangeText={setEndLocation}
+                onBlur={() => setTouched((p) => ({ ...p, endLocation: true }))}
                 placeholder={getText(
                   t,
                   "enter_destination_address",
@@ -1357,7 +1497,7 @@ export default function CreateTaskScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Waypoints / Stops */}
+        {/* ── 5. Waypoints / Stops ── */}
         <View style={styles.section}>
           <WaypointEditor
             waypoints={waypoints}
@@ -1406,14 +1546,35 @@ export default function CreateTaskScreen({ navigation }) {
                 "No stops added yet",
                 isEn
               ),
+              coordsToggle: getText(
+                t,
+                "coordinates",
+                "Koordinatlar",
+                "Coordinates",
+                isEn
+              ),
+              clearConfirm: getText(
+                t,
+                "remove_stop_confirm",
+                "Bu duragi kaldirmak istediginize emin misiniz?",
+                "Are you sure you want to remove this stop?",
+                isEn
+              ),
+              clearStop: getText(t, "remove", "Kaldir", "Remove", isEn),
+              cancel: getText(t, "cancel", "ptal", "Cancel", isEn),
+              done: getText(t, "done", "Tamam", "Done", isEn),
             }}
           />
         </View>
 
-        {/* Submit Button */}
+        {/* ── 6. Submit Button ── */}
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
+          onPress={() => {
+            // Tüm zorunlu alanları touched yap — boş olanlar kırmızı olur
+            setTouched({ title: true, startLocation: true, endLocation: true });
+            handleSubmit();
+          }}
           disabled={loading}
           activeOpacity={0.8}
         >

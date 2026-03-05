@@ -21,8 +21,7 @@
     "retry": "Opnieuw proberen",
     "all": "Alle",
     "none": "Geen",
-    "user": "Gebruiker",
-    "info": "Info"
+    "user": "Gebruiker"
   },
   "profile": {
     "title": "Profiel",
@@ -74,7 +73,7 @@
     "supportMessage": "Heeft u hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\nÃ‚Â© 2025 TulipFleet\n\nAlle rechten voorbehouden."
+    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden."
   },
   "auth": {
     "login": "Inloggen",
@@ -370,7 +369,7 @@
     "supportMessage": "Hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\nÃ‚Â© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
+    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
     "clearCacheTitle": "Cache Wissen",
     "clearCacheMessage": "Wil je de app-cache wissen?",
     "clear": "Wissen",
@@ -381,7 +380,7 @@
     "locationPermissionDenied": "Locatietoestemming geweigerd. U kunt dit inschakelen via instellingen.",
     "openSettings": "Open Instellingen",
     "gpsAccuracyMessage": "GPS-nauwkeurigheid wordt beheerd via apparaatinstellingen.",
-    "locationGranted": "Toestemming verleend Ã¢Å“â€œ",
+    "locationGranted": "Toestemming verleend âœ“",
     "itemsCleared": "items",
     "cacheClearFailed": "Cache wissen mislukt",
     "privacyPolicyText": "Ons privacybeleid is beschikbaar op: tulipfleet.com/privacy"
@@ -542,7 +541,7 @@
     "title": "Apparaat Instellen",
     "checkingStatus": "Apparaatstatus controleren...",
     "loading": "Laden...",
-    "setupNotRequired": "Installatie Niet Vereist Ã¢Å“â€¦",
+    "setupNotRequired": "Installatie Niet Vereist âœ…",
     "deviceActiveMessage": "Het apparaat verbonden met uw voertuig is actief.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
     "deviceReinstall": "Apparaat Herinstallatie",
     "deviceWaitingReinstall": "Apparaat wacht op herinstallatie...",
@@ -574,8 +573,8 @@
     "qr": {
       "invalidCode": "Ongeldige QR Code",
       "invalidCodeMessage": "QR codeformaat niet herkend. Scan de QR code op het apparaat.",
-      "scanHint": "Ã°Å¸â€œÂ± Scan de QR code op het apparaat",
-      "manualEntry": "Ã¢Å’Â¨Ã¯Â¸Â Handmatige Serienummer Invoer"
+      "scanHint": "📱 Scan de QR code op het apparaat",
+      "manualEntry": "⌨️ Handmatige Serienummer Invoer"
     },
     "serial": {
       "validating": "Serienummer valideren...",
@@ -598,18 +597,22 @@
       "connecting": "Verbinding maken met WiFi...",
       "success": "WiFi Verbonden",
       "failed": "WiFi Verbinding Mislukt",
-      "failedMessage": "Controleer de netwerknaam en het wachtwoord."
+      "failedMessage": "Controleer de netwerknaam en het wachtwoord.",
+      "warning5GHz": "Dit SSID kan een 5GHz-netwerk zijn. ESP32 ondersteunt alleen 2.4GHz. Gebruik uw 2.4GHz-netwerk."
     },
     "activation": {
       "activating": "Apparaat activeren...",
       "success": "Apparaat Geactiveerd",
       "failed": "Activering Mislukt",
       "successStatus": "Apparaat succesvol geactiveerd!",
-      "successPending": "Apparaatinstallatie voltooid. Wachten op activeringsbevestiging..."
+      "successPending": "Apparaatinstallatie voltooid. Wachten op activeringsbevestiging...",
+      "pendingTitle": "Installatie wordt afgerond...",
+      "verifyButton": "Status controleren",
+      "verifyFailed": "Activering kon nog niet worden geverifieerd. Start het apparaat opnieuw of controleer de internetverbinding."
     },
     "complete": {
       "title": "Installatie Voltooid!",
-      "message": "Uw apparaat is succesvol geÃƒÂ¯nstalleerd en geactiveerd.",
+      "message": "Uw apparaat is succesvol geïnstalleerd en geactiveerd.",
       "done": "Voltooien"
     },
     "activeWarning": {
@@ -625,6 +628,10 @@
       "back": "Terug",
       "next": "Volgende",
       "done": "Klaar"
+    },
+    "ble": {
+      "bootWindowHint": "De BLE-modus van het ESP32-apparaat is 5 minuten actief na het inschakelen. Als het apparaat niet wordt gevonden, start het opnieuw door de USB-kabel los te koppelen en opnieuw aan te sluiten.",
+      "deviceNameHint": "Apparaatnaam verschijnt als \"TulipFleet-XXXX\". Kom binnen 1-2 meter."
     }
   },
   "editProfile": {
@@ -742,7 +749,7 @@
     "acceptConfirm": "Weet u zeker dat u dit taakaanbod wilt accepteren?",
     "cancel": "Annuleren",
     "accept": "Accepteren",
-    "success": "Ã¢Å“â€¦ Succes",
+    "success": "âœ… Succes",
     "acceptSuccess": "Taak geaccepteerd! U kunt de taak starten vanaf de pagina Mijn Taken.",
     "ok": "OK",
     "acceptFailed": "Kan taak niet accepteren",
@@ -929,8 +936,8 @@
     },
     "hints": {
       "lastRecordTitle": "Laatste record",
-      "lastRecordPrefix": "Ã°Å¸â€™Â¡ Laatste",
-      "warningFull": "Ã¢Å¡Â Ã¯Â¸Â Vul tot VOL"
+      "lastRecordPrefix": "💡 Laatste",
+      "warningFull": "âš ï¸ Vul tot VOL"
     },
     "errors": {
       "vehicleLoadFailed": "Voertuiginfo kon niet worden geladen",
@@ -1009,7 +1016,7 @@
       "subtitle": "Als uw vraag hier niet staat, neem dan contact op met ons supportteam",
       "button": "E-mail verzenden"
     },
-    "footer": "Ã‚Â© 2026 TulipFleet - Alle rechten voorbehouden"
+    "footer": "© 2026 TulipFleet - Alle rechten voorbehouden"
   },
   "troubleshooting": {
     "title": "Probleemoplossing",
@@ -1250,7 +1257,22 @@
     "validationEnterStart": "Voer startlocatie in",
     "validationEnterEnd": "Voer bestemming in",
     "validationEndAfterStart": "Eindtijd moet na starttijd zijn",
-    "noOptions": "Geen opties gevonden"
+    "noOptions": "Geen opties gevonden",
+    "templateDelivery": "Bezorging",
+    "templateTransfer": "Transfer",
+    "templateService": "Service",
+    "templateWarehouse": "Magazijn",
+    "assignment": "Toewijzing",
+    "schedule": "Planning",
+    "duration": "Duur",
+    "driver": "Chauffeur",
+    "vehicle": "Voertuig",
+    "date": "Datum",
+    "time": "Tijd",
+    "start": "Start",
+    "end": "Einde",
+    "done": "Klaar",
+    "cancel": "Annuleren"
   },
   "editTask": {
     "title": "Taak Bewerken",
@@ -1276,8 +1298,11 @@
     "stopName": "Haltenaam",
     "stopAddress": "Halteadres",
     "plannedArrival": "Geplande Aankomst",
-    "invalidCoords": "Ongeldige coÃ¶rdinaten",
-    "noStops": "Nog geen haltes toegevoegd"
+    "invalidCoords": "Ongeldige coördinaten",
+    "noStops": "Nog geen haltes toegevoegd",
+    "coordinates": "Coördinaten",
+    "removeStopConfirm": "Weet u zeker dat u deze halte wilt verwijderen?",
+    "remove": "Verwijderen"
   },
   "fuelDash": {
     "avgConsumption": "Gem. Verbruik",
@@ -1342,197 +1367,21 @@
     "bmVan": "Bestelwagen",
     "bmCar": "Personenwagen"
   },
-  "adminTasks": {
-    "filterAll": "Alle",
-    "filterPending": "Wachtend",
-    "filterActive": "Actief",
-    "filterCompleted": "Voltooid",
-    "status": {
-      "pending_review": "In Beoordeling",
-      "accepted": "Geaccepteerd",
-      "in_progress": "Bezig",
-      "completed": "Voltooid",
-      "rejected": "Afgewezen",
-      "cancelled": "Geannuleerd"
-    },
-    "priority": {
-      "low": "Laag",
-      "normal": "Normaal",
-      "high": "Hoog",
-      "urgent": "Dringend"
-    },
-    "loading": "Taken laden...",
-    "loadError": "Kan taken niet laden",
-    "noTasks": "Geen Taken",
-    "noTasksDesc": "Er zijn nog geen taken aangemaakt.",
-    "noDriver": "Geen chauffeur",
-    "noVehicle": "Geen voertuig",
-    "noDriverAssigned": "Geen chauffeur toegewezen!",
-    "driver": "Chauffeur",
-    "description": "Beschrijving",
-    "priorityLabel": "Prioriteit",
-    "from": "Van",
-    "to": "Naar",
-    "distance": "Afstand",
-    "scheduled": "Gepland",
-    "notes": "Notities",
-    "sendOffer": "Aanbod Sturen",
-    "sendOfferConfirm": "Taakaanbod sturen naar {{driver}}?",
-    "send": "Sturen",
-    "offerSent": "Taakaanbod verstuurd!",
-    "offerFailed": "Aanbod niet verstuurd",
-    "deleteTask": "Taak Verwijderen",
-    "deleteConfirm": "Weet u zeker dat u \"{{task}}\" wilt verwijderen?",
-    "taskDeleted": "Taak verwijderd",
-    "deleteFailed": "Taak niet verwijderd"
-  },
-  "adminVehicles": {
-    "filterAll": "Alle",
-    "filterAvailable": "Beschikbaar",
-    "filterInUse": "In Gebruik",
-    "filterOther": "Overig",
-    "status": {
-      "available": "Beschikbaar",
-      "in_use": "In Gebruik",
-      "maintenance": "Onderhoud",
-      "retired": "Uitgerangeerd"
-    },
-    "loading": "Voertuigen laden...",
-    "loadError": "Kan niet laden",
-    "noVehicles": "Geen Voertuigen",
-    "noVehiclesDesc": "Er zijn nog geen voertuigen geregistreerd.",
-    "fuel": "Brandstof",
-    "online": "Online",
-    "offline": "Offline",
-    "fuelType": "Brandstoftype",
-    "tankCapacity": "Tank",
-    "color": "Kleur",
-    "device": "Apparaat",
-    "category": "Categorie",
-    "lastMaint": "Laatste Service",
-    "track": "Volgen",
-    "deleteVehicle": "Verwijderen",
-    "deleteConfirm": "\"{{plate}}\" verwijderen?",
-    "vehicleDeleted": "Voertuig verwijderd",
-    "deleteFailed": "Niet verwijderd",
-    "fuelTypes": {
-      "diesel": "Diesel",
-      "gasoline": "Benzine",
-      "lpg": "LPG",
-      "electric": "Elektrisch"
-    },
-    "categories": {
-      "truck_heavy": "Zware Vrachtwagen",
-      "truck_medium": "Middelzwaar",
-      "light_commercial": "Licht Bedrijf",
-      "van": "Bestelwagen",
-      "car": "Personenwagen"
-    }
-  },
-  "adminDrivers": {
-    "filterAll": "Alle",
-    "filterAvailable": "Beschikbaar",
-    "filterOnTask": "Op Taak",
-    "filterOffline": "Offline",
-    "status": {
-      "available": "Beschikbaar",
-      "on_task": "Op Taak",
-      "task_pending": "Taak Wachtend",
-      "on_leave": "Verlof",
-      "offline": "Offline"
-    },
-    "loading": "Chauffeurs laden...",
-    "loadError": "Kan niet laden",
-    "noDrivers": "Geen Chauffeurs",
-    "noDriversDesc": "Er zijn nog geen chauffeurs geregistreerd.",
-    "unnamed": "Naamloze Chauffeur",
-    "vehicle": "Voertuig",
-    "tasks": "Taken",
-    "score": "Score",
-    "phone": "Telefoon",
-    "license": "Rijbewijs",
-    "emergency": "Noodcontact",
-    "totalKm": "Totaal km",
-    "assignedVehicle": "Toegewezen Voertuig",
-    "deleteDriver": "Verwijderen",
-    "deleteConfirm": "\"{{name}}\" verwijderen?\n\nLet op: Account wordt ook verwijderd!",
-    "driverDeleted": "Chauffeur verwijderd",
-    "deleteFailed": "Niet verwijderd"
-  },
-  "fleetMap": {
-    "loading": "Kaart laden...",
-    "vehicle": "Voertuig",
-    "online": "Online",
-    "offline": "Offline",
-    "lastUpdate": "Laatste update",
-    "tapForList": "Tik voor lijst"
-  },
-  "vehicleList": {
-    "title": "Voertuiglijst",
-    "total": "Totaal",
-    "online": "Online",
-    "offline": "Offline",
-    "filterAll": "Alle",
-    "filterOnline": "Online",
-    "filterAvailable": "Beschikbaar",
-    "filterOffline": "Offline",
-    "statusInUse": "Actief",
-    "statusAvailable": "Beschikbaar",
-    "statusMaintenance": "Onderhoud",
-    "statusRetired": "Uitgerangeerd",
-    "statusOffline": "Offline",
-    "searchPlaceholder": "Zoek kenteken of model...",
-    "noLocation": "Geen locatie",
-    "notFound": "Geen voertuigen gevonden",
-    "empty": "Nog geen voertuigen"
-  },
-  "adminAlerts": {
-    "filterAll": "Alle",
-    "filterActive": "Actief",
-    "filterResolved": "Opgelost",
-    "statusActive": "Actief",
-    "statusResolved": "Opgelost",
-    "loading": "Laden...",
-    "loadError": "Kan niet laden",
-    "noAlerts": "Alles in Orde!",
-    "noAlertsDesc": "Geen meldingen op dit moment",
-    "resolve": "Oplossen",
-    "resolveConfirm": "Deze melding als opgelost markeren?",
-    "resolveBtn": "Oplossen",
-    "resolved": "Melding opgelost",
-    "resolveFailed": "Niet opgelost",
-    "alreadyResolved": "Deze melding is al opgelost",
-    "deleteAlert": "Verwijderen",
-    "deleteConfirm": "Wilt u deze melding verwijderen?",
-    "alertDeleted": "Melding verwijderd",
-    "deleteFailed": "Niet verwijderd",
-    "deleteAll": "Alle Verwijderen",
-    "deleteAllConfirm": "Alle {{count}} meldingen verwijderen?\n\nDit kan niet ongedaan worden!",
-    "deleteAllBtn": "Alles Wissen",
-    "allDeleted": "Alle meldingen verwijderd",
-    "deleteAllFailed": "Niet verwijderd",
-    "noAlertsToDelete": "Geen meldingen om te verwijderen",
-    "types": {
-      "hardBrake": "Hard Remmen",
-      "hardAccel": "Hard Optrekken",
-      "hardTurn": "Scherpe Bocht",
-      "sharpTurn": "Scherpe Bocht",
-      "impact": "Botsing/Ongeluk",
-      "overspeed": "Te Hard Rijden",
-      "speed": "Snelheidsovertreding",
-      "geofence": "Geofence",
-      "fuel": "Brandstof",
-      "maintenance": "Onderhoud",
-      "battery": "Accu",
-      "idle": "Stationair",
-      "sos": "SOS",
-      "default": "Melding"
-    },
-    "time": {
-      "justNow": "Zojuist",
-      "minsAgo": "{{count}} min geleden",
-      "hoursAgo": "{{count}}u geleden",
-      "daysAgo": "{{count}}d geleden"
-    }
+  "privacy": {
+    "lastUpdated": "Laatst bijgewerkt",
+    "s1Title": "1. Inleiding",
+    "s1Body": "TulipFleet (\"wij\", \"ons\", \"onze\") exploiteert een wagenparkbeheerplatform met mobiele applicaties en IoT-apparaten. Dit Privacybeleid legt uit hoe wij uw persoonsgegevens verzamelen, gebruiken, opslaan en beschermen in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG) en toepasselijke gegevensbeschermingswetten.",
+    "s2Title": "2. Gegevens die wij verzamelen",
+    "s2Body": "Wij verzamelen de volgende categorieën gegevens:\n\n• Accountgegevens: Naam, e-mailadres, telefoonnummer, bedrijfsnaam\n• Voertuiggegevens: Kenteken, merk, model, brandstoftype, kilometerstand\n• Locatiegegevens: Realtime GPS-coördinaten van IoT-apparaten in voertuigen\n• Rijgegevens: Snelheid, acceleratie-events, rempatronen, routegeschiedenis\n• Apparaatgegevens: ESP32-apparaat-ID's, firmwareversie, verbindingsstatus\n• Gebruiksgegevens: App-gebruikspatronen, functie-interacties, inlogtijden",
+    "s3Title": "3. Hoe wij uw gegevens gebruiken",
+    "s3Body": "Uw gegevens worden gebruikt voor:\n\n• Wagenparkbeheer: Realtime voertuigtracking, route-optimalisatie, taaктoewijzing\n• Veiligheidsmonitoring: Detectie van hard remmen, acceleratie en impactgebeurtenissen\n• Rapportage: Wagenparkprestatie-rapporten, brandstofverbruikanalyses\n• Communicatie: Pushmeldingen voor taakupdates, waarschuwingen en systeemberichten\n• Serviceverbetering: Analyse van gebruikspatronen om het platform te verbeteren",
+    "s4Title": "4. Gegevensopslag en beveiliging",
+    "s4Body": "• Alle gegevens worden opgeslagen op beveiligde servers binnen de Europese Unie (Hetzner, Duitsland)\n• Gegevensoverdracht is versleuteld met TLS/SSL\n• MQTT-communicatie gebruikt TLS-versleuteling\n• Wachtwoorden worden gehasht met bcrypt\n• JWT-tokens worden gebruikt voor authenticatie met automatische verloopdatum\n• Locatiegegevens worden 7 dagen bewaard en daarna automatisch verwijderd\n• Regelmatige beveiligingsaudits en penetratietests worden uitgevoerd",
+    "s5Title": "5. Gegevens delen",
+    "s5Body": "Wij verkopen uw persoonsgegevens niet aan derden. Gegevens kunnen worden gedeeld met:\n\n• Uw bedrijfsbeheerder: Wagenparkmanagers kunnen voertuig- en chauffeurgegevens binnen hun organisatie bekijken\n• Google Maps API: Voor routeberekening en kaartweergave (geanonimiseerd)\n• Firebase: Voor pushmeldingverzending\n• Wettelijke vereisten: Wanneer vereist door wet- of regelgeving",
+    "s6Title": "6. Uw rechten (AVG)",
+    "s6Body": "Onder de AVG heeft u het recht op:\n\n• Inzage: Een kopie van uw persoonsgegevens opvragen\n• Rectificatie: Onjuiste persoonsgegevens corrigeren\n• Verwijdering: Verwijdering van uw persoonsgegevens verzoeken\n• Overdraagbaarheid: Uw gegevens ontvangen in een gestructureerd, machineleesbaar formaat\n• Beperking: De verwerking van uw gegevens beperken\n• Bezwaar: Bezwaar maken tegen gegevensverwerking op basis van gerechtvaardigde belangen\n\nOm deze rechten uit te oefenen, neem contact met ons op via: destek@tulipfleet.com",
+    "s7Title": "7. Contact",
+    "s7Body": "TulipFleet\nE-mail: destek@tulipfleet.com\nWebsite: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. Alle rechten voorbehouden."
   }
 }

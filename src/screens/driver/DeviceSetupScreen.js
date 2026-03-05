@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 
+import { CameraView, useCameraPermissions } from "expo-camera";
 import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
@@ -47,6 +48,7 @@ const STEPS = {
   WIFI_PROVISIONING: "WIFI_PROVISIONING",
   ACTIVATING: "ACTIVATING",
   SUCCESS: "SUCCESS",
+  SUCCESS_PENDING: "SUCCESS_PENDING",
   ERROR: "ERROR",
 };
 
@@ -201,6 +203,19 @@ const makeStyles = (COLORS) =>
     btnIconSpacer: { width: COLORS.SPACING.sm },
     btnRight: { marginRight: COLORS.SPACING.sm },
 
+    // ✅ Disabled görünümü
+    btnDisabled: { opacity: 0.6 },
+
+    // ✅ Inline hint (disabled durumları için)
+    hintText: {
+      marginTop: COLORS.SPACING.sm,
+      color: COLORS.MUTED,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      lineHeight: 18,
+    },
+    hintTextWarn: { color: COLORS.WARNING },
+
     inputLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.md,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
@@ -217,6 +232,27 @@ const makeStyles = (COLORS) =>
       borderColor: COLORS.INPUT_BORDER,
       color: COLORS.TEXT_PRIMARY,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
+    // ⭐ Password göster/gizle
+    passwordContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: withAlpha(COLORS.SECONDARY, 0.65),
+      borderRadius: COLORS.RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER,
+    },
+    passwordInput: {
+      flex: 1,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.md,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+    passwordToggle: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.md,
     },
 
     listItem: {
@@ -241,6 +277,31 @@ const makeStyles = (COLORS) =>
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       marginTop: 2,
+    },
+
+    qrCameraContainer: {
+      width: "100%",
+      height: 280,
+      borderRadius: COLORS.RADIUS.lg,
+      overflow: "hidden",
+      marginTop: COLORS.SPACING.md,
+      backgroundColor: COLORS.BLACK,
+    },
+    qrCamera: {
+      flex: 1,
+    },
+    qrOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    qrFrame: {
+      width: 200,
+      height: 200,
+      borderWidth: 2,
+      borderColor: COLORS.PRIMARY,
+      borderRadius: COLORS.RADIUS.md,
+      backgroundColor: "transparent",
     },
 
     modalOverlay: {
@@ -272,6 +333,7 @@ const makeStyles = (COLORS) =>
 
     centerMt: { marginTop: COLORS.SPACING.md, alignItems: "center" },
     mtMd: { marginTop: COLORS.SPACING.md },
+    mtSm: { marginTop: COLORS.SPACING.sm },
     bottomSpacer: { height: COLORS.SPACING.xxl },
   });
 
@@ -289,6 +351,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
   const [wifiSsid, setWifiSsid] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
   const [wifiStatus, setWifiStatus] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState(null);
   const [gateChecking, setGateChecking] = useState(true);
@@ -305,6 +368,10 @@ export default function DeviceSetupScreen({ navigation, route }) {
   const resultReceivedRef = useRef(false);
   const isMountedRef = useRef(true);
   const activationStartedRef = useRef(false);
+  const qrLockRef = useRef(false);
+
+  // Camera permission
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const stepPills = useMemo(
     () => [
@@ -317,18 +384,30 @@ export default function DeviceSetupScreen({ navigation, route }) {
     [t]
   );
 
-  // ✅ 1. Unmount cleanup
+  // ✅ 1. Unmount cleanup — scan + BLE bağlantı temizliği
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      console.log("[DeviceSetup] Unmounting");
+      if (__DEV__) console.log("[DeviceSetup] Unmounting — cleaning up");
+
+      if (scanCleanupRef.current) {
+        scanCleanupRef.current();
+        scanCleanupRef.current = null;
+      }
+
+      try {
+        bleService.disconnect?.();
+      } catch (e) {
+        if (__DEV__)
+          console.log("[DeviceSetup] BLE disconnect on unmount:", e.message);
+      }
     };
   }, []);
 
   // ✅ 2. Parametre guard
   useEffect(() => {
-    const { serial, deviceInfo } = route.params || {};
+    const { serial } = route.params || {};
 
     if (isGuided && !serial) {
       console.error("[DeviceSetup] ❌ Missing serial!");
@@ -338,12 +417,12 @@ export default function DeviceSetupScreen({ navigation, route }) {
       return;
     }
 
-    console.log("[DeviceSetup] ✅ Mounted:", { serial, isGuided });
+    if (__DEV__) console.log("[DeviceSetup] Mounted:", { serial, isGuided });
   }, []);
 
   // ✅ 3. State debug
   useEffect(() => {
-    console.log("[DeviceSetup] STATE:", { step, busy, isGuided });
+    if (__DEV__) console.log("[DeviceSetup] STATE:", { step, busy, isGuided });
   }, [step, busy, isGuided]);
 
   // Load vehicle ID
@@ -354,7 +433,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         const vId = response?.vehicle?.id || response?.id;
         if (vId) {
           setVehicleId(vId);
-          console.log("[DeviceSetup] Vehicle ID loaded:", vId);
+          if (__DEV__) console.log("[DeviceSetup] Vehicle ID loaded:", vId);
         }
       } catch (e) {
         console.error("[DeviceSetup] Failed to load vehicle ID:", e.message);
@@ -368,13 +447,32 @@ export default function DeviceSetupScreen({ navigation, route }) {
     const initBLE = async () => {
       try {
         await bleService.initialize();
-        console.log("[DeviceSetup] BLE initialized");
+        if (__DEV__) console.log("[DeviceSetup] BLE initialized");
       } catch (error) {
         console.error("[DeviceSetup] BLE init error:", error);
         setError("Bluetooth başlatılamadı: " + error.message);
       }
     };
     initBLE();
+  }, []);
+
+  // Son kullanılan WiFi SSID'yi yükle
+  useEffect(() => {
+    const loadLastSsid = async () => {
+      try {
+        const lastSsid = await AsyncStorage.getItem(
+          STORAGE_KEYS.LAST_WIFI_SSID
+        );
+        if (lastSsid && !wifiSsid) {
+          setWifiSsid(lastSsid);
+          if (__DEV__) console.log("[DeviceSetup] Last SSID loaded:", lastSsid);
+        }
+      } catch (e) {
+        if (__DEV__)
+          console.log("[DeviceSetup] Failed to load last SSID:", e.message);
+      }
+    };
+    loadLastSsid();
   }, []);
 
   // Check SmartGate
@@ -384,13 +482,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
   }, []);
 
   useEffect(() => {
-    console.log("[DeviceSetup] STATE:", {
-      step,
-      busy,
-      isGuided,
-      hasSerial: !!serial,
-      hasParams: !!route?.params?.serial,
-    });
+    if (__DEV__)
+      console.log("[DeviceSetup] STATE:", {
+        step,
+        busy,
+        isGuided,
+        hasSerial: !!serial,
+        hasParams: !!route?.params?.serial,
+      });
   }, [step, busy]);
 
   const checkSmartGate = async () => {
@@ -398,10 +497,11 @@ export default function DeviceSetupScreen({ navigation, route }) {
       const response = await driverAPI.getVehicle();
       const vehicle = response?.vehicle || response;
 
-      console.log("[DeviceSetup] Vehicle Data:", {
-        esp32: vehicle?.esp32_device_id,
-        status: vehicle?.device_status,
-      });
+      if (__DEV__)
+        console.log("[DeviceSetup] Vehicle Data:", {
+          esp32: vehicle?.esp32_device_id,
+          status: vehicle?.device_status,
+        });
 
       if (
         vehicle?.esp32_device_id &&
@@ -419,11 +519,12 @@ export default function DeviceSetupScreen({ navigation, route }) {
         return;
       }
     } catch (e) {
-      console.log("[DeviceSetup] Vehicle check failed:", e.message);
+      if (__DEV__)
+        console.log("[DeviceSetup] Vehicle check failed:", e.message);
     }
 
     if (isGuided) {
-      console.log("[DeviceSetup] Guided mode — skipping SmartGate");
+      if (__DEV__) console.log("[DeviceSetup] Guided mode");
       setSerial(route.params.serial);
       setGateChecking(false);
       setStep(STEPS.BLE_SCAN);
@@ -431,9 +532,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
       return;
     }
 
-    console.log("[DeviceSetup] Legacy mode — direct to serial input");
+    if (__DEV__) console.log("[DeviceSetup] Normal mode — QR scan");
     setGateChecking(false);
-    setStep(STEPS.SERIAL_MANUAL);
+    setStep(STEPS.QR_SCAN);
   };
 
   const saveProvisionData = async (deviceSerial) => {
@@ -451,13 +552,20 @@ export default function DeviceSetupScreen({ navigation, route }) {
   };
 
   const startBLEScan = () => {
-    console.log("[Setup] Starting BLE scan...");
+    if (__DEV__) console.log("[Setup] Starting BLE scan...");
     setDevices([]);
     devicesRef.current = [];
     setStatus("Cihazlar aranıyor...");
 
     scanCleanupRef.current = bleService.startScan(
       (device) => {
+        // ✅ Sadece TulipFleet cihazları
+        if (!device?.name?.startsWith("TulipFleet-")) return;
+
+        // ✅ chipId format kontrolü (spoof azaltma)
+        const chipId = device.name.replace("TulipFleet-", "");
+        if (!/^[A-F0-9]{4,16}$/i.test(chipId)) return;
+
         if (!devicesRef.current.find((d) => d.id === device.id)) {
           devicesRef.current = [...devicesRef.current, device];
           setDevices([...devicesRef.current]);
@@ -485,17 +593,13 @@ export default function DeviceSetupScreen({ navigation, route }) {
     startBLEScan();
   };
 
-  // ============================================
-  // BLE bağlantı devamı (handleDeviceSelect'ten ayrıldı)
-  // ============================================
   const proceedWithConnection = async (device) => {
     await bleService.connect(device.id);
     setStatus("Bağlandı!");
-    console.log("[DeviceSetup] ✅ BLE Connected - Bundle v2.0");
+    if (__DEV__) console.log("[DeviceSetup] BLE Connected");
 
     if (isGuided) {
-      console.log("[DeviceSetup] ✅ isGuided=true");
-      console.log("[DeviceSetup] route.params:", route.params);
+      if (__DEV__) console.log("[DeviceSetup] isGuided=true");
 
       setBusy(false);
 
@@ -506,24 +610,22 @@ export default function DeviceSetupScreen({ navigation, route }) {
           deviceInfo: route.params.deviceInfo,
           deviceId: device.id,
         });
-        console.log(
-          "[DeviceSetup] ✅ navigation.navigate(VehiclePickerMain) called"
-        );
+        if (__DEV__)
+          console.log(
+            "[DeviceSetup] navigation.navigate(VehiclePickerMain) called"
+          );
       });
 
       return;
     }
 
-    console.log("[DeviceSetup] Legacy mode, showing WiFi form");
+    if (__DEV__) console.log("[DeviceSetup] WiFi form");
     setStep(STEPS.WIFI_FORM);
   };
 
-  // ============================================
-  // Cihaz seçimi + aktif cihaz uyarısı
-  // ============================================
   const handleDeviceSelect = async (device) => {
     if (busy) {
-      console.log("[DeviceSetup] Already connecting, ignoring tap");
+      if (__DEV__) console.log("[DeviceSetup] Already connecting");
       return;
     }
 
@@ -538,11 +640,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
     setStatus("Bağlanıyor...");
 
     try {
-      // === Cihaz durumu kontrol ===
-      // BLE adından chip ID çıkar (TulipFleet-8B0AF6E8 → 8B0AF6E8)
       const bleChipId = device.name?.replace("TulipFleet-", "") || "";
 
-      if (bleChipId) {
+      if (bleChipId && /^[A-F0-9]{4,16}$/i.test(bleChipId)) {
         try {
           setStatus(t("deviceSetup.checkingDeviceStatus"));
           const checkResult = await deviceAPI.checkDeviceStatus(bleChipId);
@@ -552,7 +652,6 @@ export default function DeviceSetupScreen({ navigation, route }) {
             checkResult?.device?.status === "ACTIVATED" &&
             checkResult?.device?.is_online
           ) {
-            // Cihaz zaten aktif ve online — uyarı göster
             const deviceInfo = checkResult.device;
             const vehicleInfo = deviceInfo.vehicle_plate
               ? ` (${deviceInfo.vehicle_plate})`
@@ -604,14 +703,13 @@ export default function DeviceSetupScreen({ navigation, route }) {
             });
           }
         } catch (checkErr) {
-          // Check başarısız olursa devam et (backend erişilemez olabilir)
-          console.log(
-            "[DeviceSetup] Status check failed, continuing:",
-            checkErr.message
-          );
+          if (__DEV__)
+            console.log(
+              "[DeviceSetup] Status check failed, continuing:",
+              checkErr.message
+            );
         }
       }
-      // === Kontrol sonu ===
 
       await proceedWithConnection(device);
     } catch (e) {
@@ -626,6 +724,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
   };
 
   const handleWifiFormSubmit = async () => {
+    // ✅ Emniyet kemeri: UI disable olsa bile çift basmayı engelle
+    if (busy) return;
+
     if (!wifiSsid || wifiSsid.trim().length === 0) {
       Alert.alert(
         t("taskDetail.actions.error"),
@@ -647,6 +748,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       return;
     }
 
+    setBusy(true);
     setStep(STEPS.WIFI_PROVISIONING);
     setWifiStatus("WiFi bilgileri gönderiliyor...");
     activationStartedRef.current = false;
@@ -682,17 +784,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
       try {
         await performActivation();
       } catch (activationError) {
-        console.log(
-          "[WiFi] Activation error (ESP32 zaten activate etti):",
-          activationError.message
-        );
+        if (__DEV__)
+          console.log(
+            "[WiFi] Activation error (ESP32 zaten activate etti):",
+            activationError.message
+          );
         await saveProvisionData(serial);
-        setStep(STEPS.SUCCESS);
-        setStatus(t("deviceSetup.activation.successStatus"));
-      } finally {
-        console.log(
-          "[DeviceSetup] WiFi provision complete, keeping BLE connected"
-        );
+        setStep(STEPS.SUCCESS_PENDING);
+        setStatus(t("deviceSetup.activation.successPending"));
       }
     } catch (e) {
       console.error("[WiFi] Exception:", e.message, e.code);
@@ -710,7 +809,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         errorCode === "BLE_NOT_CONNECTED";
 
       if (isDisconnectError) {
-        console.log("[WiFi] BLE disconnect algılandı (ESP32 restart)");
+        if (__DEV__) console.log("[WiFi] BLE disconnect (ESP32 restart)");
         setStep(STEPS.ACTIVATING);
         setStatus("Cihaz yeniden başlatılıyor...");
         await new Promise((r) => setTimeout(r, 3000));
@@ -720,15 +819,19 @@ export default function DeviceSetupScreen({ navigation, route }) {
           try {
             await performActivation();
           } catch (activationError) {
-            console.log("[WiFi] Backend zaten activate etti");
+            if (__DEV__) console.log("[WiFi] Backend already activated");
             await saveProvisionData(serial);
-            setStep(STEPS.SUCCESS);
-            setStatus(t("deviceSetup.activation.successStatus"));
+            setStep(STEPS.SUCCESS_PENDING);
+            setStatus(t("deviceSetup.activation.successPending"));
           }
         }
       } else {
         setError("WiFi kurulumu sırasında hata: " + e.message);
         setStep(STEPS.ERROR);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setBusy(false);
       }
     }
   };
@@ -759,17 +862,137 @@ export default function DeviceSetupScreen({ navigation, route }) {
       setError(activationResult.message || "Aktivasyon başarısız");
       setStep(STEPS.ERROR);
     } catch (e) {
+      if (__DEV__) console.log("[ACT] SUCCESS_PENDING:", e.message);
       await saveProvisionData(serial);
-      setStep(STEPS.SUCCESS);
+      setStep(STEPS.SUCCESS_PENDING);
       setStatus(t("deviceSetup.activation.successPending"));
     }
   };
 
+  // ============================================
+  // C) SUCCESS_PENDING: Aktivasyon doğrulama (3 deneme, 5sn aralık)
+  // ✅ busy her durumda kapanır (try/finally)
+  // ============================================
+  const verifyActivation = async () => {
+    setBusy(true);
+    setStatus(t("deviceSetup.checkingStatus"));
+
+    try {
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        if (!isMountedRef.current) return;
+
+        try {
+          if (__DEV__) console.log(`[VERIFY] Attempt ${attempt}/3...`);
+          const response = await driverAPI.getVehicle();
+          const vehicle = response?.vehicle || response;
+
+          if (
+            vehicle?.esp32_device_id &&
+            (vehicle?.device_status === "ACTIVATED" ||
+              vehicle?.esp32Status?.connected)
+          ) {
+            if (__DEV__) console.log("[VERIFY] Device confirmed active!");
+            if (!isMountedRef.current) return;
+            setStep(STEPS.SUCCESS);
+            setStatus(t("deviceSetup.activation.successStatus"));
+            return;
+          }
+        } catch (e) {
+          if (__DEV__)
+            console.log(`[VERIFY] Attempt ${attempt} failed:`, e.message);
+        }
+
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 5000));
+        }
+      }
+
+      if (!isMountedRef.current) return;
+
+      setStatus(t("deviceSetup.activation.successPending"));
+      Alert.alert(
+        t("common.warning") || "Uyarı",
+        t("deviceSetup.activation.verifyFailed") ||
+          "Aktivasyon henüz doğrulanamadı. Cihazı yeniden başlatın veya internet bağlantısını kontrol edin."
+      );
+    } finally {
+      if (isMountedRef.current) setBusy(false);
+    }
+  };
+
+  // ============================================
+  // QR Code Scan Handler
+  // ============================================
+  const handleQRScanned = ({ data }) => {
+    if (qrLockRef.current) return;
+    qrLockRef.current = true;
+
+    const raw = typeof data === "string" ? data : "";
+    if (__DEV__) console.log("[QR] scanned");
+
+    if (!raw) {
+      qrLockRef.current = false;
+      return;
+    }
+
+    let scannedSerial = raw.trim().toUpperCase();
+
+    if (scannedSerial.includes("?S=") || scannedSerial.includes("?s=")) {
+      const match = raw.match(/[?&]s=([^&#]+)/i);
+      if (match) scannedSerial = decodeURIComponent(match[1]).toUpperCase();
+    }
+
+    if (scannedSerial.includes("?T=") || scannedSerial.includes("?t=")) {
+      const match = raw.match(/[?&]t=([^&#]+)/i);
+      if (match) scannedSerial = decodeURIComponent(match[1]).toUpperCase();
+    }
+
+    const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
+    if (!serialRegex.test(scannedSerial)) {
+      Alert.alert(
+        t("deviceSetup.qr.invalidCode") || "Invalid QR Code",
+        t("deviceSetup.qr.invalidCodeMessage") ||
+          "QR code format not recognized. Please scan the QR code on the device.",
+        [
+          {
+            text: t("common.ok") || "OK",
+            onPress: () => {
+              qrLockRef.current = false;
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    if (__DEV__) console.log("[QR] Valid serial:", scannedSerial);
+    setSerial(scannedSerial);
+    setStatus(`Serial: ${scannedSerial}`);
+    setStep(STEPS.BLE_SCAN);
+    startBLEScan();
+
+    setTimeout(() => {
+      qrLockRef.current = false;
+    }, 2000);
+  };
+
   const handleManualSerialContinue = async () => {
-    if (!serial?.trim()) {
+    const trimmed = serial?.trim().toUpperCase();
+    if (!trimmed) {
       Alert.alert(t("common.error"), t("deviceSetup.serial.enterSerial"));
       return;
     }
+
+    const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
+    if (!serialRegex.test(trimmed)) {
+      Alert.alert(
+        t("deviceSetup.serial.invalid"),
+        t("deviceSetup.serial.invalidFormat")
+      );
+      return;
+    }
+
+    setSerial(trimmed);
     setBusy(true);
     try {
       setStep(STEPS.BLE_SCAN);
@@ -878,6 +1101,110 @@ export default function DeviceSetupScreen({ navigation, route }) {
     </Card>
   );
 
+  const renderQRScan = () => {
+    if (!cameraPermission) {
+      return (
+        <Card variant="setup" style={styles.cardWrap}>
+          <View style={styles.centerMt}>
+            <ActivityIndicator color={COLORS.PRIMARY} />
+          </View>
+        </Card>
+      );
+    }
+
+    if (!cameraPermission.granted) {
+      return (
+        <Card variant="setup" style={styles.cardWrap}>
+          <View style={styles.titleRow}>
+            <Ionicons name="camera-outline" size={22} color={COLORS.WARNING} />
+            <View style={styles.titleRowSpacer} />
+            <Text style={styles.cardTitle}>
+              {t("deviceSetup.camera.permissionRequired")}
+            </Text>
+          </View>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              {t("deviceSetup.camera.permissionMessage")}
+            </Text>
+          </View>
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              style={[styles.btn, styles.btnPrimary]}
+              onPress={requestCameraPermission}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="camera" size={18} color={COLORS.WHITE} />
+              <View style={styles.btnIconSpacer} />
+              <Text style={styles.btnText}>
+                {t("deviceSetup.camera.grantPermission")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              style={[styles.btn, styles.btnMuted]}
+              onPress={() => setStep(STEPS.SERIAL_MANUAL)}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="keypad-outline"
+                size={18}
+                color={COLORS.TEXT_PRIMARY}
+              />
+              <View style={styles.btnIconSpacer} />
+              <Text style={styles.btnTextDark}>
+                {t("deviceSetup.qr.manualEntry")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+      );
+    }
+
+    return (
+      <Card variant="setup" style={styles.cardWrap}>
+        <View style={styles.titleRow}>
+          <Ionicons name="qr-code-outline" size={22} color={COLORS.PRIMARY} />
+          <View style={styles.titleRowSpacer} />
+          <Text style={styles.cardTitle}>{t("deviceSetup.steps.qrScan")}</Text>
+        </View>
+        <Text style={styles.cardSub}>{t("deviceSetup.qr.scanHint")}</Text>
+
+        <View style={styles.qrCameraContainer}>
+          <CameraView
+            style={styles.qrCamera}
+            facing="back"
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr"],
+            }}
+            onBarcodeScanned={handleQRScanned}
+          />
+          <View style={styles.qrOverlay}>
+            <View style={styles.qrFrame} />
+          </View>
+        </View>
+
+        <View style={styles.btnRow}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnMuted]}
+            onPress={() => setStep(STEPS.SERIAL_MANUAL)}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name="keypad-outline"
+              size={18}
+              color={COLORS.TEXT_PRIMARY}
+            />
+            <View style={styles.btnIconSpacer} />
+            <Text style={styles.btnTextDark}>
+              {t("deviceSetup.qr.manualEntry")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+    );
+  };
+
   const renderManualSerial = () => (
     <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
@@ -916,6 +1243,21 @@ export default function DeviceSetupScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMuted]}
+          onPress={() => setStep(STEPS.QR_SCAN)}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="qr-code-outline"
+            size={18}
+            color={COLORS.TEXT_PRIMARY}
+          />
+          <View style={styles.btnIconSpacer} />
+          <Text style={styles.btnTextDark}>{t("deviceSetup.qr.scanHint")}</Text>
+        </TouchableOpacity>
+      </View>
     </Card>
   );
 
@@ -930,11 +1272,46 @@ export default function DeviceSetupScreen({ navigation, route }) {
       </View>
 
       {devices.length === 0 ? (
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            {status || t("deviceSetup.ble.deviceHint")}
-          </Text>
-        </View>
+        <>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              {status || t("deviceSetup.ble.deviceHint")}
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.infoBox,
+              styles.mtSm,
+              {
+                backgroundColor: withAlpha(COLORS.WARNING, 0.1),
+                borderColor: withAlpha(COLORS.WARNING, 0.25),
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.infoText,
+                { fontSize: COLORS.TYPOGRAPHY.sizes.sm },
+              ]}
+            >
+              {"💡 "}
+              {t("deviceSetup.ble.bootWindowHint") ||
+                "ESP32 cihazının BLE modu açılıştan sonra 5 dakika aktiftir. Cihaz bulunamazsa cihazı yeniden başlatın (USB çıkar-tak)."}
+            </Text>
+            <Text
+              style={[
+                styles.infoText,
+                styles.mtSm,
+                { fontSize: COLORS.TYPOGRAPHY.sizes.sm },
+              ]}
+            >
+              {"📱 "}
+              {t("deviceSetup.ble.deviceNameHint") ||
+                'Cihaz adı "TulipFleet-XXXX" şeklinde görünür. 1-2 metre yaklaşın.'}
+            </Text>
+          </View>
+        </>
       ) : null}
 
       <View style={styles.mtMd}>
@@ -995,6 +1372,33 @@ export default function DeviceSetupScreen({ navigation, route }) {
     </Card>
   );
 
+  // ⭐ SSID 5GHz algılama
+  const is5GHz = useMemo(() => {
+    const s = (wifiSsid || "").toLowerCase();
+    return s.includes("5g") || s.includes("5ghz") || s.includes("_5_");
+  }, [wifiSsid]);
+
+  // ✅ WiFi connect disable koşulları + inline hint
+  const ssidOk = useMemo(() => (wifiSsid || "").trim().length > 0, [wifiSsid]);
+  const passOk = useMemo(
+    () => (wifiPassword || "").length >= 8,
+    [wifiPassword]
+  );
+
+  const canConnectWifi = useMemo(() => {
+    return !busy && ssidOk && passOk;
+  }, [busy, ssidOk, passOk]);
+
+  const wifiInlineHint = useMemo(() => {
+    if (busy) return null;
+    if (!ssidOk) return t("deviceSetup.wifi.emptySSID") || "SSID gerekli.";
+    if (!passOk)
+      return (
+        t("deviceSetup.wifi.shortPassword") || "Şifre en az 8 karakter olmalı."
+      );
+    return null;
+  }, [busy, ssidOk, passOk, t]);
+
   const renderWifiForm = () => (
     <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
@@ -1015,18 +1419,63 @@ export default function DeviceSetupScreen({ navigation, route }) {
         autoCapitalize="none"
       />
 
+      {/* ⭐ 5GHz SSID uyarısı */}
+      {is5GHz && (
+        <View
+          style={[
+            styles.infoBox,
+            styles.mtSm,
+            {
+              backgroundColor: withAlpha(COLORS.WARNING, 0.1),
+              borderColor: withAlpha(COLORS.WARNING, 0.25),
+            },
+          ]}
+        >
+          <Text
+            style={[styles.infoText, { fontSize: COLORS.TYPOGRAPHY.sizes.sm }]}
+          >
+            {"⚠️ "}
+            {t("deviceSetup.wifi.warning5GHz") ||
+              "Bu SSID 5GHz ağa ait olabilir. ESP32 sadece 2.4GHz destekler. Lütfen 2.4GHz ağınızı kullanın."}
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.inputLabel}>
         {t("deviceSetup.wifi.passwordLabel")}
       </Text>
-      <TextInput
-        value={wifiPassword}
-        onChangeText={setWifiPassword}
-        placeholder={t("deviceSetup.wifi.passwordPlaceholder")}
-        placeholderTextColor={COLORS.PLACEHOLDER}
-        style={styles.input}
-        secureTextEntry
-        autoCapitalize="none"
-      />
+
+      {/* ⭐ Şifre göster/gizle */}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          value={wifiPassword}
+          onChangeText={setWifiPassword}
+          placeholder={t("deviceSetup.wifi.passwordPlaceholder")}
+          placeholderTextColor={COLORS.PLACEHOLDER}
+          style={styles.passwordInput}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.passwordToggle}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
+            size={20}
+            color={COLORS.MUTED}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* ✅ Inline hint */}
+      {wifiInlineHint ? (
+        <Text style={[styles.hintText, styles.hintTextWarn]}>
+          {"ℹ️ "}
+          {wifiInlineHint}
+        </Text>
+      ) : null}
 
       <View style={[styles.infoBox, styles.mtMd]}>
         <Text style={styles.infoText}>{t("deviceSetup.wifi.hint")}</Text>
@@ -1034,9 +1483,15 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
       <View style={styles.btnRow}>
         <TouchableOpacity
-          style={[styles.btn, styles.btnMuted, styles.btnRight]}
+          style={[
+            styles.btn,
+            styles.btnMuted,
+            styles.btnRight,
+            busy && styles.btnDisabled,
+          ]}
           onPress={() => setStep(STEPS.BLE_SCAN)}
           activeOpacity={0.85}
+          disabled={busy}
         >
           <Ionicons name="arrow-back" size={18} color={COLORS.TEXT_PRIMARY} />
           <View style={styles.btnIconSpacer} />
@@ -1044,9 +1499,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.btn, styles.btnPrimary]}
+          style={[
+            styles.btn,
+            styles.btnPrimary,
+            !canConnectWifi && styles.btnDisabled,
+          ]}
           onPress={handleWifiFormSubmit}
           activeOpacity={0.85}
+          disabled={!canConnectWifi}
         >
           {busy ? (
             <ActivityIndicator color={COLORS.WHITE} />
@@ -1114,6 +1574,44 @@ export default function DeviceSetupScreen({ navigation, route }) {
           {status || t("deviceSetup.result.deviceReady")}
         </Text>
       </View>
+
+      {(serial || deviceStatus?.plate) && (
+        <View
+          style={[
+            styles.infoBox,
+            styles.mtSm,
+            {
+              backgroundColor: withAlpha(COLORS.SUCCESS, 0.08),
+              borderColor: withAlpha(COLORS.SUCCESS, 0.2),
+            },
+          ]}
+        >
+          {serial ? (
+            <Text
+              style={[
+                styles.infoText,
+                { fontSize: COLORS.TYPOGRAPHY.sizes.sm },
+              ]}
+            >
+              {"📟 "}
+              {t("device.serial") || "Serial"}: {serial}
+            </Text>
+          ) : null}
+          {deviceStatus?.plate ? (
+            <Text
+              style={[
+                styles.infoText,
+                styles.mtSm,
+                { fontSize: COLORS.TYPOGRAPHY.sizes.sm },
+              ]}
+            >
+              {"🚛 "}
+              {t("vehicle.plate") || "Plaka"}: {deviceStatus.plate}
+            </Text>
+          ) : null}
+        </View>
+      )}
+
       <View style={styles.btnRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
@@ -1123,6 +1621,59 @@ export default function DeviceSetupScreen({ navigation, route }) {
           <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
           <View style={styles.btnIconSpacer} />
           <Text style={styles.btnText}>{t("deviceSetup.result.done")}</Text>
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+
+  const renderSuccessPending = () => (
+    <Card variant="setup" style={styles.cardWrap}>
+      <View style={styles.titleRow}>
+        <Ionicons name="time-outline" size={22} color={COLORS.WARNING} />
+        <View style={styles.titleRowSpacer} />
+        <Text style={styles.cardTitle}>
+          {t("deviceSetup.activation.pendingTitle") ||
+            "Kurulum Tamamlanıyor..."}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.infoBox,
+          {
+            backgroundColor: withAlpha(COLORS.WARNING, 0.1),
+            borderColor: withAlpha(COLORS.WARNING, 0.25),
+          },
+        ]}
+      >
+        <Text style={styles.infoText}>
+          {status || t("deviceSetup.activation.successPending")}
+        </Text>
+      </View>
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary, styles.btnRight]}
+          onPress={verifyActivation}
+          activeOpacity={0.85}
+          disabled={busy}
+        >
+          {busy ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Ionicons name="refresh-circle" size={18} color={COLORS.WHITE} />
+          )}
+          <View style={styles.btnIconSpacer} />
+          <Text style={styles.btnText}>
+            {t("deviceSetup.activation.verifyButton") || "Durumu Kontrol Et"}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnMuted]}
+          onPress={() => navigation.navigate("DriverDashboard")}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="checkmark" size={18} color={COLORS.TEXT_PRIMARY} />
+          <View style={styles.btnIconSpacer} />
+          <Text style={styles.btnTextDark}>{t("deviceSetup.result.done")}</Text>
         </TouchableOpacity>
       </View>
     </Card>
@@ -1171,7 +1722,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
   useEffect(() => {
     return () => {
-      console.log("BLE provision için korunuyor");
+      if (__DEV__) console.log("BLE provision preserved");
     };
   }, []);
 
@@ -1219,6 +1770,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           ? renderSetupNotRequired()
           : null}
         {step === STEPS.SERIAL_MANUAL && renderManualSerial()}
+        {step === STEPS.QR_SCAN && renderQRScan()}
         {step === STEPS.BLE_SCAN && renderBleScan()}
         {step === STEPS.CONNECTING && renderConnecting()}
         {step === STEPS.WIFI_FORM && renderWifiForm()}
@@ -1227,6 +1779,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         {step === STEPS.SUCCESS &&
           (!deviceStatus?.isActive || deviceStatus?.needsSetup) &&
           renderSuccess()}
+        {step === STEPS.SUCCESS_PENDING && renderSuccessPending()}
         {step === STEPS.ERROR && renderError()}
 
         <View style={styles.bottomSpacer} />

@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -38,10 +38,7 @@
     "superAdmin": "Super Admin",
     "companyAdmin": "Manager",
     "driver": "Driver",
-    "user": "User",
-    "warning": "Warning",
-    "retry": "Retry",
-    "info": "Info"
+    "user": "User"
   },
   "auth": {
     "login": "Sign In",
@@ -338,7 +335,7 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\nÂ© 2025 TulipFleet\n\nAll rights reserved.",
+    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\n© 2025 TulipFleet\n\nAll rights reserved.",
     "clearCacheTitle": "Clear Cache",
     "clearCacheMessage": "Do you want to clear the app cache?",
     "clear": "Clear",
@@ -537,7 +534,7 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\nÂ© 2025 TulipFleet\n\nAll rights reserved."
+    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\n© 2025 TulipFleet\n\nAll rights reserved."
   },
   "deviceSetup": {
     "title": "Device Setup",
@@ -595,7 +592,9 @@
       "rescan": "ğŸ”„ Scan Again",
       "strong": "ğŸŸ¢ Strong",
       "medium": "ğŸŸ¡ Medium",
-      "weak": "ğŸ”´ Weak"
+      "weak": "ğŸ”´ Weak",
+      "bootWindowHint": "The ESP32 device's BLE mode is active for 5 minutes after power on. If the device is not found, restart it by unplugging and replugging the USB cable.",
+      "deviceNameHint": "Device name appears as \"TulipFleet-XXXX\". Move within 1-2 meters."
     },
     "connection": {
       "connecting": "Connecting...",
@@ -620,7 +619,8 @@
       "connectionFailed": "WiFi connection failed",
       "connecting": "ğŸ“¶ WiFi Connection",
       "network": "Network: {{ssid}}",
-      "deviceConnecting": "ESP32 device is connecting to WiFi, please wait..."
+      "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
+      "warning5GHz": "This SSID may be a 5GHz network. ESP32 only supports 2.4GHz. Please use your 2.4GHz network."
     },
     "activation": {
       "activating": "Activating device...",
@@ -628,7 +628,10 @@
       "failed": "Activation failed",
       "serverCommunication": "Device communicating with server...",
       "successStatus": "Device successfully activated!",
-      "successPending": "Device setup complete. Waiting for activation confirmation..."
+      "successPending": "Device setup complete. Waiting for activation confirmation...",
+      "pendingTitle": "Completing Setup...",
+      "verifyButton": "Check Status",
+      "verifyFailed": "Activation could not be verified yet. Restart the device or check the internet connection."
     },
     "result": {
       "setupComplete": "Setup Complete!",
@@ -1384,7 +1387,22 @@
     "validationEnterStart": "Enter start location",
     "validationEnterEnd": "Enter destination",
     "validationEndAfterStart": "End time must be after start time",
-    "noOptions": "No options found"
+    "noOptions": "No options found",
+    "templateDelivery": "Delivery",
+    "templateTransfer": "Transfer",
+    "templateService": "Service",
+    "templateWarehouse": "Warehouse",
+    "assignment": "Assignment",
+    "schedule": "Schedule",
+    "duration": "Duration",
+    "driver": "Driver",
+    "vehicle": "Vehicle",
+    "date": "Date",
+    "time": "Time",
+    "start": "Start",
+    "end": "End",
+    "done": "Done",
+    "cancel": "Cancel"
   },
   "editTask": {
     "title": "Edit Task",
@@ -1411,7 +1429,10 @@
     "stopAddress": "Stop Address",
     "plannedArrival": "Planned Arrival",
     "invalidCoords": "Invalid coordinates",
-    "noStops": "No stops added yet"
+    "noStops": "No stops added yet",
+    "coordinates": "Coordinates",
+    "removeStopConfirm": "Are you sure you want to remove this stop?",
+    "remove": "Remove"
   },
   "fuelDash": {
     "avgConsumption": "Avg. Consumption",
@@ -1476,197 +1497,21 @@
     "bmVan": "Van",
     "bmCar": "Car"
   },
-  "adminTasks": {
-    "filterAll": "All",
-    "filterPending": "Pending",
-    "filterActive": "Active",
-    "filterCompleted": "Completed",
-    "status": {
-      "pending_review": "In Review",
-      "accepted": "Accepted",
-      "in_progress": "In Progress",
-      "completed": "Completed",
-      "rejected": "Rejected",
-      "cancelled": "Cancelled"
-    },
-    "priority": {
-      "low": "Low",
-      "normal": "Normal",
-      "high": "High",
-      "urgent": "Urgent"
-    },
-    "loading": "Loading tasks...",
-    "loadError": "Could not load tasks",
-    "noTasks": "No Tasks Found",
-    "noTasksDesc": "No tasks have been created yet.",
-    "noDriver": "No driver",
-    "noVehicle": "No vehicle",
-    "noDriverAssigned": "No driver has been assigned to this task!",
-    "driver": "Driver",
-    "description": "Description",
-    "priorityLabel": "Priority",
-    "from": "From",
-    "to": "To",
-    "distance": "Distance",
-    "scheduled": "Scheduled",
-    "notes": "Notes",
-    "sendOffer": "Send Offer",
-    "sendOfferConfirm": "Send task offer to {{driver}}?",
-    "send": "Send",
-    "offerSent": "Task offer sent!",
-    "offerFailed": "Could not send offer",
-    "deleteTask": "Delete Task",
-    "deleteConfirm": "Are you sure you want to delete \"{{task}}\"?",
-    "taskDeleted": "Task deleted",
-    "deleteFailed": "Could not delete task"
-  },
-  "adminVehicles": {
-    "filterAll": "All",
-    "filterAvailable": "Available",
-    "filterInUse": "In Use",
-    "filterOther": "Other",
-    "status": {
-      "available": "Available",
-      "in_use": "In Use",
-      "maintenance": "Maintenance",
-      "retired": "Retired"
-    },
-    "loading": "Loading vehicles...",
-    "loadError": "Could not load vehicles",
-    "noVehicles": "No Vehicles",
-    "noVehiclesDesc": "No vehicles have been registered yet.",
-    "fuel": "Fuel",
-    "online": "Online",
-    "offline": "Offline",
-    "fuelType": "Fuel Type",
-    "tankCapacity": "Tank",
-    "color": "Color",
-    "device": "Device",
-    "category": "Category",
-    "lastMaint": "Last Service",
-    "track": "Track",
-    "deleteVehicle": "Delete Vehicle",
-    "deleteConfirm": "Are you sure you want to delete \"{{plate}}\"?",
-    "vehicleDeleted": "Vehicle deleted",
-    "deleteFailed": "Could not delete vehicle",
-    "fuelTypes": {
-      "diesel": "Diesel",
-      "gasoline": "Gasoline",
-      "lpg": "LPG",
-      "electric": "Electric"
-    },
-    "categories": {
-      "truck_heavy": "Heavy Truck",
-      "truck_medium": "Medium Truck",
-      "light_commercial": "Light Commercial",
-      "van": "Van",
-      "car": "Car"
-    }
-  },
-  "adminDrivers": {
-    "filterAll": "All",
-    "filterAvailable": "Available",
-    "filterOnTask": "On Task",
-    "filterOffline": "Offline",
-    "status": {
-      "available": "Available",
-      "on_task": "On Task",
-      "task_pending": "Task Pending",
-      "on_leave": "On Leave",
-      "offline": "Offline"
-    },
-    "loading": "Loading drivers...",
-    "loadError": "Could not load drivers",
-    "noDrivers": "No Drivers",
-    "noDriversDesc": "No drivers have been registered yet.",
-    "unnamed": "Unnamed Driver",
-    "vehicle": "Vehicle",
-    "tasks": "Tasks",
-    "score": "Score",
-    "phone": "Phone",
-    "license": "License",
-    "emergency": "Emergency",
-    "totalKm": "Total km",
-    "assignedVehicle": "Assigned Vehicle",
-    "deleteDriver": "Delete Driver",
-    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?\n\nWarning: User account will also be deleted!",
-    "driverDeleted": "Driver deleted",
-    "deleteFailed": "Could not delete driver"
-  },
-  "fleetMap": {
-    "loading": "Loading map...",
-    "vehicle": "Vehicle",
-    "online": "Online",
-    "offline": "Offline",
-    "lastUpdate": "Last update",
-    "tapForList": "Tap for list"
-  },
-  "vehicleList": {
-    "title": "Vehicle List",
-    "total": "Total",
-    "online": "Online",
-    "offline": "Offline",
-    "filterAll": "All",
-    "filterOnline": "Online",
-    "filterAvailable": "Available",
-    "filterOffline": "Offline",
-    "statusInUse": "Active",
-    "statusAvailable": "Available",
-    "statusMaintenance": "Maintenance",
-    "statusRetired": "Retired",
-    "statusOffline": "Offline",
-    "searchPlaceholder": "Search plate or model...",
-    "noLocation": "No location",
-    "notFound": "No vehicles found",
-    "empty": "No vehicles yet"
-  },
-  "adminAlerts": {
-    "filterAll": "All",
-    "filterActive": "Active",
-    "filterResolved": "Resolved",
-    "statusActive": "Active",
-    "statusResolved": "Resolved",
-    "loading": "Loading alerts...",
-    "loadError": "Could not load alerts",
-    "noAlerts": "All Clear!",
-    "noAlertsDesc": "No alerts at the moment",
-    "resolve": "Resolve Alert",
-    "resolveConfirm": "Mark this alert as resolved?",
-    "resolveBtn": "Resolve",
-    "resolved": "Alert resolved",
-    "resolveFailed": "Could not resolve",
-    "alreadyResolved": "This alert is already resolved",
-    "deleteAlert": "Delete Alert",
-    "deleteConfirm": "Are you sure you want to delete this alert?",
-    "alertDeleted": "Alert deleted",
-    "deleteFailed": "Could not delete alert",
-    "deleteAll": "Delete All Alerts",
-    "deleteAllConfirm": "Delete all {{count}} alerts?\n\nThis cannot be undone!",
-    "deleteAllBtn": "Delete All",
-    "allDeleted": "All alerts deleted",
-    "deleteAllFailed": "Could not delete alerts",
-    "noAlertsToDelete": "No alerts to delete",
-    "types": {
-      "hardBrake": "Hard Brake",
-      "hardAccel": "Hard Acceleration",
-      "hardTurn": "Hard Turn",
-      "sharpTurn": "Sharp Turn",
-      "impact": "Impact/Crash",
-      "overspeed": "Overspeed",
-      "speed": "Speed Violation",
-      "geofence": "Geofence Violation",
-      "fuel": "Fuel Alert",
-      "maintenance": "Maintenance Alert",
-      "battery": "Battery Alert",
-      "idle": "Idle",
-      "sos": "SOS",
-      "default": "Alert"
-    },
-    "time": {
-      "justNow": "Just now",
-      "minsAgo": "{{count}} min ago",
-      "hoursAgo": "{{count}}h ago",
-      "daysAgo": "{{count}}d ago"
-    }
+  "privacy": {
+    "lastUpdated": "Last updated",
+    "s1Title": "1. Introduction",
+    "s1Body": "TulipFleet (\"we\", \"our\", \"us\") operates a fleet management platform including mobile applications and IoT devices. This Privacy Policy explains how we collect, use, store, and protect your personal data in compliance with the General Data Protection Regulation (GDPR) and applicable data protection laws.",
+    "s2Title": "2. Data We Collect",
+    "s2Body": "We collect the following categories of data:\n\n• Account Information: Name, email address, phone number, company name\n• Vehicle Data: License plate, brand, model, fuel type, mileage\n• Location Data: Real-time GPS coordinates from IoT devices installed in vehicles\n• Driving Data: Speed, acceleration events, braking patterns, route history\n• Device Data: ESP32 device identifiers, firmware version, connectivity status\n• Usage Data: App usage patterns, feature interactions, login timestamps",
+    "s3Title": "3. How We Use Your Data",
+    "s3Body": "Your data is used for:\n\n• Fleet Management: Real-time vehicle tracking, route optimization, task assignment\n• Safety Monitoring: Detecting hard braking, acceleration, and impact events\n• Reporting: Generating fleet performance reports, fuel consumption analytics\n• Communication: Push notifications for task updates, alerts, and system messages\n• Service Improvement: Analyzing usage patterns to improve the platform",
+    "s4Title": "4. Data Storage & Security",
+    "s4Body": "• All data is stored on secure servers located within the European Union (Hetzner, Germany)\n• Data transmission is encrypted using TLS/SSL\n• MQTT communication uses TLS encryption\n• Passwords are hashed using bcrypt\n• JWT tokens are used for authentication with automatic expiry\n• Location data is retained for 7 days, then automatically purged\n• Regular security audits and penetration testing are conducted",
+    "s5Title": "5. Data Sharing",
+    "s5Body": "We do not sell your personal data to third parties. Data may be shared with:\n\n• Your Company Admin: Fleet managers can view vehicle and driver data within their organization\n• Google Maps API: For route calculation and map display (anonymized)\n• Firebase: For push notification delivery\n• Legal Requirements: When required by law or legal proceedings",
+    "s6Title": "6. Your Rights (GDPR)",
+    "s6Body": "Under GDPR, you have the right to:\n\n• Access: Request a copy of your personal data\n• Rectification: Correct inaccurate personal data\n• Erasure: Request deletion of your personal data\n• Portability: Receive your data in a structured, machine-readable format\n• Restriction: Restrict the processing of your data\n• Objection: Object to data processing based on legitimate interests\n\nTo exercise these rights, contact us at: destek@tulipfleet.com",
+    "s7Title": "7. Contact",
+    "s7Body": "TulipFleet\nEmail: destek@tulipfleet.com\nWebsite: https://tulipfleet.com\n\n© 2025-2026 TulipFleet. All rights reserved."
   }
 }
