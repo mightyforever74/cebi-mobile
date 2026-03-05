@@ -1136,10 +1136,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       // Polling function that fetches latest location from backend
       const pollLocation = async () => {
         try {
-          const vehicleId =
-            task?.vehicle_id ||
-            (await driverAPI.getVehicle())?.vehicle?.id ||
-            (await driverAPI.getVehicle())?.id;
+          let vehicleId = task?.vehicle_id;
+          if (!vehicleId) {
+            const vehicleResp = await driverAPI.getVehicle();
+            vehicleId = vehicleResp?.vehicle?.id || vehicleResp?.id;
+          }
           if (!vehicleId) return;
           const res = await vehicleAPI.getLatestLocation(vehicleId);
           const loc = res?.location || res?.data || res;

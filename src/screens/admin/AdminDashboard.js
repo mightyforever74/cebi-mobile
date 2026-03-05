@@ -5,7 +5,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -815,13 +815,14 @@ const AdminDashboard = () => {
   const { t, i18n } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
-  // Güvenli fallback - INFO token yoksa PRIMARY kullan
-  if (!COLORS.INFO) COLORS.INFO = COLORS.PRIMARY;
+  // Güvenli fallback - INFO token yoksa PRIMARY kullan (mutate etmeden)
+  const infoColor = COLORS.INFO ?? COLORS.PRIMARY;
+  const COLORS_SAFE = { ...COLORS, INFO: infoColor };
 
   // Dinamik mapping'ler (COLORS'a bağlı)
-  const ALERT_TYPE_MAP = getAlertTypeMap(COLORS, t);
-  const SEVERITY_MAP = getSeverityMap(COLORS, t);
-  const TASK_STATUS_MAP = getTaskStatusMap(COLORS, t);
+  const ALERT_TYPE_MAP = getAlertTypeMap(COLORS_SAFE, t);
+  const SEVERITY_MAP = getSeverityMap(COLORS_SAFE, t);
+  const TASK_STATUS_MAP = getTaskStatusMap(COLORS_SAFE, t);
 
   const getAlertInfo = (type) => {
     return (
@@ -878,7 +879,8 @@ const AdminDashboard = () => {
     { code: "es", label: "Español", flag: "🇪🇸" },
     { code: "ku", label: "Kurdî", flag: "🏳️" },
   ];
-  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+  const currentLang =
+    LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
   const handleChangeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
     setShowLangModal(false);
@@ -932,7 +934,12 @@ const AdminDashboard = () => {
             const onlineList = vehicles.filter(
               (v) => v.is_online || v.status === "in_use"
             );
-            data = onlineList.length > 0 ? onlineList : vehicles;
+            if (onlineList.length > 0) {
+              data = onlineList;
+            } else {
+              // Backend online sayısı verdi ama liste filtrelenemedi
+              data = vehicles;
+            }
           } else {
             data = [];
           }
@@ -1016,7 +1023,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const getFilteredModalData = () => {
+  const filteredModalData = useMemo(() => {
     if (!detailSearch.trim()) return detailModal.data;
     const q = detailSearch.toLowerCase().trim();
     return detailModal.data.filter((item) => {
@@ -1025,7 +1032,7 @@ const AdminDashboard = () => {
         (c.value(item) ?? "").toString().toLowerCase().includes(q)
       );
     });
-  };
+  }, [detailSearch, detailModal.data, detailModal.type]);
 
   // Auto-refresh: 30s polling
   useEffect(() => {
@@ -1036,36 +1043,45 @@ const AdminDashboard = () => {
     return () => {
       if (refreshTimer.current) clearInterval(refreshTimer.current);
     };
-  }, []);
+  }, [fetchAllData]);
 
-  const fetchAllData = async (silent = false) => {
-    try {
-      if (!silent) setError(null);
+  const fetchAllData = useCallback(
+    async (silent = false) => {
+      try {
+        if (!silent) setError(null);
 
-      const [statsData, vehiclesData, activitiesData] = await Promise.all([
-        adminAPI.getFleetStats(),
-        adminAPI.getVehicles().catch(() => ({ vehicles: [] })),
-        adminAPI.getActivities().catch(() => ({ activities: [] })),
-      ]);
+        const [statsData, vehiclesData, activitiesData] = await Promise.all([
+          adminAPI.getFleetStats(),
+          adminAPI.getVehicles().catch(() => ({ vehicles: [] })),
+          adminAPI.getActivities().catch(() => ({ activities: [] })),
+        ]);
 
-      if (!statsData?.totals || !statsData?.breakdown) {
-        throw new Error("Bad fleet-stats schema");
+        if (!statsData?.totals || !statsData?.breakdown) {
+          throw new Error("Bad fleet-stats schema");
+        }
+
+        setFleetStats(statsData);
+        setVehicles(vehiclesData.vehicles || []);
+        const rawActivities =
+          activitiesData.activities || activitiesData.alerts || [];
+        const normalizedActivities = rawActivities.map((a) => ({
+          ...a,
+          activity_type: a.activity_type || a.type || a.kind || "task",
+        }));
+        setActivities(normalizedActivities);
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        setError(t("admin.dataLoadError", "Veri yüklenirken hata oluştu"));
+        setFleetStats(getDefaultStats());
+        setVehicles([]);
+        setActivities([]);
+      } finally {
+        if (!silent) setLoading(false);
+        setRefreshing(false);
       }
-
-      setFleetStats(statsData);
-      setVehicles(vehiclesData.vehicles || []);
-      setActivities(activitiesData.activities || activitiesData.alerts || []);
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-      setError(t("admin.dataLoadError", "Veri yüklenirken hata oluştu"));
-      setFleetStats(getDefaultStats());
-      setVehicles([]);
-      setActivities([]);
-    } finally {
-      if (!silent) setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [t]
+  );
 
   const getDefaultStats = () => ({
     totals: {
@@ -1163,7 +1179,9 @@ const AdminDashboard = () => {
 
     if (isAlert) {
       const alertInfo = getAlertInfo(activity.identifier);
-      const severityInfo = getSeverityInfo(activity.status);
+      const severityInfo = getSeverityInfo(
+        activity.severity || activity.status
+      );
 
       return (
         <View
@@ -1309,7 +1327,10 @@ const AdminDashboard = () => {
             >
               <Text style={{ fontSize: 16 }}>{currentLang.flag}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
               <Ionicons name="log-out-outline" size={20} color={COLORS.WHITE} />
             </TouchableOpacity>
           </View>
@@ -1816,13 +1837,13 @@ const AdminDashboard = () => {
 
                 {/* Count */}
                 <Text style={styles.detailCountText}>
-                  {getFilteredModalData().length} / {detailModal.data.length}{" "}
+                  {filteredModalData.length} / {detailModal.data.length}{" "}
                   {t("admin.records", "kayıt")}
                 </Text>
 
                 {/* List */}
                 <FlatList
-                  data={getFilteredModalData()}
+                  data={filteredModalData}
                   keyExtractor={(item, idx) =>
                     item.id?.toString() || idx.toString()
                   }
@@ -1992,7 +2013,7 @@ const AdminDashboard = () => {
                     onPress={() =>
                       handleCSVExport(
                         detailModal.type,
-                        getFilteredModalData(),
+                        filteredModalData,
                         getCSVColumns(detailModal.type)
                       )
                     }
@@ -2010,7 +2031,7 @@ const AdminDashboard = () => {
                   <TouchableOpacity
                     onPress={async () => {
                       const csv = generateCSV(
-                        getFilteredModalData(),
+                        filteredModalData,
                         getCSVColumns(detailModal.type)
                       );
                       try {
@@ -2049,25 +2070,34 @@ const AdminDashboard = () => {
         onRequestClose={() => setShowLangModal(false)}
       >
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           activeOpacity={1}
           onPress={() => setShowLangModal(false)}
         >
-          <View style={{
-            backgroundColor: COLORS.SURFACE,
-            borderRadius: COLORS.RADIUS.lg,
-            padding: COLORS.SPACING.lg,
-            width: "80%",
-            maxWidth: 320,
-            ...COLORS.SHADOWS.card,
-          }}>
-            <Text style={{
-              fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-              fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-              color: COLORS.TEXT,
-              marginBottom: COLORS.SPACING.md,
-              textAlign: "center",
-            }}>
+          <View
+            style={{
+              backgroundColor: COLORS.SURFACE,
+              borderRadius: COLORS.RADIUS.lg,
+              padding: COLORS.SPACING.lg,
+              width: "80%",
+              maxWidth: 320,
+              ...COLORS.SHADOWS.card,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+                fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+                color: COLORS.TEXT,
+                marginBottom: COLORS.SPACING.md,
+                textAlign: "center",
+              }}
+            >
               {t("admin.selectLanguage", "Dil Seçin")}
             </Text>
             {LANGUAGES.map((lang) => {
@@ -2083,26 +2113,41 @@ const AdminDashboard = () => {
                     paddingHorizontal: COLORS.SPACING.md,
                     borderRadius: COLORS.RADIUS.md,
                     marginBottom: COLORS.SPACING.xs,
-                    backgroundColor: isActive ? withAlpha(COLORS.PRIMARY, 0.12) : "transparent",
+                    backgroundColor: isActive
+                      ? withAlpha(COLORS.PRIMARY, 0.12)
+                      : "transparent",
                   }}
                 >
-                  <Text style={{ fontSize: 22, marginRight: COLORS.SPACING.sm }}>{lang.flag}</Text>
-                  <Text style={{
-                    flex: 1,
-                    fontSize: COLORS.TYPOGRAPHY.sizes.md,
-                    fontWeight: isActive ? COLORS.TYPOGRAPHY.weights.bold : COLORS.TYPOGRAPHY.weights.regular,
-                    color: isActive ? COLORS.PRIMARY : COLORS.TEXT,
-                  }}>
+                  <Text
+                    style={{ fontSize: 22, marginRight: COLORS.SPACING.sm }}
+                  >
+                    {lang.flag}
+                  </Text>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+                      fontWeight: isActive
+                        ? COLORS.TYPOGRAPHY.weights.bold
+                        : COLORS.TYPOGRAPHY.weights.regular,
+                      color: isActive ? COLORS.PRIMARY : COLORS.TEXT,
+                    }}
+                  >
                     {lang.label}
                   </Text>
-                  {isActive && <Ionicons name="checkmark-circle" size={20} color={COLORS.PRIMARY} />}
+                  {isActive && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={COLORS.PRIMARY}
+                    />
+                  )}
                 </TouchableOpacity>
               );
             })}
           </View>
         </TouchableOpacity>
       </Modal>
-
     </>
   );
 };

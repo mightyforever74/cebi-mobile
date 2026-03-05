@@ -4,7 +4,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -45,7 +45,7 @@ const withAlpha = (hex, alpha01) => {
   return `${hex}${alpha}`;
 };
 
-// YakÄ±t tipi Ã§evirisi
+// Yakıt tipi çevirisi
 const FUEL_TYPE_LABELS = {
   diesel: {
     tr: "Dizel",
@@ -87,48 +87,6 @@ const FUEL_TYPE_LABELS = {
 
 const makeStyles = (COLORS) =>
   StyleSheet.create({
-    // Safety Score Card
-    safetyScoreContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: COLORS.SPACING.sm,
-    },
-    safetyScoreCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: COLORS.RADIUS.full,
-      backgroundColor: COLORS.BACKGROUND,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: COLORS.SPACING.md,
-    },
-    safetyScoreNumber: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-    },
-    safetyScoreMax: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: -2,
-    },
-    safetyScoreBar: {
-      flex: 1,
-    },
-    safetyBarTrack: {
-      height: 8,
-      backgroundColor: COLORS.BORDER,
-      borderRadius: COLORS.RADIUS.xs,
-      overflow: "hidden",
-    },
-    safetyBarFill: {
-      height: 8,
-      borderRadius: COLORS.RADIUS.xs,
-    },
-    safetyScoreLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 6,
-    },
     // Quick Access Card
     quickAccessGrid: {
       flexDirection: "row",
@@ -204,12 +162,12 @@ const makeStyles = (COLORS) =>
     },
     headerButtons: {
       flexDirection: "row",
-      // gap removed - use marginRight on children
     },
     headerButton: {
       backgroundColor: COLORS.WHITE_20,
       padding: 10,
       borderRadius: COLORS.RADIUS.md,
+      marginLeft: COLORS.SPACING.sm,
     },
     langFlag: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
@@ -530,29 +488,11 @@ const makeStyles = (COLORS) =>
     },
   });
 
-// Safety score renk hesaplama (COLORS parametresi alır)
-const getSafetyColor = (score, COLORS) => {
-  const s = score || 5.0;
-  if (s >= 4.0) return COLORS.SUCCESS;
-  if (s >= 3.0) return COLORS.WARNING;
-  if (s >= 2.0) return COLORS.WARNING; // turuncu yerine warning
-  return COLORS.ERROR;
-};
-
-// Safety score etiket
-const getSafetyLabel = (score, t) => {
-  const s = score || 5.0;
-  if (s >= 4.5) return t("dashboard.safetyExcellent");
-  if (s >= 4.0) return t("dashboard.safetyGood");
-  if (s >= 3.0) return t("dashboard.safetyAverage");
-  if (s >= 2.0) return t("dashboard.safetyBelowAvg");
-  return t("dashboard.safetyPoor");
-};
-
-// KM formatla (1234.56 â†’ "1,235")
+// KM formatla (1234.56 -> "1,235")
 const formatKm = (km) => {
-  if (!km || km === 0) return "0";
-  return Math.round(km).toLocaleString();
+  const n = Number(km);
+  if (!Number.isFinite(n) || n <= 0) return "0";
+  return Math.round(n).toLocaleString();
 };
 
 const DriverDashboard = () => {
@@ -586,7 +526,7 @@ const DriverDashboard = () => {
     return labels ? labels[i18n.language] || labels.en : fuelType;
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setError(null);
       const [vehicleRes, tasksRes, statsRes] = await Promise.all([
@@ -596,25 +536,26 @@ const DriverDashboard = () => {
       ]);
 
       setVehicle(vehicleRes.vehicle || null);
-      setTasks(tasksRes.tasks || []);
+      const allTasks = tasksRes.tasks || [];
+      setTasks(
+        allTasks.filter((task) =>
+          ["pending_review", "accepted", "in_progress"].includes(task.status)
+        )
+      );
       setStats(statsRes.stats || {});
     } catch (err) {
       console.error("[Dashboard] Fetch error:", err);
-      setError(t("common.error") + ": " + (err.message || "Unknown error"));
+      setError(`${t("common.error")}: ${err?.message || "Unknown error"}`);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
       fetchDashboardData();
-    }, [])
+    }, [fetchDashboardData])
   );
 
   const onRefresh = () => {
@@ -643,6 +584,23 @@ const DriverDashboard = () => {
       screen: "DriverTaskDetailScreen",
       params: { taskId: task.id },
     });
+  };
+
+  // Güvenli URL açma
+  const safeOpenURL = async (url) => {
+    try {
+      const ok = await Linking.canOpenURL(url);
+      if (!ok) {
+        Alert.alert(
+          t("common.error"),
+          t("common.cannotOpenLink", "Link açılamadı")
+        );
+        return;
+      }
+      await Linking.openURL(url);
+    } catch (e) {
+      Alert.alert(t("common.error"), e?.message || "Link error");
+    }
   };
 
   // FAB HANDLER - MODAL
@@ -745,7 +703,7 @@ const DriverDashboard = () => {
       {/* Error Message */}
       {error && (
         <View style={styles.errorCard}>
-          <Text style={styles.errorText}>âš ï¸ {error}</Text>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
 
@@ -882,12 +840,15 @@ const DriverDashboard = () => {
               </View>
               {task.pickup_address && (
                 <Text style={styles.taskDescription} numberOfLines={1}>
-                  ðŸ“ {task.pickup_address}
+                  📍 {task.pickup_address}
                 </Text>
               )}
               {task.scheduled_date && (
                 <Text style={styles.taskTime}>
-                  ðŸ• {new Date(task.scheduled_date).toLocaleDateString()}
+                  🕐{" "}
+                  {new Date(task.scheduled_date).toLocaleDateString(
+                    i18n.language
+                  )}
                 </Text>
               )}
             </TouchableOpacity>
@@ -935,7 +896,7 @@ const DriverDashboard = () => {
           <TouchableOpacity
             style={styles.quickAccessItem}
             onPress={() =>
-              Linking.openURL(
+              safeOpenURL(
                 "https://www.google.com/maps/@?api=1&map_action=map&layer=traffic"
               )
             }
@@ -954,9 +915,7 @@ const DriverDashboard = () => {
           <TouchableOpacity
             style={styles.quickAccessItem}
             onPress={() =>
-              Linking.openURL(
-                "https://wttr.in/?lang=" + (i18n.language || "tr")
-              )
+              safeOpenURL("https://wttr.in/?lang=" + (i18n.language || "tr"))
             }
           >
             <View
@@ -972,7 +931,7 @@ const DriverDashboard = () => {
 
           <TouchableOpacity
             style={styles.quickAccessItem}
-            onPress={() => Linking.openURL("tel:112")}
+            onPress={() => safeOpenURL("tel:112")}
           >
             <View
               style={[

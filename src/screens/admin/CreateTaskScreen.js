@@ -618,6 +618,16 @@ export default function CreateTaskScreen({ navigation }) {
       setVehicles(vehiclesRes.vehicles || vehiclesRes || []);
     } catch (error) {
       console.error("Veri yuklenirken hata:", error);
+      Alert.alert(
+        getText(t, "error", "Hata", "Error", isEn),
+        getText(
+          t,
+          "data_load_error",
+          "Sürücü/araç listesi yüklenemedi",
+          "Could not load drivers/vehicles",
+          isEn
+        )
+      );
     } finally {
       setDataLoading(false);
     }
@@ -678,7 +688,17 @@ export default function CreateTaskScreen({ navigation }) {
   const onEndDateChange = (event, selectedDate) => {
     if (Platform.OS === "android") {
       setShowEndDatePicker(false);
-      if (event.type === "set" && selectedDate) setEndDate(selectedDate);
+      if (event.type === "set" && selectedDate) {
+        setEndDate(selectedDate);
+        // endDate geçmişe/start'a çekilince endTime'ı otomatik düzelt
+        const start = combineDateAndTime(startDate, startTime);
+        const newEnd = combineDateAndTime(selectedDate, endTime);
+        if (newEnd <= start) {
+          const bumped = new Date(start.getTime() + 15 * 60 * 1000);
+          setEndTime(bumped);
+          setTempEndTime(bumped);
+        }
+      }
     } else {
       if (selectedDate) setTempEndDate(selectedDate);
     }
@@ -731,6 +751,14 @@ export default function CreateTaskScreen({ navigation }) {
 
   const handleIOSEndDateDone = () => {
     setEndDate(tempEndDate);
+    // iOS: endDate değişince endTime validity kontrol et
+    const start = combineDateAndTime(startDate, startTime);
+    const newEnd = combineDateAndTime(tempEndDate, endTime);
+    if (newEnd <= start) {
+      const bumped = new Date(start.getTime() + 15 * 60 * 1000);
+      setEndTime(bumped);
+      setTempEndTime(bumped);
+    }
     setShowEndDatePicker(false);
   };
 
@@ -832,11 +860,29 @@ export default function CreateTaskScreen({ navigation }) {
       return false;
     }
 
+    // En az sürücü veya araç seçilmeli
+    if (!driverId && !vehicleId) {
+      Alert.alert(
+        getText(t, "error", "Hata", "Error", isEn),
+        getText(
+          t,
+          "driver_or_vehicle_required",
+          "En az bir sürücü veya araç seçmelisiniz",
+          "Please select at least a driver or a vehicle",
+          isEn
+        )
+      );
+      return false;
+    }
+
     return true;
   };
-  const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
   // Timezone handling - UTC to backend
+  // NOT: Waypoint geocoding backend tarafından yapılıyor (POST /api/tasks içinde)
+  // Mobil sadece ham adres gönderir, server GMAPS_KEY ile geocode eder.
+
   const handleSubmit = async () => {
+    if (loading) return; // double-tap koruması
     if (!validateForm()) return;
 
     const scheduledStart = combineDateAndTime(startDate, startTime);
@@ -845,51 +891,25 @@ export default function CreateTaskScreen({ navigation }) {
     try {
       setLoading(true);
 
-      // Waypoint adreslerini geocode et
-      const geocodedWaypoints = await Promise.all(
-        waypoints.map(async (wp) => {
-          if (wp.latitude && wp.longitude) return wp;
-          const addr = wp.address || wp.name;
-          if (!addr) return wp;
-          try {
-            const res = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${GOOGLE_MAPS_API_KEY}&language=tr&region=tr`
-            );
-            const data = await res.json();
-            if (data.status === "OK" && data.results?.[0]?.geometry?.location) {
-              const { lat, lng } = data.results[0].geometry.location;
-              return { ...wp, latitude: lat, longitude: lng };
-            }
-          } catch (e) {
-            console.error("Geocode error:", e);
-          }
-          return wp;
-        })
-      );
-
       const taskData = {
         title: title.trim(),
         description: description.trim(),
         priority,
-        driver_id: driverId,
-        vehicle_id: vehicleId,
+        ...(driverId ? { driver_id: driverId } : {}),
+        ...(vehicleId ? { vehicle_id: vehicleId } : {}),
         start_location: startLocation.trim(),
         end_location: endLocation.trim(),
         scheduled_start: scheduledStart.toISOString(),
         scheduled_end: scheduledEnd.toISOString(),
-        waypoints: geocodedWaypoints.map((wp) => {
-          const lat = Number(wp.latitude ?? wp.lat);
-          const lng = Number(wp.longitude ?? wp.lng);
-          return {
-            id: wp.id,
-            name: wp.name || "",
-            address: wp.address || "",
-            latitude: Number.isFinite(lat) ? lat : null,
-            longitude: Number.isFinite(lng) ? lng : null,
-            planned_arrival: wp.planned_arrival || null,
-            status: "pending",
-          };
-        }),
+        waypoints: waypoints.map((wp) => ({
+          id: wp.id,
+          name: wp.name || "",
+          address: wp.address || "",
+          latitude: wp.latitude ? Number(wp.latitude) : null,
+          longitude: wp.longitude ? Number(wp.longitude) : null,
+          planned_arrival: wp.planned_arrival || null,
+          status: "pending",
+        })),
       };
 
       await taskAPI.create(taskData);
@@ -1434,6 +1454,8 @@ export default function CreateTaskScreen({ navigation }) {
                 onBlur={() =>
                   setTouched((p) => ({ ...p, startLocation: true }))
                 }
+                autoCorrect={false}
+                autoCapitalize="sentences"
                 placeholder={getText(
                   t,
                   "enter_start_address",
@@ -1484,6 +1506,8 @@ export default function CreateTaskScreen({ navigation }) {
                 value={endLocation}
                 onChangeText={setEndLocation}
                 onBlur={() => setTouched((p) => ({ ...p, endLocation: true }))}
+                autoCorrect={false}
+                autoCapitalize="sentences"
                 placeholder={getText(
                   t,
                   "enter_destination_address",

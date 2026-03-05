@@ -228,7 +228,7 @@ const WaypointEditor = ({
     try {
       const d = new Date(isoStr);
       if (isNaN(d.getTime())) return null;
-      return d.toLocaleString("tr-TR", {
+      return d.toLocaleString(undefined, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -288,7 +288,6 @@ const WaypointEditor = ({
               paddingHorizontal: 14,
               paddingVertical: 8,
               borderRadius: 20,
-              gap: 6,
               opacity: isAtLimit ? 0.5 : 1,
             }}
           >
@@ -296,6 +295,7 @@ const WaypointEditor = ({
               name="add-circle"
               size={18}
               color={isAtLimit ? COLORS.MUTED : COLORS.PRIMARY}
+              style={{ marginRight: 6 }}
             />
             <Text
               style={{
@@ -349,10 +349,14 @@ const WaypointEditor = ({
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
-                gap: 4,
               }}
             >
-              <Ionicons name="add" size={16} color={COLORS.PRIMARY} />
+              <Ionicons
+                name="add"
+                size={16}
+                color={COLORS.PRIMARY}
+                style={{ marginRight: 4 }}
+              />
               <Text
                 style={{
                   color: COLORS.PRIMARY,
@@ -404,7 +408,6 @@ const WaypointEditor = ({
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 8,
                 }}
               >
                 <View
@@ -415,6 +418,7 @@ const WaypointEditor = ({
                     backgroundColor: COLORS.PRIMARY,
                     justifyContent: "center",
                     alignItems: "center",
+                    marginRight: 8,
                   }}
                 >
                   <Text
@@ -435,17 +439,21 @@ const WaypointEditor = ({
                   }}
                   numberOfLines={1}
                 >
-                  {wp.name || `${L.name.split(" ")[0]} ${index + 1}`}
+                  {wp.name || `${L.name} ${index + 1}`}
                 </Text>
               </View>
 
               {/* Right: reorder + delete */}
               {!readOnly && (
-                <View style={{ flexDirection: "row", gap: 6 }}>
+                <View style={{ flexDirection: "row" }}>
                   <TouchableOpacity
                     onPress={() => moveUp(index)}
                     disabled={index === 0}
-                    style={{ opacity: index === 0 ? 0.3 : 1, padding: 4 }}
+                    style={{
+                      opacity: index === 0 ? 0.3 : 1,
+                      padding: 4,
+                      marginRight: 6,
+                    }}
                   >
                     <Ionicons
                       name="chevron-up"
@@ -459,6 +467,7 @@ const WaypointEditor = ({
                     style={{
                       opacity: index === waypoints.length - 1 ? 0.3 : 1,
                       padding: 4,
+                      marginRight: 6,
                     }}
                   >
                     <Ionicons
@@ -599,11 +608,11 @@ const WaypointEditor = ({
 
             {/* Lat / Lng row — collapsible */}
             {showCoords && (
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+              <View style={{ flexDirection: "row", marginTop: 6 }}>
                 <TextInput
                   style={[
                     baseInput,
-                    { flex: 1 },
+                    { flex: 1, marginRight: 8 },
                     wp.latitude && !isValidLat(wp.latitude)
                       ? { borderColor: COLORS.ERROR || "#FF0000" }
                       : {},
