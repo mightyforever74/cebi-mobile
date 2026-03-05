@@ -176,7 +176,8 @@
     "platformUsers": "Kullanıcılar",
     "systemHealth": "Sistem Sağlığı",
     "logout": "Çıkış Yap",
-    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?",
+    "geofences": "Geofence Bölgeleri"
   },
   "device": {
     "title": "Cihaz Yönetimi",
@@ -397,7 +398,8 @@
     "profileUpdateFailed": "Profil güncelleme başarısız",
     "profileUpdated": "Profil başarıyla güncellendi",
     "receiveAlerts": "Tüm bildirimleri al",
-    "taskUpdates": "Görev güncellemeleri"
+    "taskUpdates": "Görev güncellemeleri",
+    "wrongCurrentPassword": "Mevcut şifre yanlış"
   },
   "wifi": {
     "ssid": "WiFi Ağı",
@@ -585,7 +587,7 @@
       "invalidCode": "Geçersiz QR Kod",
       "invalidCodeMessage": "QR kod formatı tanınmadı. Lütfen cihaz üzerindeki QR kodu okutun.",
       "scanHint": "📱 Cihaz üzerindeki QR kodu okutun",
-      "manualEntry": "⌨️ Manuel Serial Girişi"
+      "manualEntry": " Manuel Serial Girişi"
     },
     "serial": {
       "validating": "Serial doğrulanıyor...",
@@ -1682,5 +1684,110 @@
     "grantPermission": "İzin Ver",
     "enableInSettings": "Lütfen ayarlardan kamera erişimine izin verin",
     "requestingPermission": "Kamera izni isteniyor..."
+  },
+  "reports": {
+    "loading": "Raporlar yükleniyor...",
+    "noData": "Veri yüklenemedi",
+    "fleetStatus": "Filo Durumu",
+    "taskSummary": "Görev Özeti",
+    "alertSummary": "Uyarı Özeti",
+    "totalVehicles": "Toplam Araç",
+    "totalDrivers": "Toplam Sürücü",
+    "totalTasks": "Toplam Görev",
+    "completed": "Tamamlanan",
+    "totalAlerts": "Toplam Uyarı",
+    "criticalAlerts": "Kritik Uyarı",
+    "active": "aktif",
+    "resolved": "çözüldü",
+    "vehiclePerformance": "Araç Performansı",
+    "driverPerformance": "Sürücü Performansı",
+    "alertDistribution": "Uyarı Dağılımı",
+    "taskDistribution": "Görev Dağılımı",
+    "noVehicleData": "Araç verisi yok",
+    "noDriverData": "Sürücü verisi yok",
+    "noAlertData": "Uyarı verisi yok",
+    "noTaskData": "Görev verisi yok",
+    "noAlertsInPeriod": "Bu dönemde uyarı yok",
+    "noTasksInPeriod": "Bu dönemde görev yok",
+    "statusActive": "Aktif",
+    "statusAvailable": "Müsait",
+    "statusInactive": "Pasif",
+    "tasks": "Görev",
+    "alerts": "Uyarı",
+    "success": "Başarı",
+    "last7Days": "Son 7 Gün",
+    "last30Days": "Son 30 Gün",
+    "last90Days": "Son 90 Gün",
+    "tabs": {
+      "summary": "Özet",
+      "vehicles": "Araçlar",
+      "drivers": "Sürücüler",
+      "alerts": "Uyarılar",
+      "tasks": "Görevler"
+    },
+    "alertTypes": {
+      "hardBrake": "Ani Fren",
+      "hardAccel": "Sert Hızlanma",
+      "hardTurn": "Sert Viraj",
+      "impact": "Çarpma",
+      "overspeed": "Hız Aşımı"
+    }
+  },
+  "geofence": {
+    "title": "Geofence Bölgeleri",
+    "loading": "Bölgeler yükleniyor...",
+    "totalZones": "bölge",
+    "active": "aktif",
+    "addZone": "Bölge Ekle",
+    "addFirstZone": "İlk Bölgenizi Ekleyin",
+    "emptyTitle": "Henüz Bölge Yok",
+    "emptyDesc": "Araçların belirli bölgelere girip çıkışını takip etmek için geofence bölgesi ekleyin.",
+    "newFence": "Yeni Bölge",
+    "editFence": "Bölgeyi Düzenle",
+    "fenceType": "Bölge Tipi",
+    "radius": "Yarıçap",
+    "customRadius": "Özel yarıçap (metre)",
+    "name": "Bölge Adı",
+    "namePlaceholder": "örn. İstanbul Deposu",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "İsteğe bağlı açıklama...",
+    "category": "Kategori",
+    "alertSettings": "Uyarı Ayarları",
+    "alertOnEntry": "Girişte Uyar",
+    "alertOnExit": "Çıkışta Uyar",
+    "timeRestriction": "Zaman Kısıtlaması",
+    "timeHint": "Yalnızca bu saatler arasında uyarı gönder",
+    "startHour": "Başlangıç",
+    "endHour": "Bitiş",
+    "drawModeOn": "Çiziliyor...",
+    "drawModeOff": "Bölge Çiz",
+    "hintCircle": "Bölge merkezini belirlemek için haritaya uzun basın",
+    "hintPolygon": "Nokta eklemek için uzun basın ({{count}} nokta eklendi). Min 3 nokta.",
+    "clearPoints": "Temizle",
+    "polygon": "Çokgen",
+    "events": "olay",
+    "viewEvents": "Olaylar",
+    "deleteTitle": "Bölgeyi Sil",
+    "deleteConfirm": "\"{{name}}\" bölgesi silinsin mi? Bu işlem geri alınamaz.",
+    "deleteFailed": "Bölge silinemedi.",
+    "saveFailed": "Bölge kaydedilemedi.",
+    "updateFailed": "Bölge güncellenemedi.",
+    "nameRequired": "Bölge adı zorunludur.",
+    "drawFirst": "Lütfen önce haritada bölgeyi çizin.",
+    "polygonMinPoints": "Çokgen için en az 3 nokta gereklidir.",
+    "csrdTracked": "CSRD Takibi",
+    "csrdInfo": "Emisyon bölgesi: araçların bu bölgede geçirdiği süre CSRD / Avrupa Yeşil Mutabakatı raporlaması için kaydedilir.",
+    "type": {
+      "circle": "Çember",
+      "polygon": "Çokgen"
+    },
+    "categories": {
+      "general": "Genel",
+      "depot": "Depo / Tesis",
+      "city_center": "Şehir Merkezi",
+      "emission_zone": "Emisyon Bölgesi",
+      "border": "Sınır / Gümrük",
+      "sensitive_area": "Hassas Bölge"
+    }
   }
 }

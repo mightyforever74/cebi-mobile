@@ -475,6 +475,16 @@ const DrawerContent = ({ navigation, state }) => {
           screen: "FleetMap",
         },
         {
+          title: t("navigation.reports"),
+          icon: "document-text-outline",
+          screen: "Reports",
+        },
+        {
+          title: t("navigation.geofences"),
+          icon: "location-outline",
+          screen: "Geofences",
+        },
+        {
           title: t("navigation.settings"),
           icon: "settings-outline",
           screen: "Settings",

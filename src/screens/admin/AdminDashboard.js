@@ -856,6 +856,7 @@ const AdminDashboard = () => {
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState(null);
   const [activityFilter, setActivityFilter] = useState("all");
+  const [activitiesExpanded, setActivitiesExpanded] = useState(false);
   const refreshTimer = useRef(null);
 
   // Detail modal state
@@ -1583,7 +1584,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Alert Stats */}
-        {fleetStats?.breakdown?.alerts && (
+        {fleetStats?.breakdown && (
           <View style={styles.alertStatsCard}>
             <View style={styles.alertStatItem}>
               <Text style={styles.alertStatIcon}>🔔</Text>
@@ -1709,62 +1710,91 @@ const AdminDashboard = () => {
 
         {/* Activities */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            {t("admin.recentActivities", "Son Aktiviteler")}
-          </Text>
+          <TouchableOpacity
+            style={styles.cardTitleRow}
+            onPress={() => setActivitiesExpanded((prev) => !prev)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cardTitle}>
+              {t("admin.recentActivities", "Son Aktiviteler")}
+              {activities.length > 0 ? `  (${activities.length})` : ""}
+            </Text>
+            <Ionicons
+              name={activitiesExpanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={COLORS.TEXT_SECONDARY}
+            />
+          </TouchableOpacity>
 
-          {/* Filter tabs */}
-          <View style={styles.filterRow}>
-            {[
-              { key: "all", label: t("admin.filterAll", "Tümünü") },
-              { key: "delays", label: t("admin.filterDelays", "Gecikmeler") },
-              { key: "completed", label: t("admin.filterCompleted", "Biten") },
-              { key: "alerts", label: t("admin.filterAlerts", "Uyarılar") },
-            ].map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                onPress={() => setActivityFilter(tab.key)}
-                style={[
-                  styles.filterTab,
-                  activityFilter === tab.key
-                    ? styles.filterTabActive
-                    : styles.filterTabInactive,
-                ]}
-              >
-                <Text
-                  style={
-                    activityFilter === tab.key
-                      ? styles.filterTabTextActive
-                      : styles.filterTabTextInactive
-                  }
-                >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {activitiesExpanded && (
+            <>
+              {/* Filter tabs */}
+              <View style={styles.filterRow}>
+                {[
+                  { key: "all", label: t("admin.filterAll", "Tümünü") },
+                  {
+                    key: "delays",
+                    label: t("admin.filterDelays", "Gecikmeler"),
+                  },
+                  {
+                    key: "completed",
+                    label: t("admin.filterCompleted", "Biten"),
+                  },
+                  { key: "alerts", label: t("admin.filterAlerts", "Uyarılar") },
+                ].map((tab) => (
+                  <TouchableOpacity
+                    key={tab.key}
+                    onPress={() => setActivityFilter(tab.key)}
+                    style={[
+                      styles.filterTab,
+                      activityFilter === tab.key
+                        ? styles.filterTabActive
+                        : styles.filterTabInactive,
+                    ]}
+                  >
+                    <Text
+                      style={
+                        activityFilter === tab.key
+                          ? styles.filterTabTextActive
+                          : styles.filterTabTextInactive
+                      }
+                    >
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          {(() => {
-            const filtered = activities.filter((a) => {
-              if (activityFilter === "all") return true;
-              if (activityFilter === "delays")
-                return a.activity_type === "delay";
-              if (activityFilter === "completed")
-                return a.activity_type === "task" && a.status === "completed";
-              if (activityFilter === "alerts")
-                return a.activity_type === "alert";
-              return true;
-            });
-            return filtered.length > 0 ? (
-              filtered
-                .slice(0, 10)
-                .map((activity, index) => renderActivityItem(activity, index))
-            ) : (
-              <Text style={styles.noDataText}>
-                {t("admin.noFilteredActivities", "Bu kategoride aktivite yok")}
-              </Text>
-            );
-          })()}
+              {(() => {
+                const filtered = activities.filter((a) => {
+                  if (activityFilter === "all") return true;
+                  if (activityFilter === "delays")
+                    return a.activity_type === "delay";
+                  if (activityFilter === "completed")
+                    return (
+                      a.activity_type === "task" && a.status === "completed"
+                    );
+                  if (activityFilter === "alerts")
+                    return a.activity_type === "alert";
+                  return true;
+                });
+                return filtered.length > 0 ? (
+                  filtered
+                    .slice(0, 10)
+                    .map((activity, index) =>
+                      renderActivityItem(activity, index)
+                    )
+                ) : (
+                  <Text style={styles.noDataText}>
+                    {t(
+                      "admin.noFilteredActivities",
+                      "Bu kategoride aktivite yok"
+                    )}
+                  </Text>
+                );
+              })()}
+            </>
+          )}
         </View>
 
         <View style={styles.bottomSpacer} />

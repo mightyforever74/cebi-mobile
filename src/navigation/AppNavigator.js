@@ -1,6 +1,6 @@
 // src/navigation/AppNavigator.js
 // TulipFleet - Role-Based Navigation
-// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliði
+// Regen (Dark Mode): useTheme + useThemedStyles + hardcoded hex temizliï¿½i
 // Updated: 21 Ocak 2026 - Hardcoded labels (no i18n prefixes) (korundu)
 
 import { Ionicons } from "@expo/vector-icons";
@@ -42,6 +42,7 @@ import SystemHealthScreen from "../screens/superadmin/SystemHealthScreen";
 import AdminAlerts from "../screens/admin/AdminAlerts";
 import AdminDashboard from "../screens/admin/AdminDashboard";
 import AdminDrivers from "../screens/admin/AdminDrivers";
+import AdminGeofenceScreen from "../screens/admin/AdminGeofenceScreen";
 import AdminReportsScreen from "../screens/admin/AdminReportsScreen";
 import AdminSettings from "../screens/admin/AdminSettings";
 import AdminTasks from "../screens/admin/AdminTasks";
@@ -344,7 +345,7 @@ const DriverNavigator = () => {
   const { COLORS } = useTheme();
   const { t } = useTranslation();
 
-  const headerColor = COLORS.SUCCESS; // önce #2DCE89
+  const headerColor = COLORS.SUCCESS; // ï¿½nce #2DCE89
   const menuItems = [
     {
       name: "DriverDashboard",
@@ -455,7 +456,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
       />
       <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
       <Text style={styles.placeholderDesc}>
-        {t(descriptionKey) || "Yakýnda..."}
+        {t(descriptionKey) || "Yakï¿½nda..."}
       </Text>
     </View>
   );
@@ -463,7 +464,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
 
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Raporlarý"
+    titleKey="Platform Raporlarï¿½"
     icon="bar-chart-outline"
     descriptionKey="Platform istatistikleri"
   />
@@ -471,9 +472,9 @@ const PlatformReportsScreen = () => (
 
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Ayarlarý"
+    titleKey="Platform Ayarlarï¿½"
     icon="settings-outline"
-    descriptionKey="Sistem konfigürasyonu"
+    descriptionKey="Sistem konfigï¿½rasyonu"
   />
 );
 
@@ -481,7 +482,7 @@ const DriverSOSScreen = () => (
   <PlaceholderScreen
     titleKey="Acil Durum"
     icon="warning-outline"
-    descriptionKey="SOS gönder"
+    descriptionKey="SOS gï¿½nder"
   />
 );
 
@@ -517,7 +518,7 @@ const SuperAdminNavigator = () => {
   const { COLORS } = useTheme();
   const { t } = useTranslation();
 
-  const headerColor = COLORS.ERROR; // önce #F5365C
+  const headerColor = COLORS.ERROR; // ï¿½nce #F5365C
   const menuItems = [
     {
       name: "SADashboard",
@@ -631,7 +632,7 @@ const CompanyAdminNavigator = () => {
   const { COLORS } = useTheme();
   const { t } = useTranslation();
 
-  const headerColor = COLORS.WARNING; // önce #FB6340
+  const headerColor = COLORS.WARNING; // ï¿½nce #FB6340
   const menuItems = [
     {
       name: "AdminDashboard",
@@ -650,6 +651,11 @@ const CompanyAdminNavigator = () => {
       name: "Reports",
       i18nKey: "navigation.reports",
       icon: "bar-chart-outline",
+    },
+    {
+      name: "Geofences",
+      i18nKey: "navigation.geofences",
+      icon: "location-outline",
     },
     {
       name: "FuelDashboard",
@@ -685,6 +691,7 @@ const CompanyAdminNavigator = () => {
           Tasks: t("navigation.tasks"),
           FleetMap: t("navigation.fleetMap"),
           Reports: t("navigation.reports"),
+          Geofences: t("navigation.geofences"),
           FuelDashboard: t("navigation.fuelAnalysis"),
           Alerts: t("navigation.alerts"),
           Settings: t("navigation.settings"),
@@ -706,6 +713,7 @@ const CompanyAdminNavigator = () => {
       <Drawer.Screen name="Tasks" component={AdminTasksStack} />
       <Drawer.Screen name="FleetMap" component={AdminFleetMapStack} />
       <Drawer.Screen name="Reports" component={AdminReportsScreen} />
+      <Drawer.Screen name="Geofences" component={AdminGeofenceScreen} />
       <Drawer.Screen name="FuelDashboard" component={AdminFuelDashboard} />
       <Drawer.Screen name="Alerts" component={AdminAlerts} />
       <Drawer.Screen name="Settings" component={AdminSettingsStack} />

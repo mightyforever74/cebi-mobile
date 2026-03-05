@@ -1,9 +1,10 @@
 // src/screens/admin/AdminReportsScreen.js
 // TulipFleet - Admin Raporlar Ekrani
-// Updated: UI System Guide v3 uyumlu
+// Updated: i18n full migration
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -19,33 +20,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { reportAPI } from "../../services/api";
 
-const DATE_RANGES = [
-  { label: "Son 7 Gun", days: 7 },
-  { label: "Son 30 Gun", days: 30 },
-  { label: "Son 90 Gun", days: 90 },
-];
-
-const ALERT_TYPE_LABELS = {
-  HARD_BRAKE: "Ani Fren",
-  HARD_ACCEL: "Sert Hizlanma",
-  HARD_TURN: "Sert Viraj",
-  IMPACT: "Carpma",
-  OVERSPEED: "Hiz Asimi",
-};
-
-const TASK_STATUS_LABELS = {
-  pending: "Bekliyor",
-  assigned: "Atandi",
-  in_progress: "Devam Ediyor",
-  completed: "Tamamlandi",
-  cancelled: "Iptal",
-  pending_review: "Inceleme Bekliyor",
-};
-
 const AdminReportsScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,6 +36,29 @@ const AdminReportsScreen = ({ navigation }) => {
   const [driverReport, setDriverReport] = useState([]);
   const [alertReport, setAlertReport] = useState(null);
   const [taskReport, setTaskReport] = useState(null);
+
+  const DATE_RANGES = [
+    { label: t("reports.last7Days", "Son 7 Gün"), days: 7 },
+    { label: t("reports.last30Days", "Son 30 Gün"), days: 30 },
+    { label: t("reports.last90Days", "Son 90 Gün"), days: 90 },
+  ];
+
+  const ALERT_TYPE_LABELS = {
+    HARD_BRAKE: t("reports.alertTypes.hardBrake", "Ani Fren"),
+    HARD_ACCEL: t("reports.alertTypes.hardAccel", "Sert Hızlanma"),
+    HARD_TURN: t("reports.alertTypes.hardTurn", "Sert Viraj"),
+    IMPACT: t("reports.alertTypes.impact", "Çarpma"),
+    OVERSPEED: t("reports.alertTypes.overspeed", "Hız Aşımı"),
+  };
+
+  const TASK_STATUS_LABELS = {
+    pending: t("task.statuses.pending", "Bekliyor"),
+    assigned: t("task.statuses.assigned", "Atandı"),
+    in_progress: t("task.statuses.in_progress", "Devam Ediyor"),
+    completed: t("task.statuses.completed", "Tamamlandı"),
+    cancelled: t("task.statuses.cancelled", "İptal"),
+    pending_review: t("task.statuses.pending_review", "İnceleme Bekliyor"),
+  };
 
   const getDateRange = () => {
     const to = new Date().toISOString();
@@ -125,59 +127,69 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const renderSummaryTab = () => {
     if (!summary) {
-      return <Text style={styles.noData}>Veri yuklenemedi</Text>;
+      return (
+        <Text style={styles.noData}>
+          {t("reports.noData", "Veri yüklenemedi")}
+        </Text>
+      );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Filo Durumu</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.fleetStatus", "Filo Durumu")}
+        </Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "car",
-            "Toplam Arac",
+            t("reports.totalVehicles", "Toplam Araç"),
             summary.vehicles?.total_vehicles || 0,
-            `${summary.vehicles?.active_vehicles || 0} aktif`,
+            `${summary.vehicles?.active_vehicles || 0} ${t("reports.active", "aktif")}`,
             COLORS.PRIMARY
           )}
           {renderSummaryCard(
             "people",
-            "Toplam Surucu",
+            t("reports.totalDrivers", "Toplam Sürücü"),
             summary.drivers?.total_drivers || 0,
-            `${summary.drivers?.active_drivers || 0} aktif`,
+            `${summary.drivers?.active_drivers || 0} ${t("reports.active", "aktif")}`,
             COLORS.INFO
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Gorev Ozeti</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.taskSummary", "Görev Özeti")}
+        </Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "clipboard",
-            "Toplam Gorev",
+            t("reports.totalTasks", "Toplam Görev"),
             summary.tasks?.total_tasks || 0,
             null,
             COLORS.WARNING
           )}
           {renderSummaryCard(
             "checkmark-circle",
-            "Tamamlanan",
+            t("reports.completed", "Tamamlanan"),
             summary.tasks?.completed_tasks || 0,
             null,
             COLORS.SUCCESS
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Uyari Ozeti</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.alertSummary", "Uyarı Özeti")}
+        </Text>
         <View style={styles.summaryGrid}>
           {renderSummaryCard(
             "warning",
-            "Toplam Uyari",
+            t("reports.totalAlerts", "Toplam Uyarı"),
             summary.alerts?.total_alerts || 0,
-            `${summary.alerts?.resolved_alerts || 0} cozuldu`,
+            `${summary.alerts?.resolved_alerts || 0} ${t("reports.resolved", "çözüldü")}`,
             COLORS.ERROR
           )}
           {renderSummaryCard(
             "alert-circle",
-            "Kritik Uyari",
+            t("reports.criticalAlerts", "Kritik Uyarı"),
             summary.alerts?.critical_alerts || 0,
             null,
             COLORS.ERROR
@@ -189,12 +201,18 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const renderVehiclesTab = () => {
     if (vehicleReport.length === 0) {
-      return <Text style={styles.noData}>Arac verisi yok</Text>;
+      return (
+        <Text style={styles.noData}>
+          {t("reports.noVehicleData", "Araç verisi yok")}
+        </Text>
+      );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Arac Performansi</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.vehiclePerformance", "Araç Performansı")}
+        </Text>
         {vehicleReport.map((vehicle) => (
           <Card key={vehicle.id} variant="flat" style={styles.reportCardMargin}>
             <View style={styles.reportHeader}>
@@ -211,7 +229,9 @@ const AdminReportsScreen = ({ navigation }) => {
                 ]}
               >
                 <Text style={styles.statusText}>
-                  {vehicle.status === "in_use" ? "Aktif" : "Musait"}
+                  {vehicle.status === "in_use"
+                    ? t("reports.statusActive", "Aktif")
+                    : t("reports.statusAvailable", "Müsait")}
                 </Text>
               </View>
             </View>
@@ -223,7 +243,9 @@ const AdminReportsScreen = ({ navigation }) => {
                 <Text style={styles.reportStatValue}>
                   {vehicle.total_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Gorev</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.tasks", "Görev")}
+                </Text>
               </View>
               <View style={styles.reportStat}>
                 <Text
@@ -231,13 +253,17 @@ const AdminReportsScreen = ({ navigation }) => {
                 >
                   {vehicle.completed_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Tamamlanan</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.completed", "Tamamlanan")}
+                </Text>
               </View>
               <View style={styles.reportStat}>
                 <Text style={[styles.reportStatValue, { color: COLORS.ERROR }]}>
                   {vehicle.total_alerts || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Uyari</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.alerts", "Uyarı")}
+                </Text>
               </View>
             </View>
           </Card>
@@ -248,12 +274,18 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const renderDriversTab = () => {
     if (driverReport.length === 0) {
-      return <Text style={styles.noData}>Surucu verisi yok</Text>;
+      return (
+        <Text style={styles.noData}>
+          {t("reports.noDriverData", "Sürücü verisi yok")}
+        </Text>
+      );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Surucu Performansi</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.driverPerformance", "Sürücü Performansı")}
+        </Text>
         {driverReport.map((driver) => (
           <Card key={driver.id} variant="flat" style={styles.reportCardMargin}>
             <View style={styles.reportHeader}>
@@ -273,7 +305,9 @@ const AdminReportsScreen = ({ navigation }) => {
                 ]}
               >
                 <Text style={styles.statusText}>
-                  {driver.status === "active" ? "Aktif" : "Pasif"}
+                  {driver.status === "active"
+                    ? t("reports.statusActive", "Aktif")
+                    : t("reports.statusInactive", "Pasif")}
                 </Text>
               </View>
             </View>
@@ -283,7 +317,9 @@ const AdminReportsScreen = ({ navigation }) => {
                 <Text style={styles.reportStatValue}>
                   {driver.total_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Gorev</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.tasks", "Görev")}
+                </Text>
               </View>
               <View style={styles.reportStat}>
                 <Text
@@ -291,7 +327,9 @@ const AdminReportsScreen = ({ navigation }) => {
                 >
                   {driver.completed_tasks || 0}
                 </Text>
-                <Text style={styles.reportStatLabel}>Tamamlanan</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.completed", "Tamamlanan")}
+                </Text>
               </View>
               <View style={styles.reportStat}>
                 <Text
@@ -304,7 +342,9 @@ const AdminReportsScreen = ({ navigation }) => {
                     : 0}
                   %
                 </Text>
-                <Text style={styles.reportStatLabel}>Basari</Text>
+                <Text style={styles.reportStatLabel}>
+                  {t("reports.success", "Başarı")}
+                </Text>
               </View>
             </View>
           </Card>
@@ -315,12 +355,18 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const renderAlertsTab = () => {
     if (!alertReport) {
-      return <Text style={styles.noData}>Uyari verisi yok</Text>;
+      return (
+        <Text style={styles.noData}>
+          {t("reports.noAlertData", "Uyarı verisi yok")}
+        </Text>
+      );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Uyari Dagilimi</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.alertDistribution", "Uyarı Dağılımı")}
+        </Text>
         {alertReport.by_type?.length > 0 ? (
           <Card variant="flat">
             {alertReport.by_type.map((item) => {
@@ -352,7 +398,9 @@ const AdminReportsScreen = ({ navigation }) => {
             })}
           </Card>
         ) : (
-          <Text style={styles.noData}>Bu donemde uyari yok</Text>
+          <Text style={styles.noData}>
+            {t("reports.noAlertsInPeriod", "Bu dönemde uyarı yok")}
+          </Text>
         )}
       </View>
     );
@@ -360,12 +408,18 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const renderTasksTab = () => {
     if (!taskReport) {
-      return <Text style={styles.noData}>Gorev verisi yok</Text>;
+      return (
+        <Text style={styles.noData}>
+          {t("reports.noTaskData", "Görev verisi yok")}
+        </Text>
+      );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Gorev Dagilimi</Text>
+        <Text style={styles.sectionTitle}>
+          {t("reports.taskDistribution", "Görev Dağılımı")}
+        </Text>
         {taskReport.by_status?.length > 0 ? (
           <Card variant="flat">
             {taskReport.by_status.map((item) => {
@@ -400,7 +454,9 @@ const AdminReportsScreen = ({ navigation }) => {
             })}
           </Card>
         ) : (
-          <Text style={styles.noData}>Bu donemde gorev yok</Text>
+          <Text style={styles.noData}>
+            {t("reports.noTasksInPeriod", "Bu dönemde görev yok")}
+          </Text>
         )}
       </View>
     );
@@ -410,7 +466,9 @@ const AdminReportsScreen = ({ navigation }) => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Raporlar yukleniyor...</Text>
+        <Text style={styles.loadingText}>
+          {t("reports.loading", "Raporlar yükleniyor...")}
+        </Text>
       </View>
     );
   }
@@ -448,11 +506,31 @@ const AdminReportsScreen = ({ navigation }) => {
         contentContainerStyle={styles.tabBarContent}
       >
         {[
-          { key: "summary", label: "Ozet", icon: "stats-chart" },
-          { key: "vehicles", label: "Araclar", icon: "car" },
-          { key: "drivers", label: "Surculer", icon: "people" },
-          { key: "alerts", label: "Uyarilar", icon: "warning" },
-          { key: "tasks", label: "Gorevler", icon: "clipboard" },
+          {
+            key: "summary",
+            label: t("reports.tabs.summary", "Özet"),
+            icon: "stats-chart",
+          },
+          {
+            key: "vehicles",
+            label: t("reports.tabs.vehicles", "Araçlar"),
+            icon: "car",
+          },
+          {
+            key: "drivers",
+            label: t("reports.tabs.drivers", "Sürücüler"),
+            icon: "people",
+          },
+          {
+            key: "alerts",
+            label: t("reports.tabs.alerts", "Uyarılar"),
+            icon: "warning",
+          },
+          {
+            key: "tasks",
+            label: t("reports.tabs.tasks", "Görevler"),
+            icon: "clipboard",
+          },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -619,7 +697,7 @@ const makeStyles = (COLORS) =>
       ...COLORS.SHADOWS.card,
     },
     summaryIcon: {
-      width: 44, // 8px grid
+      width: 44,
       height: 44,
       borderRadius: COLORS.RADIUS.full,
       justifyContent: "center",
@@ -694,14 +772,14 @@ const makeStyles = (COLORS) =>
       marginTop: 2,
     },
 
-    // Chart Card (bar charts)
+    // Bar Charts
     barRow: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: COLORS.SPACING.sm,
     },
     barLabel: {
-      width: 96, // 12 * 8
+      width: 96,
       ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_PRIMARY,
     },

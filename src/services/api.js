@@ -768,39 +768,34 @@ export const taskAPI = {
     const response = await api.get("/api/tasks");
     return response.data;
   },
+};
 
-  // Alias for backward compatibility
-  getAll: async () => taskAPI.getList(),
-
-  getById: async (id) => {
-    const response = await api.get(`/api/tasks/${id}`);
+// ============================================
+// GEOFENCE API
+// ============================================
+export const geofenceAPI = {
+  getAll: async () => {
+    const response = await api.get("/api/geofences");
     return response.data;
   },
-
   create: async (data) => {
-    const response = await api.post("/api/tasks", data);
+    const response = await api.post("/api/geofences", data);
     return response.data;
   },
-
   update: async (id, data) => {
-    const response = await api.put(`/api/tasks/${id}`, data);
+    const response = await api.put(`/api/geofences/${id}`, data);
     return response.data;
   },
-
-  delete: async (id) => {
-    const response = await api.delete(`/api/tasks/${id}`);
+  remove: async (id) => {
+    const response = await api.delete(`/api/geofences/${id}`);
     return response.data;
   },
-
-  sendOffer: async (taskId, driverId) => {
-    const response = await api.post(`/api/tasks/${taskId}/offer`, {
-      driver_id: driverId,
-    });
+  getEvents: async (id, limit = 50) => {
+    const response = await api.get(
+      `/api/geofences/${id}/events?limit=${limit}`
+    );
     return response.data;
   },
-
-  // Delegate to driverTaskAPI
-  getDriverTasks: async () => driverTaskAPI.getMyTasks(),
 };
 
 // ============================================
