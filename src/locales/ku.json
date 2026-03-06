@@ -193,7 +193,8 @@
     "contactEmailSubject": "TulipFleet - Daxwaza Hesab",
     "contactEmailBody": "Silav,\n\nEz dixwazim ji bo TulipFleet hesab vekim.\nNavê Pargîdaniyê:\nKesê Têkiliyê:\nTelefon:\nHejmara Wesayîtan:\n\nSpas.",
     "callNotAvailable": "Nikare bang bike",
-    "whatsappMessage": "Silav, ez dixwazim di derheqê TulipFleet de bêtir bizanim."
+    "whatsappMessage": "Silav, ez dixwazim di derheqê TulipFleet de bêtir bizanim.",
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -682,10 +683,7 @@
       "cancel": "Betal bike",
       "continue": "Bidomîne"
     },
-    "checkingDeviceStatus": {
-      "title": "Rewşa Amûrê tê kontrolkirin...",
-      "desc": "Ji kerema xwe bisekine, rewşa amûrê tê kontrolkirin."
-    },
+    "checkingDeviceStatus": "Checking device status...",
     "complete": "Temam",
     "back": "Paşve",
     "next": "Pêşve",
@@ -846,7 +844,9 @@
     "min": "deq",
     "noSpeed": "Li benda tevgerê",
     "delayRisk": "RÎSKA DERENGÎ",
-    "noEta": "ETA ne peyda ye"
+    "noEta": "ETA ne peyda ye",
+    "final_destination": "Son Hedef",
+    "nextStop": "Sonraki Durak"
   },
   "units": {
     "km": "km",
@@ -1929,5 +1929,36 @@
       "border": "Sînor / Gumrik",
       "sensitive_area": "Devera hesas"
     }
+  },
+  "vehicleList": {
+    "title": "Lîsteya Wesaîtan",
+    "total": "Tevahî",
+    "online": "Serhêl",
+    "offline": "Derveyî xetê",
+    "searchPlaceholder": "Plate, brand an model bigere...",
+    "filterAll": "Hemû",
+    "filterOnline": "Serhêl",
+    "filterAvailable": "Amade",
+    "filterOffline": "Derveyî xetê",
+    "statusInUse": "Di kar de",
+    "statusAvailable": "Amade",
+    "statusMaintenance": "Çaksazî",
+    "statusRetired": "Teqawît",
+    "statusOffline": "Derveyî xetê",
+    "noLocation": "Cîh tune",
+    "notFound": "Wesaît nehat dîtin",
+    "empty": "Wesaît tune"
+  },
+  "fleetMap": {
+    "vehicle": "Wesaît",
+    "online": "Serhêl",
+    "offline": "Derveyî xetê",
+    "lastUpdate": "Nûvekirina dawî",
+    "tapForList": "Ji bo lîsteyê bikirtînin",
+    "vehicles": "Wesaît",
+    "zones": "Dever",
+    "totalZones": "dever bi tevahî",
+    "activeZones": "çalak",
+    "tapEditToManage": "Ji bo rêvebirina devera bikirtînin"
   }
 }

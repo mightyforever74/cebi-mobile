@@ -21,7 +21,34 @@
     "retry": "Riprova",
     "all": "Tutti",
     "none": "Nessuno",
-    "user": "Utente"
+    "user": "Utente",
+    "companyAdmin": "Manager",
+    "driver": "Driver",
+    "led": {
+      "deviceSubtitle": "LED states on your device",
+      "gpsFixed": "Solid On",
+      "gpsFixedMeaning": "GPS fix acquired, location known",
+      "gpsLed": "GPS LED (Red)",
+      "gpsSearching": "Blinking (300ms)",
+      "gpsSearchingMeaning": "Searching GPS signal; indoor or antenna issue",
+      "infoNote": "LEDs are on the device front panel. Continuous blinking indicates a problem.",
+      "quickStatus": "QUICK STATUS TABLE",
+      "statusAllOk": "All Good",
+      "statusAllOkMeaning": "WiFi and GPS connected; system normal",
+      "statusBothIssue": "Connection Problem",
+      "statusBothIssueMeaning": "Both WiFi and GPS failing; inspect device",
+      "statusNoGps": "GPS Issue",
+      "statusNoGpsMeaning": "No location; check indoor/antenna",
+      "statusNoWifi": "WiFi Issue",
+      "statusNoWifiMeaning": "Data cannot reach server",
+      "title": "LED Indicators",
+      "wifiConnected": "Solid On",
+      "wifiConnectedMeaning": "WiFi connected, data is being sent",
+      "wifiConnecting": "Blinking (500ms)",
+      "wifiConnectingMeaning": "No WiFi or connecting",
+      "wifiLed": "WiFi LED (Blue)"
+    },
+    "superAdmin": "Super Admin"
   },
   "auth": {
     "login": "Accedi",
@@ -83,12 +110,14 @@
     "contactEmailSubject": "TulipFleet - Richiesta Account",
     "contactEmailBody": "Salve,\n\nDesidero creare un account per TulipFleet.\n\nNome Azienda:\nPersona di Contatto:\nTelefono:\nNumero di Veicoli:\n\nGrazie.",
     "callNotAvailable": "Impossibile effettuare la chiamata",
-    "whatsappMessage": "Salve, vorrei saperne di più su TulipFleet."
+    "whatsappMessage": "Salve, vorrei saperne di più su TulipFleet.",
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
   },
   "roles": {
     "driver": "Autista",
     "admin": "Gestore",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Yönetici"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -106,7 +135,16 @@
     "systemHealth": "Stato Sistema",
     "logout": "Esci",
     "logoutConfirm": "Sei sicuro di voler uscire?",
-    "geofences": "Zone Geofence"
+    "geofences": "Zone Geofence",
+    "alerts": "Alerts",
+    "companies": "Companies",
+    "devices": "Devices",
+    "navigation": "Navigation",
+    "profile": "Profile",
+    "reports": "Reports",
+    "settings": "Settings",
+    "sos": "Emergency",
+    "taskHistory": "Task History"
   },
   "settings": {
     "aboutDescription": "TulipFleet è un'applicazione professionale progettata per la gestione della flotta.",
@@ -393,7 +431,27 @@
     "rejectTaskConfirm": "Sei sicuro di voler rifiutare \"{{title}}\"?",
     "taskRejected": "Attività Rifiutata",
     "taskRejectedMessage": "Puoi vedere altre offerte nella schermata Le Mie Attività.",
-    "couldNotRejectTask": "Impossibile rifiutare l'attività"
+    "couldNotRejectTask": "Impossibile rifiutare l'attività",
+    "couldNotWithdrawTask": "Could not withdraw task",
+    "error": "Error",
+    "info": "Info",
+    "statuses": {
+      "accepted": "Accepted",
+      "assigned": "Assigned",
+      "cancelled": "Cancelled",
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "pending_review": "New Task!",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "taskWithdrawn": "Task withdrawn. Your manager has been notified.",
+    "viewHistory": "View History",
+    "withdraw": "Withdraw",
+    "withdrawConfirm": "Yes, Withdraw",
+    "withdrawTask": "Withdraw Task",
+    "withdrawTaskConfirm": "Are you sure you want to withdraw \"{{title}}\"?\n\nYour manager will be notified."
   },
   "profile": {
     "title": "Profilo",
@@ -425,72 +483,7 @@
       "cancel": "Annulla",
       "saveAnyway": "Salva comunque"
     },
-    "help": {
-      "title": "Centro Assistenza",
-      "subtitle": "Domande frequenti e guida",
-      "heroTitle": "Come possiamo aiutarti?",
-      "heroSubtitle": "Consulta le domande frequenti",
-      "heroHint": "Tocca una categoria per vedere le domande",
-      "quickHelp": "Aiuto Rapido",
-      "troubleshooting": "Risoluzione problemi",
-      "ledIndicators": "Indicatori LED",
-      "faqTitle": "Domande Frequenti",
-      "questionCount": "domande",
-      "account": {
-        "title": "Account e accesso",
-        "q1": "Come posso cambiare la mia password?",
-        "a1": "Vai su Impostazioni > Cambia password, inserisci la password attuale e impostane una nuova.",
-        "q2": "Non riesco ad accedere, cosa devo fare?",
-        "a2": "Controlla il tuo indirizzo email. Se hai dimenticato la password, usa l'opzione 'Password dimenticata' o contatta il supporto.",
-        "q3": "Come aggiorno le informazioni del profilo?",
-        "a3": "Vai su Impostazioni > Modifica profilo per aggiornare nome, cognome e numero di telefono."
-      },
-      "vehicles": {
-        "title": "Veicoli e tracciamento",
-        "q1": "Come posso vedere la posizione del mio veicolo?",
-        "a1": "Puoi vedere la posizione in tempo reale sulla mappa della Dashboard. Si aggiorna ogni 5 secondi.",
-        "q2": "Il mio veicolo risulta offline, cosa devo fare?",
-        "a2": "Controlla l'alimentazione del GPS. Verifica gli indicatori LED. Controlla la connessione internet.",
-        "q3": "Posso tracciare piu veicoli contemporaneamente?",
-        "a3": "Si, puoi vedere tutti i veicoli sulla schermata Mappa Live nel pannello Admin."
-      },
-      "tasks": {
-        "title": "Attivita",
-        "q1": "Come accetto un'attivita assegnata?",
-        "a1": "Visualizza l'attivita in arrivo nella Dashboard e premi 'Accetta'. Usa 'Inizia attivita' per iniziare.",
-        "q2": "Come segno un'attivita come completata?",
-        "a2": "Vai ai dettagli dell'attivita e premi 'Completa'. Compila le informazioni richieste e conferma.",
-        "q3": "Posso rifiutare un'attivita assegnata?",
-        "a3": "Si, visualizza l'attivita e usa l'opzione 'Rifiuta'. Ti verra chiesto di indicare un motivo."
-      },
-      "technical": {
-        "title": "Supporto tecnico",
-        "q1": "Come installo il dispositivo GPS?",
-        "a1": "Collega il dispositivo alla porta USB del veicolo. Scansiona il codice QR nell'app e completa la configurazione WiFi tramite BLE.",
-        "q2": "Il dispositivo non si connette al WiFi, cosa devo fare?",
-        "a2": "Assicurati di usare una rete WiFi 2.4GHz (5GHz non supportato). Controlla la password. Riavvia e connettiti entro 60 secondi.",
-        "q3": "Cosa significano le luci LED?",
-        "a3": "Verde fisso: Sistema attivo. Blu lampeggiante: Modalita BLE. Giallo: Ricerca GPS. Rosso: Errore. Consulta la pagina Indicatori LED."
-      },
-      "contact": {
-        "title": "Hai ancora bisogno di aiuto?",
-        "subtitle": "Se la tua domanda non e qui, contatta il nostro team di supporto",
-        "button": "Invia email"
-      },
-      "footer": {
-        "text": "TulipFleet v2.0. Tutti i diritti riservati.",
-        "links": [
-          {
-            "label": "Informativa Privacy",
-            "url": "https://tulipfleet.com/privacy"
-          },
-          {
-            "label": "Termini di Servizio",
-            "url": "https://tulipfleet.com/terms"
-          }
-        ]
-      }
-    },
+    "help": "Help Center",
     "helpSubtitle": "FAQ e guida",
     "contactUs": "Contattaci",
     "about": "Informazioni",
@@ -509,7 +502,9 @@
     "supportMessage": "Hai bisogno di aiuto?",
     "sendEmail": "Invia Email",
     "aboutTitle": "Informazioni su TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nSistema di Gestione Flotta\n© 2025 TulipFleet\n\nTutti i diritti riservati."
+    "aboutMessage": "TulipFleet v1.0.0\n\nSistema di Gestione Flotta\n© 2025 TulipFleet\n\nTutti i diritti riservati.",
+    "ok": "OK",
+    "supportTitle": "Support"
   },
   "editProfile": {
     "title": "Modifica Profilo",
@@ -544,7 +539,11 @@
       "successPending": "Configurazione completata. In attesa di conferma attivazione...",
       "pendingTitle": "Completamento configurazione...",
       "verifyButton": "Controlla stato",
-      "verifyFailed": "L'attivazione non è ancora stata verificata. Riavviare il dispositivo o controllare la connessione internet."
+      "verifyFailed": "L'attivazione non è ancora stata verificata. Riavviare il dispositivo o controllare la connessione internet.",
+      "activating": "Activating device...",
+      "failed": "Activation failed",
+      "serverCommunication": "Device communicating with server...",
+      "success": "Device successfully activated!"
     },
     "activeWarning": {
       "title": "⚠️ Dispositivo Già Attivo",
@@ -555,10 +554,121 @@
     "checkingDeviceStatus": "Verifica stato dispositivo...",
     "ble": {
       "bootWindowHint": "La modalità BLE del dispositivo ESP32 è attiva per 5 minuti dopo l'accensione. Se il dispositivo non viene trovato, riavviarlo scollegando e ricollegando il cavo USB.",
-      "deviceNameHint": "Il nome del dispositivo appare come \"TulipFleet-XXXX\". Avvicinarsi a 1-2 metri."
+      "deviceNameHint": "Il nome del dispositivo appare come \"TulipFleet-XXXX\". Avvicinarsi a 1-2 metri.",
+      "deviceHint": "Make sure the ESP32 device is on and nearby",
+      "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
+      "devicesFound": "{{count}} device(s) found",
+      "medium": "ğŸŸ¡ Medium",
+      "rescan": "ğŸ”„ Scan Again",
+      "searchingBluetooth": "Searching for Bluetooth devices...",
+      "searchingDevices": "Searching for devices...",
+      "strong": "ğŸŸ¢ Strong",
+      "weak": "ğŸ”´ Weak"
     },
     "wifi": {
-      "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz."
+      "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz.",
+      "connect": "Connect",
+      "connecting": "ğŸ“¶ WiFi Connection",
+      "connectionFailed": "WiFi connection failed",
+      "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
+      "emptySSID": "WiFi network name (SSID) cannot be empty",
+      "enterCredentials": "Enter WiFi credentials",
+      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "lastUsed": "Last used: {{ssid}}",
+      "network": "Network: {{ssid}}",
+      "passwordLabel": "WiFi Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "sendingCredentials": "Sending WiFi credentials...",
+      "shortPassword": "WiFi password must be at least 8 characters",
+      "ssidLabel": "WiFi Network Name (SSID)",
+      "ssidPlaceholder": "e.g. Home_WiFi",
+      "subtitle": "Enter the WiFi network information for the ESP32 device to connect",
+      "title": "WiFi Connection"
+    },
+    "bluetooth": {
+      "error": "Bluetooth Error",
+      "locationDenied": "Location Permission Required",
+      "locationDeniedMessage": "Location permission required for Bluetooth scanning",
+      "notReady": "Bluetooth Not Ready",
+      "notReadyMessage": "Wait while Bluetooth is starting...",
+      "off": "Bluetooth Off",
+      "offMessage": "Turn on Bluetooth for device setup",
+      "permissionsDenied": "Permission Required",
+      "permissionsDeniedMessage": "Grant Bluetooth and location permissions",
+      "unauthorized": "Bluetooth Permission Required",
+      "unauthorizedMessage": "Grant Bluetooth permission in settings",
+      "unsupported": "Bluetooth Not Supported",
+      "unsupportedMessage": "This device does not support Bluetooth Low Energy"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "ok": "OK",
+      "settings": "Settings"
+    },
+    "camera": {
+      "grantPermission": "Grant Permission",
+      "permissionMessage": "You need to grant camera permission to scan QR code.",
+      "permissionRequired": "Camera Permission Required"
+    },
+    "checkingStatus": "Checking device status...",
+    "connection": {
+      "connected": "Connected, preparing...",
+      "connecting": "Connecting...",
+      "disconnected": "Connection lost: ",
+      "unknownError": "Unknown error"
+    },
+    "deviceActiveMessage": "The device connected to your vehicle is active.\n\nDevice: {{serial}}\nPlate: {{plate}}",
+    "deviceReinstall": "Device Reinstallation",
+    "deviceWaitingReinstall": "Device waiting for reinstallation...",
+    "loading": "Loading...",
+    "qr": {
+      "invalidCode": "Invalid QR Code",
+      "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
+      "manualEntry": "âŒ¨ï¸ Manual Serial Entry",
+      "scanHint": "ğŸ“± Scan the QR code on the device"
+    },
+    "result": {
+      "cancel": "Cancel",
+      "deviceReady": "Device successfully activated and ready to use.",
+      "done": "Done",
+      "errorOccurred": "Error Occurred",
+      "retry": "Retry",
+      "setupComplete": "Setup Complete!"
+    },
+    "serial": {
+      "enterSerial": "Enter Serial Number",
+      "example": "Example: TF-2025-00008-5",
+      "invalid": "Invalid Serial",
+      "invalidFormat": "Serial format is incorrect. Example: TF-2025-00008-5",
+      "notRegistered": "This serial is not registered in the system",
+      "validating": "Validating serial..."
+    },
+    "setupNotRequired": "Setup Not Required âœ…",
+    "status": {
+      "activating": "Activation starting...",
+      "apiFailed": "Server error",
+      "apiSuccess": "Server confirmed",
+      "callingApi": "Communicating with server...",
+      "complete": "Completed",
+      "savingNvs": "Saving...",
+      "serialReceived": "Serial received",
+      "waitingSerial": "Waiting for serial",
+      "wifiConnected": "WiFi connected",
+      "wifiConnecting": "WiFi connecting...",
+      "wifiCredReceived": "WiFi credentials received",
+      "wifiProvisionFail": "WiFi connection failed",
+      "wifiProvisionOk": "WiFi connection successful"
+    },
+    "steps": {
+      "activating": "Activating",
+      "bleScan": "Searching Device",
+      "connecting": "Connecting",
+      "error": "Error",
+      "qrScan": "Scan QR Code",
+      "success": "Completed",
+      "wifiForm": "WiFi Settings",
+      "wifiProvisioning": "WiFi Connection"
     }
   },
   "navigator": {
@@ -739,7 +849,9 @@
     "min": "min",
     "noSpeed": "In attesa di movimento",
     "delayRisk": "RISCHIO RITARDO",
-    "noEta": "ETA non disponibile"
+    "noEta": "ETA non disponibile",
+    "final_destination": "Son Hedef",
+    "nextStop": "Sonraki Durak"
   },
   "units": {
     "km": "km",
@@ -789,8 +901,61 @@
       "saved": "Salvato",
       "kmTraveled": "{{km}} km",
       "consumptionPer100km": "{{value}} L/100km",
-      "costPerKm": "{{value}}/km"
-    }
+      "costPerKm": "{{value}}/km",
+      "message": "Saved!"
+    },
+    "calculation": "Calculation Preview",
+    "consumption": "Consumption",
+    "costPerKm": "Cost per KM",
+    "costPlaceholder": "e.g. 150",
+    "currentOdometer": "Odometer",
+    "editVehicle": "Edit Vehicle Info",
+    "error": {
+      "loadFailed": "Failed to load vehicle info",
+      "noVehicle": "No vehicle assigned",
+      "saveFailed": "Failed to save record",
+      "title": "Error",
+      "vehicleUpdateFailed": "Failed to update vehicle info"
+    },
+    "firstRecordNote": "This is the first record, consumption will be calculated on the next entry.",
+    "fuelType": "Fuel Type",
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "electric": "Electric",
+      "gasoline": "Gasoline",
+      "lpg": "LPG"
+    },
+    "fullTankNote": "Fill the tank completely",
+    "isFullTank": "Full Tank",
+    "kmTraveled": "Distance Traveled",
+    "lastOdometer": "Last",
+    "lastRecord": "Last Record",
+    "litersFilled": "Liters Filled",
+    "litersPlaceholder": "e.g. 52",
+    "notFullTankWarning": {
+      "cancel": "Cancel",
+      "message": "If the tank is not full, this record won't be included in consumption analysis. Continue anyway?",
+      "saveAnyway": "Save Anyway",
+      "title": "Warning"
+    },
+    "odometerPlaceholder": "e.g. 100,520",
+    "plate": "Plate",
+    "plateReadonly": "Plate cannot be changed",
+    "pricePerLiter": "Price per liter",
+    "save": "SAVE",
+    "tankCapacity": "Tank",
+    "title": "Fuel Entry",
+    "totalCost": "Total Cost",
+    "validation": {
+      "consumptionUnrealistic": "Calculated consumption ({{value}} L/100km) seems unrealistic",
+      "kmTooHigh": "{{km}} km in a single fill seems too high",
+      "litersExceedsTank": "Maximum {{capacity}}L allowed",
+      "litersRequired": "Liters amount is required",
+      "odometerMustBeHigher": "Odometer must be higher than previous record ({{lastKm}})",
+      "odometerRequired": "Odometer reading is required"
+    },
+    "vehicleInfo": "Vehicle Info",
+    "vehicleUpdated": "Vehicle info updated"
   },
   "led": {
     "title": "Indicatori LED",
@@ -877,7 +1042,8 @@
       "emailReport": "Invia Email",
       "emailReportDesc": "Condividi report via email",
       "download": "Scarica",
-      "send": "Invia"
+      "send": "Invia",
+      "comingSoon": "This feature will be added as app usage accumulates data."
     }
   },
   "admin": {
@@ -1341,7 +1507,11 @@
       "complete": "Completa",
       "congratulations": "🎉 Congratulazioni!",
       "error": "Errore",
-      "operationFailed": "Operazione fallita"
+      "operationFailed": "Operazione fallita",
+      "goToNavigation": "Go to Navigation",
+      "stayHere": "Stay Here",
+      "taskCompleted": "Task successfully completed!",
+      "taskStartedMessage": "Task started!"
     },
     "statusInfo": {
       "completed": "Questo compito è completato",
@@ -1463,5 +1633,240 @@
       "border": "Confine / Dogana",
       "sensitive_area": "Area sensibile"
     }
+  },
+  "alert": {
+    "active": "Active",
+    "noAlerts": "No alerts found",
+    "resolve": "Resolve",
+    "resolved": "Resolved",
+    "title": "Alerts",
+    "types": {
+      "HARD_ACCEL": "Hard Acceleration",
+      "HARD_BRAKE": "Hard Brake",
+      "HARD_TURN": "Hard Turn",
+      "IMPACT": "Impact",
+      "idle_too_long": "Idle Too Long",
+      "speeding": "Speeding"
+    }
+  },
+  "ble": {
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "disconnected": "Disconnected",
+    "noDevices": "No devices found",
+    "permissionRequired": "Bluetooth permission required",
+    "scanning": "Scanning devices..."
+  },
+  "device": {
+    "activated": "Activated",
+    "activating": "Activating...",
+    "addToStock": "Add to Stock",
+    "assignDevice": "Assign Device",
+    "assignToVehicle": "Assign to Vehicle",
+    "assigned": "Assigned",
+    "claimDevice": "Claim Device",
+    "deviceAssigned": "Device assigned",
+    "generateQR": "Generate QR",
+    "noDevices": "No devices found",
+    "offline": "Offline",
+    "online": "Online",
+    "qrExpires": "Expires in",
+    "qrGenerated": "QR code generated",
+    "refreshQR": "Refresh QR",
+    "scanQR": "Scan QR",
+    "searchBySerial": "Search by Serial",
+    "serial": "Serial No",
+    "showQR": "Show QR",
+    "status": "Status",
+    "statuses": {
+      "ACTIVATED": "Active",
+      "ASSIGNED": "Assigned",
+      "CREATED": "Created",
+      "IN_STOCK": "In Stock",
+      "LOST": "Lost",
+      "PRINTED": "Printed",
+      "RETIRED": "Retired",
+      "SUSPENDED": "Suspended"
+    },
+    "title": "Device Management",
+    "unassigned": "Unassigned"
+  },
+  "help": {
+    "account": {
+      "a1": "Go to Settings > Change Password, enter your current password and set a new one.",
+      "a2": "Check your email address. If you forgot your password, use the 'Forgot Password' option or contact support.",
+      "a3": "Go to Settings > Edit Profile to update your name, surname and phone number.",
+      "q1": "How can I change my password?",
+      "q2": "I can't log in to my account, what should I do?",
+      "q3": "How do I update my profile information?",
+      "title": "Account & Login"
+    },
+    "contact": {
+      "button": "Contact Support Team",
+      "subtitle": "If your question is not listed here, contact our support team",
+      "title": "Still need help?"
+    },
+    "faqTitle": "Frequently Asked Questions",
+    "footer": "© 2025 TulipFleet - All rights reserved",
+    "heroHint": "Tap a category to see questions",
+    "heroSubtitle": "Browse frequently asked questions",
+    "heroTitle": "How can we help you?",
+    "ledIndicators": "LED Indicators",
+    "questionCount": "questions",
+    "quickHelp": "Quick Help",
+    "subtitle": "Frequently asked questions and guide",
+    "tasks": {
+      "a1": "View the incoming task on Dashboard and press 'Accept'. Use 'Start Task' to begin the task.",
+      "a2": "Go to task details and press 'Complete Task'. Fill in the required information and confirm.",
+      "a3": "Yes, view the incoming task and use the 'Reject' option. You will be asked to provide a reason.",
+      "q1": "How do I accept a task assigned to me?",
+      "q2": "How do I mark a task as completed?",
+      "q3": "Can I reject an assigned task?",
+      "title": "Tasks"
+    },
+    "technical": {
+      "a1": "Connect the device to the vehicle USB port. Scan the QR code in the mobile app and complete WiFi configuration via BLE.",
+      "a2": "Make sure you're using a 2.4GHz WiFi network (5GHz not supported). Check the password. Restart the device and connect within 60 seconds.",
+      "a3": "Solid green: System running. Blinking blue: BLE mode. Yellow: Searching GPS. Red: Error. See LED Indicators page for details.",
+      "q1": "How do I set up the GPS device?",
+      "q2": "The device can't connect to WiFi, what should I do?",
+      "q3": "What do the LED lights mean?",
+      "title": "Technical Support"
+    },
+    "title": "Help Center",
+    "troubleshooting": "Troubleshooting",
+    "vehicles": {
+      "a1": "You can see your vehicle's real-time location on the Dashboard map. Location updates every 5 seconds.",
+      "a2": "Check the GPS device power connection. Inspect the LED indicators on the device. Verify the internet connection.",
+      "a3": "Yes, you can see all your vehicles on the Live Map screen in the Admin panel.",
+      "q1": "How can I see my vehicle's location?",
+      "q2": "My vehicle appears offline, what should I do?",
+      "q3": "Can I track multiple vehicles at once?",
+      "title": "Vehicles & Tracking"
+    }
+  },
+  "taskOffers": {
+    "checkInternet": "Check your internet connection.",
+    "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
+    "empty": {
+      "couldNotLoad": "Offers could not be loaded",
+      "error": "ğŸ˜”",
+      "noPending": "No pending offers",
+      "normal": "ğŸ“­",
+      "notFound": "No task offers found"
+    },
+    "filters": {
+      "accepted": "Accepted",
+      "all": "All",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "genericError": "An error occurred. Please try again.",
+    "loading": "Loading offers...",
+    "noPermission": "You do not have permission for this operation.",
+    "offersNotFound": "Offers not found.",
+    "retry": "Retry",
+    "serverError": "Server error. Please try again later.",
+    "sessionExpired": "Session expired. Please login again.",
+    "statuses": {
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "tapForDetails": "Tap for details â†’",
+    "timeRemaining": {
+      "expired": "Expired",
+      "hours": "{{hours}} hour(s) left",
+      "minutes": "{{minutes}} min left"
+    },
+    "title": "Task Offers"
+  },
+  "troubleshooting": {
+    "contactUs": "Contact our technical support team",
+    "problems": {
+      "appCrash": "App crashes",
+      "noBle": "Bluetooth not found",
+      "noGps": "No GPS signal",
+      "noPower": "Device won't turn on",
+      "noUpdate": "Location not updating",
+      "noWifi": "WiFi connection error"
+    },
+    "solution": "Solution",
+    "solutions": {
+      "appCrash": "Update app or clear cache.",
+      "noBle": "Restart device and connect within 60 seconds.",
+      "noGps": "Point GPS antenna to open sky.",
+      "noPower": "Check power connection and fuse.",
+      "noUpdate": "Check internet connection and server status.",
+      "noWifi": "Check WiFi password and network settings."
+    },
+    "steps": {
+      "avoidMetal": "Move away from metal obstacles",
+      "checkAntenna": "Check GPS antenna connection",
+      "checkFuse": "Check vehicle fuse",
+      "checkInternet": "Check your internet connection",
+      "checkPassword": "Make sure WiFi password is correct",
+      "checkPowerConnection": "Check power cable connection",
+      "checkServer": "Check server status",
+      "checkSignal": "Check WiFi signal strength",
+      "checkVoltage": "Verify 12V-24V voltage range",
+      "clearCache": "Clear app cache",
+      "connect60sec": "Try connecting within 60 seconds",
+      "enableBluetooth": "Enable Bluetooth on your phone",
+      "moveOutdoors": "Move device outdoors",
+      "reinstall": "Uninstall and reinstall app",
+      "restartApp": "Restart the application",
+      "restartDevice": "Restart the device",
+      "updateApp": "Update app to latest version",
+      "use24Ghz": "Use 2.4GHz network (5GHz not supported)"
+    },
+    "stepsToTry": "Steps to Try",
+    "stillNeedHelp": "Still need help?",
+    "tapToExpand": "Tap to see details",
+    "title": "Troubleshooting"
+  },
+  "wifi": {
+    "connect": "Connect",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "errors": {
+      "authFailed": "Wrong WiFi password",
+      "notFound": "WiFi network not found",
+      "timeout": "Connection timeout"
+    },
+    "password": "WiFi Password",
+    "ssid": "WiFi Network"
+  },
+  "vehicleList": {
+    "title": "Lista veicoli",
+    "total": "Totale",
+    "online": "Online",
+    "offline": "Offline",
+    "searchPlaceholder": "Cerca targa, marca o modello...",
+    "filterAll": "Tutti",
+    "filterOnline": "Online",
+    "filterAvailable": "Disponibile",
+    "filterOffline": "Offline",
+    "statusInUse": "In uso",
+    "statusAvailable": "Disponibile",
+    "statusMaintenance": "Manutenzione",
+    "statusRetired": "Ritirato",
+    "statusOffline": "Offline",
+    "noLocation": "Nessuna posizione",
+    "notFound": "Nessun veicolo trovato",
+    "empty": "Nessun veicolo"
+  },
+  "fleetMap": {
+    "vehicle": "Veicoli",
+    "online": "Online",
+    "offline": "Offline",
+    "lastUpdate": "Ultimo aggiornamento",
+    "tapForList": "Tocca per lista veicoli",
+    "vehicles": "Veicoli",
+    "zones": "Zone",
+    "totalZones": "zone totali",
+    "activeZones": "attive",
+    "tapEditToManage": "Tocca modifica per gestire le zone"
   }
 }

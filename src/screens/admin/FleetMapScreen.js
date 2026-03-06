@@ -22,12 +22,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  Circle,
+  Marker,
+  Polygon,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 import VehicleInfoSheet from "../../components/map/VehicleInfoSheet";
 import VehicleListModal from "../../components/map/VehicleListModal";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { vehicleAPI } from "../../services/api";
+import { geofenceAPI, vehicleAPI } from "../../services/api";
 import {
   createFollowRegion,
   FOLLOW_CONFIG,
@@ -48,6 +53,24 @@ const INITIAL_REGION = {
 };
 
 const DEBUG = __DEV__;
+
+// Map modes
+const MAP_MODE = {
+  VEHICLES: "vehicles",
+  GEOFENCES: "geofences",
+};
+
+// Geofence category color keys — COLORS token'larına bakarak runtime'da çözülür
+// MapView Circle/Polygon fillColor string değer bekler; bu yüzden useGeofenceColors
+// hook'u COLORS değerlerini alıp opacity ile birleştirir (bkz. useGeofenceColors)
+const GEOFENCE_COLOR_KEYS = {
+  general: { strokeKey: "PRIMARY", opacity: 0.15 },
+  depot: { strokeKey: "SUCCESS", opacity: 0.15 },
+  city_center: { strokeKey: "INFO", opacity: 0.15 },
+  emission_zone: { strokeKey: "WARNING", opacity: 0.2 },
+  border: { strokeKey: "ERROR", opacity: 0.15 },
+  sensitive_area: { strokeKey: "SECONDARY", opacity: 0.15 },
+};
 
 // Marker colors by status
 const MARKER_COLORS = {
@@ -205,6 +228,24 @@ const FleetMapScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
   const { t, i18n } = useTranslation();
 
+  // Geofence renklerini COLORS token'larından çözer
+  // MapView Circle/Polygon string renk beklediği için burada string üretiyoruz
+  const resolveGeofenceColors = useCallback(
+    (category) => {
+      const def = GEOFENCE_COLOR_KEYS[category] || GEOFENCE_COLOR_KEYS.general;
+      const stroke = COLORS[def.strokeKey] || COLORS.PRIMARY;
+      // hex → rgba dönüşümü: "#RRGGBB" formatını parse et
+      const r = parseInt(stroke.slice(1, 3), 16);
+      const g = parseInt(stroke.slice(3, 5), 16);
+      const b = parseInt(stroke.slice(5, 7), 16);
+      return {
+        stroke,
+        fill: `rgba(${r},${g},${b},${def.opacity})`,
+      };
+    },
+    [COLORS]
+  );
+
   // Refs
   const mapRef = useRef(null);
   const previousVehiclesRef = useRef([]);
@@ -217,6 +258,13 @@ const FleetMapScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [showVehicleList, setShowVehicleList] = useState(false);
+
+  // Map mode state
+  const [mapMode, setMapMode] = useState(MAP_MODE.VEHICLES);
+
+  // Geofence state
+  const [geofences, setGeofences] = useState([]);
+  const [geofencesLoading, setGeofencesLoading] = useState(false);
 
   // ============================================================================
   // DERIVED STATE
@@ -340,6 +388,22 @@ const FleetMapScreen = ({ navigation }) => {
   }, [loading]);
 
   // ============================================================================
+  // GEOFENCE FETCHING
+  // ============================================================================
+
+  const fetchGeofences = useCallback(async () => {
+    setGeofencesLoading(true);
+    try {
+      const res = await geofenceAPI.getAll();
+      setGeofences(res.geofences || []);
+    } catch (e) {
+      console.error("[FleetMap] Geofence fetch error:", e);
+    } finally {
+      setGeofencesLoading(false);
+    }
+  }, []);
+
+  // ============================================================================
   // EFFECTS
   // ============================================================================
 
@@ -348,6 +412,12 @@ const FleetMapScreen = ({ navigation }) => {
     const interval = setInterval(fetchVehicles, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchVehicles]);
+
+  useEffect(() => {
+    if (mapMode === MAP_MODE.GEOFENCES) {
+      fetchGeofences();
+    }
+  }, [mapMode, fetchGeofences]);
 
   useEffect(() => {
     if (!followMode || !selectedVehicle || !mapRef.current) return;
@@ -403,6 +473,15 @@ const FleetMapScreen = ({ navigation }) => {
     }
   }, []);
 
+  const handleModeSwitch = useCallback((mode) => {
+    setMapMode(mode);
+    // Araç takibini geofence modunda askıya al
+    if (mode === MAP_MODE.GEOFENCES) {
+      setFollowMode(false);
+      followModeActiveRef.current = false;
+    }
+  }, []);
+
   const handleMapPanDrag = useCallback(() => {
     if (followMode) {
       setFollowMode(false);
@@ -450,14 +529,66 @@ const FleetMapScreen = ({ navigation }) => {
         showsCompass={true}
         toolbarEnabled={false}
       >
+        {/* Vehicle markers — her iki modda da görünür */}
         {normalizedVehicles.map((vehicle) => (
           <VehicleMarker
             key={vehicle.id}
             vehicle={vehicle}
             isSelected={selectedVehicleId === vehicle.id}
-            onPress={handleVehiclePress}
+            onPress={
+              mapMode === MAP_MODE.VEHICLES ? handleVehiclePress : () => {}
+            }
           />
         ))}
+
+        {/* Geofence layer — sadece geofences modunda */}
+        {mapMode === MAP_MODE.GEOFENCES &&
+          geofences
+            .filter((f) => f.is_active)
+            .map((fence) => {
+              const colors = resolveGeofenceColors(fence.fence_category);
+
+              if (fence.fence_type === "circle") {
+                const center =
+                  fence.coordinates?.center ||
+                  (fence.coordinates?.lat ? fence.coordinates : null);
+                if (!center) return null;
+                return (
+                  <Circle
+                    key={fence.id}
+                    center={{
+                      latitude: parseFloat(center.lat || center.latitude),
+                      longitude: parseFloat(center.lng || center.longitude),
+                    }}
+                    radius={parseFloat(fence.radius) || 500}
+                    fillColor={colors.fill}
+                    strokeColor={colors.stroke}
+                    strokeWidth={2}
+                  />
+                );
+              }
+
+              if (fence.fence_type === "polygon") {
+                const points = Array.isArray(fence.coordinates)
+                  ? fence.coordinates
+                  : fence.coordinates?.points;
+                if (!points || points.length < 3) return null;
+                return (
+                  <Polygon
+                    key={fence.id}
+                    coordinates={points.map((p) => ({
+                      latitude: parseFloat(p.lat),
+                      longitude: parseFloat(p.lng),
+                    }))}
+                    fillColor={colors.fill}
+                    strokeColor={colors.stroke}
+                    strokeWidth={2}
+                  />
+                );
+              }
+
+              return null;
+            })}
       </MapView>
 
       {/* Back Button */}
@@ -468,26 +599,93 @@ const FleetMapScreen = ({ navigation }) => {
         <Ionicons name="arrow-back" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
-      {/* Vehicle List Button */}
-      <TouchableOpacity
-        style={styles.listButton}
-        onPress={() => setShowVehicleList(true)}
-      >
-        <Ionicons name="list" size={22} color={COLORS.PRIMARY} />
-        {stats.total > 0 && (
-          <View style={styles.listBadge}>
-            <Text style={styles.listBadgeText}>{stats.total}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+      {/* Mode Segment Bar */}
+      <View style={styles.segmentBar}>
+        <TouchableOpacity
+          style={[
+            styles.segmentBtn,
+            mapMode === MAP_MODE.VEHICLES && styles.segmentBtnActive,
+          ]}
+          onPress={() => handleModeSwitch(MAP_MODE.VEHICLES)}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="car-outline"
+            size={15}
+            color={
+              mapMode === MAP_MODE.VEHICLES
+                ? COLORS.WHITE
+                : COLORS.TEXT_SECONDARY
+            }
+          />
+          <Text
+            style={[
+              styles.segmentText,
+              mapMode === MAP_MODE.VEHICLES && styles.segmentTextActive,
+            ]}
+          >
+            {t("fleetMap.vehicles")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.segmentBtn,
+            mapMode === MAP_MODE.GEOFENCES && styles.segmentBtnActive,
+          ]}
+          onPress={() => handleModeSwitch(MAP_MODE.GEOFENCES)}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="layers-outline"
+            size={15}
+            color={
+              mapMode === MAP_MODE.GEOFENCES
+                ? COLORS.WHITE
+                : COLORS.TEXT_SECONDARY
+            }
+          />
+          <Text
+            style={[
+              styles.segmentText,
+              mapMode === MAP_MODE.GEOFENCES && styles.segmentTextActive,
+            ]}
+          >
+            {t("fleetMap.zones")}
+          </Text>
+          {geofences.length > 0 && (
+            <View style={styles.segmentBadge}>
+              <Text style={styles.segmentBadgeText}>{geofences.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Vehicle List Button — sadece vehicles modunda */}
+      {mapMode === MAP_MODE.VEHICLES && (
+        <TouchableOpacity
+          style={styles.listButton}
+          onPress={() => setShowVehicleList(true)}
+        >
+          <Ionicons name="list" size={22} color={COLORS.PRIMARY} />
+          {stats.total > 0 && (
+            <View style={styles.listBadge}>
+              <Text style={styles.listBadgeText}>{stats.total}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      )}
 
       {/* Refresh Button */}
-      <TouchableOpacity style={styles.refreshButton} onPress={fetchVehicles}>
+      <TouchableOpacity
+        style={styles.refreshButton}
+        onPress={mapMode === MAP_MODE.VEHICLES ? fetchVehicles : fetchGeofences}
+      >
         <Ionicons name="refresh" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
-      {/* Follow Mode Button */}
-      {selectedVehicle && (
+      {/* Follow Mode Button — sadece vehicles modunda */}
+      {mapMode === MAP_MODE.VEHICLES && selectedVehicle && (
         <TouchableOpacity
           style={[styles.followButton, followMode && styles.followButtonActive]}
           onPress={toggleFollowMode}
@@ -500,8 +698,8 @@ const FleetMapScreen = ({ navigation }) => {
         </TouchableOpacity>
       )}
 
-      {/* Stats Bar */}
-      {!selectedVehicle && (
+      {/* Stats Bar — sadece vehicles modunda ve araç seçili değilken */}
+      {mapMode === MAP_MODE.VEHICLES && !selectedVehicle && (
         <TouchableOpacity
           style={styles.statsBar}
           onPress={() => setShowVehicleList(true)}
@@ -537,8 +735,47 @@ const FleetMapScreen = ({ navigation }) => {
         </TouchableOpacity>
       )}
 
-      {/* Vehicle Info Sheet */}
-      {selectedVehicle && (
+      {/* Geofence FAB — sadece geofences modunda */}
+      {mapMode === MAP_MODE.GEOFENCES && (
+        <TouchableOpacity
+          style={styles.geofenceFab}
+          onPress={() => navigation.navigate("AdminGeofence")}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add" size={26} color={COLORS.WHITE} />
+        </TouchableOpacity>
+      )}
+
+      {/* Geofence Edit Button — sadece geofences modunda */}
+      {mapMode === MAP_MODE.GEOFENCES && (
+        <TouchableOpacity
+          style={styles.geofenceEditBtn}
+          onPress={() => navigation.navigate("AdminGeofence")}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="pencil-outline" size={20} color={COLORS.PRIMARY} />
+        </TouchableOpacity>
+      )}
+
+      {/* Geofences Stats Bar */}
+      {mapMode === MAP_MODE.GEOFENCES && !geofencesLoading && (
+        <View style={styles.statsBar}>
+          <Text style={styles.statsText}>
+            {"🗺️"} {geofences.length} {t("fleetMap.totalZones")}
+            {" | "}
+            <Text style={styles.activeText}>
+              {"●"} {geofences.filter((f) => f.is_active).length}{" "}
+              {t("fleetMap.activeZones")}
+            </Text>
+          </Text>
+          <Text style={styles.statsHintText}>
+            {t("fleetMap.tapEditToManage")}
+          </Text>
+        </View>
+      )}
+
+      {/* Vehicle Info Sheet — sadece vehicles modunda */}
+      {mapMode === MAP_MODE.VEHICLES && selectedVehicle && (
         <VehicleInfoSheet
           vehicle={selectedVehicle}
           onClose={handleCloseSheet}
@@ -638,7 +875,7 @@ const makeStyles = (COLORS) =>
     followButton: {
       position: "absolute",
       top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
-      right: 72,
+      right: COLORS.SPACING.md + COLORS.SPACING.xxl + COLORS.SPACING.sm,
       backgroundColor: COLORS.SURFACE,
       padding: COLORS.SPACING.sm,
       borderRadius: COLORS.RADIUS.xxl,
@@ -686,6 +923,84 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_MUTED,
       marginLeft: COLORS.SPACING.xs,
+    },
+
+    // ── Segment Bar ───────────────────────────────────────────────────────────
+    segmentBar: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      alignSelf: "center",
+      flexDirection: "row",
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.xxl,
+      padding: COLORS.SPACING.xs,
+      ...COLORS.SHADOWS.md,
+    },
+    segmentBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.xs,
+      paddingHorizontal: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
+    },
+    segmentBtnActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    segmentText: {
+      marginLeft: COLORS.SPACING.xs,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color: COLORS.TEXT_SECONDARY,
+    },
+    segmentTextActive: {
+      color: COLORS.WHITE,
+    },
+    segmentBadge: {
+      marginLeft: COLORS.SPACING.xs,
+      minWidth: COLORS.SPACING.md,
+      height: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.ERROR,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: COLORS.SPACING.xs,
+    },
+    segmentBadgeText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+
+    // ── Geofence FAB ──────────────────────────────────────────────────────────
+    geofenceFab: {
+      position: "absolute",
+      right: COLORS.SPACING.md,
+      bottom:
+        Platform.OS === "ios"
+          ? COLORS.SPACING.xxxl + COLORS.SPACING.xxl
+          : COLORS.SPACING.xxxl + COLORS.SPACING.lg,
+      width: COLORS.SPACING.xxxl + COLORS.SPACING.sm,
+      height: COLORS.SPACING.xxxl + COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      ...COLORS.SHADOWS.card,
+    },
+    geofenceEditBtn: {
+      position: "absolute",
+      right: COLORS.SPACING.md,
+      bottom:
+        Platform.OS === "ios"
+          ? COLORS.SPACING.xxxl + COLORS.SPACING.xxl + COLORS.SPACING.xl
+          : COLORS.SPACING.xxxl + COLORS.SPACING.xl + COLORS.SPACING.lg,
+      width: COLORS.SPACING.xxl + COLORS.SPACING.sm,
+      height: COLORS.SPACING.xxl + COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.SURFACE,
+      alignItems: "center",
+      justifyContent: "center",
+      ...COLORS.SHADOWS.md,
     },
   });
 

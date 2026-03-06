@@ -1787,5 +1787,36 @@
       "border": "Граница / Митница",
       "sensitive_area": "Чувствителна зона"
     }
+  },
+  "vehicleList": {
+    "title": "Списък превозни средства",
+    "total": "Общо",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "searchPlaceholder": "Търси номер, марка или модел...",
+    "filterAll": "Всички",
+    "filterOnline": "Онлайн",
+    "filterAvailable": "Свободни",
+    "filterOffline": "Офлайн",
+    "statusInUse": "В употреба",
+    "statusAvailable": "Свободно",
+    "statusMaintenance": "Поддръжка",
+    "statusRetired": "Пенсионирано",
+    "statusOffline": "Офлайн",
+    "noLocation": "Няма местоположение",
+    "notFound": "Не са намерени превозни средства",
+    "empty": "Няма превозни средства"
+  },
+  "fleetMap": {
+    "vehicle": "Превозни средства",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "lastUpdate": "Последна актуализация",
+    "tapForList": "Докоснете за списък",
+    "vehicles": "Превозни средства",
+    "zones": "Зони",
+    "totalZones": "зони общо",
+    "activeZones": "активни",
+    "tapEditToManage": "Натиснете редактиране за управление на зони"
   }
 }

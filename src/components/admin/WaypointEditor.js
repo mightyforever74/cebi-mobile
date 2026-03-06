@@ -1,69 +1,103 @@
 /**
- * WaypointEditor.js - Simplified Waypoint List Editor v3
+ * WaypointEditor.js - Simplified Waypoint List Editor v4
  * TulipFleet - Shared between CreateTaskScreen & EditTaskScreen
  *
- * v3 Changes:
- * - Lat/Lng collapsible (varsayılan kapalı — geocode otomatik yapılır)
- * - Planned arrival DateTimePicker ile (ISO elle yazma yok)
+ * v4 Changes (v3 → v4):
+ * - Lat/Lng manuel input KALDIRILDI
+ * - Address input → Google Places Autocomplete (400ms debounce)
+ * - Seçilen adres otomatik geocode → koordinatlar arka planda saklanır
+ * - Adres yanında durum ikonu: ✅ koordinat var | ⚠️ koordinat yok | spinner
+ *
+ * v3 korunanlar:
+ * - moveUp / moveDown sıralama
+ * - DateTimePicker (iOS modal / Android iki aşamalı)
  * - Dashed empty state + inline "Durak Ekle" butonu
  * - Silme onayı Alert
- * - iOS: datetime spinner modal / Android: date→time iki aşamalı picker
+ * - readOnly modu
+ * - labels sistemi
+ *
+ * UI Guide v3 uyumu:
+ * - Tüm inline style'lar StyleSheet.create + COLORS token'larına taşındı
+ * - Hardcoded hex/rgba → COLORS token
+ * - Hardcoded spacing/fontSize → COLORS.SPACING / COLORS.TYPOGRAPHY
+ * - gap kullanımı → flexDirection + marginRight
+ * - withAlpha → COLORS token'ları üzerinden runtime çözümü
  */
 
+import { GOOGLE_MAPS_API_KEY } from "@env";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Platform,
   Pressable,
   SafeAreaView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-// --- helper: #RRGGBB => #RRGGBBAA ---
-const withAlpha = (hex, alpha01) => {
-  if (
-    !hex ||
-    typeof hex !== "string" ||
-    !hex.startsWith("#") ||
-    hex.length !== 7
-  )
-    return hex;
-  const a = Math.max(0, Math.min(1, alpha01));
-  const alpha = Math.round(a * 255)
-    .toString(16)
-    .padStart(2, "0")
-    .toUpperCase();
-  return `${hex}${alpha}`;
-};
+// ─────────────────────────────────────────────────────────
+// PLACES AUTOCOMPLETE HELPERS
+// ─────────────────────────────────────────────────────────
+const geocodeCache = new Map();
+
+async function geocodeAddress(address) {
+  const cacheKey = address.trim().toLowerCase();
+  if (geocodeCache.has(cacheKey)) return geocodeCache.get(cacheKey);
+  try {
+    const url =
+      `https://maps.googleapis.com/maps/api/geocode/json` +
+      `?address=${encodeURIComponent(address)}` +
+      `&key=${GOOGLE_MAPS_API_KEY}&language=tr`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status === "OK" && data.results?.[0]) {
+      const { lat, lng } = data.results[0].geometry.location;
+      const coords = { latitude: lat, longitude: lng };
+      if (geocodeCache.size >= 200)
+        geocodeCache.delete(geocodeCache.keys().next().value);
+      geocodeCache.set(cacheKey, coords);
+      return coords;
+    }
+  } catch (e) {
+    console.warn("[WaypointEditor] geocode error:", e.message);
+  }
+  return null;
+}
+
+async function fetchPlaceSuggestions(input, sessionToken) {
+  if (!input || input.length < 3) return [];
+  try {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json` +
+      `?input=${encodeURIComponent(input)}` +
+      `&key=${GOOGLE_MAPS_API_KEY}&language=tr&sessiontoken=${sessionToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.predictions || [];
+  } catch {
+    return [];
+  }
+}
 
 // Unique ID generator (timestamp + random, reorder-safe)
 const generateWpId = () =>
   `wp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-
-// Lat/Lng validation
-const isValidLat = (v) => {
-  const n = Number(v);
-  return !isNaN(n) && n >= -90 && n <= 90;
-};
-const isValidLng = (v) => {
-  const n = Number(v);
-  return !isNaN(n) && n >= -180 && n <= 180;
-};
 
 /**
  * Props:
  * - waypoints: Array
  * - setWaypoints: function
  * - COLORS: theme colors object
- * - labels: { title, add, limitReached, name, address, lat, lng, planned,
- *             invalid, noStops, coordsToggle, clearConfirm, clearStop, cancel, done }
+ * - labels: { title, add, limitReached, name, address, planned,
+ *             noStops, clearConfirm, clearStop, cancel, done }
  * - maxStops?: number (default 10)
  * - readOnly?: boolean (default false)
  * - inputStyle?: object (parent's TextInput style for consistency)
@@ -79,8 +113,21 @@ const WaypointEditor = ({
 }) => {
   const { i18n } = useTranslation();
 
-  // Collapsible coords state (per waypoint)
-  const [expandedCoords, setExpandedCoords] = useState({});
+  // Places autocomplete state (per waypoint id)
+  const [suggestions, setSuggestions] = useState({}); // { [wpId]: prediction[] }
+  const [loadingSug, setLoadingSug] = useState({}); // { [wpId]: boolean }
+  const sessionTokens = useRef({}); // { [wpId]: string }
+  const debounceTimers = useRef({}); // { [wpId]: timeoutId }
+
+  const getSessionToken = (wpId) => {
+    if (!sessionTokens.current[wpId])
+      sessionTokens.current[wpId] = Math.random().toString(36).substr(2, 9);
+    return sessionTokens.current[wpId];
+  };
+
+  const renewSessionToken = (wpId) => {
+    sessionTokens.current[wpId] = Math.random().toString(36).substr(2, 9);
+  };
 
   // Planned arrival picker state
   const [pickerWpId, setPickerWpId] = useState(null);
@@ -97,16 +144,21 @@ const WaypointEditor = ({
     add: labels.add || "Add Stop",
     limitReached: labels.limitReached || "Stop limit reached",
     name: labels.name || "Stop Name",
-    address: labels.address || "Stop Address",
-    lat: labels.lat || "Lat",
-    lng: labels.lng || "Lng",
+    address: labels.address || "Enter address...",
     planned: labels.planned || "Planned Arrival",
-    invalid: labels.invalid || "Invalid coordinates",
     noStops: labels.noStops || "No stops added yet",
-    coordsToggle: labels.coordsToggle || "Coordinates",
     clearConfirm: labels.clearConfirm || "Remove this stop?",
     clearStop: labels.clearStop || "Remove",
   };
+
+  // --- StyleSheet — COLORS token'larına bağımlı, useMemo ile oluşturulur ---
+  const S = useMemo(() => makeStyles(COLORS), [COLORS]);
+
+  // --- Base input style (parent'tan override alabilir) ---
+  const baseInput = useMemo(
+    () => [S.baseInput, inputStyle],
+    [S.baseInput, inputStyle]
+  );
 
   // --- CRUD Helpers ---
   const addWaypoint = () => {
@@ -166,20 +218,60 @@ const WaypointEditor = ({
     );
   };
 
-  const toggleCoords = (id) => {
-    setExpandedCoords((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  // ── Places Autocomplete Handlers ──
+  const handleAddressChange = useCallback(
+    (wpId, text) => {
+      if (readOnly) return;
+      setWaypoints((prev) =>
+        prev.map((w) =>
+          w.id === wpId
+            ? { ...w, address: text, latitude: null, longitude: null }
+            : w
+        )
+      );
+
+      clearTimeout(debounceTimers.current[wpId]);
+      if (text.length < 3) {
+        setSuggestions((prev) => ({ ...prev, [wpId]: [] }));
+        return;
+      }
+      debounceTimers.current[wpId] = setTimeout(async () => {
+        setLoadingSug((prev) => ({ ...prev, [wpId]: true }));
+        const preds = await fetchPlaceSuggestions(text, getSessionToken(wpId));
+        setSuggestions((prev) => ({ ...prev, [wpId]: preds }));
+        setLoadingSug((prev) => ({ ...prev, [wpId]: false }));
+      }, 400);
+    },
+    [readOnly]
+  );
+
+  const handleSelectSuggestion = useCallback(async (wpId, pred) => {
+    const address = pred.description;
+    setSuggestions((prev) => ({ ...prev, [wpId]: [] }));
+    setWaypoints((prev) =>
+      prev.map((w) =>
+        w.id === wpId ? { ...w, address, latitude: null, longitude: null } : w
+      )
+    );
+    const coords = await geocodeAddress(address);
+    if (coords) {
+      setWaypoints((prev) =>
+        prev.map((w) =>
+          w.id === wpId
+            ? {
+                ...w,
+                address,
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+              }
+            : w
+        )
+      );
+    }
+    renewSessionToken(wpId);
+  }, []);
 
   const isAtLimit = waypoints.length >= maxStops;
-
-  // --- Coordinate validation ---
-  const hasInvalidCoords = (wp) => {
-    if (!wp.latitude && !wp.longitude) return false;
-    return (
-      (wp.latitude && !isValidLat(wp.latitude)) ||
-      (wp.longitude && !isValidLng(wp.longitude))
-    );
-  };
 
   // --- Planned Arrival Picker ---
   const openPlannedPicker = (wpId, currentValue) => {
@@ -191,7 +283,6 @@ const WaypointEditor = ({
       setTempIOSValue(date);
       setShowIOSModal(true);
     } else {
-      // Android: date picker ilk açılır
       setPickerMode("date");
     }
   };
@@ -204,11 +295,9 @@ const WaypointEditor = ({
     if (!selected) return;
 
     if (pickerMode === "date") {
-      // Date seçildi → time picker aç
       setPickerValue(selected);
       setPickerMode("time");
     } else {
-      // Time seçildi → birleştir ve kaydet
       const combined = new Date(pickerValue);
       combined.setHours(selected.getHours());
       combined.setMinutes(selected.getMinutes());
@@ -243,70 +332,25 @@ const WaypointEditor = ({
     }
   };
 
-  // --- Base input style ---
-  const baseInput = {
-    backgroundColor: COLORS.SURFACE || COLORS.SECONDARY || "#FFF",
-    borderWidth: 1,
-    borderColor: COLORS.DIVIDER || COLORS.BORDER || "#E0E0E0",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: COLORS.TEXT || "#000",
-    ...inputStyle,
-  };
-
   return (
     <View>
       {/* Header: Title + Add Button */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "700",
-            color: COLORS.TEXT,
-          }}
-        >
-          {L.title}
-        </Text>
+      <View style={S.header}>
+        <Text style={S.headerTitle}>{L.title}</Text>
 
         {!readOnly && (
           <TouchableOpacity
             onPress={addWaypoint}
             disabled={isAtLimit}
             activeOpacity={0.7}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: isAtLimit
-                ? withAlpha(COLORS.MUTED || "#999", 0.15)
-                : withAlpha(COLORS.PRIMARY, 0.1),
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              borderRadius: 20,
-              gap: 6,
-              opacity: isAtLimit ? 0.5 : 1,
-            }}
+            style={[S.addBtn, isAtLimit && S.addBtnDisabled]}
           >
             <Ionicons
               name="add-circle"
               size={18}
-              color={isAtLimit ? COLORS.MUTED : COLORS.PRIMARY}
+              color={isAtLimit ? COLORS.TEXT_MUTED : COLORS.PRIMARY}
             />
-            <Text
-              style={{
-                color: isAtLimit ? COLORS.MUTED : COLORS.PRIMARY,
-                fontWeight: "600",
-                fontSize: 14,
-              }}
-            >
+            <Text style={[S.addBtnText, isAtLimit && S.addBtnTextDisabled]}>
               {isAtLimit ? L.limitReached : L.add}
             </Text>
           </TouchableOpacity>
@@ -315,56 +359,22 @@ const WaypointEditor = ({
 
       {/* Empty state — dashed border + icon + inline add button */}
       {waypoints.length === 0 && (
-        <View
-          style={{
-            alignItems: "center",
-            paddingVertical: 24,
-            backgroundColor: withAlpha(COLORS.SECONDARY || "#F5F5F5", 0.3),
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: withAlpha(COLORS.DIVIDER || "#E0E0E0", 0.3),
-            borderStyle: "dashed",
-          }}
-        >
+        <View style={S.emptyState}>
           <Ionicons
             name="git-branch-outline"
             size={28}
-            color={COLORS.MUTED || "#999"}
+            color={COLORS.TEXT_MUTED}
           />
-          <View style={{ height: 8 }} />
-          <Text
-            style={{
-              color: COLORS.MUTED,
-              fontSize: 14,
-            }}
-          >
-            {L.noStops}
-          </Text>
+          <View style={S.emptyStateGap} />
+          <Text style={S.emptyStateText}>{L.noStops}</Text>
           {!readOnly && (
             <TouchableOpacity
               onPress={addWaypoint}
               activeOpacity={0.7}
-              style={{
-                marginTop: 12,
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: withAlpha(COLORS.PRIMARY, 0.1),
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 20,
-                gap: 4,
-              }}
+              style={S.emptyStateAddBtn}
             >
               <Ionicons name="add" size={16} color={COLORS.PRIMARY} />
-              <Text
-                style={{
-                  color: COLORS.PRIMARY,
-                  fontWeight: "600",
-                  fontSize: 13,
-                }}
-              >
-                {L.add}
-              </Text>
+              <Text style={S.emptyStateAddText}>{L.add}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -372,83 +382,32 @@ const WaypointEditor = ({
 
       {/* Waypoint cards */}
       {waypoints.map((wp, index) => {
-        const invalidCoords = hasInvalidCoords(wp);
-        const showCoords = expandedCoords[wp.id];
         const plannedDisplay = formatPlanned(wp.planned_arrival);
+        const wpSuggestions = suggestions[wp.id] || [];
+        const wpLoading = loadingSug[wp.id] || false;
+        const hasCoords = !!(wp.latitude && wp.longitude);
 
         return (
-          <View
-            key={wp.id}
-            style={{
-              backgroundColor: withAlpha(
-                COLORS.SECONDARY || COLORS.SURFACE || "#F5F5F5",
-                0.4
-              ),
-              borderRadius: 14,
-              padding: 14,
-              marginBottom: 12,
-              borderWidth: 1,
-              borderColor: invalidCoords
-                ? COLORS.ERROR || "#FF0000"
-                : COLORS.DIVIDER || COLORS.BORDER || "#E0E0E0",
-            }}
-          >
+          <View key={wp.id} style={S.card}>
             {/* Card header: index badge + controls */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 10,
-              }}
-            >
+            <View style={S.cardHeader}>
               {/* Left: badge + name */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <View
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
-                    backgroundColor: COLORS.PRIMARY,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: COLORS.WHITE || "#FFF",
-                      fontWeight: "700",
-                      fontSize: 13,
-                    }}
-                  >
-                    {index + 1}
-                  </Text>
+              <View style={S.cardHeaderLeft}>
+                <View style={S.indexBadge}>
+                  <Text style={S.indexBadgeText}>{index + 1}</Text>
                 </View>
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    color: COLORS.TEXT,
-                    fontSize: 15,
-                  }}
-                  numberOfLines={1}
-                >
+                <Text style={S.wpNameText} numberOfLines={1}>
                   {wp.name || `${L.name.split(" ")[0]} ${index + 1}`}
                 </Text>
               </View>
 
               {/* Right: reorder + delete */}
               {!readOnly && (
-                <View style={{ flexDirection: "row", gap: 6 }}>
+                <View style={S.cardControls}>
                   <TouchableOpacity
                     onPress={() => moveUp(index)}
                     disabled={index === 0}
-                    style={{ opacity: index === 0 ? 0.3 : 1, padding: 4 }}
+                    style={[S.controlBtn, index === 0 && S.controlBtnDisabled]}
                   >
                     <Ionicons
                       name="chevron-up"
@@ -459,10 +418,10 @@ const WaypointEditor = ({
                   <TouchableOpacity
                     onPress={() => moveDown(index)}
                     disabled={index === waypoints.length - 1}
-                    style={{
-                      opacity: index === waypoints.length - 1 ? 0.3 : 1,
-                      padding: 4,
-                    }}
+                    style={[
+                      S.controlBtn,
+                      index === waypoints.length - 1 && S.controlBtnDisabled,
+                    ]}
                   >
                     <Ionicons
                       name="chevron-down"
@@ -472,12 +431,12 @@ const WaypointEditor = ({
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => removeWaypoint(wp.id)}
-                    style={{ padding: 4 }}
+                    style={S.controlBtn}
                   >
                     <Ionicons
                       name="trash-outline"
                       size={20}
-                      color={COLORS.ERROR || "#FF3B30"}
+                      color={COLORS.ERROR}
                     />
                   </TouchableOpacity>
                 </View>
@@ -488,61 +447,116 @@ const WaypointEditor = ({
             <TextInput
               style={baseInput}
               placeholder={L.name}
-              placeholderTextColor={COLORS.PLACEHOLDER || COLORS.MUTED}
+              placeholderTextColor={COLORS.TEXT_MUTED}
               value={wp.name}
               onChangeText={(val) => updateWaypoint(wp.id, "name", val)}
               editable={!readOnly}
             />
 
-            {/* Address input */}
-            <TextInput
-              style={[baseInput, { marginTop: 8 }]}
-              placeholder={L.address}
-              placeholderTextColor={COLORS.PLACEHOLDER || COLORS.MUTED}
-              value={wp.address || ""}
-              onChangeText={(val) => updateWaypoint(wp.id, "address", val)}
-              editable={!readOnly}
-            />
+            {/* Address — Google Places Autocomplete */}
+            <View style={S.addressWrapper}>
+              <View style={S.addressInputRow}>
+                <Ionicons
+                  name="location-outline"
+                  size={16}
+                  color={COLORS.TEXT_MUTED}
+                  style={S.addressIcon}
+                />
+                <TextInput
+                  style={S.addressInput}
+                  placeholder={L.address}
+                  placeholderTextColor={COLORS.TEXT_MUTED}
+                  value={wp.address || ""}
+                  onChangeText={(val) => handleAddressChange(wp.id, val)}
+                  onBlur={() =>
+                    setTimeout(
+                      () => setSuggestions((p) => ({ ...p, [wp.id]: [] })),
+                      200
+                    )
+                  }
+                  editable={!readOnly}
+                  returnKeyType="search"
+                />
+                {/* Durum ikonu */}
+                {wpLoading && (
+                  <ActivityIndicator
+                    size="small"
+                    color={COLORS.PRIMARY}
+                    style={S.statusIcon}
+                  />
+                )}
+                {!wpLoading && hasCoords && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={17}
+                    color={COLORS.SUCCESS}
+                    style={S.statusIcon}
+                  />
+                )}
+                {!wpLoading && !!wp.address && !hasCoords && (
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={17}
+                    color={COLORS.WARNING}
+                    style={S.statusIcon}
+                  />
+                )}
+              </View>
+
+              {/* Suggestions dropdown */}
+              {wpSuggestions.length > 0 && (
+                <View style={S.suggestionsDropdown}>
+                  {wpSuggestions.slice(0, 5).map((pred) => (
+                    <TouchableOpacity
+                      key={pred.place_id}
+                      onPress={() => handleSelectSuggestion(wp.id, pred)}
+                      style={S.suggestionItem}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name="location-outline"
+                        size={14}
+                        color={COLORS.TEXT_MUTED}
+                        style={S.suggestionIcon}
+                      />
+                      <View style={S.suggestionText}>
+                        <Text style={S.suggestionMainText} numberOfLines={1}>
+                          {pred.structured_formatting?.main_text ||
+                            pred.description}
+                        </Text>
+                        {!!pred.structured_formatting?.secondary_text && (
+                          <Text style={S.suggestionSubText} numberOfLines={1}>
+                            {pred.structured_formatting.secondary_text}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
 
             {/* Planned Arrival — tap to pick date/time */}
-            <View
-              style={{
-                marginTop: 10,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
+            <View style={S.plannedRow}>
               <TouchableOpacity
                 onPress={() =>
                   !readOnly && openPlannedPicker(wp.id, wp.planned_arrival)
                 }
                 activeOpacity={0.7}
                 disabled={readOnly}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  flex: 1,
-                  backgroundColor: withAlpha(COLORS.PRIMARY, 0.06),
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: withAlpha(COLORS.PRIMARY, 0.15),
-                }}
+                style={S.plannedBtn}
               >
                 <Ionicons
                   name="time-outline"
                   size={16}
                   color={COLORS.PRIMARY}
                 />
-                <View style={{ width: 8 }} />
+                <View style={S.plannedGap} />
                 <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 13,
-                    color: plannedDisplay ? COLORS.TEXT : COLORS.MUTED,
-                    fontWeight: plannedDisplay ? "600" : "400",
-                  }}
+                  style={[
+                    S.plannedText,
+                    plannedDisplay ? S.plannedTextFilled : S.plannedTextEmpty,
+                  ]}
                   numberOfLines={1}
                 >
                   {plannedDisplay || L.planned}
@@ -550,7 +564,7 @@ const WaypointEditor = ({
                 <Ionicons
                   name="chevron-forward"
                   size={14}
-                  color={COLORS.MUTED}
+                  color={COLORS.TEXT_MUTED}
                 />
               </TouchableOpacity>
 
@@ -558,100 +572,16 @@ const WaypointEditor = ({
               {wp.planned_arrival && !readOnly && (
                 <TouchableOpacity
                   onPress={() => updateWaypoint(wp.id, "planned_arrival", null)}
-                  style={{ padding: 8, marginLeft: 4 }}
+                  style={S.plannedClearBtn}
                 >
                   <Ionicons
                     name="close-circle"
                     size={20}
-                    color={COLORS.MUTED}
+                    color={COLORS.TEXT_MUTED}
                   />
                 </TouchableOpacity>
               )}
             </View>
-
-            {/* Collapsible Lat/Lng toggle */}
-            <TouchableOpacity
-              onPress={() => toggleCoords(wp.id)}
-              activeOpacity={0.7}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 10,
-                paddingVertical: 4,
-              }}
-            >
-              <Ionicons
-                name={showCoords ? "chevron-up" : "chevron-down"}
-                size={14}
-                color={COLORS.MUTED}
-              />
-              <View style={{ width: 4 }} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: COLORS.MUTED,
-                  fontWeight: "500",
-                }}
-              >
-                {L.coordsToggle}
-                {wp.latitude && wp.longitude
-                  ? ` (${Number(wp.latitude).toFixed(4)}, ${Number(wp.longitude).toFixed(4)})`
-                  : ""}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Lat / Lng row — collapsible */}
-            {showCoords && (
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
-                <TextInput
-                  style={[
-                    baseInput,
-                    { flex: 1 },
-                    wp.latitude && !isValidLat(wp.latitude)
-                      ? { borderColor: COLORS.ERROR || "#FF0000" }
-                      : {},
-                  ]}
-                  placeholder={L.lat}
-                  placeholderTextColor={COLORS.PLACEHOLDER || COLORS.MUTED}
-                  value={wp.latitude != null ? String(wp.latitude) : ""}
-                  onChangeText={(val) =>
-                    updateWaypoint(wp.id, "latitude", val || null)
-                  }
-                  keyboardType="numeric"
-                  editable={!readOnly}
-                />
-                <TextInput
-                  style={[
-                    baseInput,
-                    { flex: 1 },
-                    wp.longitude && !isValidLng(wp.longitude)
-                      ? { borderColor: COLORS.ERROR || "#FF0000" }
-                      : {},
-                  ]}
-                  placeholder={L.lng}
-                  placeholderTextColor={COLORS.PLACEHOLDER || COLORS.MUTED}
-                  value={wp.longitude != null ? String(wp.longitude) : ""}
-                  onChangeText={(val) =>
-                    updateWaypoint(wp.id, "longitude", val || null)
-                  }
-                  keyboardType="numeric"
-                  editable={!readOnly}
-                />
-              </View>
-            )}
-
-            {/* Invalid coords warning */}
-            {invalidCoords && (
-              <Text
-                style={{
-                  color: COLORS.ERROR || "#FF0000",
-                  fontSize: 12,
-                  marginTop: 4,
-                }}
-              >
-                {L.invalid}
-              </Text>
-            )}
           </View>
         );
       })}
@@ -679,67 +609,28 @@ const WaypointEditor = ({
           }}
         >
           <Pressable
-            style={{
-              flex: 1,
-              backgroundColor: withAlpha(COLORS.BLACK || "#000", 0.5),
-              justifyContent: "flex-end",
-            }}
+            style={S.modalOverlay}
             onPress={() => {
               setShowIOSModal(false);
               setPickerWpId(null);
             }}
           >
-            <Pressable
-              style={{
-                backgroundColor: COLORS.SURFACE || COLORS.WHITE || "#FFF",
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                borderWidth: 1,
-                borderColor: COLORS.DIVIDER || "#E0E0E0",
-              }}
-              onPress={() => {}}
-            >
+            <Pressable style={S.modalSheet} onPress={() => {}}>
               <SafeAreaView>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingHorizontal: 20,
-                    paddingVertical: 16,
-                    borderBottomWidth: 1,
-                    borderBottomColor: COLORS.DIVIDER || "#E0E0E0",
-                  }}
-                >
+                <View style={S.modalHeader}>
                   <TouchableOpacity
                     onPress={() => {
                       setShowIOSModal(false);
                       setPickerWpId(null);
                     }}
                   >
-                    <Text style={{ fontSize: 16, color: COLORS.MUTED }}>
+                    <Text style={S.modalCancelText}>
                       {labels.cancel || "Cancel"}
                     </Text>
                   </TouchableOpacity>
-                  <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: "600",
-                      color: COLORS.TEXT,
-                    }}
-                  >
-                    {L.planned}
-                  </Text>
+                  <Text style={S.modalTitleText}>{L.planned}</Text>
                   <TouchableOpacity onPress={handleIOSDone}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "600",
-                        color: COLORS.PRIMARY,
-                      }}
-                    >
-                      {labels.done || "Done"}
-                    </Text>
+                    <Text style={S.modalDoneText}>{labels.done || "Done"}</Text>
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
@@ -750,7 +641,7 @@ const WaypointEditor = ({
                     if (selected) setTempIOSValue(selected);
                   }}
                   is24Hour
-                  style={{ height: 216 }}
+                  style={S.datePicker}
                 />
               </SafeAreaView>
             </Pressable>
@@ -760,5 +651,277 @@ const WaypointEditor = ({
     </View>
   );
 };
+
+// ─────────────────────────────────────────────────────────
+// STYLES — COLORS token tabanlı, UI Guide v3 uyumlu
+// ─────────────────────────────────────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    // ── Header ───────────────────────────────────────────
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.md,
+    },
+    headerTitle: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    addBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.PRIMARY_LIGHT || COLORS.PRIMARY + "1A",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.xxl,
+    },
+    addBtnDisabled: {
+      backgroundColor: COLORS.DIVIDER,
+      opacity: 0.5,
+    },
+    addBtnText: {
+      color: COLORS.PRIMARY,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    addBtnTextDisabled: {
+      color: COLORS.TEXT_MUTED,
+    },
+
+    // ── Empty State ───────────────────────────────────────
+    emptyState: {
+      alignItems: "center",
+      paddingVertical: COLORS.SPACING.lg,
+      backgroundColor: COLORS.SURFACE_ALT || COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      borderStyle: "dashed",
+    },
+    emptyStateGap: {
+      height: COLORS.SPACING.sm,
+    },
+    emptyStateText: {
+      color: COLORS.TEXT_MUTED,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    emptyStateAddBtn: {
+      marginTop: COLORS.SPACING.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.PRIMARY_LIGHT || COLORS.PRIMARY + "1A",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.xxl,
+    },
+    emptyStateAddText: {
+      color: COLORS.PRIMARY,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+      marginLeft: COLORS.SPACING.xs,
+    },
+
+    // ── Waypoint Card ─────────────────────────────────────
+    card: {
+      backgroundColor: COLORS.SURFACE,
+      borderRadius: COLORS.RADIUS.card,
+      padding: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: COLORS.SPACING.sm,
+    },
+    cardHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    indexBadge: {
+      width: COLORS.SPACING.lg + COLORS.SPACING.xs,
+      height: COLORS.SPACING.lg + COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: COLORS.SPACING.sm,
+    },
+    indexBadgeText: {
+      color: COLORS.WHITE,
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+    },
+    wpNameText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    cardControls: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    controlBtn: {
+      padding: COLORS.SPACING.xs,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    controlBtnDisabled: {
+      opacity: 0.3,
+    },
+
+    // ── Base Input ────────────────────────────────────────
+    baseInput: {
+      backgroundColor: COLORS.INPUT_BG || COLORS.SURFACE,
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER || COLORS.DIVIDER,
+      borderRadius: COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+    },
+
+    // ── Address Input ─────────────────────────────────────
+    addressWrapper: {
+      marginTop: COLORS.SPACING.sm,
+    },
+    addressInputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: COLORS.INPUT_BORDER || COLORS.DIVIDER,
+      borderRadius: COLORS.RADIUS.md,
+      backgroundColor: COLORS.INPUT_BG || COLORS.SURFACE,
+      paddingHorizontal: COLORS.SPACING.sm,
+      minHeight: COLORS.SPACING.xxl + COLORS.SPACING.xs,
+    },
+    addressIcon: {
+      marginRight: COLORS.SPACING.sm,
+    },
+    addressInput: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_PRIMARY,
+      paddingVertical: COLORS.SPACING.sm,
+    },
+    statusIcon: {
+      marginLeft: COLORS.SPACING.sm,
+    },
+
+    // ── Suggestions Dropdown ──────────────────────────────
+    suggestionsDropdown: {
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      borderRadius: COLORS.RADIUS.md,
+      backgroundColor: COLORS.SURFACE,
+      marginTop: COLORS.SPACING.xs,
+      zIndex: 999,
+      ...COLORS.SHADOWS.card,
+    },
+    suggestionItem: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    suggestionIcon: {
+      marginRight: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.xs,
+    },
+    suggestionText: {
+      flex: 1,
+    },
+    suggestionMainText: {
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    suggestionSubText: {
+      ...COLORS.TYPOGRAPHY.styles.caption,
+      color: COLORS.TEXT_MUTED,
+      marginTop: COLORS.SPACING.xs,
+    },
+
+    // ── Planned Arrival ───────────────────────────────────
+    plannedRow: {
+      marginTop: COLORS.SPACING.sm,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    plannedBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      backgroundColor: COLORS.PRIMARY_LIGHT || COLORS.PRIMARY + "0F",
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.PRIMARY_BORDER || COLORS.PRIMARY + "26",
+    },
+    plannedGap: {
+      width: COLORS.SPACING.sm,
+    },
+    plannedText: {
+      flex: 1,
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+    },
+    plannedTextFilled: {
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+    },
+    plannedTextEmpty: {
+      color: COLORS.TEXT_MUTED,
+    },
+    plannedClearBtn: {
+      padding: COLORS.SPACING.sm,
+      marginLeft: COLORS.SPACING.xs,
+    },
+
+    // ── iOS Modal ─────────────────────────────────────────
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: COLORS.OVERLAY || COLORS.BLACK + "80",
+      justifyContent: "flex-end",
+    },
+    modalSheet: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xxl,
+      borderTopRightRadius: COLORS.RADIUS.xxl,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    modalCancelText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      color: COLORS.TEXT_MUTED,
+    },
+    modalTitleText: {
+      ...COLORS.TYPOGRAPHY.styles.h4,
+      color: COLORS.TEXT_PRIMARY,
+    },
+    modalDoneText: {
+      ...COLORS.TYPOGRAPHY.styles.body,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semiBold,
+      color: COLORS.PRIMARY,
+    },
+    datePicker: {
+      height: COLORS.SPACING.xxxl + COLORS.SPACING.xxxl + COLORS.SPACING.xxl,
+    },
+  });
 
 export default WaypointEditor;

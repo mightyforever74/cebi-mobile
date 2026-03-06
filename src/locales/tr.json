@@ -1789,5 +1789,36 @@
       "border": "Sınır / Gümrük",
       "sensitive_area": "Hassas Bölge"
     }
+  },
+  "vehicleList": {
+    "title": "Araç Listesi",
+    "total": "Toplam",
+    "online": "Çevrimiçi",
+    "offline": "Çevrimdışı",
+    "searchPlaceholder": "Plaka, marka veya model ara...",
+    "filterAll": "Tümü",
+    "filterOnline": "Çevrimiçi",
+    "filterAvailable": "Müsait",
+    "filterOffline": "Çevrimdışı",
+    "statusInUse": "Görevde",
+    "statusAvailable": "Müsait",
+    "statusMaintenance": "Bakımda",
+    "statusRetired": "Emekli",
+    "statusOffline": "Çevrimdışı",
+    "noLocation": "Konum yok",
+    "notFound": "Araç bulunamadı",
+    "empty": "Araç yok"
+  },
+  "fleetMap": {
+    "vehicle": "Araçlar",
+    "online": "Çevrimiçi",
+    "offline": "Çevrimdışı",
+    "lastUpdate": "Son güncelleme",
+    "tapForList": "Liste için dokun",
+    "vehicles": "Araçlar",
+    "zones": "Bölgeler",
+    "totalZones": "toplam bölge",
+    "activeZones": "aktif",
+    "tapEditToManage": "Bölgeleri yönetmek için düzenle"
   }
 }

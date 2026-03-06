@@ -1767,5 +1767,36 @@
       "border": "Border / Customs",
       "sensitive_area": "Sensitive Area"
     }
+  },
+  "vehicleList": {
+    "title": "Vehicle List",
+    "total": "Total",
+    "online": "Online",
+    "offline": "Offline",
+    "searchPlaceholder": "Search plate, brand or model...",
+    "filterAll": "All",
+    "filterOnline": "Online",
+    "filterAvailable": "Available",
+    "filterOffline": "Offline",
+    "statusInUse": "In Use",
+    "statusAvailable": "Available",
+    "statusMaintenance": "Maintenance",
+    "statusRetired": "Retired",
+    "statusOffline": "Offline",
+    "noLocation": "No location",
+    "notFound": "No vehicles found",
+    "empty": "No vehicles"
+  },
+  "fleetMap": {
+    "vehicle": "Vehicles",
+    "online": "Online",
+    "offline": "Offline",
+    "lastUpdate": "Last update",
+    "tapForList": "Tap for vehicle list",
+    "vehicles": "Vehicles",
+    "zones": "Zones",
+    "totalZones": "zones total",
+    "activeZones": "active",
+    "tapEditToManage": "Tap edit to manage zones"
   }
 }
