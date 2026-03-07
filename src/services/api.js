@@ -786,7 +786,7 @@ export const geofenceAPI = {
     const response = await api.put(`/api/geofences/${id}`, data);
     return response.data;
   },
-  remove: async (id) => {
+  delete: async (id) => {
     const response = await api.delete(`/api/geofences/${id}`);
     return response.data;
   },
