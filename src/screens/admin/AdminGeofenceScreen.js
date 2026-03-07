@@ -1,14 +1,19 @@
-// src/screens/admin/AdminGeofenceScreen.js
-// TulipFleet - Geofence Yönetim Ekranı v2
-// Teleport koruması | duration_seconds | Draw toolbar | Zone preview
+/**
+ * AdminGeofenceScreen.js - v1.0
+ * TulipFleet - Admin Geofence Management
+ * Phase 0 Foundation compliant: DataState / EmptyState / StatusBadge / withAlpha
+ * Circle + Polygon, alert integration, CSRD support
+ * Created: 07 Mart 2026
+ */
 
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Alert,
+  FlatList,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -17,1682 +22,1219 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Circle, Marker, Polygon } from "react-native-maps";
+import MapView, {
+  Circle,
+  Polygon,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { geofenceAPI } from "../../services/api";
+import { withAlpha } from "../../utils/colorUtils";
+import Card from "../../components/ui/Card";
+import DataState from "../../components/ui/DataState";
+import EmptyState from "../../components/ui/EmptyState";
+import StatusBadge from "../../components/ui/StatusBadge";
 
-// ─────────────────────────────────────────────
-// KATEGORİ TANIMI
-// ─────────────────────────────────────────────
-const FENCE_CATEGORIES = [
-  { key: "general", icon: "location-outline", color: "#6B7280" },
-  { key: "depot", icon: "home-outline", color: "#3B82F6" },
-  { key: "city_center", icon: "business-outline", color: "#8B5CF6" },
-  { key: "emission_zone", icon: "leaf-outline", color: "#10B981" },
-  { key: "border", icon: "flag-outline", color: "#F59E0B" },
-  { key: "sensitive_area", icon: "shield-outline", color: "#EF4444" },
-];
+// ─── Constants ────────────────────────────────────────────────────────────────
+const FENCE_TYPES = ["circle", "polygon"];
 
-const getCategoryColor = (key) =>
-  FENCE_CATEGORIES.find((c) => c.key === key)?.color || "#6B7280";
-const getCategoryIcon = (key) =>
-  FENCE_CATEGORIES.find((c) => c.key === key)?.icon || "location-outline";
+const RADIUS_PRESETS = [100, 250, 500, 1000, 2500, 5000];
 
-function formatDuration(seconds) {
-  if (!seconds) return null;
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}s ${m}dk`;
-  return `${m}dk`;
-}
+const CATEGORY_ICONS = {
+  general:        "location-outline",
+  depot:          "business-outline",
+  city_center:    "storefront-outline",
+  emission_zone:  "leaf-outline",
+  border:         "flag-outline",
+  sensitive_area: "warning-outline",
+};
 
-// ─────────────────────────────────────────────
-// COMPONENT
-// ─────────────────────────────────────────────
-const AdminGeofenceScreen = ({ navigation }) => {
-  const { COLORS } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-  const { t } = useTranslation();
+const CATEGORY_COLORS = (COLORS) => ({
+  general:        COLORS.PRIMARY,
+  depot:          COLORS.INFO,
+  city_center:    COLORS.WARNING,
+  emission_zone:  COLORS.SUCCESS,
+  border:         COLORS.LABEL,
+  sensitive_area: COLORS.ERROR,
+});
 
-  // Liste
-  const [geofences, setGeofences] = useState([]);
-  const [loading, setLoading] = useState(true);
+const DEFAULT_REGION = {
+  latitude:       41.0082,
+  longitude:      28.9784,
+  latitudeDelta:  0.15,
+  longitudeDelta: 0.15,
+};
 
-  // Modal
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingFence, setEditingFence] = useState(null);
-  const [saving, setSaving] = useState(false);
+const EMPTY_FORM = {
+  name:             "",
+  description:      "",
+  fence_type:       "circle",
+  category:         "general",
+  radius:           500,
+  customRadius:     "",
+  alert_on_entry:   false,
+  alert_on_exit:    false,
+  time_restriction: false,
+  start_hour:       "08",
+  end_hour:         "18",
+  csrd_tracked:     false,
+};
 
-  // Önizleme modal
-  const [previewFence, setPreviewFence] = useState(null);
+// ─── makeStyles ──────────────────────────────────────────────────────────────
+const makeStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+    },
 
-  // Form
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    fence_type: "circle",
-    coordinates: null,
-    radius: "500",
-    alert_on_entry: true,
-    alert_on_exit: true,
-    fence_category: "general",
-    time_restriction: {
-      enabled: false,
-      start_hour: 22,
-      end_hour: 6,
-      days: [0, 1, 2, 3, 4, 5, 6],
+    // ── Header bar ──
+    headerBar: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      justifyContent:  "space-between",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical:   COLORS.SPACING.sm,
+      backgroundColor:   COLORS.SURFACE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    headerStats: {
+      flexDirection: "row",
+      alignItems:    "center",
+    },
+    headerStatText: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      color:      COLORS.TEXT_SECONDARY,
+      marginLeft: 4,
+    },
+    headerStatBold: {
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color:      COLORS.TEXT,
+    },
+    addButton: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      backgroundColor: COLORS.PRIMARY,
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical:   COLORS.SPACING.xs,
+      borderRadius:      COLORS.RADIUS.pill,
+    },
+    addButtonText: {
+      color:      COLORS.WHITE,
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: 4,
+    },
+
+    // ── List ──
+    listContent: {
+      padding: COLORS.SPACING.md,
+      paddingBottom: 32,
+    },
+    zoneCard: {
+      marginBottom: COLORS.SPACING.sm,
+    },
+    zoneCardInner: {
+      padding: COLORS.SPACING.md,
+    },
+    zoneRow: {
+      flexDirection:  "row",
+      alignItems:     "center",
+    },
+    zoneIconWrap: {
+      width:           44,
+      height:          44,
+      borderRadius:    COLORS.RADIUS.xl,
+      alignItems:      "center",
+      justifyContent:  "center",
+      marginRight:     COLORS.SPACING.sm,
+    },
+    zoneInfo: {
+      flex: 1,
+    },
+    zoneName: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color:      COLORS.TEXT,
+    },
+    zoneMeta: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      color:      COLORS.TEXT_SECONDARY,
+      marginTop:  2,
+    },
+    zoneBadgeRow: {
+      flexDirection:  "row",
+      alignItems:     "center",
+      marginTop:      COLORS.SPACING.xs,
+      flexWrap:       "wrap",
+    },
+    zoneTag: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      borderRadius:    COLORS.RADIUS.sm,
+      paddingHorizontal: 6,
+      paddingVertical:   2,
+      marginRight:     4,
+      marginTop:       4,
+    },
+    zoneTagText: {
+      fontSize:   11,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      marginLeft: 3,
+    },
+    zoneActions: {
+      flexDirection: "row",
+      alignItems:    "center",
+      marginLeft:    COLORS.SPACING.xs,
+    },
+    actionBtn: {
+      width:           36,
+      height:          36,
+      borderRadius:    COLORS.RADIUS.lg,
+      alignItems:      "center",
+      justifyContent:  "center",
+      marginLeft:      4,
+    },
+
+    // ── Map preview strip ──
+    mapStrip: {
+      height:           160,
+      marginHorizontal: COLORS.SPACING.md,
+      marginBottom:     COLORS.SPACING.sm,
+      borderRadius:     COLORS.RADIUS.card,
+      overflow:         "hidden",
+      ...COLORS.SHADOWS.card,
+    },
+    mapStripMap: {
+      flex: 1,
+    },
+
+    // ── Modal ──
+    modalOverlay: {
+      flex:            1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent:  "flex-end",
+    },
+    modalSheet: {
+      backgroundColor:  COLORS.SURFACE,
+      borderTopLeftRadius:  COLORS.RADIUS.xl,
+      borderTopRightRadius: COLORS.RADIUS.xl,
+      maxHeight:        "92%",
+    },
+    modalHandle: {
+      width:           40,
+      height:          4,
+      borderRadius:    2,
+      backgroundColor: COLORS.DIVIDER,
+      alignSelf:       "center",
+      marginTop:       COLORS.SPACING.sm,
+      marginBottom:    COLORS.SPACING.xs,
+    },
+    modalHeader: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      justifyContent:  "space-between",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical:   COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    modalTitle: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.lg,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color:      COLORS.TEXT,
+    },
+    modalClose: {
+      padding: 4,
+    },
+    modalScroll: {
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical:   COLORS.SPACING.md,
+    },
+
+    // ── Form ──
+    sectionLabel: {
+      fontSize:     COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight:   COLORS.TYPOGRAPHY.weights.semibold,
+      color:        COLORS.TEXT_SECONDARY,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      marginBottom:  COLORS.SPACING.xs,
+      marginTop:     COLORS.SPACING.md,
+    },
+    textInput: {
+      backgroundColor:   COLORS.BACKGROUND,
+      borderRadius:      COLORS.RADIUS.md,
+      borderWidth:       1,
+      borderColor:       COLORS.DIVIDER,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical:   Platform.OS === "ios" ? 12 : 8,
+      fontSize:          COLORS.TYPOGRAPHY.sizes.md,
+      color:             COLORS.TEXT,
+    },
+    textInputMulti: {
+      height:     80,
+      textAlignVertical: "top",
+    },
+    segmentRow: {
+      flexDirection: "row",
+      borderRadius:  COLORS.RADIUS.md,
+      overflow:      "hidden",
+      borderWidth:   1,
+      borderColor:   COLORS.DIVIDER,
+    },
+    segmentBtn: {
+      flex:            1,
+      paddingVertical: COLORS.SPACING.sm,
+      alignItems:      "center",
+      justifyContent:  "center",
+      flexDirection:   "row",
+      backgroundColor: COLORS.BACKGROUND,
+    },
+    segmentBtnActive: {
+      backgroundColor: COLORS.PRIMARY,
+    },
+    segmentText: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      color:      COLORS.TEXT_SECONDARY,
+      marginLeft: 4,
+    },
+    segmentTextActive: {
+      color: COLORS.WHITE,
+    },
+    categoryGrid: {
+      flexDirection: "row",
+      flexWrap:      "wrap",
+    },
+    categoryChip: {
+      flexDirection:     "row",
+      alignItems:        "center",
+      borderRadius:      COLORS.RADIUS.pill,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical:   COLORS.SPACING.xs,
+      marginRight:       COLORS.SPACING.xs,
+      marginBottom:      COLORS.SPACING.xs,
+      borderWidth:       1,
+    },
+    categoryChipText: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+      marginLeft: 4,
+    },
+    radiusPresets: {
+      flexDirection: "row",
+      flexWrap:      "wrap",
+    },
+    radiusChip: {
+      borderRadius:      COLORS.RADIUS.pill,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical:   4,
+      marginRight:       COLORS.SPACING.xs,
+      marginBottom:      COLORS.SPACING.xs,
+      borderWidth:       1,
+    },
+    radiusChipText: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    switchRow: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      justifyContent:  "space-between",
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    switchRowLast: {
+      borderBottomWidth: 0,
+    },
+    switchLabel: {
+      flex:       1,
+      marginRight: COLORS.SPACING.sm,
+    },
+    switchLabelText: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.md,
+      color:      COLORS.TEXT,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    switchLabelSub: {
+      fontSize:  COLORS.TYPOGRAPHY.sizes.xs,
+      color:     COLORS.TEXT_SECONDARY,
+      marginTop: 2,
+    },
+    hourRow: {
+      flexDirection: "row",
+      alignItems:    "center",
+      marginTop:     COLORS.SPACING.xs,
+    },
+    hourInput: {
+      width:             56,
+      textAlign:         "center",
+      backgroundColor:   COLORS.BACKGROUND,
+      borderRadius:      COLORS.RADIUS.md,
+      borderWidth:       1,
+      borderColor:       COLORS.DIVIDER,
+      paddingVertical:   COLORS.SPACING.xs,
+      fontSize:          COLORS.TYPOGRAPHY.sizes.md,
+      color:             COLORS.TEXT,
+      fontWeight:        COLORS.TYPOGRAPHY.weights.bold,
+    },
+    hourSep: {
+      fontSize:   COLORS.TYPOGRAPHY.sizes.lg,
+      color:      COLORS.TEXT_SECONDARY,
+      marginHorizontal: COLORS.SPACING.xs,
+    },
+    csrdBanner: {
+      flexDirection:     "row",
+      alignItems:        "flex-start",
+      backgroundColor:   withAlpha(COLORS.SUCCESS, 0.1),
+      borderRadius:      COLORS.RADIUS.md,
+      padding:           COLORS.SPACING.sm,
+      marginTop:         COLORS.SPACING.xs,
+      borderLeftWidth:   3,
+      borderLeftColor:   COLORS.SUCCESS,
+    },
+    csrdBannerText: {
+      flex:      1,
+      fontSize:  COLORS.TYPOGRAPHY.sizes.xs,
+      color:     COLORS.TEXT_SECONDARY,
+      marginLeft: COLORS.SPACING.xs,
+      lineHeight: 16,
+    },
+
+    // ── Draw map in modal ──
+    drawMapWrap: {
+      height:       220,
+      borderRadius: COLORS.RADIUS.md,
+      overflow:     "hidden",
+      marginTop:    COLORS.SPACING.xs,
+    },
+    drawMap: {
+      flex: 1,
+    },
+    drawHint: {
+      // overlay: harita üzeri okunabilirlik için #000 sabit — theme token değil, bilinçli istisna
+      backgroundColor:   withAlpha("#000000", 0.55),
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical:   COLORS.SPACING.xs,
+      borderRadius:      COLORS.RADIUS.md,
+      position:          "absolute",
+      bottom:            COLORS.SPACING.sm,
+      alignSelf:         "center",
+    },
+    drawHintText: {
+      color:     "#FFFFFF",
+      fontSize:  COLORS.TYPOGRAPHY.sizes.xs,
+      textAlign: "center",
+    },
+    drawClearBtn: {
+      position:          "absolute",
+      top:               COLORS.SPACING.xs,
+      right:             COLORS.SPACING.xs,
+      // overlay: harita üzeri okunabilirlik için #000 sabit — bilinçli istisna
+      backgroundColor:   withAlpha("#000000", 0.55),
+      borderRadius:      COLORS.RADIUS.md,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical:   4,
+      flexDirection:     "row",
+      alignItems:        "center",
+    },
+    drawClearText: {
+      color:     "#FFFFFF",
+      fontSize:  COLORS.TYPOGRAPHY.sizes.xs,
+      marginLeft: 4,
+    },
+
+    // ── Save button ──
+    saveBtn: {
+      backgroundColor:   COLORS.PRIMARY,
+      borderRadius:      COLORS.RADIUS.pill,
+      paddingVertical:   COLORS.SPACING.sm,
+      alignItems:        "center",
+      justifyContent:    "center",
+      marginTop:         COLORS.SPACING.lg,
+      marginBottom:      COLORS.SPACING.md,
+    },
+    saveBtnDisabled: {
+      opacity: 0.5,
+    },
+    saveBtnText: {
+      color:      COLORS.WHITE,
+      fontSize:   COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
   });
 
-  // Harita — draw mode
-  // drawMode: null | 'circle' | 'polygon'
-  const [drawMode, setDrawMode] = useState(null);
-  const [polygonPoints, setPolygonPoints] = useState([]);
-  const mapRef = useRef(null);
-  const modalMapRef = useRef(null);
+// ─── Component ────────────────────────────────────────────────────────────────
+export default function AdminGeofenceScreen() {
+  const { COLORS } = useTheme();
+  const styles    = useThemedStyles(makeStyles);
+  const { t }     = useTranslation();
+  const mapRef    = useRef(null);
+  const drawMapRef = useRef(null);
 
-  const [mapRegion] = useState({
-    latitude: 41.0082,
-    longitude: 28.9784,
-    latitudeDelta: 0.15,
-    longitudeDelta: 0.15,
-  });
+  // ── State ──
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
+  const [zones,     setZones]     = useState([]);
+  const [saving,    setSaving]    = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editZone,  setEditZone]  = useState(null);   // null = new
+  const [form,      setForm]      = useState(EMPTY_FORM);
+  const [drawPoints, setDrawPoints] = useState([]);   // polygon points
+  const [circleCenter, setCircleCenter] = useState(null); // circle center
 
-  // ─────────────────────────────────────────────
-  // FETCH
-  // ─────────────────────────────────────────────
-  const fetchGeofences = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+  // ── Derived ──
+  const catColors = useMemo(() => CATEGORY_COLORS(COLORS), [COLORS]);
+
+  const activeCount = useMemo(
+    () => zones.filter((z) => z.is_active).length,
+    [zones]
+  );
+
+  // ── Load ──
+  const loadZones = useCallback(async () => {
     try {
+      setError(null);
+      setLoading(true);
       const data = await geofenceAPI.getAll();
-      setGeofences(data.geofences || []);
-    } catch (err) {
-      console.error("Geofence fetch:", err);
+      setZones(data.zones ?? data ?? []);
+    } catch (e) {
+      setError(e);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchGeofences();
-  }, [fetchGeofences]);
+  useEffect(() => { loadZones(); }, [loadZones]);
 
-  // ─────────────────────────────────────────────
-  // FORM
-  // ─────────────────────────────────────────────
-  const resetForm = () => {
+  // ── Open modal ──
+  const openNew = useCallback(() => {
+    setEditZone(null);
+    setForm(EMPTY_FORM);
+    setDrawPoints([]);
+    setCircleCenter(null);
+    setShowModal(true);
+  }, []);
+
+  const openEdit = useCallback((zone) => {
+    setEditZone(zone);
+    const coords = zone.coordinates ?? {};
     setForm({
-      name: "",
-      description: "",
-      fence_type: "circle",
-      coordinates: null,
-      radius: "500",
-      alert_on_entry: true,
-      alert_on_exit: true,
-      fence_category: "general",
-      time_restriction: {
-        enabled: false,
-        start_hour: 22,
-        end_hour: 6,
-        days: [0, 1, 2, 3, 4, 5, 6],
-      },
+      name:             zone.name ?? "",
+      description:      zone.description ?? "",
+      fence_type:       zone.fence_type ?? "circle",
+      category:         zone.category ?? "general",
+      radius:           zone.radius ?? 500,
+      customRadius:     "",
+      alert_on_entry:   zone.alert_on_entry ?? false,
+      alert_on_exit:    zone.alert_on_exit ?? false,
+      time_restriction: !!(zone.start_hour || zone.end_hour),
+      start_hour:       zone.start_hour != null ? String(zone.start_hour).padStart(2, "0") : "08",
+      end_hour:         zone.end_hour   != null ? String(zone.end_hour).padStart(2, "0")   : "18",
+      csrd_tracked:     zone.csrd_tracked ?? false,
     });
-    setPolygonPoints([]);
-    setDrawMode(null);
-    setEditingFence(null);
-  };
-
-  const openCreate = () => {
-    resetForm();
-    setModalVisible(true);
-  };
-
-  const openEdit = (fence) => {
-    setEditingFence(fence);
-    setForm({
-      name: fence.name,
-      description: fence.description || "",
-      fence_type: fence.fence_type,
-      coordinates: fence.coordinates,
-      radius: String(fence.radius || 500),
-      alert_on_entry: fence.alert_on_entry,
-      alert_on_exit: fence.alert_on_exit,
-      fence_category: fence.fence_category || "general",
-      time_restriction: fence.time_restriction || {
-        enabled: false,
-        start_hour: 22,
-        end_hour: 6,
-        days: [0, 1, 2, 3, 4, 5, 6],
-      },
-    });
-    if (fence.fence_type === "polygon") setPolygonPoints(fence.coordinates);
-    setModalVisible(true);
-  };
-
-  // ─────────────────────────────────────────────
-  // DRAW MODE
-  // ─────────────────────────────────────────────
-  const activateDrawMode = (type) => {
-    // Tip değişince çizimi sıfırla
-    if (type !== form.fence_type) {
-      setForm((p) => ({ ...p, fence_type: type, coordinates: null }));
-      setPolygonPoints([]);
-    }
-    setDrawMode(type);
-  };
-
-  const handleMapLongPress = (e) => {
-    if (!drawMode) return;
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-
-    if (drawMode === "circle") {
-      setForm((p) => ({
-        ...p,
-        coordinates: { lat: latitude, lng: longitude },
-      }));
-      setDrawMode(null); // çember için tek tıklama yeterli
+    if (zone.fence_type === "circle" && coords.lat) {
+      setCircleCenter({ latitude: coords.lat, longitude: coords.lng });
+      setDrawPoints([]);
+    } else if (zone.fence_type === "polygon" && Array.isArray(coords)) {
+      setDrawPoints(coords.map((c) => ({ latitude: c.lat, longitude: c.lng })));
+      setCircleCenter(null);
     } else {
-      const newPoints = [...polygonPoints, { lat: latitude, lng: longitude }];
-      setPolygonPoints(newPoints);
-      setForm((p) => ({ ...p, coordinates: newPoints }));
+      setDrawPoints([]);
+      setCircleCenter(null);
     }
-  };
+    setShowModal(true);
+  }, []);
 
-  const undoLastPoint = () => {
-    const newPoints = polygonPoints.slice(0, -1);
-    setPolygonPoints(newPoints);
-    setForm((p) => ({
-      ...p,
-      coordinates: newPoints.length > 0 ? newPoints : null,
-    }));
-  };
+  // ── Map long-press draw ──
+  const handleDrawPress = useCallback((e) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    if (form.fence_type === "circle") {
+      setCircleCenter({ latitude, longitude });
+    } else {
+      setDrawPoints((prev) => [...prev, { latitude, longitude }]);
+    }
+  }, [form.fence_type]);
 
-  const clearDraw = () => {
-    setPolygonPoints([]);
-    setForm((p) => ({ ...p, coordinates: null }));
-    setDrawMode(null);
-  };
-
-  // ─────────────────────────────────────────────
-  // KAYDET
-  // ─────────────────────────────────────────────
-  const handleSave = async () => {
+  // ── Save ──
+  const handleSave = useCallback(async () => {
     if (!form.name.trim()) {
-      Alert.alert(t("common.error"), t("geofence.nameRequired"));
+      Alert.alert("", t("geofence.nameRequired"));
       return;
     }
-    if (!form.coordinates) {
-      Alert.alert(t("common.error"), t("geofence.drawFirst"));
+    const effectiveRadius = form.customRadius
+      ? parseInt(form.customRadius, 10)
+      : form.radius;
+
+    if (form.fence_type === "circle" && !circleCenter) {
+      Alert.alert("", t("geofence.drawFirst"));
       return;
     }
-    if (form.fence_type === "polygon" && polygonPoints.length < 3) {
-      Alert.alert(t("common.error"), t("geofence.polygonMinPoints"));
+    if (form.fence_type === "polygon" && drawPoints.length < 3) {
+      Alert.alert("", t("geofence.polygonMinPoints"));
       return;
     }
-    setSaving(true);
+
+    // Saat validasyonu
+    if (form.time_restriction) {
+      const sh = parseInt(form.start_hour, 10);
+      const eh = parseInt(form.end_hour, 10);
+      if (isNaN(sh) || sh < 0 || sh > 23 || isNaN(eh) || eh < 0 || eh > 23) {
+        Alert.alert("", t("common.invalidHour", "Geçerli saat aralığı 0–23 olmalıdır."));
+        return;
+      }
+    }
+
+    const coordinates =
+      form.fence_type === "circle"
+        ? { lat: circleCenter.latitude, lng: circleCenter.longitude, radius: effectiveRadius }
+        : drawPoints.map((p) => ({ lat: p.latitude, lng: p.longitude }));
+
+    const payload = {
+      name:           form.name.trim(),
+      description:    form.description.trim(),
+      fence_type:     form.fence_type,
+      category:       form.category,
+      radius:         form.fence_type === "circle" ? effectiveRadius : null,
+      coordinates,
+      alert_on_entry: form.alert_on_entry,
+      alert_on_exit:  form.alert_on_exit,
+      start_hour:     form.time_restriction ? parseInt(form.start_hour, 10) : null,
+      end_hour:       form.time_restriction ? parseInt(form.end_hour, 10)   : null,
+      csrd_tracked:   form.csrd_tracked,
+    };
+
     try {
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim() || null,
-        fence_type: form.fence_type,
-        coordinates: form.coordinates,
-        radius: form.fence_type === "circle" ? parseFloat(form.radius) : null,
-        alert_on_entry: form.alert_on_entry,
-        alert_on_exit: form.alert_on_exit,
-        fence_category: form.fence_category,
-        time_restriction: form.time_restriction.enabled
-          ? form.time_restriction
-          : null,
-      };
-      if (editingFence) await geofenceAPI.update(editingFence.id, payload);
-      else await geofenceAPI.create(payload);
-      setModalVisible(false);
-      resetForm();
-      fetchGeofences(true);
-    } catch (err) {
-      Alert.alert(
-        t("common.error"),
-        err?.response?.data?.error || t("geofence.saveFailed")
-      );
+      setSaving(true);
+      if (editZone) {
+        await geofenceAPI.update(editZone.id, payload);
+      } else {
+        await geofenceAPI.create(payload);
+      }
+      setShowModal(false);
+      loadZones();
+    } catch {
+      Alert.alert("", editZone ? t("geofence.updateFailed") : t("geofence.saveFailed"));
     } finally {
       setSaving(false);
     }
-  };
+  }, [form, circleCenter, drawPoints, editZone, loadZones, t]);
 
-  // ─────────────────────────────────────────────
-  // SİL / TOGGLE
-  // ─────────────────────────────────────────────
-  const handleDelete = (fence) => {
+  // ── Delete ──
+  const handleDelete = useCallback((zone) => {
     Alert.alert(
       t("geofence.deleteTitle"),
-      t("geofence.deleteConfirm", { name: fence.name }),
+      t("geofence.deleteConfirm", { name: zone.name }),
       [
         { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("common.delete"),
+          text:  t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
-              await geofenceAPI.remove(fence.id);
-              fetchGeofences(true);
+              await geofenceAPI.delete(zone.id);
+              loadZones();
             } catch {
-              Alert.alert(t("common.error"), t("geofence.deleteFailed"));
+              Alert.alert("", t("geofence.deleteFailed"));
             }
           },
         },
       ]
     );
-  };
+  }, [loadZones, t]);
 
-  const handleToggleActive = async (fence) => {
+  // ── Toggle active — optimistic: önce local güncelle, fail → rollback ──
+  const handleToggleActive = useCallback(async (zone) => {
+    const prev = zone.is_active;
+    // 1. Önce local state'i güncelle (optimistic)
+    setZones((z) =>
+      z.map((z) => z.id === zone.id ? { ...z, is_active: !prev } : z)
+    );
     try {
-      await geofenceAPI.update(fence.id, { is_active: !fence.is_active });
-      fetchGeofences(true);
+      // 2. API'yi çağır
+      await geofenceAPI.update(zone.id, { is_active: !prev });
     } catch {
-      Alert.alert(t("common.error"), t("geofence.updateFailed"));
+      // 3. Fail → eski değere rollback
+      setZones((z) =>
+        z.map((z) => z.id === zone.id ? { ...z, is_active: prev } : z)
+      );
     }
-  };
+  }, []);
 
-  // ─────────────────────────────────────────────
-  // RENDER — Önizleme modal
-  // ─────────────────────────────────────────────
-  const renderPreviewModal = () => {
-    if (!previewFence) return null;
-    const f = previewFence;
-    const catColor = getCategoryColor(f.fence_category);
-
-    const region =
-      f.fence_type === "circle" && f.coordinates?.lat
-        ? {
-            latitude: parseFloat(f.coordinates.lat),
-            longitude: parseFloat(f.coordinates.lng),
-            latitudeDelta: Math.max(0.02, (parseFloat(f.radius) * 6) / 111000),
-            longitudeDelta: Math.max(0.02, (parseFloat(f.radius) * 6) / 111000),
-          }
-        : f.fence_type === "polygon" && f.coordinates?.length > 0
-          ? {
-              latitude:
-                f.coordinates.reduce((a, p) => a + p.lat, 0) /
-                f.coordinates.length,
-              longitude:
-                f.coordinates.reduce((a, p) => a + p.lng, 0) /
-                f.coordinates.length,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }
-          : mapRegion;
+  // ── Render zone item ──
+  const renderZone = useCallback(({ item }) => {
+    const catColor = catColors[item.category] ?? COLORS.PRIMARY;
+    const catIcon  = CATEGORY_ICONS[item.category] ?? "location-outline";
+    const radiusLabel =
+      item.fence_type === "circle" && item.radius
+        ? item.radius >= 1000
+          ? `${(item.radius / 1000).toFixed(1)} km`
+          : `${item.radius} m`
+        : item.fence_type === "polygon"
+        ? t("geofence.polygon")
+        : "";
 
     return (
-      <Modal
-        visible={!!previewFence}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setPreviewFence(null)}
-      >
-        <View style={styles.previewContainer}>
-          {/* Header */}
-          <View style={[styles.previewHeader, { borderBottomColor: catColor }]}>
-            <TouchableOpacity onPress={() => setPreviewFence(null)}>
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={COLORS.TEXT_PRIMARY}
+      <Card variant="elevated" style={styles.zoneCard}>
+        <View style={styles.zoneCardInner}>
+          <View style={styles.zoneRow}>
+            {/* Category icon */}
+            <View
+              style={[
+                styles.zoneIconWrap,
+                { backgroundColor: withAlpha(catColor, 0.12) },
+              ]}
+            >
+              <Ionicons name={catIcon} size={22} color={catColor} />
+            </View>
+
+            {/* Info */}
+            <View style={styles.zoneInfo}>
+              <Text style={styles.zoneName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.zoneMeta} numberOfLines={1}>
+                {radiusLabel}
+                {item.description ? `  ·  ${item.description}` : ""}
+              </Text>
+            </View>
+
+            {/* Active toggle + actions */}
+            <View style={styles.zoneActions}>
+              <Switch
+                value={item.is_active}
+                onValueChange={() => handleToggleActive(item)}
+                trackColor={{ false: COLORS.DIVIDER, true: withAlpha(COLORS.SUCCESS, 0.4) }}
+                thumbColor={item.is_active ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY}
+                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
               />
-            </TouchableOpacity>
-            <View style={styles.previewTitleBlock}>
-              <Text style={styles.previewTitle}>{f.name}</Text>
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: withAlpha(COLORS.PRIMARY, 0.08) }]}
+                onPress={() => openEdit(item)}
+              >
+                <Ionicons name="pencil-outline" size={16} color={COLORS.PRIMARY} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: withAlpha(COLORS.ERROR, 0.08) }]}
+                onPress={() => handleDelete(item)}
+              >
+                <Ionicons name="trash-outline" size={16} color={COLORS.ERROR} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Tags */}
+          <View style={styles.zoneBadgeRow}>
+            {/* Active / Passive badge */}
+            <StatusBadge
+              status={item.is_active ? "ONLINE" : "OFFLINE"}
+              size="sm"
+              dot
+            />
+
+            {/* Alert tags */}
+            {item.alert_on_entry && (
               <View
                 style={[
-                  styles.previewStatusBadge,
-                  {
-                    backgroundColor: f.is_active
-                      ? COLORS.SUCCESS + "20"
-                      : COLORS.MUTED + "30",
-                  },
+                  styles.zoneTag,
+                  { backgroundColor: withAlpha(COLORS.INFO, 0.1), borderColor: "transparent" },
                 ]}
               >
-                <View
-                  style={[
-                    styles.previewStatusDot,
-                    {
-                      backgroundColor: f.is_active
-                        ? COLORS.SUCCESS
-                        : COLORS.TEXT_SECONDARY,
-                    },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.previewStatusText,
-                    {
-                      color: f.is_active
-                        ? COLORS.SUCCESS
-                        : COLORS.TEXT_SECONDARY,
-                    },
-                  ]}
-                >
-                  {f.is_active ? t("geofence.active") : t("common.off")}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setPreviewFence(null);
-                openEdit(f);
-              }}
-            >
-              <Ionicons
-                name="pencil-outline"
-                size={22}
-                color={COLORS.PRIMARY}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Harita */}
-          <MapView
-            ref={mapRef}
-            style={styles.previewMap}
-            initialRegion={region}
-            scrollEnabled
-            zoomEnabled
-          >
-            {f.fence_type === "circle" && f.coordinates?.lat && (
-              <>
-                <Circle
-                  center={{
-                    latitude: parseFloat(f.coordinates.lat),
-                    longitude: parseFloat(f.coordinates.lng),
-                  }}
-                  radius={parseFloat(f.radius)}
-                  fillColor={catColor + (f.is_active ? "30" : "15")}
-                  strokeColor={f.is_active ? catColor : COLORS.MUTED}
-                  strokeWidth={f.is_active ? 2 : 1}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: parseFloat(f.coordinates.lat),
-                    longitude: parseFloat(f.coordinates.lng),
-                  }}
-                  pinColor={f.is_active ? catColor : "#9CA3AF"}
-                />
-              </>
-            )}
-            {f.fence_type === "polygon" &&
-              Array.isArray(f.coordinates) &&
-              f.coordinates.length >= 3 && (
-                <Polygon
-                  coordinates={f.coordinates.map((p) => ({
-                    latitude: p.lat,
-                    longitude: p.lng,
-                  }))}
-                  fillColor={catColor + (f.is_active ? "30" : "15")}
-                  strokeColor={f.is_active ? catColor : COLORS.MUTED}
-                  strokeWidth={f.is_active ? 2 : 1}
-                />
-              )}
-          </MapView>
-
-          {/* Detay kartı */}
-          <ScrollView style={styles.previewDetails}>
-            <View style={styles.previewRow}>
-              <Ionicons
-                name={getCategoryIcon(f.fence_category)}
-                size={16}
-                color={catColor}
-              />
-              <Text style={styles.previewRowText}>
-                {t(`geofence.categories.${f.fence_category}`)}
-              </Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Ionicons
-                name={
-                  f.fence_type === "circle"
-                    ? "radio-button-on-outline"
-                    : "shapes-outline"
-                }
-                size={16}
-                color={COLORS.TEXT_SECONDARY}
-              />
-              <Text style={styles.previewRowText}>
-                {t(`geofence.type.${f.fence_type}`)}
-                {f.fence_type === "circle" && f.radius
-                  ? `  —  ${f.radius}m`
-                  : ""}
-              </Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Ionicons
-                name="log-in-outline"
-                size={16}
-                color={f.alert_on_entry ? COLORS.SUCCESS : COLORS.MUTED}
-              />
-              <Text style={styles.previewRowText}>
-                {t("geofence.alertOnEntry")}:{" "}
-                {f.alert_on_entry ? t("common.on") : t("common.off")}
-              </Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Ionicons
-                name="log-out-outline"
-                size={16}
-                color={f.alert_on_exit ? COLORS.ERROR : COLORS.MUTED}
-              />
-              <Text style={styles.previewRowText}>
-                {t("geofence.alertOnExit")}:{" "}
-                {f.alert_on_exit ? t("common.on") : t("common.off")}
-              </Text>
-            </View>
-            {f.total_events > 0 && (
-              <View style={styles.previewRow}>
-                <Ionicons name="pulse-outline" size={16} color={COLORS.INFO} />
-                <Text style={styles.previewRowText}>
-                  {f.total_events} {t("geofence.events")} ({f.events_last_7d}{" "}
-                  {t("geofence.last7d")})
-                </Text>
-              </View>
-            )}
-            {f.total_duration_minutes > 0 && (
-              <View style={[styles.previewRow, styles.csrdRow]}>
-                <Ionicons
-                  name="leaf-outline"
-                  size={16}
-                  color={COLORS.SUCCESS}
-                />
-                <Text
-                  style={[styles.previewRowText, { color: COLORS.SUCCESS }]}
-                >
-                  CSRD: {Math.round(f.total_duration_minutes)}{" "}
-                  {t("geofence.minutes")} {t("geofence.totalTime")}
-                </Text>
-              </View>
-            )}
-            {f.description && (
-              <Text style={styles.previewDesc}>{f.description}</Text>
-            )}
-            <TouchableOpacity
-              style={styles.previewEventsBtn}
-              onPress={() => {
-                setPreviewFence(null);
-                navigation.navigate("GeofenceEvents", {
-                  geofenceId: f.id,
-                  name: f.name,
-                });
-              }}
-            >
-              <Ionicons name="list-outline" size={18} color={COLORS.PRIMARY} />
-              <Text style={styles.previewEventsBtnText}>
-                {t("geofence.viewEvents")}
-              </Text>
-            </TouchableOpacity>
-            <View style={{ height: 32 }} />
-          </ScrollView>
-        </View>
-      </Modal>
-    );
-  };
-
-  // ─────────────────────────────────────────────
-  // RENDER — Draw toolbar (modal içinde)
-  // ─────────────────────────────────────────────
-  const renderDrawToolbar = () => (
-    <View style={styles.drawToolbar}>
-      {/* Circle tool */}
-      <TouchableOpacity
-        style={[
-          styles.toolBtn,
-          drawMode === "circle" && styles.toolBtnActive,
-          form.fence_type === "circle" &&
-            !drawMode &&
-            form.coordinates &&
-            styles.toolBtnDone,
-        ]}
-        onPress={() => activateDrawMode("circle")}
-      >
-        <Ionicons
-          name="radio-button-on-outline"
-          size={20}
-          color={
-            drawMode === "circle"
-              ? COLORS.WHITE
-              : form.coordinates && form.fence_type === "circle"
-                ? COLORS.SUCCESS
-                : COLORS.PRIMARY
-          }
-        />
-        <Text
-          style={[
-            styles.toolBtnText,
-            drawMode === "circle" && { color: COLORS.WHITE },
-          ]}
-        >
-          {drawMode === "circle"
-            ? t("geofence.tapToPlace")
-            : form.coordinates && form.fence_type === "circle"
-              ? t("geofence.placed")
-              : t("geofence.type.circle")}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Polygon tool */}
-      <TouchableOpacity
-        style={[
-          styles.toolBtn,
-          drawMode === "polygon" && styles.toolBtnActive,
-          form.fence_type === "polygon" &&
-            polygonPoints.length >= 3 &&
-            !drawMode &&
-            styles.toolBtnDone,
-        ]}
-        onPress={() => activateDrawMode("polygon")}
-      >
-        <Ionicons
-          name="shapes-outline"
-          size={20}
-          color={
-            drawMode === "polygon"
-              ? COLORS.WHITE
-              : polygonPoints.length >= 3
-                ? COLORS.SUCCESS
-                : COLORS.PRIMARY
-          }
-        />
-        <Text
-          style={[
-            styles.toolBtnText,
-            drawMode === "polygon" && { color: COLORS.WHITE },
-          ]}
-        >
-          {drawMode === "polygon"
-            ? `${t("geofence.addPoint")} (${polygonPoints.length})`
-            : polygonPoints.length >= 3
-              ? `${t("geofence.polygon")} (${polygonPoints.length})`
-              : t("geofence.type.polygon")}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Undo / Clear */}
-      {form.fence_type === "polygon" && polygonPoints.length > 0 && (
-        <TouchableOpacity style={styles.toolBtnSmall} onPress={undoLastPoint}>
-          <Ionicons
-            name="arrow-undo-outline"
-            size={18}
-            color={COLORS.WARNING}
-          />
-        </TouchableOpacity>
-      )}
-      {(form.coordinates || polygonPoints.length > 0) && (
-        <TouchableOpacity style={styles.toolBtnSmall} onPress={clearDraw}>
-          <Ionicons name="trash-outline" size={18} color={COLORS.ERROR} />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  // ─────────────────────────────────────────────
-  // RENDER — Harita önizleme (modal içinde)
-  // ─────────────────────────────────────────────
-  const renderModalMap = () => {
-    const hasCenter = form.fence_type === "circle" && form.coordinates?.lat;
-    const region = hasCenter
-      ? {
-          latitude: form.coordinates.lat,
-          longitude: form.coordinates.lng,
-          latitudeDelta: Math.max(
-            0.015,
-            (parseFloat(form.radius) * 5) / 111000
-          ),
-          longitudeDelta: Math.max(
-            0.015,
-            (parseFloat(form.radius) * 5) / 111000
-          ),
-        }
-      : mapRegion;
-
-    return (
-      <View style={styles.mapWrapper}>
-        <MapView
-          ref={modalMapRef}
-          style={styles.map}
-          region={region}
-          onLongPress={handleMapLongPress}
-          showsUserLocation
-        >
-          {/* Circle önizleme */}
-          {form.fence_type === "circle" && form.coordinates?.lat && (
-            <>
-              <Circle
-                center={{
-                  latitude: form.coordinates.lat,
-                  longitude: form.coordinates.lng,
-                }}
-                radius={parseFloat(form.radius) || 500}
-                fillColor={getCategoryColor(form.fence_category) + "35"}
-                strokeColor={getCategoryColor(form.fence_category)}
-                strokeWidth={2}
-              />
-              <Marker
-                coordinate={{
-                  latitude: form.coordinates.lat,
-                  longitude: form.coordinates.lng,
-                }}
-                pinColor={getCategoryColor(form.fence_category)}
-              />
-            </>
-          )}
-
-          {/* Polygon önizleme */}
-          {form.fence_type === "polygon" && polygonPoints.length >= 3 && (
-            <Polygon
-              coordinates={polygonPoints.map((p) => ({
-                latitude: p.lat,
-                longitude: p.lng,
-              }))}
-              fillColor={getCategoryColor(form.fence_category) + "35"}
-              strokeColor={getCategoryColor(form.fence_category)}
-              strokeWidth={2}
-            />
-          )}
-          {form.fence_type === "polygon" &&
-            polygonPoints.map((p, i) => (
-              <Marker
-                key={i}
-                coordinate={{ latitude: p.lat, longitude: p.lng }}
-                pinColor={getCategoryColor(form.fence_category)}
-                title={`${i + 1}`}
-              />
-            ))}
-        </MapView>
-
-        {/* Draw toolbar — harita üstünde */}
-        <View style={styles.mapToolbarOverlay}>{renderDrawToolbar()}</View>
-
-        {/* İpucu */}
-        {drawMode && (
-          <View style={styles.drawHint}>
-            <Text style={styles.drawHintText}>
-              {drawMode === "circle"
-                ? t("geofence.hintCircle")
-                : t("geofence.hintPolygon", { count: polygonPoints.length })}
-            </Text>
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  // ─────────────────────────────────────────────
-  // RENDER — Edit/Create Modal
-  // ─────────────────────────────────────────────
-  const renderModal = () => (
-    <Modal
-      visible={modalVisible}
-      animationType="slide"
-      onRequestClose={() => {
-        setModalVisible(false);
-        resetForm();
-      }}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              setModalVisible(false);
-              resetForm();
-            }}
-          >
-            <Ionicons name="close" size={24} color={COLORS.TEXT_PRIMARY} />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>
-            {editingFence ? t("geofence.editFence") : t("geofence.newFence")}
-          </Text>
-          <TouchableOpacity onPress={handleSave} disabled={saving}>
-            {saving ? (
-              <ActivityIndicator size="small" color={COLORS.PRIMARY} />
-            ) : (
-              <Text style={styles.saveBtn}>{t("common.save")}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.modalScroll}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Harita + draw toolbar */}
-          {renderModalMap()}
-
-          {/* Yarıçap (circle) */}
-          {form.fence_type === "circle" && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t("geofence.radius")}</Text>
-              <View style={styles.radiusRow}>
-                {["100", "250", "500", "1000", "2000", "5000"].map((r) => (
-                  <TouchableOpacity
-                    key={r}
-                    style={[
-                      styles.radiusChip,
-                      form.radius === r && styles.radiusChipActive,
-                    ]}
-                    onPress={() => setForm((p) => ({ ...p, radius: r }))}
-                  >
-                    <Text
-                      style={[
-                        styles.radiusChipText,
-                        form.radius === r && styles.radiusChipTextActive,
-                      ]}
-                    >
-                      {parseInt(r) >= 1000
-                        ? `${parseInt(r) / 1000}km`
-                        : `${r}m`}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TextInput
-                style={styles.input}
-                value={form.radius}
-                onChangeText={(v) =>
-                  setForm((p) => ({ ...p, radius: v.replace(/[^0-9]/g, "") }))
-                }
-                keyboardType="numeric"
-                placeholder={t("geofence.customRadius")}
-                placeholderTextColor={COLORS.PLACEHOLDER}
-              />
-            </View>
-          )}
-
-          {/* İsim */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t("geofence.name")}</Text>
-            <TextInput
-              style={styles.input}
-              value={form.name}
-              onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
-              placeholder={t("geofence.namePlaceholder")}
-              placeholderTextColor={COLORS.PLACEHOLDER}
-            />
-          </View>
-
-          {/* Açıklama */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t("geofence.description")}</Text>
-            <TextInput
-              style={[styles.input, styles.inputMulti]}
-              value={form.description}
-              onChangeText={(v) => setForm((p) => ({ ...p, description: v }))}
-              placeholder={t("geofence.descriptionPlaceholder")}
-              placeholderTextColor={COLORS.PLACEHOLDER}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          {/* Kategori */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t("geofence.category")}</Text>
-            <View style={styles.categoryGrid}>
-              {FENCE_CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat.key}
-                  style={[
-                    styles.catChip,
-                    form.fence_category === cat.key && {
-                      backgroundColor: cat.color + "20",
-                      borderColor: cat.color,
-                    },
-                  ]}
-                  onPress={() =>
-                    setForm((p) => ({ ...p, fence_category: cat.key }))
-                  }
-                >
-                  <Ionicons
-                    name={cat.icon}
-                    size={16}
-                    color={
-                      form.fence_category === cat.key
-                        ? cat.color
-                        : COLORS.TEXT_SECONDARY
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.catChipText,
-                      form.fence_category === cat.key && { color: cat.color },
-                    ]}
-                  >
-                    {t(`geofence.categories.${cat.key}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {form.fence_category === "emission_zone" && (
-              <View style={styles.csrdInfo}>
-                <Ionicons
-                  name="leaf-outline"
-                  size={14}
-                  color={COLORS.SUCCESS}
-                />
-                <Text style={styles.csrdInfoText}>
-                  {t("geofence.csrdInfo")}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Alert ayarları */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              {t("geofence.alertSettings")}
-            </Text>
-            <View style={styles.switchRow}>
-              <View style={styles.switchLabel}>
-                <Ionicons
-                  name="log-in-outline"
-                  size={18}
-                  color={COLORS.SUCCESS}
-                />
-                <Text style={styles.switchText}>
+                <Ionicons name="enter-outline" size={11} color={COLORS.INFO} />
+                <Text style={[styles.zoneTagText, { color: COLORS.INFO }]}>
                   {t("geofence.alertOnEntry")}
                 </Text>
               </View>
-              <Switch
-                value={form.alert_on_entry}
-                onValueChange={(v) =>
-                  setForm((p) => ({ ...p, alert_on_entry: v }))
-                }
-                trackColor={{
-                  false: COLORS.MUTED,
-                  true: COLORS.SUCCESS + "80",
-                }}
-                thumbColor={
-                  form.alert_on_entry ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY
-                }
-              />
-            </View>
-            <View style={styles.switchRow}>
-              <View style={styles.switchLabel}>
-                <Ionicons
-                  name="log-out-outline"
-                  size={18}
-                  color={COLORS.ERROR}
-                />
-                <Text style={styles.switchText}>
+            )}
+            {item.alert_on_exit && (
+              <View
+                style={[
+                  styles.zoneTag,
+                  { backgroundColor: withAlpha(COLORS.WARNING, 0.1), borderColor: "transparent" },
+                ]}
+              >
+                <Ionicons name="exit-outline" size={11} color={COLORS.WARNING} />
+                <Text style={[styles.zoneTagText, { color: COLORS.WARNING }]}>
                   {t("geofence.alertOnExit")}
                 </Text>
               </View>
-              <Switch
-                value={form.alert_on_exit}
-                onValueChange={(v) =>
-                  setForm((p) => ({ ...p, alert_on_exit: v }))
-                }
-                trackColor={{ false: COLORS.MUTED, true: COLORS.ERROR + "80" }}
-                thumbColor={
-                  form.alert_on_exit ? COLORS.ERROR : COLORS.TEXT_SECONDARY
-                }
-              />
-            </View>
-          </View>
-
-          {/* Zaman kısıtlaması */}
-          <View style={styles.section}>
-            <View style={styles.switchRow}>
-              <View style={styles.switchLabel}>
-                <Ionicons
-                  name="time-outline"
-                  size={18}
-                  color={COLORS.WARNING}
-                />
-                <Text style={styles.switchText}>
-                  {t("geofence.timeRestriction")}
+            )}
+            {/* CSRD tag */}
+            {item.csrd_tracked && (
+              <View
+                style={[
+                  styles.zoneTag,
+                  { backgroundColor: withAlpha(COLORS.SUCCESS, 0.1), borderColor: "transparent" },
+                ]}
+              >
+                <Ionicons name="leaf-outline" size={11} color={COLORS.SUCCESS} />
+                <Text style={[styles.zoneTagText, { color: COLORS.SUCCESS }]}>
+                  CSRD
                 </Text>
-              </View>
-              <Switch
-                value={form.time_restriction.enabled}
-                onValueChange={(v) =>
-                  setForm((p) => ({
-                    ...p,
-                    time_restriction: { ...p.time_restriction, enabled: v },
-                  }))
-                }
-                trackColor={{
-                  false: COLORS.MUTED,
-                  true: COLORS.WARNING + "80",
-                }}
-                thumbColor={
-                  form.time_restriction.enabled
-                    ? COLORS.WARNING
-                    : COLORS.TEXT_SECONDARY
-                }
-              />
-            </View>
-            {form.time_restriction.enabled && (
-              <View style={styles.timeBlock}>
-                <Text style={styles.timeHint}>{t("geofence.timeHint")}</Text>
-                <View style={styles.timeRow}>
-                  <View style={styles.timeField}>
-                    <Text style={styles.timeLabel}>
-                      {t("geofence.startHour")}
-                    </Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={String(form.time_restriction.start_hour)}
-                      onChangeText={(v) =>
-                        setForm((p) => ({
-                          ...p,
-                          time_restriction: {
-                            ...p.time_restriction,
-                            start_hour: parseInt(v) || 0,
-                          },
-                        }))
-                      }
-                      keyboardType="numeric"
-                      maxLength={2}
-                      placeholderTextColor={COLORS.PLACEHOLDER}
-                    />
-                  </View>
-                  <Text style={styles.timeSeparator}>—</Text>
-                  <View style={styles.timeField}>
-                    <Text style={styles.timeLabel}>
-                      {t("geofence.endHour")}
-                    </Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={String(form.time_restriction.end_hour)}
-                      onChangeText={(v) =>
-                        setForm((p) => ({
-                          ...p,
-                          time_restriction: {
-                            ...p.time_restriction,
-                            end_hour: parseInt(v) || 0,
-                          },
-                        }))
-                      }
-                      keyboardType="numeric"
-                      maxLength={2}
-                      placeholderTextColor={COLORS.PLACEHOLDER}
-                    />
-                  </View>
-                </View>
               </View>
             )}
           </View>
-
-          <View style={{ height: 48 }} />
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-
-  // ─────────────────────────────────────────────
-  // RENDER — Fence kart
-  // ─────────────────────────────────────────────
-  const renderFenceCard = (fence) => {
-    const catColor = getCategoryColor(fence.fence_category);
-    const catIcon = getCategoryIcon(fence.fence_category);
-    const isActive = fence.is_active;
-
-    return (
-      <TouchableOpacity
-        key={fence.id}
-        style={[
-          styles.fenceCard,
-          {
-            borderLeftColor: isActive ? catColor : COLORS.MUTED,
-            opacity: isActive ? 1 : 0.65,
-          },
-        ]}
-        onPress={() => setPreviewFence(fence)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.fenceHeader}>
-          <View style={styles.fenceTitleRow}>
-            <View
-              style={[
-                styles.catBadge,
-                {
-                  backgroundColor: (isActive ? catColor : COLORS.MUTED) + "20",
-                },
-              ]}
-            >
-              <Ionicons
-                name={catIcon}
-                size={14}
-                color={isActive ? catColor : COLORS.TEXT_SECONDARY}
-              />
-            </View>
-            <View style={styles.fenceTitleBlock}>
-              <Text
-                style={[
-                  styles.fenceName,
-                  !isActive && { color: COLORS.TEXT_SECONDARY },
-                ]}
-              >
-                {fence.name}
-              </Text>
-              <Text style={styles.fenceMeta}>
-                {fence.fence_type === "circle"
-                  ? `⊙ ${fence.radius}m`
-                  : `⬡ ${t("geofence.polygon")}`}
-                {"  ·  "}
-                {t(
-                  `geofence.categories.${fence.fence_category}`,
-                  fence.fence_category
-                )}
-              </Text>
-            </View>
-          </View>
-
-          {/* Aktif/Pasif badge */}
-          <View
-            style={[
-              styles.activeBadge,
-              {
-                backgroundColor: isActive
-                  ? COLORS.SUCCESS + "20"
-                  : COLORS.MUTED + "20",
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.activeDot,
-                {
-                  backgroundColor: isActive
-                    ? COLORS.SUCCESS
-                    : COLORS.TEXT_SECONDARY,
-                },
-              ]}
-            />
-            <Text
-              style={[
-                styles.activeText,
-                { color: isActive ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY },
-              ]}
-            >
-              {isActive ? t("geofence.active") : t("common.off")}
-            </Text>
-          </View>
         </View>
-
-        {/* İstatistikler */}
-        <View style={styles.fenceStats}>
-          {fence.alert_on_entry && (
-            <View style={styles.fenceStat}>
-              <Ionicons
-                name="log-in-outline"
-                size={13}
-                color={COLORS.SUCCESS}
-              />
-              <Text style={styles.fenceStatText}>{t("geofence.entry")}</Text>
-            </View>
-          )}
-          {fence.alert_on_exit && (
-            <View style={styles.fenceStat}>
-              <Ionicons name="log-out-outline" size={13} color={COLORS.ERROR} />
-              <Text style={styles.fenceStatText}>{t("geofence.exit")}</Text>
-            </View>
-          )}
-          {fence.total_events > 0 && (
-            <View style={styles.fenceStat}>
-              <Ionicons name="pulse-outline" size={13} color={COLORS.INFO} />
-              <Text style={styles.fenceStatText}>
-                {fence.total_events} {t("geofence.events")}
-              </Text>
-            </View>
-          )}
-          {fence.total_duration_minutes > 0 && (
-            <View style={styles.fenceStat}>
-              <Ionicons name="leaf-outline" size={13} color={COLORS.SUCCESS} />
-              <Text style={[styles.fenceStatText, { color: COLORS.SUCCESS }]}>
-                {Math.round(fence.total_duration_minutes)}dk CSRD
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Aksiyon butonları */}
-        <View style={styles.fenceActions}>
-          <Switch
-            value={isActive}
-            onValueChange={() => handleToggleActive(fence)}
-            trackColor={{ false: COLORS.MUTED, true: COLORS.PRIMARY + "80" }}
-            thumbColor={isActive ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY}
-            style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
-          />
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => openEdit(fence)}
-          >
-            <Ionicons
-              name="pencil-outline"
-              size={16}
-              color={COLORS.TEXT_SECONDARY}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => handleDelete(fence)}
-          >
-            <Ionicons name="trash-outline" size={16} color={COLORS.ERROR} />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+      </Card>
     );
-  };
+  }, [COLORS, catColors, styles, openEdit, handleDelete, handleToggleActive, t]);
 
-  // ─────────────────────────────────────────────
-  // MAIN RENDER
-  // ─────────────────────────────────────────────
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>{t("geofence.loading")}</Text>
-      </View>
-    );
-  }
+  // ── Map overlay data ──
+  const mapOverlays = useMemo(() => {
+    return zones
+      .filter((z) => z.is_active)
+      .map((z) => {
+        const catColor = catColors[z.category] ?? COLORS.PRIMARY;
+        const coords   = z.coordinates ?? {};
+        if (z.fence_type === "circle" && coords.lat) {
+          return {
+            id:        z.id,
+            type:      "circle",
+            center:    { latitude: coords.lat, longitude: coords.lng },
+            radius:    z.radius ?? 500,
+            color:     catColor,
+          };
+        }
+        if (z.fence_type === "polygon" && Array.isArray(coords)) {
+          return {
+            id:         z.id,
+            type:       "polygon",
+            coordinates: coords.map((c) => ({ latitude: c.lat, longitude: c.lng })),
+            color:      catColor,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }, [zones, catColors, COLORS]);
 
-  const activeCount = geofences.filter((f) => f.is_active).length;
-  const emissionCount = geofences.filter(
-    (f) => f.fence_category === "emission_zone"
-  ).length;
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t("geofence.title")}</Text>
-          <Text style={styles.headerSub}>
-            {geofences.length} {t("geofence.totalZones")}
+
+      {/* ── Header stats bar ── */}
+      <View style={styles.headerBar}>
+        <View style={styles.headerStats}>
+          <Ionicons name="layers-outline" size={16} color={COLORS.TEXT_SECONDARY} />
+          <Text style={styles.headerStatText}>
+            <Text style={styles.headerStatBold}>{zones.length}</Text>
+            {" "}{t("geofence.totalZones")}
             {"  ·  "}
-            {activeCount} {t("geofence.active")}
-            {emissionCount > 0 && `  ·  ${emissionCount} CSRD`}
+            <Text style={styles.headerStatBold}>{activeCount}</Text>
+            {" "}{t("geofence.active")}
           </Text>
         </View>
-        <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-          <Ionicons name="add" size={22} color={COLORS.WHITE} />
-          <Text style={styles.addBtnText}>{t("geofence.addZone")}</Text>
+        <TouchableOpacity style={styles.addButton} onPress={openNew}>
+          <Ionicons name="add" size={16} color={COLORS.WHITE} />
+          <Text style={styles.addButtonText}>{t("geofence.addZone")}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Liste */}
-      <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-      >
-        {geofences.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="map-outline" size={64} color={COLORS.MUTED} />
-            <Text style={styles.emptyTitle}>{t("geofence.emptyTitle")}</Text>
-            <Text style={styles.emptyDesc}>{t("geofence.emptyDesc")}</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
-              <Text style={styles.emptyBtnText}>
-                {t("geofence.addFirstZone")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          geofences.map(renderFenceCard)
-        )}
-        <View style={{ height: 32 }} />
-      </ScrollView>
+      {/* ── Map strip (active zones overview) ── */}
+      {!loading && !error && zones.length > 0 && (
+        <View style={styles.mapStrip}>
+          <MapView
+            ref={mapRef}
+            style={styles.mapStripMap}
+            provider={PROVIDER_GOOGLE}
+            initialRegion={DEFAULT_REGION}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+            toolbarEnabled={false}
+            moveOnMarkerPress={false}
+          >
+            {mapOverlays.map((ov) =>
+              ov.type === "circle" ? (
+                <Circle
+                  key={ov.id}
+                  center={ov.center}
+                  radius={ov.radius}
+                  fillColor={withAlpha(ov.color, 0.18)}
+                  strokeColor={withAlpha(ov.color, 0.7)}
+                  strokeWidth={1.5}
+                />
+              ) : (
+                <Polygon
+                  key={ov.id}
+                  coordinates={ov.coordinates}
+                  fillColor={withAlpha(ov.color, 0.18)}
+                  strokeColor={withAlpha(ov.color, 0.7)}
+                  strokeWidth={1.5}
+                />
+              )
+            )}
+          </MapView>
+        </View>
+      )}
 
-      {renderModal()}
-      {renderPreviewModal()}
+      {/* ── Page state: loading / error ── */}
+      {loading && <DataState loading />}
+      {!loading && error && <DataState error={error} onRetry={loadZones} />}
+
+      {/* ── Zone list ── */}
+      {!loading && !error && (
+        <FlatList
+          data={zones}
+          keyExtractor={(item, index) => item?.id ? String(item.id) : `zone-${index}`}
+          renderItem={renderZone}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <EmptyState
+              size="sm"
+              icon="location-outline"
+              title={t("geofence.emptyTitle")}
+              subtitle={t("geofence.emptyDesc")}
+              action={{ label: t("geofence.addFirstZone"), onPress: openNew }}
+            />
+          }
+        />
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          ADD / EDIT MODAL
+      ════════════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+
+            {/* Modal header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editZone ? t("geofence.editFence") : t("geofence.newFence")}
+              </Text>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowModal(false)}
+              >
+                <Ionicons name="close" size={22} color={COLORS.TEXT_SECONDARY} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={styles.modalScroll}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* ── Zone name ── */}
+              <Text style={styles.sectionLabel}>{t("geofence.name")}</Text>
+              <TextInput
+                style={styles.textInput}
+                value={form.name}
+                onChangeText={(v) => setForm((f) => ({ ...f, name: v }))}
+                placeholder={t("geofence.namePlaceholder")}
+                placeholderTextColor={COLORS.TEXT_SECONDARY}
+              />
+
+              {/* ── Description ── */}
+              <Text style={styles.sectionLabel}>{t("geofence.description")}</Text>
+              <TextInput
+                style={[styles.textInput, styles.textInputMulti]}
+                value={form.description}
+                onChangeText={(v) => setForm((f) => ({ ...f, description: v }))}
+                placeholder={t("geofence.descriptionPlaceholder")}
+                placeholderTextColor={COLORS.TEXT_SECONDARY}
+                multiline
+              />
+
+              {/* ── Fence type ── */}
+              <Text style={styles.sectionLabel}>{t("geofence.fenceType")}</Text>
+              <View style={styles.segmentRow}>
+                {FENCE_TYPES.map((ft) => {
+                  const active = form.fence_type === ft;
+                  return (
+                    <TouchableOpacity
+                      key={ft}
+                      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                      onPress={() => {
+                        setForm((f) => ({ ...f, fence_type: ft }));
+                        setDrawPoints([]);
+                        setCircleCenter(null);
+                      }}
+                    >
+                      <Ionicons
+                        name={ft === "circle" ? "radio-button-on-outline" : "shapes-outline"}
+                        size={14}
+                        color={active ? COLORS.WHITE : COLORS.TEXT_SECONDARY}
+                      />
+                      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                        {ft === "circle"
+                          ? t("geofence.type.circle", "Circle")
+                          : t("geofence.polygon")}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* ── Radius (circle only) ── */}
+              {form.fence_type === "circle" && (
+                <>
+                  <Text style={styles.sectionLabel}>{t("geofence.radius")}</Text>
+                  <View style={styles.radiusPresets}>
+                    {RADIUS_PRESETS.map((r) => {
+                      const active = !form.customRadius && form.radius === r;
+                      return (
+                        <TouchableOpacity
+                          key={r}
+                          style={[
+                            styles.radiusChip,
+                            {
+                              backgroundColor: active
+                                ? COLORS.PRIMARY
+                                : withAlpha(COLORS.PRIMARY, 0.06),
+                              borderColor: active ? COLORS.PRIMARY : COLORS.DIVIDER,
+                            },
+                          ]}
+                          onPress={() =>
+                            setForm((f) => ({ ...f, radius: r, customRadius: "" }))
+                          }
+                        >
+                          <Text
+                            style={[
+                              styles.radiusChipText,
+                              { color: active ? COLORS.WHITE : COLORS.TEXT },
+                            ]}
+                          >
+                            {r >= 1000 ? `${r / 1000} km` : `${r} m`}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, { marginTop: COLORS.SPACING.xs }]}
+                    value={form.customRadius}
+                    onChangeText={(v) => setForm((f) => ({ ...f, customRadius: v }))}
+                    placeholder={t("geofence.customRadius")}
+                    placeholderTextColor={COLORS.TEXT_SECONDARY}
+                    keyboardType="numeric"
+                  />
+                </>
+              )}
+
+              {/* ── Category ── */}
+              <Text style={styles.sectionLabel}>{t("geofence.category")}</Text>
+              <View style={styles.categoryGrid}>
+                {Object.keys(CATEGORY_ICONS).map((cat) => {
+                  const active   = form.category === cat;
+                  const catColor = catColors[cat];
+                  return (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[
+                        styles.categoryChip,
+                        {
+                          backgroundColor: active
+                            ? catColor
+                            : withAlpha(catColor, 0.08),
+                          borderColor: active ? catColor : withAlpha(catColor, 0.25),
+                        },
+                      ]}
+                      onPress={() => setForm((f) => ({ ...f, category: cat }))}
+                    >
+                      <Ionicons
+                        name={CATEGORY_ICONS[cat]}
+                        size={13}
+                        color={active ? COLORS.WHITE : catColor}
+                      />
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          { color: active ? COLORS.WHITE : catColor },
+                        ]}
+                      >
+                        {t(`geofence.categories.${cat}`, cat)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* ── Draw on map ── */}
+              <Text style={styles.sectionLabel}>
+                {form.fence_type === "circle"
+                  ? t("geofence.hintCircle")
+                  : t("geofence.hintPolygon", { count: drawPoints.length })}
+              </Text>
+              <View style={styles.drawMapWrap}>
+                <MapView
+                  ref={drawMapRef}
+                  style={styles.drawMap}
+                  provider={PROVIDER_GOOGLE}
+                  initialRegion={
+                    circleCenter
+                      ? {
+                          latitude:      circleCenter.latitude,
+                          longitude:     circleCenter.longitude,
+                          latitudeDelta:  0.05,
+                          longitudeDelta: 0.05,
+                        }
+                      : DEFAULT_REGION
+                  }
+                  onLongPress={handleDrawPress}
+                >
+                  {/* Circle preview */}
+                  {form.fence_type === "circle" && circleCenter && (
+                    <Circle
+                      center={circleCenter}
+                      radius={
+                        form.customRadius
+                          ? parseInt(form.customRadius, 10) || 500
+                          : form.radius
+                      }
+                      fillColor={withAlpha(catColors[form.category] ?? COLORS.PRIMARY, 0.2)}
+                      strokeColor={catColors[form.category] ?? COLORS.PRIMARY}
+                      strokeWidth={2}
+                    />
+                  )}
+                  {/* Polygon preview */}
+                  {form.fence_type === "polygon" && drawPoints.length >= 3 && (
+                    <Polygon
+                      coordinates={drawPoints}
+                      fillColor={withAlpha(catColors[form.category] ?? COLORS.PRIMARY, 0.2)}
+                      strokeColor={catColors[form.category] ?? COLORS.PRIMARY}
+                      strokeWidth={2}
+                    />
+                  )}
+                </MapView>
+
+                {/* Clear button */}
+                {(circleCenter || drawPoints.length > 0) && (
+                  <TouchableOpacity
+                    style={styles.drawClearBtn}
+                    onPress={() => {
+                      setDrawPoints([]);
+                      setCircleCenter(null);
+                    }}
+                  >
+                    <Ionicons name="refresh-outline" size={12} color="#FFFFFF" />
+                    <Text style={styles.drawClearText}>{t("geofence.clearPoints")}</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Hint overlay */}
+                <View style={styles.drawHint} pointerEvents="none">
+                  <Text style={styles.drawHintText}>
+                    {form.fence_type === "circle"
+                      ? t("geofence.hintCircle")
+                      : t("geofence.hintPolygon", { count: drawPoints.length })}
+                  </Text>
+                </View>
+              </View>
+
+              {/* ── Alert settings ── */}
+              <Text style={styles.sectionLabel}>{t("geofence.alertSettings")}</Text>
+              <Card variant="flat">
+                <View style={[styles.switchRow]}>
+                  <View style={styles.switchLabel}>
+                    <Text style={styles.switchLabelText}>{t("geofence.alertOnEntry")}</Text>
+                  </View>
+                  <Switch
+                    value={form.alert_on_entry}
+                    onValueChange={(v) => setForm((f) => ({ ...f, alert_on_entry: v }))}
+                    trackColor={{ false: COLORS.DIVIDER, true: withAlpha(COLORS.INFO, 0.4) }}
+                    thumbColor={form.alert_on_entry ? COLORS.INFO : COLORS.TEXT_SECONDARY}
+                  />
+                </View>
+                <View style={[styles.switchRow]}>
+                  <View style={styles.switchLabel}>
+                    <Text style={styles.switchLabelText}>{t("geofence.alertOnExit")}</Text>
+                  </View>
+                  <Switch
+                    value={form.alert_on_exit}
+                    onValueChange={(v) => setForm((f) => ({ ...f, alert_on_exit: v }))}
+                    trackColor={{ false: COLORS.DIVIDER, true: withAlpha(COLORS.WARNING, 0.4) }}
+                    thumbColor={form.alert_on_exit ? COLORS.WARNING : COLORS.TEXT_SECONDARY}
+                  />
+                </View>
+                <View style={[styles.switchRow, styles.switchRowLast]}>
+                  <View style={styles.switchLabel}>
+                    <Text style={styles.switchLabelText}>{t("geofence.timeRestriction")}</Text>
+                    <Text style={styles.switchLabelSub}>{t("geofence.timeHint")}</Text>
+                  </View>
+                  <Switch
+                    value={form.time_restriction}
+                    onValueChange={(v) => setForm((f) => ({ ...f, time_restriction: v }))}
+                    trackColor={{ false: COLORS.DIVIDER, true: withAlpha(COLORS.PRIMARY, 0.4) }}
+                    thumbColor={form.time_restriction ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY}
+                  />
+                </View>
+                {form.time_restriction && (
+                  <View style={[styles.hourRow, { paddingHorizontal: COLORS.SPACING.sm, paddingBottom: COLORS.SPACING.sm }]}>
+                    <Text style={[styles.switchLabelSub, { marginRight: COLORS.SPACING.xs }]}>
+                      {t("geofence.startHour")}
+                    </Text>
+                    <TextInput
+                      style={styles.hourInput}
+                      value={form.start_hour}
+                      onChangeText={(v) => setForm((f) => ({ ...f, start_hour: v }))}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                    <Text style={styles.hourSep}>–</Text>
+                    <TextInput
+                      style={styles.hourInput}
+                      value={form.end_hour}
+                      onChangeText={(v) => setForm((f) => ({ ...f, end_hour: v }))}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                    <Text style={[styles.switchLabelSub, { marginLeft: COLORS.SPACING.xs }]}>
+                      {t("geofence.endHour")}
+                    </Text>
+                  </View>
+                )}
+              </Card>
+
+              {/* ── CSRD ── */}
+              <Text style={styles.sectionLabel}>CSRD</Text>
+              <Card variant="flat">
+                <View style={[styles.switchRow, styles.switchRowLast]}>
+                  <View style={styles.switchLabel}>
+                    <Text style={styles.switchLabelText}>{t("geofence.csrdTracked")}</Text>
+                  </View>
+                  <Switch
+                    value={form.csrd_tracked}
+                    onValueChange={(v) => setForm((f) => ({ ...f, csrd_tracked: v }))}
+                    trackColor={{ false: COLORS.DIVIDER, true: withAlpha(COLORS.SUCCESS, 0.4) }}
+                    thumbColor={form.csrd_tracked ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY}
+                  />
+                </View>
+                {form.csrd_tracked && (
+                  <View style={styles.csrdBanner}>
+                    <Ionicons name="leaf-outline" size={14} color={COLORS.SUCCESS} />
+                    <Text style={styles.csrdBannerText}>{t("geofence.csrdInfo")}</Text>
+                  </View>
+                )}
+              </Card>
+
+              {/* ── Save button ── */}
+              <TouchableOpacity
+                style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                <Text style={styles.saveBtnText}>
+                  {saving ? "..." : (editZone ? t("common.save") : t("geofence.addZone"))}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
-};
-
-// ─────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────
-const makeStyles = (COLORS) =>
-  StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-    center: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-    },
-    loadingText: {
-      marginTop: COLORS.SPACING.sm,
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-    },
-
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: COLORS.SURFACE,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    headerTitle: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
-    headerSub: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 2,
-    },
-    addBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.button,
-    },
-    addBtnText: {
-      color: COLORS.WHITE,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginLeft: 4,
-    },
-
-    list: { flex: 1 },
-    listContent: { padding: COLORS.SPACING.md },
-
-    // Fence kart
-    fenceCard: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: COLORS.RADIUS.card,
-      padding: COLORS.SPACING.md,
-      marginBottom: COLORS.SPACING.sm,
-      borderLeftWidth: 4,
-      ...COLORS.SHADOWS.card,
-    },
-    fenceHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: COLORS.SPACING.xs,
-    },
-    fenceTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-      marginRight: COLORS.SPACING.sm,
-    },
-    catBadge: {
-      width: 32,
-      height: 32,
-      borderRadius: COLORS.RADIUS.full,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: COLORS.SPACING.sm,
-    },
-    fenceTitleBlock: { flex: 1 },
-    fenceName: {
-      ...COLORS.TYPOGRAPHY.styles.body,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      color: COLORS.TEXT_PRIMARY,
-    },
-    fenceMeta: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 2,
-    },
-    activeBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: 3,
-      borderRadius: COLORS.RADIUS.badge,
-    },
-    activeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
-    activeText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-    fenceStats: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      marginBottom: COLORS.SPACING.sm,
-    },
-    fenceStat: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginRight: COLORS.SPACING.md,
-      marginTop: COLORS.SPACING.xs,
-    },
-    fenceStatText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginLeft: 3,
-    },
-    fenceActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-      borderTopWidth: 1,
-      borderTopColor: COLORS.DIVIDER,
-      paddingTop: COLORS.SPACING.sm,
-    },
-    actionBtn: { padding: COLORS.SPACING.sm, marginLeft: COLORS.SPACING.xs },
-
-    // Empty
-    emptyState: { alignItems: "center", paddingVertical: COLORS.SPACING.xxl },
-    emptyTitle: {
-      ...COLORS.TYPOGRAPHY.styles.h4,
-      color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.md,
-    },
-    emptyDesc: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-      textAlign: "center",
-      marginTop: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.xl,
-    },
-    emptyBtn: {
-      backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: COLORS.SPACING.xl,
-      paddingVertical: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.button,
-      marginTop: COLORS.SPACING.lg,
-    },
-    emptyBtnText: {
-      color: COLORS.WHITE,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-
-    // Modal
-    modalContainer: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-    modalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: COLORS.SURFACE,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    modalTitle: { ...COLORS.TYPOGRAPHY.styles.h4, color: COLORS.TEXT_PRIMARY },
-    saveBtn: {
-      color: COLORS.PRIMARY,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-    },
-    modalScroll: { flex: 1 },
-
-    // Harita wrapper
-    mapWrapper: {
-      height: 280,
-      margin: COLORS.SPACING.md,
-      borderRadius: COLORS.RADIUS.card,
-      overflow: "hidden",
-      position: "relative",
-    },
-    map: { flex: 1 },
-    mapToolbarOverlay: {
-      position: "absolute",
-      top: COLORS.SPACING.sm,
-      left: COLORS.SPACING.sm,
-      right: COLORS.SPACING.sm,
-    },
-    drawHint: {
-      position: "absolute",
-      bottom: COLORS.SPACING.sm,
-      left: COLORS.SPACING.sm,
-      right: COLORS.SPACING.sm,
-      backgroundColor: "rgba(0,0,0,0.65)",
-      borderRadius: COLORS.RADIUS.badge,
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-    },
-    drawHintText: {
-      color: COLORS.WHITE,
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      textAlign: "center",
-    },
-
-    // Draw toolbar
-    drawToolbar: { flexDirection: "row", alignItems: "center" },
-    toolBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.SURFACE + "F0",
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.button,
-      borderWidth: 1,
-      borderColor: COLORS.PRIMARY,
-      marginRight: COLORS.SPACING.xs,
-    },
-    toolBtnActive: {
-      backgroundColor: COLORS.PRIMARY,
-      borderColor: COLORS.PRIMARY,
-    },
-    toolBtnDone: { borderColor: COLORS.SUCCESS },
-    toolBtnSmall: {
-      backgroundColor: COLORS.SURFACE + "F0",
-      padding: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.full,
-      marginRight: COLORS.SPACING.xs,
-      borderWidth: 1,
-      borderColor: COLORS.BORDER,
-    },
-    toolBtnText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.PRIMARY,
-      marginLeft: 4,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-
-    // Form
-    section: {
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.sm,
-    },
-    sectionLabel: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      color: COLORS.TEXT_SECONDARY,
-      marginBottom: COLORS.SPACING.sm,
-    },
-    input: {
-      backgroundColor: COLORS.INPUT,
-      borderRadius: COLORS.RADIUS.input,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.sm,
-      ...COLORS.TYPOGRAPHY.styles.body,
-      color: COLORS.TEXT_PRIMARY,
-      borderWidth: 1,
-      borderColor: COLORS.BORDER,
-    },
-    inputMulti: {
-      height: 80,
-      textAlignVertical: "top",
-      paddingTop: COLORS.SPACING.sm,
-    },
-    radiusRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      marginBottom: COLORS.SPACING.sm,
-    },
-    radiusChip: {
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.badge,
-      borderWidth: 1,
-      borderColor: COLORS.BORDER,
-      marginRight: COLORS.SPACING.xs,
-      marginBottom: COLORS.SPACING.xs,
-      backgroundColor: COLORS.SURFACE,
-    },
-    radiusChipActive: {
-      backgroundColor: COLORS.PRIMARY,
-      borderColor: COLORS.PRIMARY,
-    },
-    radiusChipText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-    radiusChipTextActive: { color: COLORS.WHITE },
-    categoryGrid: { flexDirection: "row", flexWrap: "wrap" },
-    catChip: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.badge,
-      borderWidth: 1,
-      borderColor: COLORS.BORDER,
-      marginRight: COLORS.SPACING.xs,
-      marginBottom: COLORS.SPACING.xs,
-      backgroundColor: COLORS.SURFACE,
-    },
-    catChipText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginLeft: 4,
-    },
-    csrdInfo: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.SUCCESS + "10",
-      padding: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.badge,
-      marginTop: COLORS.SPACING.sm,
-    },
-    csrdInfoText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.SUCCESS,
-      marginLeft: 6,
-      flex: 1,
-    },
-    switchRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: COLORS.SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    switchLabel: { flexDirection: "row", alignItems: "center" },
-    switchText: {
-      ...COLORS.TYPOGRAPHY.styles.body,
-      color: COLORS.TEXT_PRIMARY,
-      marginLeft: COLORS.SPACING.sm,
-    },
-    timeBlock: {
-      backgroundColor: COLORS.SURFACE,
-      borderRadius: COLORS.RADIUS.card,
-      padding: COLORS.SPACING.md,
-      marginTop: COLORS.SPACING.sm,
-    },
-    timeHint: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginBottom: COLORS.SPACING.sm,
-    },
-    timeRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    timeField: { alignItems: "center" },
-    timeLabel: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.TEXT_SECONDARY,
-      marginBottom: 4,
-    },
-    timeInput: {
-      width: 64,
-      backgroundColor: COLORS.INPUT,
-      borderRadius: COLORS.RADIUS.input,
-      borderWidth: 1,
-      borderColor: COLORS.BORDER,
-      textAlign: "center",
-      paddingVertical: COLORS.SPACING.sm,
-      ...COLORS.TYPOGRAPHY.styles.h4,
-      color: COLORS.TEXT_PRIMARY,
-    },
-    timeSeparator: {
-      ...COLORS.TYPOGRAPHY.styles.h4,
-      color: COLORS.TEXT_SECONDARY,
-      marginHorizontal: COLORS.SPACING.md,
-    },
-
-    // Preview modal
-    previewContainer: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-    previewHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.SURFACE,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.md,
-      borderBottomWidth: 2,
-    },
-    previewTitleBlock: { flex: 1, marginHorizontal: COLORS.SPACING.md },
-    previewTitle: {
-      ...COLORS.TYPOGRAPHY.styles.h4,
-      color: COLORS.TEXT_PRIMARY,
-    },
-    previewStatusBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: 2,
-      borderRadius: COLORS.RADIUS.badge,
-      alignSelf: "flex-start",
-      marginTop: 4,
-    },
-    previewStatusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
-    previewStatusText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-    previewMap: { height: 320 },
-    previewDetails: { flex: 1, padding: COLORS.SPACING.md },
-    previewRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: COLORS.SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.DIVIDER,
-    },
-    previewRowText: {
-      ...COLORS.TYPOGRAPHY.styles.body,
-      color: COLORS.TEXT_PRIMARY,
-      marginLeft: COLORS.SPACING.sm,
-    },
-    csrdRow: {
-      backgroundColor: COLORS.SUCCESS + "10",
-      borderRadius: COLORS.RADIUS.badge,
-      paddingHorizontal: COLORS.SPACING.sm,
-      marginTop: COLORS.SPACING.xs,
-    },
-    previewDesc: {
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.md,
-      paddingTop: COLORS.SPACING.sm,
-    },
-    previewEventsBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: COLORS.PRIMARY + "15",
-      borderRadius: COLORS.RADIUS.button,
-      paddingVertical: COLORS.SPACING.sm,
-      marginTop: COLORS.SPACING.lg,
-      borderWidth: 1,
-      borderColor: COLORS.PRIMARY + "50",
-    },
-    previewEventsBtnText: {
-      color: COLORS.PRIMARY,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginLeft: COLORS.SPACING.sm,
-    },
-  });
-
-export default AdminGeofenceScreen;
+}
