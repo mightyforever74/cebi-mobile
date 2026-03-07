@@ -1,8 +1,6 @@
 package com.tulipfleet.app
 
 import android.app.Application
-import io.reactivex.plugins.RxJavaPlugins
-import android.util.Log
 import android.content.res.Configuration
 
 import com.facebook.react.PackageList
@@ -42,12 +40,6 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-
-    // RxJava global error handler - prevents BLE disconnect crashes
-    RxJavaPlugins.setErrorHandler { e ->
-      Log.w("RxJavaGlobal", "Unhandled RxJava error (suppressed): ${e.message}")
-    }
-
     DefaultNewArchitectureEntryPoint.releaseLevel = try {
       ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.uppercase())
     } catch (e: IllegalArgumentException) {
