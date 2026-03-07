@@ -1,12 +1,11 @@
 // src/screens/admin/AdminReportsScreen.js
-// TulipFleet - Admin Raporlar Ekrani
-// Updated: i18n full migration
+// TulipFleet - Admin Raporlar Ekranı
+// Phase 0 migration: DataState + StatusBadge + EmptyState
 
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,9 @@ import {
   View,
 } from "react-native";
 import Card from "../../components/ui/Card";
+import DataState from "../../components/ui/DataState";
+import EmptyState from "../../components/ui/EmptyState";
+import StatusBadge from "../../components/ui/StatusBadge";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { reportAPI } from "../../services/api";
@@ -28,6 +30,7 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedRange, setSelectedRange] = useState(30);
   const [activeTab, setActiveTab] = useState("summary");
 
@@ -37,28 +40,37 @@ const AdminReportsScreen = ({ navigation }) => {
   const [alertReport, setAlertReport] = useState(null);
   const [taskReport, setTaskReport] = useState(null);
 
-  const DATE_RANGES = [
-    { label: t("reports.last7Days", "Son 7 Gün"), days: 7 },
-    { label: t("reports.last30Days", "Son 30 Gün"), days: 30 },
-    { label: t("reports.last90Days", "Son 90 Gün"), days: 90 },
-  ];
+  const DATE_RANGES = useMemo(
+    () => [
+      { label: t("reports.last7Days", "Son 7 Gün"), days: 7 },
+      { label: t("reports.last30Days", "Son 30 Gün"), days: 30 },
+      { label: t("reports.last90Days", "Son 90 Gün"), days: 90 },
+    ],
+    [t]
+  );
 
-  const ALERT_TYPE_LABELS = {
-    HARD_BRAKE: t("reports.alertTypes.hardBrake", "Ani Fren"),
-    HARD_ACCEL: t("reports.alertTypes.hardAccel", "Sert Hızlanma"),
-    HARD_TURN: t("reports.alertTypes.hardTurn", "Sert Viraj"),
-    IMPACT: t("reports.alertTypes.impact", "Çarpma"),
-    OVERSPEED: t("reports.alertTypes.overspeed", "Hız Aşımı"),
-  };
+  const ALERT_TYPE_LABELS = useMemo(
+    () => ({
+      HARD_BRAKE: t("reports.alertTypes.hardBrake", "Ani Fren"),
+      HARD_ACCEL: t("reports.alertTypes.hardAccel", "Sert Hızlanma"),
+      HARD_TURN: t("reports.alertTypes.hardTurn", "Sert Viraj"),
+      IMPACT: t("reports.alertTypes.impact", "Çarpma"),
+      OVERSPEED: t("reports.alertTypes.overspeed", "Hız Aşımı"),
+    }),
+    [t]
+  );
 
-  const TASK_STATUS_LABELS = {
-    pending: t("task.statuses.pending", "Bekliyor"),
-    assigned: t("task.statuses.assigned", "Atandı"),
-    in_progress: t("task.statuses.in_progress", "Devam Ediyor"),
-    completed: t("task.statuses.completed", "Tamamlandı"),
-    cancelled: t("task.statuses.cancelled", "İptal"),
-    pending_review: t("task.statuses.pending_review", "İnceleme Bekliyor"),
-  };
+  const TASK_STATUS_LABELS = useMemo(
+    () => ({
+      pending: t("task.statuses.pending", "Bekliyor"),
+      assigned: t("task.statuses.assigned", "Atandı"),
+      in_progress: t("task.statuses.in_progress", "Devam Ediyor"),
+      completed: t("task.statuses.completed", "Tamamlandı"),
+      cancelled: t("task.statuses.cancelled", "İptal"),
+      pending_review: t("task.statuses.pending_review", "İnceleme Bekliyor"),
+    }),
+    [t]
+  );
 
   const getDateRange = () => {
     const to = new Date().toISOString();
@@ -70,6 +82,7 @@ const AdminReportsScreen = ({ navigation }) => {
 
   const fetchData = async () => {
     try {
+      setError(null);
       const { from, to } = getDateRange();
 
       const [summaryData, vehicleData, driverData, alertData, taskData] =
@@ -86,8 +99,11 @@ const AdminReportsScreen = ({ navigation }) => {
       setDriverReport(driverData?.drivers || []);
       setAlertReport(alertData);
       setTaskReport(taskData);
-    } catch (error) {
-      console.error("Reports error:", error);
+    } catch (err) {
+      console.error("Reports error:", err);
+      setError(
+        err?.response?.data?.error || err?.message || "Raporlar yüklenemedi"
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -111,7 +127,7 @@ const AdminReportsScreen = ({ navigation }) => {
     <View
       style={[
         styles.summaryCard,
-        { borderLeftColor: color, minWidth: (width - 44) / 2 },
+        { borderLeftColor: color, minWidth: Math.max(160, (width - 44) / 2) },
       ]}
     >
       <View style={[styles.summaryIcon, { backgroundColor: `${color}20` }]}>
@@ -128,9 +144,11 @@ const AdminReportsScreen = ({ navigation }) => {
   const renderSummaryTab = () => {
     if (!summary) {
       return (
-        <Text style={styles.noData}>
-          {t("reports.noData", "Veri yüklenemedi")}
-        </Text>
+        <EmptyState
+          icon="stats-chart-outline"
+          title={t("reports.noData", "Veri yüklenemedi")}
+          size="sm"
+        />
       );
     }
 
@@ -202,9 +220,11 @@ const AdminReportsScreen = ({ navigation }) => {
   const renderVehiclesTab = () => {
     if (vehicleReport.length === 0) {
       return (
-        <Text style={styles.noData}>
-          {t("reports.noVehicleData", "Araç verisi yok")}
-        </Text>
+        <EmptyState
+          icon="car-outline"
+          title={t("reports.noVehicleData", "Araç verisi yok")}
+          size="sm"
+        />
       );
     }
 
@@ -217,23 +237,14 @@ const AdminReportsScreen = ({ navigation }) => {
           <Card key={vehicle.id} variant="flat" style={styles.reportCardMargin}>
             <View style={styles.reportHeader}>
               <Text style={styles.reportTitle}>{vehicle.plate_no}</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor:
-                      vehicle.status === "in_use"
-                        ? COLORS.SUCCESS
-                        : COLORS.MUTED,
-                  },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {vehicle.status === "in_use"
+              <StatusBadge
+                status={vehicle.status === "in_use" ? "ONLINE" : "OFFLINE"}
+                label={
+                  vehicle.status === "in_use"
                     ? t("reports.statusActive", "Aktif")
-                    : t("reports.statusAvailable", "Müsait")}
-                </Text>
-              </View>
+                    : t("reports.statusAvailable", "Müsait")
+                }
+              />
             </View>
             <Text style={styles.reportSubtitle}>
               {vehicle.brand} {vehicle.model}
@@ -275,9 +286,11 @@ const AdminReportsScreen = ({ navigation }) => {
   const renderDriversTab = () => {
     if (driverReport.length === 0) {
       return (
-        <Text style={styles.noData}>
-          {t("reports.noDriverData", "Sürücü verisi yok")}
-        </Text>
+        <EmptyState
+          icon="people-outline"
+          title={t("reports.noDriverData", "Sürücü verisi yok")}
+          size="sm"
+        />
       );
     }
 
@@ -293,23 +306,14 @@ const AdminReportsScreen = ({ navigation }) => {
                 {driver.first_name || driver.email?.split("@")[0]}{" "}
                 {driver.last_name || ""}
               </Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor:
-                      driver.status === "active"
-                        ? COLORS.SUCCESS
-                        : COLORS.MUTED,
-                  },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {driver.status === "active"
+              <StatusBadge
+                status={driver.status === "active" ? "ONLINE" : "OFFLINE"}
+                label={
+                  driver.status === "active"
                     ? t("reports.statusActive", "Aktif")
-                    : t("reports.statusInactive", "Pasif")}
-                </Text>
-              </View>
+                    : t("reports.statusInactive", "Pasif")
+                }
+              />
             </View>
             <Text style={styles.reportSubtitle}>{driver.email}</Text>
             <View style={styles.reportStats}>
@@ -356,9 +360,11 @@ const AdminReportsScreen = ({ navigation }) => {
   const renderAlertsTab = () => {
     if (!alertReport) {
       return (
-        <Text style={styles.noData}>
-          {t("reports.noAlertData", "Uyarı verisi yok")}
-        </Text>
+        <EmptyState
+          icon="warning-outline"
+          title={t("reports.noAlertData", "Uyarı verisi yok")}
+          size="sm"
+        />
       );
     }
 
@@ -398,9 +404,11 @@ const AdminReportsScreen = ({ navigation }) => {
             })}
           </Card>
         ) : (
-          <Text style={styles.noData}>
-            {t("reports.noAlertsInPeriod", "Bu dönemde uyarı yok")}
-          </Text>
+          <EmptyState
+            icon="checkmark-circle-outline"
+            title={t("reports.noAlertsInPeriod", "Bu dönemde uyarı yok")}
+            size="sm"
+          />
         )}
       </View>
     );
@@ -409,9 +417,11 @@ const AdminReportsScreen = ({ navigation }) => {
   const renderTasksTab = () => {
     if (!taskReport) {
       return (
-        <Text style={styles.noData}>
-          {t("reports.noTaskData", "Görev verisi yok")}
-        </Text>
+        <EmptyState
+          icon="clipboard-outline"
+          title={t("reports.noTaskData", "Görev verisi yok")}
+          size="sm"
+        />
       );
     }
 
@@ -454,28 +464,27 @@ const AdminReportsScreen = ({ navigation }) => {
             })}
           </Card>
         ) : (
-          <Text style={styles.noData}>
-            {t("reports.noTasksInPeriod", "Bu dönemde görev yok")}
-          </Text>
+          <EmptyState
+            icon="clipboard-outline"
+            title={t("reports.noTasksInPeriod", "Bu dönemde görev yok")}
+            size="sm"
+          />
         )}
       </View>
     );
   };
 
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>
-          {t("reports.loading", "Raporlar yükleniyor...")}
-        </Text>
-      </View>
-    );
+    return <DataState loading />;
+  }
+
+  if (error) {
+    return <DataState error={error} onRetry={fetchData} />;
   }
 
   return (
     <View style={styles.container}>
-      {/* Tarih Secici */}
+      {/* Tarih Seçici */}
       <View style={styles.dateSelector}>
         {DATE_RANGES.map((range) => (
           <TouchableOpacity
@@ -556,7 +565,7 @@ const AdminReportsScreen = ({ navigation }) => {
         ))}
       </ScrollView>
 
-      {/* Icerik */}
+      {/* İçerik */}
       <ScrollView
         style={styles.content}
         refreshControl={
@@ -589,19 +598,8 @@ const makeStyles = (COLORS) =>
       flex: 1,
       backgroundColor: COLORS.BACKGROUND,
     },
-    centerContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-    },
-    loadingText: {
-      marginTop: COLORS.SPACING.sm,
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-    },
 
-    // Date Selector
+    // ── Date Selector ─────────────────────────
     dateSelector: {
       flexDirection: "row",
       backgroundColor: COLORS.SURFACE,
@@ -628,7 +626,7 @@ const makeStyles = (COLORS) =>
       color: COLORS.WHITE,
     },
 
-    // Tab Bar
+    // ── Tab Bar ───────────────────────────────
     tabBar: {
       backgroundColor: COLORS.SURFACE,
       maxHeight: COLORS.SPACING.buttonHeight,
@@ -658,7 +656,7 @@ const makeStyles = (COLORS) =>
       color: COLORS.PRIMARY,
     },
 
-    // Content
+    // ── Content ───────────────────────────────
     content: {
       flex: 1,
       padding: COLORS.SPACING.md,
@@ -670,14 +668,8 @@ const makeStyles = (COLORS) =>
       marginBottom: COLORS.SPACING.sm,
       marginTop: COLORS.SPACING.sm,
     },
-    noData: {
-      textAlign: "center",
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-      paddingVertical: COLORS.SPACING.xxl,
-    },
 
-    // Summary Cards
+    // ── Summary Cards ─────────────────────────
     summaryGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -722,7 +714,7 @@ const makeStyles = (COLORS) =>
       marginTop: 2,
     },
 
-    // Report Cards
+    // ── Report Cards ──────────────────────────
     reportCardMargin: {
       marginBottom: COLORS.SPACING.sm,
     },
@@ -741,16 +733,6 @@ const makeStyles = (COLORS) =>
       ...COLORS.TYPOGRAPHY.styles.caption,
       color: COLORS.TEXT_SECONDARY,
       marginBottom: COLORS.SPACING.sm,
-    },
-    statusBadge: {
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
-      borderRadius: COLORS.RADIUS.badge,
-    },
-    statusText: {
-      color: COLORS.WHITE,
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     reportStats: {
       flexDirection: "row",
@@ -772,7 +754,7 @@ const makeStyles = (COLORS) =>
       marginTop: 2,
     },
 
-    // Bar Charts
+    // ── Bar Charts ────────────────────────────
     barRow: {
       flexDirection: "row",
       alignItems: "center",

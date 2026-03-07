@@ -1,8 +1,9 @@
 /**
- * AdminFuelDashboard.js - v4.1 "Innovation"
+ * AdminFuelDashboard.js - v4.2
+ * Phase 0: DataState loading + import cleanup
  * TulipFleet - Akilli Yakit & Verimlilik Dashboard
  *
- * Tek dosya, harici component bagimliligi yok.
+ * Phase 0 foundation: DataState (loading), kendi iç state yapıları korundu.
  * Backend: /api/fuel/company/analytics + /api/fuel/company/savings + /api/fuel/alerts
  *
  * Ozellikler:
@@ -22,7 +23,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Dimensions,
   RefreshControl,
   ScrollView,
@@ -31,6 +31,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import DataState from "../../../components/ui/DataState";
 import { useTheme } from "../../../context/ThemeContext";
 import { useThemedStyles } from "../../../hooks/useThemedStyles";
 import api from "../../../services/api";
@@ -1194,21 +1195,9 @@ const AdminFuelDashboard = ({ navigation }) => {
   // LOADING
   // ============================================
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
-      </View>
-    );
-  }
-
-  // ============================================
-  // MAIN RENDER
-  // ============================================
-
   return (
-    <View style={styles.container}>
+    <DataState loading onRetry={fetchData}>
+      <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -1231,6 +1220,7 @@ const AdminFuelDashboard = ({ navigation }) => {
         <View style={{ height: 32 }} />
       </ScrollView>
     </View>
+    </DataState>
   );
 };
 
@@ -1241,17 +1231,6 @@ const AdminFuelDashboard = ({ navigation }) => {
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-    centered: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-    },
-    loadingText: {
-      marginTop: COLORS.SPACING.md,
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_MUTED,
-    },
     scrollContent: { padding: COLORS.SPACING.md },
 
     // ROI Card

@@ -14,7 +14,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -25,9 +24,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 
 import Card from "../../components/ui/Card";
+import DataState from "../../components/ui/DataState";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
@@ -109,38 +110,6 @@ const makeStyles = (COLORS) =>
     scrollView: {
       flex: 1,
       padding: COLORS.SPACING.md, // 16
-    },
-    centered: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.BACKGROUND,
-      padding: COLORS.SPACING.lg, // 24
-    },
-    loadingText: {
-      marginTop: COLORS.SPACING.md, // 16
-      ...COLORS.TYPOGRAPHY.styles.bodySmall,
-      color: COLORS.TEXT_SECONDARY,
-    },
-    emptyText: {
-      marginTop: COLORS.SPACING.lg, // 24
-      ...COLORS.TYPOGRAPHY.styles.body,
-      color: COLORS.TEXT_SECONDARY,
-      textAlign: "center",
-    },
-    retryButton: {
-      marginTop: COLORS.SPACING.md, // 16
-      paddingHorizontal: COLORS.SPACING.lg, // 24
-      height: COLORS.SPACING.buttonHeight, // 48
-      backgroundColor: COLORS.PRIMARY,
-      borderRadius: COLORS.RADIUS.button,
-      alignItems: "center",
-      justifyContent: "center",
-      ...COLORS.SHADOWS.button,
-    },
-    retryText: {
-      ...COLORS.TYPOGRAPHY.styles.button,
-      color: COLORS.WHITE,
     },
 
     // Vehicle Card content
@@ -738,33 +707,18 @@ const FuelEntryScreen = ({ navigation }) => {
   // Render
   // =========================
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>
-          {t("common.loading", "Yükleniyor...")}
-        </Text>
-      </View>
-    );
+    return <DataState loading onRetry={loadData} />;
   }
 
   if (!vehicle) {
     return (
-      <View style={styles.centered}>
-        <Ionicons name="car-outline" size={64} color={COLORS.MUTED} />
-        <Text style={styles.emptyText}>
-          {t("fuel.error.noVehicle", "Atanmış aracınız yok")}
-        </Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={loadData}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.retryText}>
-            {t("common.retry", "Tekrar Dene")}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <DataState
+        empty
+        emptyIcon="car-outline"
+        emptyTitle={t("fuel.error.noVehicle", "Atanmış aracınız yok")}
+        onRetry={loadData}
+        retryLabel={t("common.retry", "Tekrar Dene")}
+      />
     );
   }
 
