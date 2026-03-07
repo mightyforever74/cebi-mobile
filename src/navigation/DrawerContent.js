@@ -379,17 +379,7 @@ const DrawerContent = ({ navigation, state }) => {
   // CRITICAL FIX: Nested Navigation Handler
   // ============================================
   const handleMenuPress = (item) => {
-    if (isAdmin) {
-      // ADMIN NAVIGATION
-      if (item.screen === "AdminHome" || item.screen === "AdminDashboard") {
-        navigation.navigate("AdminHome");
-      } else {
-        navigation.navigate("AdminHome", { screen: item.screen });
-      }
-    } else {
-      // DRIVER NAVIGATION - Direkt navigate
-      navigation.navigate(item.screen);
-    }
+    navigation.navigate(item.screen);
   };
 
   // ============================================
