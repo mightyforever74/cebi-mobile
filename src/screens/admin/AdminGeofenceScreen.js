@@ -501,7 +501,7 @@ export default function AdminGeofenceScreen() {
       setError(null);
       setLoading(true);
       const data = await geofenceAPI.getAll();
-      setZones(data.zones ?? data ?? []);
+      setZones(data.geofences ?? data.zones ?? []);
     } catch (e) {
       setError(e);
     } finally {
@@ -1238,3 +1238,4 @@ export default function AdminGeofenceScreen() {
     </View>
   );
 }
+
