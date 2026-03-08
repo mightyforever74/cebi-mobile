@@ -534,7 +534,7 @@ export default function AdminGeofenceScreen() {
       description: zone.description ?? "",
       fence_type: zone.fence_type ?? "circle",
       category: zone.category ?? "general",
-      radius: zone.radius ?? 500,
+      radius: parseFloat(zone.radius) || 500,
       customRadius: "",
       alert_on_entry: zone.alert_on_entry ?? false,
       alert_on_exit: zone.alert_on_exit ?? false,
@@ -861,7 +861,7 @@ export default function AdminGeofenceScreen() {
             id: z.id,
             type: "circle",
             center: { latitude: coords.lat, longitude: coords.lng },
-            radius: z.radius ?? 500,
+            radius: parseFloat(z.radius) || 500,
             color: catColor,
           };
         }
