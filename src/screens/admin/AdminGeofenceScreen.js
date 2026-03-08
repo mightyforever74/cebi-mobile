@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Modal,
@@ -22,7 +23,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Circle, Polygon, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  Circle,
+  Marker,
+  Polygon,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 import Card from "../../components/ui/Card";
 import DataState from "../../components/ui/DataState";
 import EmptyState from "../../components/ui/EmptyState";
@@ -410,6 +416,30 @@ const makeStyles = (COLORS) =>
     },
 
     // ── Draw map in modal ──
+    mapSearchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: COLORS.SPACING.xs,
+    },
+    mapSearchInput: {
+      flex: 1,
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: COLORS.RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.DIVIDER,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: 8,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT,
+      marginRight: COLORS.SPACING.xs,
+    },
+    mapSearchBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: COLORS.RADIUS.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     drawMapWrap: {
       height: 220,
       borderRadius: COLORS.RADIUS.md,
@@ -490,6 +520,8 @@ export default function AdminGeofenceScreen() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [drawPoints, setDrawPoints] = useState([]); // polygon points
   const [circleCenter, setCircleCenter] = useState(null); // circle center
+  const [mapSearch, setMapSearch] = useState(""); // harita arama
+  const [mapSearching, setMapSearching] = useState(false);
 
   // ── Derived ──
   const catColors = useMemo(() => CATEGORY_COLORS(COLORS), [COLORS]);
@@ -498,6 +530,34 @@ export default function AdminGeofenceScreen() {
     () => zones.filter((z) => z.is_active).length,
     [zones]
   );
+
+  // ── Map search ──
+  const handleMapSearch = useCallback(async () => {
+    const q = mapSearch.trim();
+    if (!q) return;
+    try {
+      setMapSearching(true);
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.status === "OK" && json.results.length > 0) {
+        const { lat, lng } = json.results[0].geometry.location;
+        drawMapRef.current?.animateToRegion(
+          {
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          },
+          800
+        );
+      }
+    } catch {
+      /* sessiz fail */
+    } finally {
+      setMapSearching(false);
+    }
+  }, [mapSearch]);
 
   // ── Load ──
   const loadZones = useCallback(async () => {
@@ -1173,6 +1233,33 @@ export default function AdminGeofenceScreen() {
                   ? t("geofence.hintCircle")
                   : t("geofence.hintPolygon", { count: drawPoints.length })}
               </Text>
+              {/* ── Map Search ── */}
+              <View style={styles.mapSearchRow}>
+                <TextInput
+                  style={styles.mapSearchInput}
+                  placeholder={t("geofence.searchPlaceholder", "Konum ara...")}
+                  placeholderTextColor={COLORS.TEXT_SECONDARY}
+                  value={mapSearch}
+                  onChangeText={setMapSearch}
+                  onSubmitEditing={handleMapSearch}
+                  returnKeyType="search"
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.mapSearchBtn,
+                    { backgroundColor: COLORS.PRIMARY },
+                  ]}
+                  onPress={handleMapSearch}
+                  disabled={mapSearching}
+                >
+                  {mapSearching ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="search-outline" size={18} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+
               <View style={styles.drawMapWrap}>
                 <MapView
                   ref={drawMapRef}
@@ -1219,6 +1306,40 @@ export default function AdminGeofenceScreen() {
                       strokeWidth={2}
                     />
                   )}
+                  {/* Polygon nokta marker'ları */}
+                  {form.fence_type === "polygon" &&
+                    drawPoints.map((pt, idx) => (
+                      <Marker
+                        key={`pt-${idx}`}
+                        coordinate={pt}
+                        anchor={{ x: 0.5, y: 0.5 }}
+                        tracksViewChanges={false}
+                      >
+                        <View
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                            backgroundColor:
+                              catColors[form.category] ?? COLORS.PRIMARY,
+                            borderWidth: 2,
+                            borderColor: "#FFFFFF",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#FFFFFF",
+                              fontSize: 9,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {idx + 1}
+                          </Text>
+                        </View>
+                      </Marker>
+                    ))}
                 </MapView>
 
                 {/* Clear button */}
