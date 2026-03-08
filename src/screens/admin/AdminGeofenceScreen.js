@@ -35,7 +35,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { geofenceAPI } from "../../services/api";
+import { geofenceAPI, vehicleAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -81,6 +81,10 @@ const EMPTY_FORM = {
   start_hour: "08",
   end_hour: "18",
   csrd_tracked: false,
+  // -- Scope (v1: sadece vehicle) --
+  scope_type: "vehicle",
+  vehicle_id: null,
+  vehicle_plate: "",
 };
 
 // ─── makeStyles ──────────────────────────────────────────────────────────────
@@ -441,10 +445,24 @@ const makeStyles = (COLORS) =>
       justifyContent: "center",
     },
     drawMapWrap: {
-      height: 220,
       borderRadius: COLORS.RADIUS.md,
       overflow: "hidden",
       marginTop: COLORS.SPACING.xs,
+    },
+    drawMapWrapFullscreen: {
+      height: 500,
+      borderRadius: COLORS.RADIUS.md,
+      overflow: "hidden",
+      marginTop: COLORS.SPACING.xs,
+    },
+    fullscreenBtn: {
+      position: "absolute",
+      top: COLORS.SPACING.xs,
+      left: COLORS.SPACING.xs,
+      backgroundColor: withAlpha("#000000", 0.55),
+      borderRadius: COLORS.RADIUS.md,
+      padding: 6,
+      zIndex: 10,
     },
     drawMap: {
       flex: 1,
@@ -522,6 +540,12 @@ export default function AdminGeofenceScreen() {
   const [circleCenter, setCircleCenter] = useState(null); // circle center
   const [mapSearch, setMapSearch] = useState(""); // harita arama
   const [mapSearching, setMapSearching] = useState(false);
+  const [mapFullscreen, setMapFullscreen] = useState(false);
+  // -- Vehicle picker --
+  const [vehicles, setVehicles] = useState([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [vehicleSearch, setVehicleSearch] = useState("");
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
 
   // ── Derived ──
   const catColors = useMemo(() => CATEGORY_COLORS(COLORS), [COLORS]);
@@ -573,6 +597,22 @@ export default function AdminGeofenceScreen() {
     }
   }, []);
 
+  // ── Load vehicles (cihaz atanmış, retired olmayan) ──
+  const loadVehicles = useCallback(async () => {
+    try {
+      setVehiclesLoading(true);
+      const data = await vehicleAPI.getList();
+      const list = (data.vehicles ?? data ?? []).filter(
+        (v) => v.esp32_device_id && v.status !== "retired"
+      );
+      setVehicles(list);
+    } catch {
+      // sessiz hata
+    } finally {
+      setVehiclesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadZones();
   }, [loadZones]);
@@ -583,42 +623,60 @@ export default function AdminGeofenceScreen() {
     setForm(EMPTY_FORM);
     setDrawPoints([]);
     setCircleCenter(null);
+    setMapSearch("");
+    setVehicleSearch("");
+    loadVehicles();
     setShowModal(true);
-  }, []);
+  }, [loadVehicles]);
 
-  const openEdit = useCallback((zone) => {
-    setEditZone(zone);
-    const coords = zone.coordinates ?? {};
-    setForm({
-      name: zone.name ?? "",
-      description: zone.description ?? "",
-      fence_type: zone.fence_type ?? "circle",
-      category: zone.category ?? "general",
-      radius: parseFloat(zone.radius) || 500,
-      customRadius: "",
-      alert_on_entry: zone.alert_on_entry ?? false,
-      alert_on_exit: zone.alert_on_exit ?? false,
-      time_restriction: !!(zone.start_hour || zone.end_hour),
-      start_hour:
-        zone.start_hour != null
-          ? String(zone.start_hour).padStart(2, "0")
-          : "08",
-      end_hour:
-        zone.end_hour != null ? String(zone.end_hour).padStart(2, "0") : "18",
-      csrd_tracked: zone.csrd_tracked ?? false,
-    });
-    if (zone.fence_type === "circle" && coords.lat) {
-      setCircleCenter({ latitude: coords.lat, longitude: coords.lng });
-      setDrawPoints([]);
-    } else if (zone.fence_type === "polygon" && Array.isArray(coords)) {
-      setDrawPoints(coords.map((c) => ({ latitude: c.lat, longitude: c.lng })));
-      setCircleCenter(null);
-    } else {
-      setDrawPoints([]);
-      setCircleCenter(null);
-    }
-    setShowModal(true);
-  }, []);
+  const openEdit = useCallback(
+    (zone) => {
+      setEditZone(zone);
+      const coords = zone.coordinates ?? {};
+      setForm({
+        name: zone.name ?? "",
+        description: zone.description ?? "",
+        fence_type: zone.fence_type ?? "circle",
+        category: zone.category ?? "general",
+        radius: parseFloat(zone.radius) || 500,
+        customRadius: "",
+        alert_on_entry: zone.alert_on_entry ?? false,
+        alert_on_exit: zone.alert_on_exit ?? false,
+        time_restriction: !!(zone.start_hour || zone.end_hour),
+        start_hour:
+          zone.start_hour != null
+            ? String(zone.start_hour).padStart(2, "0")
+            : "08",
+        end_hour:
+          zone.end_hour != null ? String(zone.end_hour).padStart(2, "0") : "18",
+        csrd_tracked: zone.csrd_tracked ?? false,
+        // -- Scope --
+        scope_type: zone.scope_type ?? "vehicle",
+        vehicle_id: zone.vehicle_id ?? null,
+        vehicle_plate: zone.vehicle_plate ?? "",
+      });
+      if (
+        zone.fence_type === "circle" &&
+        coords?.lat != null &&
+        coords?.lng != null
+      ) {
+        setCircleCenter({ latitude: coords.lat, longitude: coords.lng });
+        setDrawPoints([]);
+      } else if (zone.fence_type === "polygon" && Array.isArray(coords)) {
+        setDrawPoints(
+          coords.map((c) => ({ latitude: c.lat, longitude: c.lng }))
+        );
+        setCircleCenter(null);
+      } else {
+        setDrawPoints([]);
+        setCircleCenter(null);
+      }
+      setVehicleSearch("");
+      loadVehicles();
+      setShowModal(true);
+    },
+    [loadVehicles]
+  );
 
   // ── Map long-press draw ──
   const handleDrawPress = useCallback(
@@ -674,6 +732,12 @@ export default function AdminGeofenceScreen() {
           }
         : drawPoints.map((p) => ({ lat: p.latitude, lng: p.longitude }));
 
+    // scope validasyon — v1'de vehicle_id zorunlu
+    if (!form.vehicle_id) {
+      Alert.alert("", t("geofence.vehicleRequired", "Lütfen bir araç seçin"));
+      return;
+    }
+
     const payload = {
       name: form.name.trim(),
       description: form.description.trim(),
@@ -686,6 +750,9 @@ export default function AdminGeofenceScreen() {
       start_hour: form.time_restriction ? parseInt(form.start_hour, 10) : null,
       end_hour: form.time_restriction ? parseInt(form.end_hour, 10) : null,
       csrd_tracked: form.csrd_tracked,
+      // -- Scope --
+      scope_type: "vehicle",
+      vehicle_id: form.vehicle_id,
     };
 
     try {
@@ -785,6 +852,7 @@ export default function AdminGeofenceScreen() {
                   {item.name}
                 </Text>
                 <Text style={styles.zoneMeta} numberOfLines={1}>
+                  {item.vehicle_plate ? `${item.vehicle_plate}  ·  ` : ""}
                   {radiusLabel}
                   {item.description ? `  ·  ${item.description}` : ""}
                 </Text>
@@ -1066,6 +1134,242 @@ export default function AdminGeofenceScreen() {
               contentContainerStyle={styles.modalScroll}
               keyboardShouldPersistTaps="handled"
             >
+              {/* ── Araç Seç (v1: zorunlu) ── */}
+              <Text style={styles.sectionLabel}>
+                {t("geofence.selectVehicle", "Araç")}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.textInput,
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    backgroundColor: form.vehicle_id
+                      ? withAlpha(COLORS.PRIMARY, 0.06)
+                      : COLORS.SURFACE,
+                    borderColor: form.vehicle_id
+                      ? COLORS.PRIMARY
+                      : COLORS.ERROR,
+                  },
+                ]}
+                onPress={() => setShowVehiclePicker(true)}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
+                >
+                  <Ionicons
+                    name={form.vehicle_id ? "car" : "car-outline"}
+                    size={16}
+                    color={form.vehicle_id ? COLORS.PRIMARY : COLORS.ERROR}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={{
+                      color: form.vehicle_id ? COLORS.TEXT : COLORS.ERROR,
+                      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+                      flex: 1,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {form.vehicle_plate ||
+                      t("geofence.chooseVehicle", "Araç seçin...")}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-down-outline"
+                  size={14}
+                  color={COLORS.TEXT_SECONDARY}
+                />
+              </TouchableOpacity>
+
+              {/* ════ Vehicle Picker Modal ════ */}
+              <Modal
+                visible={showVehiclePicker}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setShowVehiclePicker(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={[styles.modalSheet, { maxHeight: "70%" }]}>
+                    <View style={styles.modalHandle} />
+                    <View style={styles.modalHeader}>
+                      <Text style={styles.modalTitle}>
+                        {t("geofence.selectVehicle", "Araç Seç")}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.modalClose}
+                        onPress={() => setShowVehiclePicker(false)}
+                      >
+                        <Ionicons
+                          name="close"
+                          size={22}
+                          color={COLORS.TEXT_SECONDARY}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View
+                      style={{
+                        paddingHorizontal: COLORS.SPACING.md,
+                        paddingBottom: COLORS.SPACING.sm,
+                      }}
+                    >
+                      <View
+                        style={[
+                          styles.textInput,
+                          { flexDirection: "row", alignItems: "center" },
+                        ]}
+                      >
+                        <Ionicons
+                          name="search-outline"
+                          size={16}
+                          color={COLORS.TEXT_SECONDARY}
+                          style={{ marginRight: 6 }}
+                        />
+                        <TextInput
+                          style={{
+                            flex: 1,
+                            color: COLORS.TEXT,
+                            fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+                          }}
+                          value={vehicleSearch}
+                          onChangeText={setVehicleSearch}
+                          placeholder={t(
+                            "geofence.searchVehicle",
+                            "Plaka veya marka ara..."
+                          )}
+                          placeholderTextColor={COLORS.TEXT_SECONDARY}
+                          autoFocus
+                        />
+                        {vehicleSearch.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setVehicleSearch("")}
+                          >
+                            <Ionicons
+                              name="close-circle"
+                              size={16}
+                              color={COLORS.TEXT_SECONDARY}
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                    {vehiclesLoading ? (
+                      <DataState loading />
+                    ) : (
+                      <FlatList
+                        data={vehicles.filter((v) => {
+                          if (!vehicleSearch) return true;
+                          const q = vehicleSearch.toLowerCase();
+                          return (
+                            (v.plate_no ?? "").toLowerCase().includes(q) ||
+                            (v.brand ?? "").toLowerCase().includes(q) ||
+                            (v.model ?? "").toLowerCase().includes(q)
+                          );
+                        })}
+                        keyExtractor={(v) => v.id}
+                        contentContainerStyle={{
+                          paddingHorizontal: COLORS.SPACING.md,
+                          paddingBottom: 24,
+                        }}
+                        ListEmptyComponent={
+                          <EmptyState
+                            size="sm"
+                            icon="car-outline"
+                            title={t("geofence.noVehicles", "Araç bulunamadı")}
+                            subtitle={t(
+                              "geofence.noVehiclesHint",
+                              "Cihaz atanmış aktif araç yok"
+                            )}
+                          />
+                        }
+                        renderItem={({ item: veh }) => {
+                          const sel = form.vehicle_id === veh.id;
+                          return (
+                            <TouchableOpacity
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                padding: COLORS.SPACING.sm,
+                                marginBottom: COLORS.SPACING.xs,
+                                borderRadius: COLORS.RADIUS.md,
+                                backgroundColor: sel
+                                  ? withAlpha(COLORS.PRIMARY, 0.08)
+                                  : COLORS.SURFACE,
+                                borderWidth: sel ? 1.5 : 0,
+                                borderColor: sel
+                                  ? COLORS.PRIMARY
+                                  : "transparent",
+                              }}
+                              onPress={() => {
+                                setForm((f) => ({
+                                  ...f,
+                                  vehicle_id: veh.id,
+                                  vehicle_plate: veh.plate_no,
+                                }));
+                                setShowVehiclePicker(false);
+                                setVehicleSearch("");
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: COLORS.RADIUS.lg,
+                                  backgroundColor: sel
+                                    ? withAlpha(COLORS.PRIMARY, 0.15)
+                                    : withAlpha(COLORS.TEXT_SECONDARY, 0.08),
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  marginRight: COLORS.SPACING.sm,
+                                }}
+                              >
+                                <Ionicons
+                                  name="car-outline"
+                                  size={18}
+                                  color={
+                                    sel ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY
+                                  }
+                                />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={[
+                                    styles.zoneName,
+                                    { fontSize: COLORS.TYPOGRAPHY.sizes.sm },
+                                  ]}
+                                >
+                                  {veh.plate_no}
+                                </Text>
+                                <Text style={styles.zoneMeta}>
+                                  {[veh.brand, veh.model]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                  {veh.esp32_device_id
+                                    ? `  ·  ${veh.esp32_device_id}`
+                                    : ""}
+                                </Text>
+                              </View>
+                              {sel && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={20}
+                                  color={COLORS.PRIMARY}
+                                />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        }}
+                      />
+                    )}
+                  </View>
+                </View>
+              </Modal>
+
               {/* ── Zone name ── */}
               <Text style={styles.sectionLabel}>{t("geofence.name")}</Text>
               <TextInput
@@ -1260,7 +1564,25 @@ export default function AdminGeofenceScreen() {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.drawMapWrap}>
+              <View
+                style={[
+                  styles.drawMapWrap,
+                  mapFullscreen
+                    ? styles.drawMapWrapFullscreen
+                    : { height: 220 },
+                ]}
+              >
+                {/* Fullscreen toggle button */}
+                <TouchableOpacity
+                  style={styles.fullscreenBtn}
+                  onPress={() => setMapFullscreen((v) => !v)}
+                >
+                  <Ionicons
+                    name={mapFullscreen ? "contract-outline" : "expand-outline"}
+                    size={16}
+                    color="#FFFFFF"
+                  />
+                </TouchableOpacity>
                 <MapView
                   ref={drawMapRef}
                   style={styles.drawMap}
