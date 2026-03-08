@@ -787,7 +787,7 @@ export const geofenceAPI = {
     return response.data;
   },
   delete: async (id) => {
-    const response = await api.delete(`/api/geofences/${id}`);
+    const response = await api.delete(`/api/geofences/${id}?hard=true`);
     return response.data;
   },
   getEvents: async (id, limit = 50) => {
