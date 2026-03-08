@@ -185,6 +185,14 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       marginLeft: COLORS.SPACING.xs,
     },
+    zoneActionBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.xs,
+      paddingTop: COLORS.SPACING.xs,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.DIVIDER,
+    },
     actionBtn: {
       width: 36,
       height: 36,
@@ -526,7 +534,7 @@ export default function AdminGeofenceScreen() {
       description: zone.description ?? "",
       fence_type: zone.fence_type ?? "circle",
       category: zone.category ?? "general",
-      radius: parseFloat(zone.radius) || 500,
+      radius: zone.radius ?? 500,
       customRadius: "",
       alert_on_entry: zone.alert_on_entry ?? false,
       alert_on_exit: zone.alert_on_exit ?? false,
@@ -688,12 +696,11 @@ export default function AdminGeofenceScreen() {
     ({ item }) => {
       const catColor = catColors[item.category] ?? COLORS.PRIMARY;
       const catIcon = CATEGORY_ICONS[item.category] ?? "location-outline";
-      const radiusNum = parseFloat(item.radius) || 0;
       const radiusLabel =
-        item.fence_type === "circle" && radiusNum
-          ? radiusNum >= 1000
-            ? `${(radiusNum / 1000).toFixed(1)} km`
-            : `${radiusNum} m`
+        item.fence_type === "circle" && item.radius
+          ? item.radius >= 1000
+            ? `${(item.radius / 1000).toFixed(1)} km`
+            : `${item.radius} m`
           : item.fence_type === "polygon"
             ? t("geofence.polygon")
             : "";
@@ -714,7 +721,7 @@ export default function AdminGeofenceScreen() {
 
               {/* Info */}
               <View style={styles.zoneInfo}>
-                <Text style={styles.zoneName} numberOfLines={1}>
+                <Text style={styles.zoneName} numberOfLines={2}>
                   {item.name}
                 </Text>
                 <Text style={styles.zoneMeta} numberOfLines={1}>
@@ -722,51 +729,9 @@ export default function AdminGeofenceScreen() {
                   {item.description ? `  ·  ${item.description}` : ""}
                 </Text>
               </View>
-
-              {/* Active toggle + actions */}
-              <View style={styles.zoneActions}>
-                <Switch
-                  value={item.is_active}
-                  onValueChange={() => handleToggleActive(item)}
-                  trackColor={{
-                    false: COLORS.DIVIDER,
-                    true: withAlpha(COLORS.SUCCESS, 0.4),
-                  }}
-                  thumbColor={
-                    item.is_active ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY
-                  }
-                  style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.actionBtn,
-                    { backgroundColor: withAlpha(COLORS.PRIMARY, 0.08) },
-                  ]}
-                  onPress={() => openEdit(item)}
-                >
-                  <Ionicons
-                    name="pencil-outline"
-                    size={16}
-                    color={COLORS.PRIMARY}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.actionBtn,
-                    { backgroundColor: withAlpha(COLORS.ERROR, 0.08) },
-                  ]}
-                  onPress={() => handleDelete(item)}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={16}
-                    color={COLORS.ERROR}
-                  />
-                </TouchableOpacity>
-              </View>
             </View>
 
-            {/* Tags */}
+            {/* Tags + Actions row */}
             <View style={styles.zoneBadgeRow}>
               {/* Active / Passive badge */}
               <StatusBadge
@@ -838,6 +803,45 @@ export default function AdminGeofenceScreen() {
                 </View>
               )}
             </View>
+
+            {/* Action bar */}
+            <View style={styles.zoneActionBar}>
+              <Switch
+                value={item.is_active}
+                onValueChange={() => handleToggleActive(item)}
+                trackColor={{
+                  false: COLORS.DIVIDER,
+                  true: withAlpha(COLORS.SUCCESS, 0.4),
+                }}
+                thumbColor={
+                  item.is_active ? COLORS.SUCCESS : COLORS.TEXT_SECONDARY
+                }
+                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+              />
+              <View style={{ flex: 1 }} />
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: withAlpha(COLORS.PRIMARY, 0.08) },
+                ]}
+                onPress={() => openEdit(item)}
+              >
+                <Ionicons
+                  name="pencil-outline"
+                  size={16}
+                  color={COLORS.PRIMARY}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: withAlpha(COLORS.ERROR, 0.08) },
+                ]}
+                onPress={() => handleDelete(item)}
+              >
+                <Ionicons name="trash-outline" size={16} color={COLORS.ERROR} />
+              </TouchableOpacity>
+            </View>
           </View>
         </Card>
       );
@@ -857,7 +861,7 @@ export default function AdminGeofenceScreen() {
             id: z.id,
             type: "circle",
             center: { latitude: coords.lat, longitude: coords.lng },
-            radius: parseFloat(z.radius) || 500,
+            radius: z.radius ?? 500,
             color: catColor,
           };
         }
