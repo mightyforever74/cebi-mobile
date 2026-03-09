@@ -143,21 +143,6 @@ const makeStyles = (COLORS) =>
       lineHeight: 20,
     },
 
-    // ── Mock notice ──
-    mockNotice: {
-      marginTop: COLORS.SPACING.md, // 16
-      backgroundColor: COLORS.WARNING_LIGHT,
-      borderRadius: COLORS.RADIUS.sm, // 8
-      padding: COLORS.SPACING.md, // 16
-      borderWidth: 1,
-      borderColor: COLORS.WARNING,
-    },
-    mockText: {
-      ...COLORS.TYPOGRAPHY.styles.caption,
-      color: COLORS.WARNING,
-      textAlign: "center",
-    },
-
     // ── Version ──
     version: {
       ...COLORS.TYPOGRAPHY.styles.caption,
@@ -297,7 +282,8 @@ const RegisterScreen = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      enabled={Platform.OS === "ios" && !Platform.isPad}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -495,14 +481,6 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.infoText}>
             {t("register.infoText") ||
               "Kayıt sonrası yönetici onayı gereklidir. Onay sürecinden sonra giriş yapabilirsiniz. Sorularınız için: destek@tulipfleet.com"}
-          </Text>
-        </View>
-
-        {/* Mock Mode Notice */}
-        <View style={styles.mockNotice}>
-          <Text style={styles.mockText}>
-            {t("register.mockNotice") ||
-              "Mock Mode: Kayıt hemen onaylanacak ve giriş yapabilirsiniz"}
           </Text>
         </View>
 
