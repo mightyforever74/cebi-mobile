@@ -23,94 +23,6 @@ import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-// ── Dark map style ────────────────────────────────────────────
-const DARK_MAP_STYLE = [
-  { elementType: "geometry", stylers: [{ color: "#212121" }] },
-  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
-  {
-    featureType: "administrative",
-    elementType: "geometry",
-    stylers: [{ color: "#757575" }],
-  },
-  {
-    featureType: "administrative.country",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#9e9e9e" }],
-  },
-  {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#bdbdbd" }],
-  },
-  {
-    featureType: "poi",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#757575" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "geometry",
-    stylers: [{ color: "#181818" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#616161" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#1b1b1b" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry.fill",
-    stylers: [{ color: "#2c2c2c" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#8a8a8a" }],
-  },
-  {
-    featureType: "road.arterial",
-    elementType: "geometry",
-    stylers: [{ color: "#373737" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#3c3c3c" }],
-  },
-  {
-    featureType: "road.highway.controlled_access",
-    elementType: "geometry",
-    stylers: [{ color: "#4e4e4e" }],
-  },
-  {
-    featureType: "road.local",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#616161" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#757575" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#000000" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#3d3d3d" }],
-  },
-];
-
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 
 // Google Maps API Key
@@ -414,15 +326,15 @@ const makeStyles = (COLORS) =>
       marginBottom: COLORS.SPACING.md,
     },
     taskCode: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.PRIMARY,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.normal,
+      marginTop: 2,
     },
     taskTitle: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xl,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginTop: COLORS.SPACING.xs,
     },
     statusBadge: {
       flexDirection: "row",
@@ -502,10 +414,10 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
 
-    // Waypoints Panel placement
+    // Waypoints Panel placement (compactBottomBar kaldırıldı, bottom azaltıldı)
     waypointsPanel: {
       position: "absolute",
-      bottom: 100,
+      bottom: 16,
       left: 0,
       right: 0,
     },
@@ -543,7 +455,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const styles = useThemedStyles(makeStyles);
-  const { COLORS, isDark } = useTheme();
+  const { COLORS } = useTheme();
 
   // 1) normalizeCoords
   const normalizeCoords = useCallback((c) => {
@@ -1578,7 +1490,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           }}
-          customMapStyle={isDark ? DARK_MAP_STYLE : []}
           showsUserLocation={false}
           showsMyLocationButton={false}
           showsCompass={true}
@@ -1679,7 +1590,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* Waypoints Panel - Collapsible */}
-      {Array.isArray(waypoints) && waypoints.length > 0 && (
+      {(origin ||
+        destination ||
+        (Array.isArray(waypoints) && waypoints.length > 0)) && (
         <WaypointsPanel
           waypoints={waypoints}
           currentWaypointIndex={currentWaypointIndex}
@@ -1691,6 +1604,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             destination && handleWaypointPress(destination, -1)
           }
           onWaypointComplete={handleWaypointComplete}
+          distance={
+            isNavigating && navigationInfo ? navigationInfo.distance : null
+          }
+          duration={isNavigating && navigationInfo ? navigationInfo.eta : null}
+          onComplete={isNavigating ? handleCompleteTask : null}
+          actionLoading={actionLoading}
           style={styles.waypointsPanel}
         />
       )}
@@ -1751,48 +1670,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* COMPACT BOTTOM BAR - in_progress (navInfo + Tamamla) */}
-      {isNavigating && navigationInfo && (
-        <View style={styles.compactBottomBar}>
-          {/* Distance */}
-          <View style={styles.compactItem}>
-            <Ionicons name="speedometer" size={18} color={COLORS.MUTED} />
-            <Text style={styles.compactValue}>
-              {navigationInfo.distance} km
-            </Text>
-          </View>
-
-          <View style={styles.compactDivider} />
-
-          {/* ETA */}
-          <View style={styles.compactItem}>
-            <Ionicons name="time" size={18} color={COLORS.MUTED} />
-            <Text style={styles.compactValue}>
-              {navigationInfo.eta} {t("routeMap.min")}
-            </Text>
-          </View>
-
-          <View style={styles.compactDivider} />
-
-          {/* Task No */}
-          <View style={styles.compactItem}>
-            <Text style={styles.compactTaskNo}>{getShortTaskNo()}</Text>
-          </View>
-
-          {/* Complete Button */}
-          <TouchableOpacity
-            style={styles.compactCompleteBtn}
-            onPress={handleCompleteTask}
-            disabled={actionLoading}
-          >
-            {actionLoading ? (
-              <ActivityIndicator size="small" color={COLORS.WHITE} />
-            ) : (
-              <Ionicons name="checkmark" size={24} color={COLORS.WHITE} />
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* compactBottomBar kaldırıldı - km/dk/Tamamla WaypointsPanel.infoBar'a taşındı */}
 
       {/* PENDING REVIEW BANNER */}
       {isPendingReview && location && (
@@ -1835,10 +1713,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         <View style={styles.taskCard}>
           <View style={styles.taskHeader}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
               <Text style={styles.taskTitle} numberOfLines={1}>
                 {task.title || t("routeMap.deliveryTask")}
               </Text>
+              <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
             </View>
             <View style={styles.statusBadge}>
               <Ionicons
