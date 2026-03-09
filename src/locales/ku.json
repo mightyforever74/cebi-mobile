@@ -1928,7 +1928,14 @@
       "emission_zone": "Devera emîsyonê",
       "border": "Sînor / Gumrik",
       "sensitive_area": "Devera hesas"
-    }
+    },
+    "selectVehicle": "Wesayit",
+    "chooseVehicle": "Wesaytekê hilbijêre...",
+    "searchVehicle": "Plate an marka lê bigere...",
+    "vehicleRequired": "Ji kerema xwe wesaytekê hilbijêre",
+    "noVehicles": "Wesayt nehatin dîtin",
+    "noVehiclesHint": "Wesaytên çalak ên bi amûrê tune ne",
+    "searchPlaceholder": "Cîh lê bigere..."
   },
   "vehicleList": {
     "title": "Lîsteya Wesaîtan",

@@ -1632,7 +1632,14 @@
       "emission_zone": "Zona emissioni",
       "border": "Confine / Dogana",
       "sensitive_area": "Area sensibile"
-    }
+    },
+    "selectVehicle": "Veicolo",
+    "chooseVehicle": "Scegli veicolo...",
+    "searchVehicle": "Cerca targa o marca...",
+    "vehicleRequired": "Seleziona un veicolo",
+    "noVehicles": "Nessun veicolo trovato",
+    "noVehiclesHint": "Nessun veicolo attivo con dispositivo",
+    "searchPlaceholder": "Cerca posizione..."
   },
   "alert": {
     "active": "Active",

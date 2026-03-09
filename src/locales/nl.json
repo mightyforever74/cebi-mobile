@@ -1888,7 +1888,14 @@
       "emission_zone": "Emissiezone",
       "border": "Grens / Douane",
       "sensitive_area": "Gevoelig gebied"
-    }
+    },
+    "selectVehicle": "Voertuig",
+    "chooseVehicle": "Kies voertuig...",
+    "searchVehicle": "Zoek kenteken of merk...",
+    "vehicleRequired": "Selecteer een voertuig",
+    "noVehicles": "Geen voertuigen gevonden",
+    "noVehiclesHint": "Geen actieve voertuigen met apparaat",
+    "searchPlaceholder": "Zoek locatie..."
   },
   "taskOffers": {
     "checkInternet": "Check your internet connection.",

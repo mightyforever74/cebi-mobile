@@ -1766,7 +1766,14 @@
       "emission_zone": "Emission Zone",
       "border": "Border / Customs",
       "sensitive_area": "Sensitive Area"
-    }
+    },
+    "selectVehicle": "Vehicle",
+    "chooseVehicle": "Choose vehicle...",
+    "searchVehicle": "Search plate or brand...",
+    "vehicleRequired": "Please select a vehicle",
+    "noVehicles": "No vehicles found",
+    "noVehiclesHint": "No active vehicles with device assigned",
+    "searchPlaceholder": "Search location..."
   },
   "vehicleList": {
     "title": "Vehicle List",

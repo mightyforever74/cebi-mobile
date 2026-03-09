@@ -475,6 +475,11 @@ const DrawerContent = ({ navigation, state }) => {
           screen: "Geofences",
         },
         {
+          title: t("navigation.fuelAnalysis"),
+          icon: "flame-outline",
+          screen: "FuelDashboard",
+        },
+        {
           title: t("navigation.settings"),
           icon: "settings-outline",
           screen: "Settings",

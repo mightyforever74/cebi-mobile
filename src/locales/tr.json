@@ -1788,7 +1788,14 @@
       "emission_zone": "Emisyon Bölgesi",
       "border": "Sınır / Gümrük",
       "sensitive_area": "Hassas Bölge"
-    }
+    },
+    "selectVehicle": "Araç",
+    "chooseVehicle": "Araç seçin...",
+    "searchVehicle": "Plaka veya marka ara...",
+    "vehicleRequired": "Lütfen bir araç seçin",
+    "noVehicles": "Araç bulunamadı",
+    "noVehiclesHint": "Cihaz atanmış aktif araç yok",
+    "searchPlaceholder": "Konum ara..."
   },
   "vehicleList": {
     "title": "Araç Listesi",

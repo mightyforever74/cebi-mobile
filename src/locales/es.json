@@ -1754,7 +1754,14 @@
       "emission_zone": "Zona de emisión",
       "border": "Frontera / Aduana",
       "sensitive_area": "Área sensible"
-    }
+    },
+    "selectVehicle": "Vehículo",
+    "chooseVehicle": "Elegir vehículo...",
+    "searchVehicle": "Buscar matrícula o marca...",
+    "vehicleRequired": "Por favor seleccione un vehículo",
+    "noVehicles": "No se encontraron vehículos",
+    "noVehiclesHint": "No hay vehículos activos con dispositivo",
+    "searchPlaceholder": "Buscar ubicación..."
   },
   "alert": {
     "active": "Active",
