@@ -5,9 +5,9 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-import Card from "./Card";
 import { useTheme } from "../../context/ThemeContext";
 import { withAlpha } from "../../utils/colorUtils";
+import Card from "./Card";
 
 /**
  * StatCard - Dashboard KPI karti
@@ -47,12 +47,9 @@ export default function StatCard({
     <Card variant="default" noMargin style={styles.card}>
       <View style={styles.row}>
         <View
-          style={[
-            styles.iconBox,
-            { backgroundColor: withAlpha(color, 0.12) },
-          ]}
+          style={[styles.iconBox, { backgroundColor: withAlpha(color, 0.12) }]}
         >
-          <Ionicons name={icon} size={22} color={color} />
+          <Ionicons name={icon} size={18} color={color} />
         </View>
 
         <View style={styles.content}>
@@ -117,7 +114,7 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     margin: 0,
-    padding: 16,
+    padding: 10,
     overflow: "hidden",
   },
   row: {
@@ -125,20 +122,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 8,
   },
   content: {
     flex: 1,
   },
   value: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "700",
-    lineHeight: 28,
+    lineHeight: 24,
   },
   label: {
     marginTop: 2,

@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Animated,
   Platform,
   ScrollView,
@@ -251,6 +252,11 @@ export default function WaypointsPanel({
   onWaypointPress,
   onOriginPress,
   onDestinationPress,
+  distance,
+  duration,
+  taskNo,
+  onComplete,
+  actionLoading = false,
   style,
 }) {
   const { t, i18n } = useTranslation();
@@ -445,6 +451,47 @@ export default function WaypointsPanel({
         </View>
       </TouchableOpacity>
 
+      {/* ── Trip Info Bar ── */}
+      {(distance != null || duration != null || taskNo) && (
+        <View style={styles.infoBar}>
+          {distance != null && (
+            <View style={styles.infoItem}>
+              <Ionicons name="speedometer" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>{distance} km</Text>
+            </View>
+          )}
+          {duration != null && (
+            <View style={styles.infoItem}>
+              <Ionicons name="time" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>{duration} dk</Text>
+            </View>
+          )}
+          {taskNo && (
+            <View style={styles.infoItem}>
+              <Text style={styles.infoTaskNo}>{taskNo}</Text>
+            </View>
+          )}
+          {onComplete && (
+            <TouchableOpacity
+              style={styles.completeBtn}
+              onPress={onComplete}
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={14} color="#fff" />
+                  <Text style={styles.completeBtnText}>
+                    {isEn ? "Complete" : "Tamamla"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* Expandable Content */}
       <Animated.View
         style={[
@@ -481,6 +528,45 @@ export default function WaypointsPanel({
 }
 
 const styles = StyleSheet.create({
+  infoBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.textSecondary,
+  },
+  infoTaskNo: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  completeBtn: {
+    marginLeft: "auto",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: COLORS.success,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  completeBtnText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
   container: {
     backgroundColor: COLORS.card,
     borderRadius: 16,
