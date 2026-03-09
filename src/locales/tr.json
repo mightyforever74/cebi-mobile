@@ -1646,7 +1646,7 @@
     "deleteFailed": "Uyarı silinemedi",
     "deleteAll": "Tümünü Sil",
     "deleteAllBtn": "Tümünü Sil",
-    "deleteAllConfirm": "Tüm uyarıları silmek istediğinizden emin misiniz?",
+    "deleteAllConfirm": "{{count}} uyarının tamamı silinecek. Emin misiniz?",
     "allDeleted": "Tüm uyarılar silindi",
     "deleteAllFailed": "Uyarılar silinemedi",
     "noAlertsToDelete": "Silinecek uyarı yok",
@@ -1677,7 +1677,9 @@
       "minsAgo": "{{count}} dk önce",
       "hoursAgo": "{{count}} sa önce",
       "daysAgo": "{{count}} gün önce"
-    }
+    },
+    "filterCritical": "Kritik",
+    "filterVehicle": "Araç"
   },
   "createDriver": {
     "accountInfo": "Hesap Bilgileri",

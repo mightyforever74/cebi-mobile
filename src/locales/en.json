@@ -38,7 +38,17 @@
     "superAdmin": "Super Admin",
     "companyAdmin": "Manager",
     "driver": "Driver",
-    "user": "User"
+    "user": "User",
+    "all": "All",
+    "back": "Back",
+    "next": "Next",
+    "no": "No",
+    "none": "None",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "search": "Search",
+    "warning": "Warning",
+    "yes": "Yes"
   },
   "auth": {
     "login": "Sign In",
@@ -100,12 +110,14 @@
     "contactEmailSubject": "TulipFleet - Account Request",
     "contactEmailBody": "Hello,\n\nI would like to create an account for TulipFleet.\n\nCompany Name:\nContact Person:\nPhone:\nNumber of Vehicles:\n\nThank you.",
     "callNotAvailable": "Unable to make a call",
-    "whatsappMessage": "Hello, I would like to learn more about TulipFleet."
+    "whatsappMessage": "Hello, I would like to learn more about TulipFleet.",
+    "logoutConfirm": "Are you sure you want to log out?"
   },
   "roles": {
     "driver": "Driver",
     "admin": "Manager",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Manager"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -352,7 +364,7 @@
     "privacyPolicyText": "Our privacy policy is available on our website: tulipfleet.com/privacy",
     "notificationPermissionDenied": "Notification permission denied. You can enable it from settings.",
     "locationPermissionDenied": "Location permission denied. You can enable it from settings.",
-    "locationGranted": "Permission granted âœ“",
+    "locationGranted": "Permission granted ✓",
     "openSettings": "Open Settings",
     "wrongCurrentPassword": "Current password is incorrect"
   },
@@ -539,13 +551,14 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\n© 2025 TulipFleet\n\nAll rights reserved."
+    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\n© 2025 TulipFleet\n\nAll rights reserved.",
+    "title": "Profile"
   },
   "deviceSetup": {
     "title": "Device Setup",
     "checkingStatus": "Checking device status...",
     "loading": "Loading...",
-    "setupNotRequired": "Setup Not Required âœ…",
+    "setupNotRequired": "Setup Not Required ✅",
     "deviceActiveMessage": "The device connected to your vehicle is active.\n\nDevice: {{serial}}\nPlate: {{plate}}",
     "deviceReinstall": "Device Reinstallation",
     "deviceWaitingReinstall": "Device waiting for reinstallation...",
@@ -577,8 +590,8 @@
     "qr": {
       "invalidCode": "Invalid QR Code",
       "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
-      "scanHint": "ğŸ“± Scan the QR code on the device",
-      "manualEntry": "âŒ¨ï¸ Manual Serial Entry"
+      "scanHint": "📱 Scan the QR code on the device",
+      "manualEntry": "⌨️ Manual Serial Entry"
     },
     "serial": {
       "validating": "Validating serial...",
@@ -594,10 +607,10 @@
       "devicesFound": "{{count}} device(s) found",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "deviceHint": "Make sure the ESP32 device is on and nearby",
-      "rescan": "ğŸ”„ Scan Again",
-      "strong": "ğŸŸ¢ Strong",
-      "medium": "ğŸŸ¡ Medium",
-      "weak": "ğŸ”´ Weak",
+      "rescan": "🔄 Scan Again",
+      "strong": "🟢 Strong",
+      "medium": "🟡 Medium",
+      "weak": "🔴 Weak",
       "bootWindowHint": "The ESP32 device's BLE mode is active for 5 minutes after power on. If the device is not found, restart it by unplugging and replugging the USB cable.",
       "deviceNameHint": "Device name appears as \"TulipFleet-XXXX\". Move within 1-2 meters."
     },
@@ -615,14 +628,14 @@
       "passwordLabel": "WiFi Password",
       "passwordPlaceholder": "At least 8 characters",
       "lastUsed": "Last used: {{ssid}}",
-      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "💡 The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
       "connect": "Connect",
       "enterCredentials": "Enter WiFi credentials",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "shortPassword": "WiFi password must be at least 8 characters",
       "sendingCredentials": "Sending WiFi credentials...",
       "connectionFailed": "WiFi connection failed",
-      "connecting": "ğŸ“¶ WiFi Connection",
+      "connecting": "📶 WiFi Connection",
       "network": "Network: {{ssid}}",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "warning5GHz": "This SSID may be a 5GHz network. ESP32 only supports 2.4GHz. Please use your 2.4GHz network."
@@ -708,10 +721,10 @@
       "minutes": "{{minutes}} min left",
       "hours": "{{hours}} hour(s) left"
     },
-    "tapForDetails": "Tap for details â†’",
+    "tapForDetails": "Tap for details →",
     "empty": {
-      "error": "ğŸ˜”",
-      "normal": "ğŸ“­",
+      "error": "😔",
+      "normal": "📭",
       "couldNotLoad": "Offers could not be loaded",
       "noPending": "No pending offers",
       "notFound": "No task offers found"
@@ -754,7 +767,7 @@
       "acceptConfirm": "Are you sure you want to accept this task?",
       "accept": "Accept",
       "cancel": "Cancel",
-      "success": "âœ… Success",
+      "success": "✅ Success",
       "taskAccepted": "Task accepted!",
       "rejectTask": "Reject Task",
       "rejectReason": "Rejection Reason",
@@ -766,14 +779,14 @@
       "startTask": "Start Task",
       "startConfirm": "Are you sure you want to start the task?",
       "start": "Start",
-      "taskStarted": "ğŸš€ Success",
+      "taskStarted": "🚀 Success",
       "taskStartedMessage": "Task started!",
       "goToNavigation": "Go to Navigation",
       "stayHere": "Stay Here",
       "completeTask": "Complete Task",
       "completeConfirm": "Are you sure you want to complete this task?",
       "complete": "Complete",
-      "congratulations": "ğŸ‰ Congratulations!",
+      "congratulations": "🎉 Congratulations!",
       "taskCompleted": "Task successfully completed!",
       "error": "Error",
       "operationFailed": "Operation failed"
@@ -902,7 +915,7 @@
     "acceptConfirm": "Are you sure you want to accept this task offer?",
     "cancel": "Cancel",
     "accept": "Accept",
-    "success": "âœ… Success",
+    "success": "✅ Success",
     "acceptSuccess": "Task accepted! You can start the task from My Tasks page.",
     "ok": "OK",
     "acceptFailed": "Failed to accept task",
@@ -1009,7 +1022,9 @@
     "min": "min",
     "noSpeed": "Waiting for movement",
     "delayRisk": "DELAY RISK",
-    "noEta": "ETA unavailable"
+    "noEta": "ETA unavailable",
+    "final_destination": "Final Destination",
+    "nextStop": "Next Stop"
   },
   "root": {
     "loading": "Loading..."
@@ -1060,8 +1075,8 @@
     },
     "hints": {
       "lastRecordTitle": "Last Record",
-      "lastRecordPrefix": "ğŸ’¡ Last",
-      "warningFull": "âš ï¸ Please fill to FULL"
+      "lastRecordPrefix": "💡 Last",
+      "warningFull": "⚠️ Please fill to FULL"
     },
     "errors": {
       "vehicleLoadFailed": "Could not load vehicle info",
@@ -1624,7 +1639,7 @@
     "deleteFailed": "Failed to delete alert",
     "deleteAll": "Delete All",
     "deleteAllBtn": "Delete All",
-    "deleteAllConfirm": "Are you sure you want to delete all alerts?",
+    "deleteAllConfirm": "{{count}} alerts will be deleted. Are you sure?",
     "allDeleted": "All alerts deleted",
     "deleteAllFailed": "Failed to delete alerts",
     "noAlertsToDelete": "No alerts to delete",
@@ -1655,7 +1670,9 @@
       "minsAgo": "{{count}} min ago",
       "hoursAgo": "{{count}} hr ago",
       "daysAgo": "{{count}} day ago"
-    }
+    },
+    "filterCritical": "Critical",
+    "filterVehicle": "Vehicle"
   },
   "createDriver": {
     "accountInfo": "Account Info",
@@ -1829,5 +1846,12 @@
     "totalZones": "zones total",
     "activeZones": "active",
     "tapEditToManage": "Tap edit to manage zones"
+  },
+  "units": {
+    "h": "h",
+    "km": "km",
+    "m": "m",
+    "min": "min",
+    "sec": "sec"
   }
 }

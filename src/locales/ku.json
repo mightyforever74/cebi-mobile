@@ -230,36 +230,36 @@
     "geofences": "Deverên Jeofens"
   },
   "device": {
-    "title": "RÃÆÃÂªveberiya AmÃÆÃÂ»ran",
-    "serial": "Hejmara RÃÆÃÂªzÃÆÃÂª",
-    "status": "RewÃâ¦ÃÂ¸",
-    "online": "SerhÃÆÃÂªl",
-    "offline": "NegirÃÆÃÂªdayÃÆÃÂ®",
-    "assigned": "Hatiye tayÃÆÃÂ®nkirin",
-    "unassigned": "Nehatiye tayÃÆÃÂ®nkirin",
-    "generateQR": "QR ÃÆÃÂ§ÃÆÃÂªke",
-    "showQR": "QR nÃÆÃÂ®Ãâ¦ÃÂ¸an bide",
-    "refreshQR": "QR nÃÆÃÂ» bike",
-    "qrGenerated": "QR kod hate ÃÆÃÂ§ÃÆÃÂªkirin",
-    "qrExpires": "Dema bidawÃÆÃÂ®bÃÆÃÂ»nÃÆÃÂª",
-    "scanQR": "QR biÃâ¦ÃÂ¸kÃÆÃÂ®ne",
-    "searchBySerial": "Bi hejmara rÃÆÃÂªzÃÆÃÂª bigere",
-    "addToStock": "Li stokÃÆÃÂª zÃÆÃÂªde bike",
-    "assignToVehicle": "Li wesayÃÆÃÂ®tÃÆÃÂª tayÃÆÃÂ®n bike",
-    "assignDevice": "AmÃÆÃÂ»rÃÆÃÂª tayÃÆÃÂ®n bike",
-    "deviceAssigned": "AmÃÆÃÂ»r hate tayÃÆÃÂ®nkirin",
-    "noDevices": "AmÃÆÃÂ»r nehat dÃÆÃÂ®tin",
-    "claimDevice": "AmÃÆÃÂ»rÃÆÃÂª bistÃÆÃÂ®ne",
-    "activating": "TÃÆÃÂª ÃÆÃÂ§alakkirin...",
-    "activated": "Hat ÃÆÃÂ§alakkirin",
+    "title": "Rêveberiya Amûran",
+    "serial": "Hejmara Rêzê",
+    "status": "RewÅŸ",
+    "online": "Serhêl",
+    "offline": "Negirêdayî",
+    "assigned": "Hatiye tayînkirin",
+    "unassigned": "Nehatiye tayînkirin",
+    "generateQR": "QR çêke",
+    "showQR": "QR nîşan bide",
+    "refreshQR": "QR nû bike",
+    "qrGenerated": "QR kod hate çêkirin",
+    "qrExpires": "Dema bidawîbûnê",
+    "scanQR": "QR bişkîne",
+    "searchBySerial": "Bi hejmara rêzê bigere",
+    "addToStock": "Li stokê zêde bike",
+    "assignToVehicle": "Li wesayîtê tayîn bike",
+    "assignDevice": "Amûrê tayîn bike",
+    "deviceAssigned": "Amûr hate tayînkirin",
+    "noDevices": "Amûr nehat dîtin",
+    "claimDevice": "Amûrê bistîne",
+    "activating": "Tê çalakkirin...",
+    "activated": "Hat çalakkirin",
     "statuses": {
       "CREATED": "Hatiye afirandin",
-      "PRINTED": "Hatiye ÃÆÃÂ§apkirin",
-      "IN_STOCK": "Di stokÃÆÃÂª de",
-      "ASSIGNED": "Hatiye tayÃÆÃÂ®nkirin",
-      "ACTIVATED": "ÃÆÃ¢â¬Â¡alak",
-      "SUSPENDED": "RawestayÃÆÃÂ®",
-      "RETIRED": "TeqawÃÆÃÂ®t",
+      "PRINTED": "Hatiye çapkirin",
+      "IN_STOCK": "Di stokê de",
+      "ASSIGNED": "Hatiye tayînkirin",
+      "ACTIVATED": "Çalak",
+      "SUSPENDED": "Rawestayî",
+      "RETIRED": "Teqawît",
       "LOST": "Winda"
     }
   },
@@ -1004,7 +1004,7 @@
       "subtitle": "Heke pirsa we li vir nine, bi tima pishtgiriye re peywendiye daynin",
       "button": "Imail bishin"
     },
-    "footer": "ÃâÃÂ© 2026 TulipFleet - Hemmu maf parastin"
+    "footer": "© 2026 TulipFleet - Hemmu maf parastin"
   },
   "troubleshooting": {
     "title": "Çareserkirina Pirsgirêkan",
@@ -1786,7 +1786,7 @@
     "deleteFailed": "Jêbirin têk çû",
     "deleteAll": "Hemûyan jê bibe",
     "deleteAllBtn": "Hemûyan jê bibe",
-    "deleteAllConfirm": "Hûn dixin ewle in ku hûn hemû hişyariyê jêbirin?",
+    "deleteAllConfirm": "{{count}} hişyarî dê bên jêbirin. Piştrast î?",
     "allDeleted": "Hemû hişyarî hat jêbirin",
     "deleteAllFailed": "Jêbirin têk çû",
     "noAlertsToDelete": "Hişyariya ji bo jêbirinê tune",
@@ -1817,7 +1817,9 @@
       "minsAgo": "{{count}} deq berê",
       "hoursAgo": "{{count}} saet berê",
       "daysAgo": "{{count}} roj berê"
-    }
+    },
+    "filterCritical": "Krîtîk",
+    "filterVehicle": "Wesayît"
   },
   "createDriver": {
     "accountInfo": "Agahiyên hesabê",

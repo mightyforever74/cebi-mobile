@@ -111,7 +111,7 @@
     "contactEmailBody": "Salve,\n\nDesidero creare un account per TulipFleet.\n\nNome Azienda:\nPersona di Contatto:\nTelefono:\nNumero di Veicoli:\n\nGrazie.",
     "callNotAvailable": "Impossibile effettuare la chiamata",
     "whatsappMessage": "Salve, vorrei saperne di più su TulipFleet.",
-    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+    "logoutConfirm": "Sei sicuro di voler uscire?"
   },
   "roles": {
     "driver": "Autista",
@@ -238,7 +238,7 @@
     "locationPermissionDenied": "Permesso posizione negato. Puoi attivarlo dalle impostazioni.",
     "openSettings": "Apri Impostazioni",
     "gpsAccuracyMessage": "La precisione GPS è gestita dalle impostazioni del dispositivo.",
-    "locationGranted": "Permesso concesso âœ“",
+    "locationGranted": "Permesso concesso ✓",
     "itemsCleared": "elementi",
     "cacheClearFailed": "Impossibile svuotare la cache",
     "privacyPolicyText": "La nostra politica sulla privacy è disponibile su: tulipfleet.com/privacy",
@@ -558,22 +558,22 @@
       "deviceHint": "Make sure the ESP32 device is on and nearby",
       "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
       "devicesFound": "{{count}} device(s) found",
-      "medium": "ğŸŸ¡ Medium",
-      "rescan": "ğŸ”„ Scan Again",
+      "medium": "🟡 Medium",
+      "rescan": "🔄 Scan Again",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
-      "strong": "ğŸŸ¢ Strong",
-      "weak": "ğŸ”´ Weak"
+      "strong": "🟢 Strong",
+      "weak": "🔴 Weak"
     },
     "wifi": {
       "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz.",
       "connect": "Connect",
-      "connecting": "ğŸ“¶ WiFi Connection",
+      "connecting": "📶 WiFi Connection",
       "connectionFailed": "WiFi connection failed",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "enterCredentials": "Enter WiFi credentials",
-      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "💡 The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
       "lastUsed": "Last used: {{ssid}}",
       "network": "Network: {{ssid}}",
       "passwordLabel": "WiFi Password",
@@ -625,8 +625,8 @@
     "qr": {
       "invalidCode": "Invalid QR Code",
       "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
-      "manualEntry": "âŒ¨ï¸ Manual Serial Entry",
-      "scanHint": "ğŸ“± Scan the QR code on the device"
+      "manualEntry": "⌨️ Inserimento Seriale Manuale",
+      "scanHint": "📱 Scan the QR code on the device"
     },
     "result": {
       "cancel": "Cancel",
@@ -644,7 +644,7 @@
       "notRegistered": "This serial is not registered in the system",
       "validating": "Validating serial..."
     },
-    "setupNotRequired": "Setup Not Required âœ…",
+    "setupNotRequired": "Configurazione Non Richiesta ✅",
     "status": {
       "activating": "Activation starting...",
       "apiFailed": "Server error",
@@ -742,7 +742,7 @@
     "acceptConfirm": "Sei sicuro di voler accettare questa offerta di attività?",
     "cancel": "Annulla",
     "accept": "Accetta",
-    "success": "âœ… Successo",
+    "success": "✅ Successo",
     "acceptSuccess": "Attività accettata! Puoi avviare l'attività dalla pagina Le Mie Attività.",
     "ok": "OK",
     "acceptFailed": "Impossibile accettare l'attività",
@@ -877,7 +877,7 @@
     "hints": {
       "lastRecordTitle": "Ultimo registro",
       "lastRecordPrefix": "💡 Ultimo",
-      "warningFull": "âš ï¸ Riempire fino al PIENO"
+      "warningFull": "⚠️ Riempire fino al PIENO"
     },
     "errors": {
       "vehicleLoadFailed": "Impossibile caricare info veicolo",
@@ -1375,7 +1375,7 @@
     "deleteFailed": "Eliminazione fallita",
     "deleteAll": "Elimina tutto",
     "deleteAllBtn": "Elimina tutto",
-    "deleteAllConfirm": "Sei sicuro di voler eliminare tutti gli avvisi?",
+    "deleteAllConfirm": "Verranno eliminati {{count}} avvisi. Sei sicuro?",
     "allDeleted": "Tutti gli avvisi eliminati",
     "deleteAllFailed": "Eliminazione fallita",
     "noAlertsToDelete": "Nessun avviso da eliminare",
@@ -1406,7 +1406,9 @@
       "minsAgo": "{{count}} min fa",
       "hoursAgo": "{{count}} ore fa",
       "daysAgo": "{{count}} giorni fa"
-    }
+    },
+    "filterCritical": "Critico",
+    "filterVehicle": "Veicolo"
   },
   "createDriver": {
     "accountInfo": "Informazioni account",
@@ -1781,9 +1783,9 @@
     "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
     "empty": {
       "couldNotLoad": "Offers could not be loaded",
-      "error": "ğŸ˜”",
+      "error": "😔",
       "noPending": "No pending offers",
-      "normal": "ğŸ“­",
+      "normal": "📭",
       "notFound": "No task offers found"
     },
     "filters": {
@@ -1805,7 +1807,7 @@
       "pending": "Pending",
       "rejected": "Rejected"
     },
-    "tapForDetails": "Tap for details â†’",
+    "tapForDetails": "Tocca per i dettagli →",
     "timeRemaining": {
       "expired": "Expired",
       "hours": "{{hours}} hour(s) left",

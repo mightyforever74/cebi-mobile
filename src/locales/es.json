@@ -54,30 +54,6 @@
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
     "email": "Correo electrónico",
-    "warning": "Advertencia",
-    "search": "Buscar",
-    "refresh": "Actualizar",
-    "back": "Atrás",
-    "next": "Siguiente",
-    "retry": "Reintentar",
-    "all": "Todos",
-    "none": "Ninguno",
-    "continue": "Continuar",
-    "drivers": "Conductores",
-    "tasks": "Tareas",
-    "alerts": "Alertas",
-    "reports": "Informes",
-    "settings": "Configuración",
-    "profile": "Perfil",
-    "companies": "Empresas",
-    "devices": "Dispositivos",
-    "deviceSetup": "Configuración de Dispositivo",
-    "qrManagement": "Gestión QR",
-    "fleetMap": "Mapa en Vivo",
-    "myTasks": "Mis Tareas",
-    "myVehicle": "Mi Vehículo",
-    "fuelEntry": "Entrada de Combustible",
-    "taskHistory": "Historial de Tareas",
     "adminAccount": "Admin Account",
     "backToLogin": "Back to Login",
     "callNotAvailable": "Unable to make a call",
@@ -115,7 +91,7 @@
     "newPasswordRequired": "New password is required",
     "noAccount": "Don't have an account?",
     "otpRequired": "Enter the 6-digit verification code",
-    "password": "Password",
+    "password": "Contraseña",
     "passwordHint": "At least 6 characters",
     "passwordResetSuccess": "Password Changed",
     "passwordResetSuccessMessage": "Your password has been changed successfully. You can now sign in with your new password.",
@@ -548,22 +524,22 @@
       "deviceHint": "Make sure the ESP32 device is on and nearby",
       "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
       "devicesFound": "{{count}} device(s) found",
-      "medium": "ğŸŸ¡ Medium",
-      "rescan": "ğŸ”„ Scan Again",
+      "medium": "🟡 Medium",
+      "rescan": "🔄 Scan Again",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
-      "strong": "ğŸŸ¢ Strong",
-      "weak": "ğŸ”´ Weak"
+      "strong": "🟢 Strong",
+      "weak": "🔴 Weak"
     },
     "wifi": {
       "warning5GHz": "Este SSID puede ser una red 5GHz. ESP32 solo soporta 2.4GHz. Por favor use su red 2.4GHz.",
       "connect": "Connect",
-      "connecting": "ğŸ“¶ WiFi Connection",
+      "connecting": "📶 WiFi Connection",
       "connectionFailed": "WiFi connection failed",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "enterCredentials": "Enter WiFi credentials",
-      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "💡 The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
       "lastUsed": "Last used: {{ssid}}",
       "network": "Network: {{ssid}}",
       "passwordLabel": "WiFi Password",
@@ -615,8 +591,8 @@
     "qr": {
       "invalidCode": "Invalid QR Code",
       "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
-      "manualEntry": "âŒ¨ï¸ Manual Serial Entry",
-      "scanHint": "ğŸ“± Scan the QR code on the device"
+      "manualEntry": "⌨️ Manual Serial Entry",
+      "scanHint": "📱 Scan the QR code on the device"
     },
     "result": {
       "cancel": "Cancel",
@@ -634,7 +610,7 @@
       "notRegistered": "This serial is not registered in the system",
       "validating": "Validating serial..."
     },
-    "setupNotRequired": "Setup Not Required âœ…",
+    "setupNotRequired": "Setup Not Required ✅",
     "status": {
       "activating": "Activation starting...",
       "apiFailed": "Server error",
@@ -867,7 +843,7 @@
     "hints": {
       "lastRecordTitle": "Último registro",
       "lastRecordPrefix": "💡 Último",
-      "warningFull": "âš ï¸ Llene hasta LLENO"
+      "warningFull": "⚠️ Llene hasta LLENO"
     },
     "errors": {
       "vehicleLoadFailed": "No se pudo cargar la información del vehículo",
@@ -1497,7 +1473,7 @@
     "deleteFailed": "Error al eliminar alerta",
     "deleteAll": "Eliminar todo",
     "deleteAllBtn": "Eliminar todo",
-    "deleteAllConfirm": "¿Está seguro de que desea eliminar todas las alertas?",
+    "deleteAllConfirm": "Se eliminarán {{count}} alertas. ¿Está seguro?",
     "allDeleted": "Todas las alertas eliminadas",
     "deleteAllFailed": "Error al eliminar alertas",
     "noAlertsToDelete": "No hay alertas para eliminar",
@@ -1528,7 +1504,9 @@
       "minsAgo": "hace {{count}} min",
       "hoursAgo": "hace {{count}} h",
       "daysAgo": "hace {{count}} día"
-    }
+    },
+    "filterCritical": "Crítico",
+    "filterVehicle": "Vehículo"
   },
   "createDriver": {
     "accountInfo": "Información de cuenta",
@@ -1849,9 +1827,9 @@
     "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
     "empty": {
       "couldNotLoad": "Offers could not be loaded",
-      "error": "ğŸ˜”",
+      "error": "😔",
       "noPending": "No pending offers",
-      "normal": "ğŸ“­",
+      "normal": "📭",
       "notFound": "No task offers found"
     },
     "filters": {
@@ -1873,7 +1851,7 @@
       "pending": "Pending",
       "rejected": "Rejected"
     },
-    "tapForDetails": "Tap for details â†’",
+    "tapForDetails": "Tap for details →",
     "timeRemaining": {
       "expired": "Expired",
       "hours": "{{hours}} hour(s) left",

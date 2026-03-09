@@ -110,7 +110,8 @@
     "contactEmailSubject": "TulipFleet - Заявка за акаунт",
     "contactEmailBody": "Здравейте,\n\nБих искал да създам акаунт за TulipFleet.\n\nИме на фирма:\nЛице за контакт:\nТелефон:\nБрой превозни средства:\n\nБлагодаря.",
     "callNotAvailable": "Не може да се обади",
-    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet."
+    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet.",
+    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -952,7 +953,9 @@
     "min": "мин",
     "noSpeed": "Изчакване на движение",
     "delayRisk": "РИСК ОТ ЗАКЪСНЕНИЕ",
-    "noEta": "ETA не е наличен"
+    "noEta": "ETA не е наличен",
+    "final_destination": "Крайна дестинация",
+    "nextStop": "Следваща спирка"
   },
   "units": {
     "km": "км",
@@ -1308,7 +1311,6 @@
     },
     "operationsOverview": "Преглед на операциите",
     "onlineVehicles": "Онлайн превозни средства",
-    "total": "общо",
     "totalTasks": "общо задачи",
     "activeDelays": "Активни закъснения",
     "filterAll": "Всички",
@@ -1644,7 +1646,7 @@
     "deleteFailed": "Неуспешно изтриване",
     "deleteAll": "Изтрий всички",
     "deleteAllBtn": "Изтрий всички",
-    "deleteAllConfirm": "Сигурни ли сте, че искате да изтриете всички предупреждения?",
+    "deleteAllConfirm": "Ще бъдат изтрити {{count}} сигнала. Сигурни ли сте?",
     "allDeleted": "Всички предупреждения са изтрити",
     "deleteAllFailed": "Неуспешно изтриване",
     "noAlertsToDelete": "Няма предупреждения за изтриване",
@@ -1675,7 +1677,9 @@
       "minsAgo": "преди {{count}} мин",
       "hoursAgo": "преди {{count}} ч",
       "daysAgo": "преди {{count}} дни"
-    }
+    },
+    "filterCritical": "Критично",
+    "filterVehicle": "Превозно средство"
   },
   "createDriver": {
     "accountInfo": "Информация за акаунт",

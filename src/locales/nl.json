@@ -164,7 +164,7 @@
     "contactEmailBody": "Hallo,\n\nIk wil graag een account aanmaken voor TulipFleet.\n\nBedrijfsnaam:\nContactpersoon:\nTelefoon:\nAantal voertuigen:\n\nBedankt.",
     "callNotAvailable": "Kan niet bellen",
     "whatsappMessage": "Hallo, ik wil graag meer weten over TulipFleet.",
-    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -415,7 +415,7 @@
     "locationPermissionDenied": "Locatietoestemming geweigerd. U kunt dit inschakelen via instellingen.",
     "openSettings": "Open Instellingen",
     "gpsAccuracyMessage": "GPS-nauwkeurigheid wordt beheerd via apparaatinstellingen.",
-    "locationGranted": "Toestemming verleend âœ“",
+    "locationGranted": "Toestemming verleend ✓",
     "itemsCleared": "items",
     "cacheClearFailed": "Cache wissen mislukt",
     "privacyPolicyText": "Ons privacybeleid is beschikbaar op: tulipfleet.com/privacy",
@@ -578,7 +578,7 @@
     "title": "Apparaat Instellen",
     "checkingStatus": "Apparaatstatus controleren...",
     "loading": "Laden...",
-    "setupNotRequired": "Installatie Niet Vereist âœ…",
+    "setupNotRequired": "Installatie Niet Vereist ✅",
     "deviceActiveMessage": "Het apparaat verbonden met uw voertuig is actief.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
     "deviceReinstall": "Apparaat Herinstallatie",
     "deviceWaitingReinstall": "Apparaat wacht op herinstallatie...",
@@ -642,7 +642,7 @@
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "enterCredentials": "Enter WiFi credentials",
-      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "💡 The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
       "lastUsed": "Last used: {{ssid}}",
       "network": "Network: {{ssid}}",
       "passwordLabel": "WiFi Password",
@@ -690,12 +690,12 @@
       "deviceHint": "Make sure the ESP32 device is on and nearby",
       "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
       "devicesFound": "{{count}} device(s) found",
-      "medium": "ğŸŸ¡ Medium",
-      "rescan": "ğŸ”„ Scan Again",
+      "medium": "🟡 Medium",
+      "rescan": "🔄 Scan Again",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
-      "strong": "ğŸŸ¢ Strong",
-      "weak": "ğŸ”´ Weak"
+      "strong": "🟢 Strong",
+      "weak": "🔴 Weak"
     },
     "camera": {
       "grantPermission": "Grant Permission",
@@ -847,7 +847,7 @@
     "acceptConfirm": "Weet u zeker dat u dit taakaanbod wilt accepteren?",
     "cancel": "Annuleren",
     "accept": "Accepteren",
-    "success": "âœ… Succes",
+    "success": "✅ Succes",
     "acceptSuccess": "Taak geaccepteerd! U kunt de taak starten vanaf de pagina Mijn Taken.",
     "ok": "OK",
     "acceptFailed": "Kan taak niet accepteren",
@@ -1035,7 +1035,7 @@
     "hints": {
       "lastRecordTitle": "Laatste record",
       "lastRecordPrefix": "💡 Laatste",
-      "warningFull": "âš ï¸ Vul tot VOL"
+      "warningFull": "⚠️ Vul tot VOL"
     },
     "errors": {
       "vehicleLoadFailed": "Voertuiginfo kon niet worden geladen",
@@ -1631,7 +1631,7 @@
     "deleteFailed": "Verwijderen mislukt",
     "deleteAll": "Alles verwijderen",
     "deleteAllBtn": "Alles verwijderen",
-    "deleteAllConfirm": "Weet u zeker dat u alle meldingen wilt verwijderen?",
+    "deleteAllConfirm": "{{count}} meldingen worden verwijderd. Weet u het zeker?",
     "allDeleted": "Alle meldingen verwijderd",
     "deleteAllFailed": "Verwijderen mislukt",
     "noAlertsToDelete": "Geen meldingen om te verwijderen",
@@ -1662,7 +1662,9 @@
       "minsAgo": "{{count}} min geleden",
       "hoursAgo": "{{count}} uur geleden",
       "daysAgo": "{{count}} dag geleden"
-    }
+    },
+    "filterCritical": "Kritiek",
+    "filterVehicle": "Voertuig"
   },
   "createDriver": {
     "accountInfo": "Accountgegevens",
@@ -1926,9 +1928,9 @@
     "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
     "empty": {
       "couldNotLoad": "Offers could not be loaded",
-      "error": "ğŸ˜”",
+      "error": "😔",
       "noPending": "No pending offers",
-      "normal": "ğŸ“­",
+      "normal": "📭",
       "notFound": "No task offers found"
     },
     "filters": {
@@ -1950,7 +1952,7 @@
       "pending": "Pending",
       "rejected": "Rejected"
     },
-    "tapForDetails": "Tap for details â†’",
+    "tapForDetails": "Tik voor details →",
     "timeRemaining": {
       "expired": "Expired",
       "hours": "{{hours}} hour(s) left",
