@@ -1638,7 +1638,31 @@
     "loading": "Meldingen laden...",
     "loadError": "Laden mislukt",
     "noAlerts": "Geen meldingen",
-    "noAlertsDesc": "Geen meldingen gevonden"
+    "noAlertsDesc": "Geen meldingen gevonden",
+    "types": {
+      "hardBrake": "Hard Remmen",
+      "hardAccel": "Hard Optrekken",
+      "hardTurn": "Scherpe Bocht",
+      "sharpTurn": "Scherpe Bocht",
+      "impact": "Impact",
+      "overspeed": "Snelheidsoverschrijding",
+      "speed": "Snelheidsoverschrijding",
+      "geofence": "Zonewaarschuwing",
+      "geofenceEntry": "Zone Binnenkomst",
+      "geofenceExit": "Zone Verlaten",
+      "fuel": "Brandstof",
+      "maintenance": "Onderhoud",
+      "battery": "Batterij",
+      "idle": "Stationair",
+      "sos": "SOS",
+      "default": "Waarschuwing"
+    },
+    "time": {
+      "justNow": "Zojuist",
+      "minsAgo": "{{count}} min geleden",
+      "hoursAgo": "{{count}} uur geleden",
+      "daysAgo": "{{count}} dag geleden"
+    }
   },
   "createDriver": {
     "accountInfo": "Accountgegevens",

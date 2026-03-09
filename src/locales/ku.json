@@ -1793,7 +1793,31 @@
     "loading": "Hişyarî tên barkirin...",
     "loadError": "Barkirin têk çû",
     "noAlerts": "Hişyarî tune",
-    "noAlertsDesc": "Hişyarî nehat dîtin"
+    "noAlertsDesc": "Hişyarî nehat dîtin",
+    "types": {
+      "hardBrake": "Frenbûna Tund",
+      "hardAccel": "Birzabûna Tund",
+      "hardTurn": "Zivirîna Tund",
+      "sharpTurn": "Zivirîna Tûj",
+      "impact": "Lêdan",
+      "overspeed": "Zêdetiya Leza",
+      "speed": "Zêdetiya Leza",
+      "geofence": "Hişyariya Deverê",
+      "geofenceEntry": "Ketina Deverê",
+      "geofenceExit": "Derketina Deverê",
+      "fuel": "Neft",
+      "maintenance": "Tamîrkirin",
+      "battery": "Batarya",
+      "idle": "Bêkar",
+      "sos": "SOS",
+      "default": "Hişyarî"
+    },
+    "time": {
+      "justNow": "Naha",
+      "minsAgo": "{{count}} deq berê",
+      "hoursAgo": "{{count}} saet berê",
+      "daysAgo": "{{count}} roj berê"
+    }
   },
   "createDriver": {
     "accountInfo": "Agahiyên hesabê",

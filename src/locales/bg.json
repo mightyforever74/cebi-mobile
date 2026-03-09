@@ -1651,7 +1651,31 @@
     "loading": "Зареждане на предупреждения...",
     "loadError": "Неуспешно зареждане",
     "noAlerts": "Няма предупреждения",
-    "noAlertsDesc": "Не са намерени предупреждения"
+    "noAlertsDesc": "Не са намерени предупреждения",
+    "types": {
+      "hardBrake": "Рязко спиране",
+      "hardAccel": "Рязко ускорение",
+      "hardTurn": "Рязък завой",
+      "sharpTurn": "Остър завой",
+      "impact": "Удар",
+      "overspeed": "Превишаване на скоростта",
+      "speed": "Превишаване на скоростта",
+      "geofence": "Сигнал за зона",
+      "geofenceEntry": "Влизане в зона",
+      "geofenceExit": "Излизане от зона",
+      "fuel": "Гориво",
+      "maintenance": "Поддръжка",
+      "battery": "Батерия",
+      "idle": "Празен ход",
+      "sos": "SOS",
+      "default": "Сигнал"
+    },
+    "time": {
+      "justNow": "Току-що",
+      "minsAgo": "преди {{count}} мин",
+      "hoursAgo": "преди {{count}} ч",
+      "daysAgo": "преди {{count}} дни"
+    }
   },
   "createDriver": {
     "accountInfo": "Информация за акаунт",

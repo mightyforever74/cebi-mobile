@@ -1631,7 +1631,31 @@
     "loading": "Loading alerts...",
     "loadError": "Failed to load alerts",
     "noAlerts": "No Alerts",
-    "noAlertsDesc": "No alerts found"
+    "noAlertsDesc": "No alerts found",
+    "types": {
+      "hardBrake": "Hard Braking",
+      "hardAccel": "Hard Acceleration",
+      "hardTurn": "Hard Turn",
+      "sharpTurn": "Sharp Turn",
+      "impact": "Impact",
+      "overspeed": "Overspeed",
+      "speed": "Overspeed",
+      "geofence": "Zone Alert",
+      "geofenceEntry": "Zone Entry",
+      "geofenceExit": "Zone Exit",
+      "fuel": "Fuel",
+      "maintenance": "Maintenance",
+      "battery": "Battery",
+      "idle": "Idle",
+      "sos": "SOS",
+      "default": "Alert"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minsAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} hr ago",
+      "daysAgo": "{{count}} day ago"
+    }
   },
   "createDriver": {
     "accountInfo": "Account Info",

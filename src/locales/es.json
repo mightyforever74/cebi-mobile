@@ -1504,7 +1504,31 @@
     "loading": "Cargando alertas...",
     "loadError": "Error al cargar alertas",
     "noAlerts": "Sin alertas",
-    "noAlertsDesc": "No se encontraron alertas"
+    "noAlertsDesc": "No se encontraron alertas",
+    "types": {
+      "hardBrake": "Frenada Brusca",
+      "hardAccel": "Aceleración Brusca",
+      "hardTurn": "Giro Brusco",
+      "sharpTurn": "Giro Cerrado",
+      "impact": "Impacto",
+      "overspeed": "Exceso de Velocidad",
+      "speed": "Exceso de Velocidad",
+      "geofence": "Alerta de Zona",
+      "geofenceEntry": "Entrada a Zona",
+      "geofenceExit": "Salida de Zona",
+      "fuel": "Combustible",
+      "maintenance": "Mantenimiento",
+      "battery": "Batería",
+      "idle": "Ralentí",
+      "sos": "SOS",
+      "default": "Alerta"
+    },
+    "time": {
+      "justNow": "Ahora mismo",
+      "minsAgo": "hace {{count}} min",
+      "hoursAgo": "hace {{count}} h",
+      "daysAgo": "hace {{count}} día"
+    }
   },
   "createDriver": {
     "accountInfo": "Información de cuenta",

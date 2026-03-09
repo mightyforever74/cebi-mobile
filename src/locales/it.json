@@ -1382,7 +1382,31 @@
     "loading": "Caricamento avvisi...",
     "loadError": "Caricamento fallito",
     "noAlerts": "Nessun avviso",
-    "noAlertsDesc": "Nessun avviso trovato"
+    "noAlertsDesc": "Nessun avviso trovato",
+    "types": {
+      "hardBrake": "Frenata Brusca",
+      "hardAccel": "Accelerazione Brusca",
+      "hardTurn": "Curva Brusca",
+      "sharpTurn": "Curva Stretta",
+      "impact": "Impatto",
+      "overspeed": "Eccesso di Velocità",
+      "speed": "Eccesso di Velocità",
+      "geofence": "Avviso Zona",
+      "geofenceEntry": "Ingresso Zona",
+      "geofenceExit": "Uscita Zona",
+      "fuel": "Carburante",
+      "maintenance": "Manutenzione",
+      "battery": "Batteria",
+      "idle": "Folle",
+      "sos": "SOS",
+      "default": "Avviso"
+    },
+    "time": {
+      "justNow": "Adesso",
+      "minsAgo": "{{count}} min fa",
+      "hoursAgo": "{{count}} ore fa",
+      "daysAgo": "{{count}} giorni fa"
+    }
   },
   "createDriver": {
     "accountInfo": "Informazioni account",

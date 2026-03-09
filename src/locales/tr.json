@@ -1653,7 +1653,31 @@
     "loading": "Uyarılar yükleniyor...",
     "loadError": "Uyarılar yüklenemedi",
     "noAlerts": "Uyarı Yok",
-    "noAlertsDesc": "Kayıtlı uyarı bulunamadı"
+    "noAlertsDesc": "Kayıtlı uyarı bulunamadı",
+    "types": {
+      "hardBrake": "Sert Frenleme",
+      "hardAccel": "Sert Hızlanma",
+      "hardTurn": "Sert Dönüş",
+      "sharpTurn": "Keskin Dönüş",
+      "impact": "Çarpma",
+      "overspeed": "Hız Aşımı",
+      "speed": "Hız Aşımı",
+      "geofence": "Bölge İhlali",
+      "geofenceEntry": "Bölgeye Giriş",
+      "geofenceExit": "Bölgeden Çıkış",
+      "fuel": "Yakıt",
+      "maintenance": "Bakım",
+      "battery": "Batarya",
+      "idle": "Rölanti",
+      "sos": "SOS",
+      "default": "Uyarı"
+    },
+    "time": {
+      "justNow": "Az önce",
+      "minsAgo": "{{count}} dk önce",
+      "hoursAgo": "{{count}} sa önce",
+      "daysAgo": "{{count}} gün önce"
+    }
   },
   "createDriver": {
     "accountInfo": "Hesap Bilgileri",
