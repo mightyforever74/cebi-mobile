@@ -816,18 +816,21 @@ const DriverDashboard = () => {
           <Text style={styles.cardTitle}>{t("dashboard.myStats")}</Text>
           <View style={styles.statsGrid}>
             <StatCard
+              compact
               icon="checkmark-circle-outline"
               label={t("dashboard.completedTasks")}
               value={stats?.completed_tasks || 0}
               colorToken="SUCCESS"
             />
             <StatCard
+              compact
               icon="navigate-outline"
               label={t("dashboard.activeTasksCount")}
               value={stats?.active_tasks || 0}
               colorToken="INFO"
             />
             <StatCard
+              compact
               icon="speedometer-outline"
               label={t("dashboard.totalKm")}
               value={formatKm(stats?.total_km)}

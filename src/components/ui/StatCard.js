@@ -35,6 +35,7 @@ export default function StatCard({
   trend,
   subtitle,
   colorToken = "PRIMARY",
+  compact = false,
 }) {
   const { COLORS } = useTheme();
 
@@ -43,6 +44,42 @@ export default function StatCard({
   const trendPositive =
     trend && !trend.startsWith("-") && !trend.startsWith("\u2212");
 
+  // ── Compact: dikey layout (3'lü grid için) ──────────────────
+  if (compact) {
+    return (
+      <Card variant="default" noMargin style={styles.compactCard}>
+        <View
+          style={[
+            styles.compactIconBox,
+            { backgroundColor: withAlpha(color, 0.12) },
+          ]}
+        >
+          <Ionicons name={icon} size={20} color={color} />
+        </View>
+        <Text
+          style={[styles.compactValue, { color: COLORS.TEXT }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
+          {value ?? "\u2014"}
+        </Text>
+        <Text
+          style={[styles.compactLabel, { color: COLORS.MUTED }]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          {label}
+        </Text>
+        <View
+          style={[styles.accent, { backgroundColor: withAlpha(color, 0.6) }]}
+        />
+      </Card>
+    );
+  }
+
+  // ── Normal: yatay layout ────────────────────────────────────
   return (
     <Card variant="default" noMargin style={styles.card}>
       <View style={styles.row}>
@@ -164,5 +201,35 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 3,
+  },
+
+  // ── Compact (dikey) layout ──────────────────────────────────
+  compactCard: {
+    flex: 1,
+    margin: 0,
+    padding: 10,
+    overflow: "hidden",
+    alignItems: "center",
+    minHeight: 96,
+  },
+  compactIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  compactValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    lineHeight: 24,
+    textAlign: "center",
+  },
+  compactLabel: {
+    marginTop: 3,
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 14,
   },
 });
