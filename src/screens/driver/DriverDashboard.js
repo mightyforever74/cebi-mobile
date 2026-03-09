@@ -135,6 +135,7 @@ const makeStyles = (COLORS) =>
     statsGrid: {
       flexDirection: "row",
       gap:           COLORS.SPACING.sm,
+      flex:          1,
     },
 
     // ── Quick Access ──
