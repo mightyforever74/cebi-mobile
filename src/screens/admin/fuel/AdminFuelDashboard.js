@@ -1196,30 +1196,30 @@ const AdminFuelDashboard = ({ navigation }) => {
   // ============================================
 
   return (
-    <DataState loading onRetry={fetchData}>
+    <DataState loading={loading} onRetry={fetchData}>
       <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[COLORS.PRIMARY]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {renderROICard()}
-        {renderSummaryCards()}
-        {renderAlerts()}
-        {renderSavings()}
-        {renderVehicleRanking()}
-        {renderEUCompliance()}
-        {renderBenchmarking()}
-        {renderCO2()}
-        <View style={{ height: 32 }} />
-      </ScrollView>
-    </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[COLORS.PRIMARY]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {renderROICard()}
+          {renderSummaryCards()}
+          {renderAlerts()}
+          {renderSavings()}
+          {renderVehicleRanking()}
+          {renderEUCompliance()}
+          {renderBenchmarking()}
+          {renderCO2()}
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      </View>
     </DataState>
   );
 };
