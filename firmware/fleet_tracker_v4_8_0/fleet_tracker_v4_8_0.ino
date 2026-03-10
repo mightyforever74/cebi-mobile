@@ -45,6 +45,40 @@
 #include <Preferences.h>
 
 // ============================================
+// GEOFENCE — GLOBALS (v4.6.0)
+// ============================================
+
+#define GF_MAX_ZONES         50
+#define GF_HYSTERESIS_SPEED  2.0f   // km/h — below this, suppress exit (GPS drift)
+#define GF_ENTRY_SHRINK_M    10.0   // entry threshold = radius - 10m (tighter)
+#define GF_EXIT_EXPAND_M     15.0   // exit threshold  = radius + 15m (looser)
+// Two-threshold hysteresis prevents entry/exit spam at zone boundary
+
+struct GeoZone {
+  char   id[37];          // UUID string (full, for event payload)
+  char   zone_key[65];    // stable key from backend (VARCHAR 64, NVS key base)
+  char   name[48];        // display name
+  bool   is_circle;       // true=circle, false=polygon(skip v1)
+  double center_lat;
+  double center_lon;
+  double radius_m;
+  bool   alert_entry;
+  bool   alert_exit;
+  bool   active;
+};
+
+// Pending config (v4.6.1) — callback stores raw JSON, loop parses it
+#define GF_CONFIG_BUF_SIZE 4096
+char     gfPendingConfig[GF_CONFIG_BUF_SIZE];
+bool     gfPendingConfigReady = false;
+uint16_t gfPendingConfigLen   = 0;
+GeoZone  gfZones[GF_MAX_ZONES];
+uint8_t  gfZoneCount = 0;
+uint16_t gfConfigVersion = 0;
+
+// Per-zone inside state (index matches gfZones[])
+
+// ============================================
 // CONFIGURATION
 // ============================================
 
@@ -1205,39 +1239,6 @@ void sendAlert(String type, String message, float value, String severity) {
     type.c_str(), severity.c_str(), value, currentSpeed, sent ? "OK" : "FAILED");
 }
 
-// ============================================
-// GEOFENCE — GLOBALS (v4.6.0)
-// ============================================
-
-#define GF_MAX_ZONES         50
-#define GF_HYSTERESIS_SPEED  2.0f   // km/h — below this, suppress exit (GPS drift)
-#define GF_ENTRY_SHRINK_M    10.0   // entry threshold = radius - 10m (tighter)
-#define GF_EXIT_EXPAND_M     15.0   // exit threshold  = radius + 15m (looser)
-// Two-threshold hysteresis prevents entry/exit spam at zone boundary
-
-struct GeoZone {
-  char   id[37];          // UUID string (full, for event payload)
-  char   zone_key[65];    // stable key from backend (VARCHAR 64, NVS key base)
-  char   name[48];        // display name
-  bool   is_circle;       // true=circle, false=polygon(skip v1)
-  double center_lat;
-  double center_lon;
-  double radius_m;
-  bool   alert_entry;
-  bool   alert_exit;
-  bool   active;
-};
-
-// Pending config (v4.6.1) — callback stores raw JSON, loop parses it
-#define GF_CONFIG_BUF_SIZE 4096
-char     gfPendingConfig[GF_CONFIG_BUF_SIZE];
-bool     gfPendingConfigReady = false;
-uint16_t gfPendingConfigLen   = 0;
-GeoZone  gfZones[GF_MAX_ZONES];
-uint8_t  gfZoneCount = 0;
-uint16_t gfConfigVersion = 0;
-
-// Per-zone inside state (index matches gfZones[])
 // NVS keys: "k_<zone_key>" — zone_key bazlı, index değişiminden bağımsız
 bool     gfInsideState[GF_MAX_ZONES];
 uint32_t gfLastTransitionMs[GF_MAX_ZONES];  // millis() at last transition
