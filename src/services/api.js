@@ -542,6 +542,20 @@ export const deviceAPI = {
     return response.data;
   },
 
+  // BLE seçim öncesi aktif cihaz kontrolü (chipId ile)
+  checkDeviceStatus: async (chipId) => {
+    const response = await api.get("/api/devices/check-status", {
+      params: { chipId },
+    });
+    return response.data;
+  },
+
+  // Cihaza MQTT üzerinden RESET_PROVISION komutu gönder (yeniden kurulum)
+  resetProvision: async (data) => {
+    const response = await api.post("/api/devices/reset-provision", data);
+    return response.data;
+  },
+
   getInfo: async (deviceId) => {
     const response = await api.get(`/api/devices/${deviceId}`);
     return response.data;

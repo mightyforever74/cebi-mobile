@@ -110,8 +110,7 @@
     "contactEmailSubject": "TulipFleet - Заявка за акаунт",
     "contactEmailBody": "Здравейте,\n\nБих искал да създам акаунт за TulipFleet.\n\nИме на фирма:\nЛице за контакт:\nТелефон:\nБрой превозни средства:\n\nБлагодаря.",
     "callNotAvailable": "Не може да се обади",
-    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet.",
-    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
+    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet."
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -622,6 +621,15 @@
       "wifiCredReceived": "WiFi данни получени",
       "wifiProvisionOk": "WiFi връзка успешна",
       "wifiProvisionFail": "WiFi връзка неуспешна"
+    },
+    "activeDevice": {
+      "title": "Активно устройство в превозното средство",
+      "info": "Вашето превозно средство има регистрирано устройство.\n\nУстройство: {{serial}}\nРегистрация: {{plate}}",
+      "btnContinue": "Продължи",
+      "btnReprovision": "Преконфигуриране на WiFi",
+      "btnNewDevice": "Настройка на ново устройство",
+      "reprovisionTitle": "Преконфигуриране на WiFi",
+      "reprovisionMsg": "Устройството трябва да се рестартира, за да влезе в BLE режим. Ще се появи в BLE сканирането в рамките на 90 секунди. Искате ли да продължите?"
     }
   },
   "taskOffers": {
@@ -953,9 +961,7 @@
     "min": "мин",
     "noSpeed": "Изчакване на движение",
     "delayRisk": "РИСК ОТ ЗАКЪСНЕНИЕ",
-    "noEta": "ETA не е наличен",
-    "final_destination": "Крайна дестинация",
-    "nextStop": "Следваща спирка"
+    "noEta": "ETA не е наличен"
   },
   "units": {
     "km": "км",
@@ -1311,6 +1317,7 @@
     },
     "operationsOverview": "Преглед на операциите",
     "onlineVehicles": "Онлайн превозни средства",
+    "total": "общо",
     "totalTasks": "общо задачи",
     "activeDelays": "Активни закъснения",
     "filterAll": "Всички",

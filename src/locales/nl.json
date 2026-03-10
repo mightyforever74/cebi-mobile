@@ -164,7 +164,7 @@
     "contactEmailBody": "Hallo,\n\nIk wil graag een account aanmaken voor TulipFleet.\n\nBedrijfsnaam:\nContactpersoon:\nTelefoon:\nAantal voertuigen:\n\nBedankt.",
     "callNotAvailable": "Kan niet bellen",
     "whatsappMessage": "Hallo, ik wil graag meer weten over TulipFleet.",
-    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
+    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -415,7 +415,7 @@
     "locationPermissionDenied": "Locatietoestemming geweigerd. U kunt dit inschakelen via instellingen.",
     "openSettings": "Open Instellingen",
     "gpsAccuracyMessage": "GPS-nauwkeurigheid wordt beheerd via apparaatinstellingen.",
-    "locationGranted": "Toestemming verleend ✓",
+    "locationGranted": "Toestemming verleend âœ“",
     "itemsCleared": "items",
     "cacheClearFailed": "Cache wissen mislukt",
     "privacyPolicyText": "Ons privacybeleid is beschikbaar op: tulipfleet.com/privacy",
@@ -578,7 +578,7 @@
     "title": "Apparaat Instellen",
     "checkingStatus": "Apparaatstatus controleren...",
     "loading": "Laden...",
-    "setupNotRequired": "Installatie Niet Vereist ✅",
+    "setupNotRequired": "Installatie Niet Vereist âœ…",
     "deviceActiveMessage": "Het apparaat verbonden met uw voertuig is actief.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
     "deviceReinstall": "Apparaat Herinstallatie",
     "deviceWaitingReinstall": "Apparaat wacht op herinstallatie...",
@@ -642,7 +642,7 @@
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "enterCredentials": "Enter WiFi credentials",
-      "hint": "💡 The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
       "lastUsed": "Last used: {{ssid}}",
       "network": "Network: {{ssid}}",
       "passwordLabel": "WiFi Password",
@@ -690,12 +690,12 @@
       "deviceHint": "Make sure the ESP32 device is on and nearby",
       "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
       "devicesFound": "{{count}} device(s) found",
-      "medium": "🟡 Medium",
-      "rescan": "🔄 Scan Again",
+      "medium": "ğŸŸ¡ Medium",
+      "rescan": "ğŸ”„ Scan Again",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
-      "strong": "🟢 Strong",
-      "weak": "🔴 Weak"
+      "strong": "ğŸŸ¢ Strong",
+      "weak": "ğŸ”´ Weak"
     },
     "camera": {
       "grantPermission": "Grant Permission",
@@ -730,6 +730,15 @@
       "wifiCredReceived": "WiFi credentials received",
       "wifiProvisionFail": "WiFi connection failed",
       "wifiProvisionOk": "WiFi connection successful"
+    },
+    "activeDevice": {
+      "title": "Actief apparaat in voertuig",
+      "info": "Uw voertuig heeft een geregistreerd apparaat.\n\nApparaat: {{serial}}\nKenteken: {{plate}}",
+      "btnContinue": "Doorgaan",
+      "btnReprovision": "WiFi opnieuw configureren",
+      "btnNewDevice": "Nieuw apparaat instellen",
+      "reprovisionTitle": "WiFi opnieuw configureren",
+      "reprovisionMsg": "Het apparaat moet opnieuw opstarten om BLE-modus te activeren. Het verschijnt binnen 90 seconden in de BLE-scan. Wilt u doorgaan?"
     }
   },
   "editProfile": {
@@ -847,7 +856,7 @@
     "acceptConfirm": "Weet u zeker dat u dit taakaanbod wilt accepteren?",
     "cancel": "Annuleren",
     "accept": "Accepteren",
-    "success": "✅ Succes",
+    "success": "âœ… Succes",
     "acceptSuccess": "Taak geaccepteerd! U kunt de taak starten vanaf de pagina Mijn Taken.",
     "ok": "OK",
     "acceptFailed": "Kan taak niet accepteren",
@@ -1035,7 +1044,7 @@
     "hints": {
       "lastRecordTitle": "Laatste record",
       "lastRecordPrefix": "💡 Laatste",
-      "warningFull": "⚠️ Vul tot VOL"
+      "warningFull": "âš ï¸ Vul tot VOL"
     },
     "errors": {
       "vehicleLoadFailed": "Voertuiginfo kon niet worden geladen",
@@ -1924,41 +1933,41 @@
     "searchPlaceholder": "Zoek locatie..."
   },
   "taskOffers": {
-    "checkInternet": "Check your internet connection.",
-    "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
+    "checkInternet": "Controleer uw internetverbinding.",
+    "connectionIssue": "Verbindingsprobleem, opnieuw proberen... ({{current}}/{{max}})",
     "empty": {
-      "couldNotLoad": "Offers could not be loaded",
+      "couldNotLoad": "Aanbiedingen konden niet worden geladen",
       "error": "😔",
-      "noPending": "No pending offers",
+      "noPending": "Geen openstaande aanbiedingen",
       "normal": "📭",
-      "notFound": "No task offers found"
+      "notFound": "Geen taakaanbiedingen gevonden"
     },
     "filters": {
-      "accepted": "Accepted",
-      "all": "All",
-      "pending": "Pending",
-      "rejected": "Rejected"
+      "accepted": "Geaccepteerd",
+      "all": "Alle",
+      "pending": "In afwachting",
+      "rejected": "Geweigerd"
     },
-    "genericError": "An error occurred. Please try again.",
-    "loading": "Loading offers...",
-    "noPermission": "You do not have permission for this operation.",
-    "offersNotFound": "Offers not found.",
-    "retry": "Retry",
-    "serverError": "Server error. Please try again later.",
-    "sessionExpired": "Session expired. Please login again.",
+    "genericError": "Er is een fout opgetreden. Probeer het opnieuw.",
+    "loading": "Aanbiedingen worden geladen...",
+    "noPermission": "U hebt geen toestemming voor deze bewerking.",
+    "offersNotFound": "Aanbiedingen niet gevonden.",
+    "retry": "Opnieuw proberen",
+    "serverError": "Serverfout. Probeer het later opnieuw.",
+    "sessionExpired": "Sessie verlopen. Log opnieuw in.",
     "statuses": {
-      "accepted": "Accepted",
-      "expired": "Expired",
-      "pending": "Pending",
-      "rejected": "Rejected"
+      "accepted": "Geaccepteerd",
+      "expired": "Verlopen",
+      "pending": "In afwachting",
+      "rejected": "Geweigerd"
     },
     "tapForDetails": "Tik voor details →",
     "timeRemaining": {
-      "expired": "Expired",
-      "hours": "{{hours}} hour(s) left",
-      "minutes": "{{minutes}} min left"
+      "expired": "Verlopen",
+      "hours": "Nog {{hours}} uur",
+      "minutes": "Nog {{minutes}} min"
     },
-    "title": "Task Offers"
+    "title": "Taakaanbiedingen"
   },
   "vehicleList": {
     "title": "Voertuigenlijst",

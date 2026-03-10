@@ -42,6 +42,7 @@ const STEPS = {
   CHECKING: "CHECKING",
   QR_SCAN: "QR_SCAN",
   SERIAL_MANUAL: "SERIAL_MANUAL",
+  ACTIVE_DEVICE_OPTIONS: "ACTIVE_DEVICE_OPTIONS", // v4.9.0: aktif cihaz seçenekleri
   BLE_SCAN: "BLE_SCAN",
   CONNECTING: "CONNECTING",
   WIFI_FORM: "WIFI_FORM",
@@ -192,6 +193,14 @@ const makeStyles = (COLORS) =>
     btnPrimary: { backgroundColor: COLORS.PRIMARY },
     btnMuted: { backgroundColor: withAlpha(COLORS.MUTED, 0.18) },
     btnDanger: { backgroundColor: COLORS.ERROR },
+    btnOutline: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: COLORS.PRIMARY,
+    },
+    btnTextOutline: { color: COLORS.PRIMARY },
+    btnFullWidth: { width: "100%", marginBottom: 0 },
+    btnSpacer: { height: 8 },
     btnText: {
       color: COLORS.WHITE,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
@@ -515,7 +524,8 @@ export default function DeviceSetupScreen({ navigation, route }) {
           plate: vehicle.plate_no,
         });
         setGateChecking(false);
-        setStep(STEPS.SUCCESS);
+        // v4.9.0: Direkt SUCCESS yerine seçenek ekranı — re-provisioning her zaman mümkün
+        setStep(STEPS.ACTIVE_DEVICE_OPTIONS);
         return;
       }
     } catch (e) {
@@ -1069,38 +1079,134 @@ export default function DeviceSetupScreen({ navigation, route }) {
     </Card>
   );
 
-  const renderSetupNotRequired = () => (
+  // v4.9.0: Aktif cihaz seçenekleri — re-provisioning her zaman mümkün
+  const renderActiveDeviceOptions = () => (
     <Card variant="setup" style={styles.cardWrap}>
       <View style={styles.titleRow}>
-        <Ionicons name="checkmark-circle" size={22} color={COLORS.SUCCESS} />
+        <Ionicons
+          name="hardware-chip-outline"
+          size={22}
+          color={COLORS.PRIMARY}
+        />
         <View style={styles.titleRowSpacer} />
         <Text style={styles.cardTitle}>
-          {t("deviceSetup.setupNotRequired")}
+          {t("deviceSetup.activeDevice.title")}
         </Text>
       </View>
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>
-          {t("deviceSetup.deviceActiveMessage", {
+          {t("deviceSetup.activeDevice.info", {
             serial: deviceStatus?.serial || "-",
             plate: deviceStatus?.plate || "-",
           })}
         </Text>
       </View>
 
-      <View style={styles.btnRow}>
-        <TouchableOpacity
-          style={[styles.btn, styles.btnPrimary]}
-          onPress={() => navigation.navigate("DriverDashboard")}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
-          <View style={styles.btnIconSpacer} />
-          <Text style={styles.btnText}>{t("deviceSetup.buttons.ok")}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Normal devam */}
+      <TouchableOpacity
+        style={[styles.btn, styles.btnPrimary, styles.btnFullWidth]}
+        onPress={() => navigation.navigate("DriverDashboard")}
+        activeOpacity={0.85}
+      >
+        <Ionicons
+          name="checkmark-circle-outline"
+          size={18}
+          color={COLORS.WHITE}
+        />
+        <View style={styles.btnIconSpacer} />
+        <Text style={styles.btnText}>
+          {t("deviceSetup.activeDevice.btnContinue")}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.btnSpacer} />
+
+      {/* WiFi yeniden yapılandır */}
+      <TouchableOpacity
+        style={[styles.btn, styles.btnOutline, styles.btnFullWidth]}
+        onPress={() => {
+          Alert.alert(
+            t("deviceSetup.activeDevice.reprovisionTitle"),
+            t("deviceSetup.activeDevice.reprovisionMsg"),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("common.ok"),
+                onPress: async () => {
+                  try {
+                    setBusy(true);
+                    // MQTT üzerinden cihaza RESET_PROVISION komutu gönder
+                    await deviceAPI.resetProvision({
+                      serial: deviceStatus?.serial,
+                    });
+                    // Cihaz komutu alıp BLE'ye geçene kadar bekle
+                    await new Promise((r) => setTimeout(r, 3000));
+                    // Eski tarama state'ini temizle
+                    scanCleanupRef.current?.();
+                    setDevices([]);
+                    devicesRef.current = [];
+                    setSelectedDevice(null);
+                    setSerial(deviceStatus?.serial || "");
+                    setStep(STEPS.BLE_SCAN);
+                    startBLEScan();
+                  } catch (e) {
+                    // Backend endpoint yoksa ya da cihaz offline ise yine de dene
+                    // (graceful fallback: direkt BLE scan başlat)
+                    scanCleanupRef.current?.();
+                    setDevices([]);
+                    devicesRef.current = [];
+                    setSelectedDevice(null);
+                    setSerial(deviceStatus?.serial || "");
+                    setStep(STEPS.BLE_SCAN);
+                    startBLEScan();
+                  } finally {
+                    setBusy(false);
+                  }
+                },
+              },
+            ]
+          );
+        }}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="wifi-outline" size={18} color={COLORS.PRIMARY} />
+        <View style={styles.btnIconSpacer} />
+        <Text style={[styles.btnText, styles.btnTextOutline]}>
+          {t("deviceSetup.activeDevice.btnReprovision")}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.btnSpacer} />
+
+      {/* Farklı cihaz kur — direkt BLE scan başlat */}
+      <TouchableOpacity
+        style={[styles.btn, styles.btnMuted, styles.btnFullWidth]}
+        onPress={() => {
+          scanCleanupRef.current?.();
+          setSerial("");
+          setDevices([]);
+          devicesRef.current = [];
+          setSelectedDevice(null);
+          setStatus(t("deviceSetup.ble.searchingDevices"));
+          setStep(STEPS.BLE_SCAN);
+          startBLEScan();
+        }}
+        activeOpacity={0.85}
+      >
+        <Ionicons
+          name="bluetooth-outline"
+          size={18}
+          color={COLORS.TEXT_PRIMARY}
+        />
+        <View style={styles.btnIconSpacer} />
+        <Text style={[styles.btnText, styles.btnTextDark]}>
+          {t("deviceSetup.activeDevice.btnNewDevice")}
+        </Text>
+      </TouchableOpacity>
     </Card>
   );
 
+  // ── renderQRScan ──────────────────────────────────────────────────────────
   const renderQRScan = () => {
     if (!cameraPermission) {
       return (
@@ -1764,11 +1870,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderStepHeader()}
         {step === STEPS.CHECKING && renderChecking()}
-        {step === STEPS.SUCCESS &&
-        deviceStatus?.isActive &&
-        !deviceStatus?.needsSetup
-          ? renderSetupNotRequired()
-          : null}
+        {step === STEPS.ACTIVE_DEVICE_OPTIONS && renderActiveDeviceOptions()}
         {step === STEPS.SERIAL_MANUAL && renderManualSerial()}
         {step === STEPS.QR_SCAN && renderQRScan()}
         {step === STEPS.BLE_SCAN && renderBleScan()}
@@ -1776,9 +1878,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         {step === STEPS.WIFI_FORM && renderWifiForm()}
         {step === STEPS.WIFI_PROVISIONING && renderProvisioning()}
         {step === STEPS.ACTIVATING && renderActivating()}
-        {step === STEPS.SUCCESS &&
-          (!deviceStatus?.isActive || deviceStatus?.needsSetup) &&
-          renderSuccess()}
+        {step === STEPS.SUCCESS && renderSuccess()}
         {step === STEPS.SUCCESS_PENDING && renderSuccessPending()}
         {step === STEPS.ERROR && renderError()}
 

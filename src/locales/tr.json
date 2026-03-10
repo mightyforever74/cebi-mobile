@@ -687,6 +687,15 @@
       "wifiCredReceived": "WiFi bilgileri alındı",
       "wifiProvisionOk": "WiFi bağlantısı başarılı",
       "wifiProvisionFail": "WiFi bağlantısı başarısız"
+    },
+    "activeDevice": {
+      "title": "Araçta Aktif Cihaz",
+      "info": "Aracınızda kayıtlı bir cihaz var.\n\nCihaz: {{serial}}\nPlaka: {{plate}}",
+      "btnContinue": "Normal Devam Et",
+      "btnReprovision": "WiFi Yeniden Yapılandır",
+      "btnNewDevice": "Farklı Cihaz Kur",
+      "reprovisionTitle": "WiFi Yeniden Yapılandır",
+      "reprovisionMsg": "Cihazın BLE moduna geçmesi için yeniden başlatılması gerekiyor. Cihaz 90 saniye içinde BLE taramasında görünecek. Devam etmek istiyor musunuz?"
     }
   },
   "taskOffers": {
