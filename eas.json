@@ -47,10 +47,13 @@
     "production": {
       "distribution": "store",
       "node": "20.19.4",
+      "credentialsSource": "remote",
       "env": {
         "API_URL": "https://api.tulipfleet.com",
-        "MQTT_HOST": "mqtt.tulipfleet.com",
-        "GOOGLE_SERVICES_PLIST": "@eas/GOOGLE_SERVICES_PLIST"
+        "MQTT_HOST": "46.224.1.192",
+        "MQTT_PORT": "8883",
+        "MQTT_USERNAME": "fleet-backend",
+        "MQTT_USE_SSL": "true"
       },
       "android": {
         "buildType": "app-bundle"
