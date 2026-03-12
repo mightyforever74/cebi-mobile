@@ -7,7 +7,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "eject": "expo eject"
+    "eject": "expo eject",
+    "prebuild": "echo '🚫 YASAK: expo prebuild android/ ve ios/ klasörlerini siler. Bkz: NATIVE_REPO.md' && exit 1"
   },
   "repository": {
     "type": "git",
