@@ -125,12 +125,12 @@ export const WIFI_ERROR_MESSAGES = {
 // ═══════════════════════════════════════════════════════════════════
 
 export const MQTT_CONFIG = {
-  host: MQTT_HOST || "46.224.1.192",
+  host: MQTT_HOST,
   port: parseInt(MQTT_PORT) || 8883,
   useSSL: true,
   clientId: `tulipfleet_mobile_${Date.now()}`,
-  username: MQTT_USERNAME || "fleet-backend",
-  password: MQTT_PASSWORD || "BackendMQTT2024!",
+  username: MQTT_USERNAME,
+  password: MQTT_PASSWORD,
   keepAlive: 60,
   clean: true,
   reconnectPeriod: 5000,
