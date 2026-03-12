@@ -56,6 +56,13 @@ jobs:
         run: |
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
 
+      - name: Verify resolved Android dependencies
+        run: |
+          cd android
+          ./gradlew app:dependencyInsight --configuration releaseRuntimeClasspath --dependency androidx.appcompat:appcompat
+          ./gradlew app:dependencyInsight --configuration releaseRuntimeClasspath --dependency androidx.appcompat:appcompat-resources
+          ./gradlew app:dependencyInsight --configuration releaseRuntimeClasspath --dependency com.google.android.material:material
+
       - name: Build AAB
         env:
           KEYSTORE_FILE: tulipfleet-upload-new.keystore
@@ -64,7 +71,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd android
-          ./gradlew bundleRelease --no-daemon --stacktrace
+          ./gradlew clean bundleRelease --no-daemon --stacktrace --info
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
