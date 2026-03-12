@@ -1,0 +1,19 @@
+{
+  "name": "tulipfleet-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest --verbose --runInBand --forceExit",
+    "test:auth": "jest --verbose --runInBand --forceExit -- auth",
+    "test:vehicles": "jest --verbose --runInBand --forceExit -- vehicles",
+    "test:drivers": "jest --verbose --runInBand --forceExit -- drivers",
+    "test:tasks": "jest --verbose --runInBand --forceExit -- tasks",
+    "test:alerts": "jest --verbose --runInBand --forceExit -- alerts",
+    "test:locations": "jest --verbose --runInBand --forceExit -- locations",
+    "test:security": "jest --verbose --runInBand --forceExit -- security",
+    "test:fleet-stats": "jest --verbose --runInBand --forceExit -- fleet-stats"
+  },
+  "jest": {
+    "testTimeout": 30000,
+    "testMatch": ["**/__tests__/**/*.test.js"]
+  }
+}
