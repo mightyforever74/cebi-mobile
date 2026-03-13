@@ -34,7 +34,7 @@ describe('10. HEALTH & ENDPOINT DISCOVERY', () => {
         { method: 'GET', path: '/api/drivers', name: 'Drivers List' },
         { method: 'GET', path: '/api/tasks', name: 'Tasks List' },
         { method: 'GET', path: '/api/alerts', name: 'Alerts List' },
-        { method: 'GET', path: '/api/vehicles/locations', name: 'Vehicle Locations' },
+        { method: 'GET', path: '/api/locations/latest', name: 'Vehicle Locations (Latest)' },
         { method: 'GET', path: '/api/admin/fleet-stats', name: 'Fleet Stats' },
         { method: 'GET', path: '/api/users/profile', name: 'User Profile' },
         { method: 'GET', path: '/api/geofences', name: 'Geofences' },

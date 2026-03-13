@@ -11,9 +11,9 @@ describe('5. LOCATIONS & GPS', () => {
   });
 
   // T-15: Vehicle locations endpoint
-  test('T-15 Vehicle Locations - GET /api/vehicles/locations', async () => {
+  test('T-15 Vehicle Locations - GET /api/locations/latest', async () => {
     try {
-      const res = await admin.client.get('/api/vehicles/locations');
+      const res = await admin.client.get('/api/locations/latest');
       
       if (res.status === 404) {
         trackTest('T-15', 'Vehicle Locations', null, 'Endpoint 404');
@@ -44,7 +44,7 @@ describe('5. LOCATIONS & GPS', () => {
   // T-14: Locations tablosu TimescaleDB kontrolü (API üzerinden)
   test('T-14 Location data format', async () => {
     try {
-      const res = await admin.client.get('/api/vehicles/locations');
+      const res = await admin.client.get('/api/locations/latest');
       
       if (res.status !== 200) {
         trackTest('T-14', 'Location Data Format', null, 'Locations endpoint erişilemedi');
