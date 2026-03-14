@@ -542,7 +542,7 @@ class BLEService {
     }
     this._wifiScanInFlight = true;
 
-    const WIFI_SCAN_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26ad";
+    const WIFI_SCAN_UUID = BLE_CONFIG.CHARACTERISTICS.WIFI_SCAN;
     const NOTIFY_TIMEOUT_MS = 10000; // 10s for notify
     const SUBSCRIBE_SETTLE_MS = 250; // monitor settle delay (small)
     const READ_RETRY_DELAY_MS = 2000;

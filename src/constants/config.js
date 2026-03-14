@@ -39,6 +39,9 @@ export const BLE_CONFIG = {
     // 🆕 WiFi Provisioning
     WIFI_CREDENTIALS: "beb5483e-36e1-4688-b7f5-ea07361b26ab", // WRITE - JSON {ssid, password}
     WIFI_STATUS: "beb5483e-36e1-4688-b7f5-ea07361b26ac", // READ + NOTIFY
+    WIFI_SCAN: "beb5483e-36e1-4688-b7f5-ea07361b26ad", // READ + WRITE + WRITE_NR + NOTIFY
+    AUTH_TOKEN: "beb5483e-36e1-4688-b7f5-ea07361b26ae", // WRITE
+    FACTORY_RESET: "beb5483e-36e1-4688-b7f5-ea07361b26af", // WRITE (v4.9.0)
   },
 
   // Device discovery (iOS cache için esnek prefix)
