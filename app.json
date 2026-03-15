@@ -2,7 +2,7 @@
   "expo": {
     "name": "TulipFleet",
     "slug": "tulipfleet",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "updates": {
@@ -32,7 +32,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "package": "com.tulipfleet.app",
-      "versionCode": 19,
+      "versionCode": 25,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
