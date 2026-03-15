@@ -1,7 +1,7 @@
 // src/screens/driver/DeviceSetupScreen.js
 // TulipFleet - Device Setup (BLE + QR + WiFi Provisioning)
 // FULL VERSION - Backend integrated + All states
-// Updated: 23 Şubat 2026 - check-status uyarısı + activation fix
+// Updated: 15 mart 2026 - check-status uyarısı + activation fix
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,7 +25,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { deviceAPI, driverAPI } from "../../services/api";
+import { deviceAPI, driverAPI, driverProvisionAPI } from "../../services/api";
 import { bleService } from "../../services/bleService";
 
 // Storage Keys
@@ -933,7 +933,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
   // ============================================
   // QR Code Scan Handler
   // ============================================
-  const handleQRScanned = ({ data }) => {
+  const handleQRScanned = async ({ data }) => {
     if (qrLockRef.current) return;
     qrLockRef.current = true;
 
@@ -957,7 +957,8 @@ export default function DeviceSetupScreen({ navigation, route }) {
       if (match) scannedSerial = decodeURIComponent(match[1]).toUpperCase();
     }
 
-    const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
+    // Esnek regex — TF- ile başlayan 5-25 karakter
+    const serialRegex = /^TF-[A-Z0-9]+(-[A-Z0-9]+)*$/;
     if (!serialRegex.test(scannedSerial)) {
       Alert.alert(
         t("deviceSetup.qr.invalidCode") || "Invalid QR Code",
@@ -978,8 +979,41 @@ export default function DeviceSetupScreen({ navigation, route }) {
     if (__DEV__) console.log("[QR] Valid serial:", scannedSerial);
     setSerial(scannedSerial);
     setStatus(`Serial: ${scannedSerial}`);
-    setStep(STEPS.BLE_SCAN);
-    startBLEScan();
+
+    // Backend validation — company + device kontrolü
+    try {
+      const response = await driverProvisionAPI.validateSerial(scannedSerial);
+      if (response.valid) {
+        setStep(STEPS.BLE_SCAN);
+        startBLEScan();
+      } else {
+        Alert.alert(
+          t("common.error"),
+          response.message || t("deviceSetup.serial.invalid"),
+          [
+            {
+              text: t("common.ok"),
+              onPress: () => {
+                qrLockRef.current = false;
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error.message;
+      Alert.alert(t("common.error"), msg || t("deviceSetup.serial.invalid"), [
+        {
+          text: t("common.ok"),
+          onPress: () => {
+            qrLockRef.current = false;
+          },
+        },
+      ]);
+    }
 
     setTimeout(() => {
       qrLockRef.current = false;
@@ -993,7 +1027,8 @@ export default function DeviceSetupScreen({ navigation, route }) {
       return;
     }
 
-    const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
+    // Esnek regex — TF- ile başlayan 5-25 karakter
+    const serialRegex = /^TF-[A-Z0-9]+(-[A-Z0-9]+)*$/;
     if (!serialRegex.test(trimmed)) {
       Alert.alert(
         t("deviceSetup.serial.invalid"),
@@ -1005,11 +1040,24 @@ export default function DeviceSetupScreen({ navigation, route }) {
     setSerial(trimmed);
     setBusy(true);
     try {
-      setStep(STEPS.BLE_SCAN);
-      startBLEScan();
-    } catch (e) {
-      setError(t("deviceSetup.serial.invalid"));
-      setStep(STEPS.ERROR);
+      // Backend validation — company kontrolü + device varlık kontrolü
+      const response = await driverProvisionAPI.validateSerial(trimmed);
+      if (response.valid) {
+        setStep(STEPS.BLE_SCAN);
+        startBLEScan();
+      } else {
+        Alert.alert(
+          t("common.error"),
+          response.message || t("deviceSetup.serial.invalid")
+        );
+      }
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error.message;
+      if (__DEV__) console.error("[DeviceSetup] Serial validation error:", msg);
+      Alert.alert(t("common.error"), msg || t("deviceSetup.serial.invalid"));
     } finally {
       setBusy(false);
     }
