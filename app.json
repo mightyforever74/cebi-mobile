@@ -32,7 +32,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "package": "com.tulipfleet.app",
-      "versionCode": 25,
+      "versionCode": 26,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
