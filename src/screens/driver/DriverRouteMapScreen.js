@@ -1332,7 +1332,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     const origin = task.start_location
       ? {
           id: "origin",
-          name: "Baslangic",
+          name: t("nav.start_point"),
           address: task.start_location,
           latitude: task.route_json?.origin?.lat,
           longitude: task.route_json?.origin?.lng,
@@ -1343,7 +1343,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     const destination = task.end_location
       ? {
           id: "destination",
-          name: "Varis",
+          name: t("nav.destination"),
           address: task.end_location,
           latitude: task.route_json?.destination?.lat,
           longitude: task.route_json?.destination?.lng,
@@ -1352,7 +1352,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     const waypoints = (task.waypoints || []).map((wp, idx) => ({
       id: wp.id || `wp-${idx}`,
-      name: wp.name || `Durak ${idx + 1}`,
+      name: wp.name || `${t("nav.stop")} ${idx + 1}`,
       address: wp.address,
       latitude: wp.latitude || wp.lat,
       longitude: wp.longitude || wp.lng,
