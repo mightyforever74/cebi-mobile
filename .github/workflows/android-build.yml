@@ -79,3 +79,4 @@ jobs:
           name: tulipfleet-release-v${{ github.event.inputs.version_code }}.aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
+
