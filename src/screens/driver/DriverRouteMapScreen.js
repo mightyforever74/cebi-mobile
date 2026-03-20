@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { Linking } from "react-native";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
@@ -1386,6 +1387,60 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return geocodedDestination;
   };
 
+  // Open destination in external maps app (Apple Maps / Google Maps)
+  const openInExternalMaps = () => {
+    const dest = getEndLocationCoords();
+    if (!dest) return;
+
+    const { latitude, longitude } = dest;
+    const label = task?.end_location || task?.title || "Destination";
+
+    if (Platform.OS === "ios") {
+      // iOS: offer Apple Maps and Google Maps
+      Alert.alert(
+        t("routeMap.openInMaps") || "Open in Maps",
+        t("routeMap.chooseMapApp") || "Choose navigation app",
+        [
+          {
+            text: "Apple Maps",
+            onPress: () => {
+              const url = `maps:?daddr=${latitude},${longitude}&dirflg=d`;
+              Linking.openURL(url);
+            },
+          },
+          {
+            text: "Google Maps",
+            onPress: () => {
+              const url = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=driving`;
+              Linking.canOpenURL(url).then((supported) => {
+                if (supported) {
+                  Linking.openURL(url);
+                } else {
+                  Linking.openURL(
+                    `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`
+                  );
+                }
+              });
+            },
+          },
+          { text: t("common.cancel") || "Cancel", style: "cancel" },
+        ]
+      );
+    } else {
+      // Android: Google Maps direct
+      const url = `google.navigation:q=${latitude},${longitude}`;
+      Linking.canOpenURL(url).then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(
+            `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`
+          );
+        }
+      });
+    }
+  };
+
   const getDistance = () => {
     if (task?.route_json?.distance) return task.route_json.distance;
     if (task?.total_distance_km) return task.total_distance_km;
@@ -1476,7 +1531,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {location ? (
         <MapView
           ref={mapRef}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === "ios" ? undefined : PROVIDER_GOOGLE}
           style={StyleSheet.absoluteFillObject}
           initialRegion={{
             latitude: location.latitude,
@@ -1644,20 +1699,30 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       {/* Follow Mode Toggle */}
       {isNavigating && (
-        <TouchableOpacity
-          style={[
-            styles.headerBtn,
-            styles.followBtn,
-            followMode && styles.followBtnActive,
-          ]}
-          onPress={() => setFollowMode(!followMode)}
-        >
-          <Ionicons
-            name={followMode ? "navigate" : "navigate-outline"}
-            size={22}
-            color={followMode ? COLORS.WHITE : COLORS.SUCCESS}
-          />
-        </TouchableOpacity>
+        <View style={{ position: "absolute", top: 60, right: 16, flexDirection: "column", gap: 8 }}>
+          <TouchableOpacity
+            style={[
+              styles.headerBtn,
+              styles.followBtn,
+              followMode && styles.followBtnActive,
+            ]}
+            onPress={() => setFollowMode(!followMode)}
+          >
+            <Ionicons
+              name={followMode ? "navigate" : "navigate-outline"}
+              size={22}
+              color={followMode ? COLORS.WHITE : COLORS.SUCCESS}
+            />
+          </TouchableOpacity>
+          {getEndLocationCoords() && (
+            <TouchableOpacity
+              style={[styles.headerBtn, { backgroundColor: COLORS.INFO || "#5E72E4" }]}
+              onPress={openInExternalMaps}
+            >
+              <Ionicons name="open-outline" size={22} color={COLORS.WHITE} />
+            </TouchableOpacity>
+          )}
+        </View>
       )}
 
       {/* Route Loading Indicator */}
