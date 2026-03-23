@@ -60,3 +60,6 @@ multi_wifi_patch.ino
 # Keystore (sensitive)
 *.keystore
 *.jks
+dist/
+appcompat_deps.txt
+assets/bootsplash/ios/

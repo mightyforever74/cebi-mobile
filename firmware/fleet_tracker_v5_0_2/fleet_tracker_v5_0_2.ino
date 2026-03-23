@@ -82,8 +82,8 @@ uint16_t gfConfigVersion = 0;
 // CONFIGURATION
 // ============================================
 
-const char* FIRMWARE_VERSION = "5.0.0";
-const char* DEVICE_SERIAL = "TF-2026-00002-A";
+const char* FIRMWARE_VERSION = "5.0.2";
+const char* DEVICE_SERIAL = "TF-2026-00003-A";
 
 
 // Backend

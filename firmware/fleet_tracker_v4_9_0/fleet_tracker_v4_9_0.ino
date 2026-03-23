@@ -91,7 +91,8 @@ uint16_t gfConfigVersion = 0;
 // ============================================
 
 const char* FIRMWARE_VERSION = "4.9.0";
-const char* DEVICE_SERIAL = "TF-2026-DEMO-1";
+const char* DEVICE_SERIAL = "TF-2026-00002-A";
+
 
 // Backend
 const char* API_ACTIVATE_URL = "https://api.tulipfleet.com/api/devices/activate";
@@ -100,7 +101,7 @@ const char* API_VERIFY_DEVICE_TOKEN_URL = "https://api.tulipfleet.com/api/device
 const char* DEVICE_ACTIVATION_KEY = "TulipFleet2025SecureActivationKeyESP32";
 
 // MQTT
-const char* mqtt_server = "46.224.1.192";
+const char* mqtt_server = "mqtt.tulipfleet.com";
 const int mqtt_port = 8883;
 const char* mqtt_username = "fleet_esp32";
 const char* mqtt_password = "ESP32Fleet2026SecureKey!";
@@ -140,6 +141,37 @@ bool bleReprovisionMode = false;
 #define BLE_GATE_REPROVISION    "[BLE_GATE] REPROVISION_WINDOW"
 #define BLE_GATE_TIMEOUT        "[BLE_GATE] WINDOW_TIMEOUT"
 
+// ============================================
+// LED STATUS ENGINE (v4.9.1)
+// ============================================
+
+enum WifiLedMode {
+  WIFI_LED_OFF = 0,
+  WIFI_LED_FIRST_SETUP_WAIT,     // 1s on / 1s off
+  WIFI_LED_REPROVISION_WINDOW,   // 250ms on / 250ms off
+  WIFI_LED_CONNECTING_WIFI,      // 3 quick flashes + 1s pause
+  WIFI_LED_CONNECTED_MQTT_OK,    // solid on
+  WIFI_LED_CONNECTED_MQTT_DOWN,  // 2 quick flashes + 1s pause
+  WIFI_LED_PROVISION_ACTIVE      // 100ms blink
+};
+
+enum GpsLedMode {
+  GPS_LED_OFF = 0,
+  GPS_LED_SEARCHING,             // 1s on / 1s off
+  GPS_LED_FIX                    // solid on
+};
+
+WifiLedMode wifiLedMode = WIFI_LED_OFF;
+GpsLedMode gpsLedMode = GPS_LED_OFF;
+
+unsigned long wifiLedLastTick = 0;
+unsigned long gpsLedLastTick = 0;
+bool wifiLedState = false;
+bool gpsLedState = false;
+uint8_t wifiLedStep = 0;
+
+const bool LED_ACTIVE_LOW = false;
+
 // WiFi Status
 const char* WIFI_STAT_IDLE        = "IDLE";
 const char* WIFI_STAT_CONNECTING  = "CONNECTING";
@@ -164,7 +196,7 @@ WiFiClientSecure espClient;
 PubSubClient mqtt_client(espClient);
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 TinyGPSPlus gps;
-HardwareSerial gpsSerial(2);
+HardwareSerial gpsSerial(1);
 
 // Device Info
 String espChipId = "";
@@ -315,6 +347,14 @@ void readAndSmoothAccel();
 void checkForEvents();
 void sendAlert(String type, String message, float value, String severity);
 
+// LED engine (v4.9.1)
+void updateWifiLedPattern();
+void updateGpsLedPattern();
+void updateSystemLedModes();
+void ledSetWifi(bool on);
+void ledSetGps(bool on);
+void ledSetRaw(int pin, bool on);
+
 // ============================================
 // LED FUNCTIONS
 // ============================================
@@ -322,12 +362,193 @@ void sendAlert(String type, String message, float value, String severity);
 void ledsInit() {
   pinMode(LED_GPS, OUTPUT);
   pinMode(LED_WIFI, OUTPUT);
-  digitalWrite(LED_GPS, LOW);
-  digitalWrite(LED_WIFI, LOW);
+
+  ledSetWifi(false);
+  ledSetGps(false);
+
+  // Self-test — engine uzerinden, LED_ACTIVE_LOW'u test eder
+  ledSetWifi(true);
+  delay(400);
+  ledSetWifi(false);
+  delay(120);
+
+  ledSetGps(true);
+  delay(400);
+  ledSetGps(false);
 }
 
+void ledSetRaw(int pin, bool on) {
+  digitalWrite(pin, LED_ACTIVE_LOW ? (on ? LOW : HIGH) : (on ? HIGH : LOW));
+}
+
+void ledSetWifi(bool on) {
+  wifiLedState = on;
+  ledSetRaw(LED_WIFI, on);
+}
+
+void ledSetGps(bool on) {
+  gpsLedState = on;
+  ledSetRaw(LED_GPS, on);
+}
+
+// Legacy wrapper kalsin; eski cagrilar bozulmasin
 void ledSet(int pin, bool on) {
-  digitalWrite(pin, on ? HIGH : LOW);
+  ledSetRaw(pin, on);
+}
+
+// ============================================
+// LED PATTERN UPDATERS (non-blocking, millis based)
+// ============================================
+
+void updateWifiLedPattern() {
+  unsigned long now = millis();
+
+  switch (wifiLedMode) {
+    case WIFI_LED_OFF:
+      ledSetWifi(false);
+      break;
+
+    case WIFI_LED_CONNECTED_MQTT_OK:
+      ledSetWifi(true);
+      break;
+
+    case WIFI_LED_FIRST_SETUP_WAIT:
+      if (now - wifiLedLastTick >= 1000) {
+        wifiLedLastTick = now;
+        ledSetWifi(!wifiLedState);
+      }
+      break;
+
+    case WIFI_LED_REPROVISION_WINDOW:
+      if (now - wifiLedLastTick >= 250) {
+        wifiLedLastTick = now;
+        ledSetWifi(!wifiLedState);
+      }
+      break;
+
+    case WIFI_LED_PROVISION_ACTIVE:
+      if (now - wifiLedLastTick >= 100) {
+        wifiLedLastTick = now;
+        ledSetWifi(!wifiLedState);
+      }
+      break;
+
+    case WIFI_LED_CONNECTING_WIFI:
+      // 3 quick flashes + 1s pause
+      switch (wifiLedStep) {
+        case 0: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(true);  wifiLedStep = 1; } break;
+        case 1: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(false); wifiLedStep = 2; } break;
+        case 2: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(true);  wifiLedStep = 3; } break;
+        case 3: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(false); wifiLedStep = 4; } break;
+        case 4: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(true);  wifiLedStep = 5; } break;
+        case 5: if (now - wifiLedLastTick >= 120) { wifiLedLastTick = now; ledSetWifi(false); wifiLedStep = 6; } break;
+        case 6: if (now - wifiLedLastTick >= 1000) { wifiLedLastTick = now; wifiLedStep = 0; } break;
+      }
+      break;
+
+    case WIFI_LED_CONNECTED_MQTT_DOWN:
+      // 2 quick flashes + 1s pause
+      switch (wifiLedStep) {
+        case 0: if (now - wifiLedLastTick >= 150) { wifiLedLastTick = now; ledSetWifi(true);  wifiLedStep = 1; } break;
+        case 1: if (now - wifiLedLastTick >= 150) { wifiLedLastTick = now; ledSetWifi(false); wifiLedStep = 2; } break;
+        case 2: if (now - wifiLedLastTick >= 150) { wifiLedLastTick = now; ledSetWifi(true);  wifiLedStep = 3; } break;
+        case 3: if (now - wifiLedLastTick >= 150) { wifiLedLastTick = now; ledSetWifi(false); wifiLedStep = 4; } break;
+        case 4: if (now - wifiLedLastTick >= 1000) { wifiLedLastTick = now; wifiLedStep = 0; } break;
+      }
+      break;
+  }
+}
+
+void updateGpsLedPattern() {
+  unsigned long now = millis();
+
+  switch (gpsLedMode) {
+    case GPS_LED_OFF:
+      ledSetGps(false);
+      break;
+
+    case GPS_LED_FIX:
+      ledSetGps(true);
+      break;
+
+    case GPS_LED_SEARCHING:
+      if (now - gpsLedLastTick >= 1000) {
+        gpsLedLastTick = now;
+        ledSetGps(!gpsLedState);
+      }
+      break;
+  }
+}
+
+void updateSystemLedModes() {
+  // Provision state machine aktifse — alt durumlara gore LED sec
+  if (provisionState != PROV_IDLE) {
+    gpsLedMode = GPS_LED_OFF;
+
+    switch (provisionState) {
+      case PROV_CREDENTIALS_RECEIVED:
+      case PROV_STOPPING_BLE:
+      case PROV_BLE_STOPPED:
+      case PROV_ACTIVATING:
+        wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
+        break;
+
+      case PROV_CONNECTING_WIFI:
+        wifiLedMode = WIFI_LED_CONNECTING_WIFI;
+        break;
+
+      case PROV_WIFI_CONNECTED:
+        wifiLedMode = WIFI_LED_CONNECTED_MQTT_DOWN;
+        break;
+
+      case PROV_FAILED:
+        wifiLedMode = WIFI_LED_OFF;
+        break;
+
+      case PROV_SUCCESS:
+        wifiLedMode = WIFI_LED_CONNECTED_MQTT_OK;
+        break;
+
+      default:
+        wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
+        break;
+    }
+    return;
+  }
+
+  // BLE penceresi aktifse
+  if (bleBootWindowActive && bleInitialized) {
+    if (!isActivated) {
+      wifiLedMode = WIFI_LED_FIRST_SETUP_WAIT;
+    } else {
+      wifiLedMode = WIFI_LED_REPROVISION_WINDOW;
+    }
+    gpsLedMode = GPS_LED_OFF;
+    return;
+  }
+
+  // WiFi durumu
+  wl_status_t wifiStatus = WiFi.status();
+  if (wifiStatus != WL_CONNECTED) {
+    if (storedSsid.length() > 0 || receivedSsid.length() > 0) {
+      wifiLedMode = WIFI_LED_CONNECTING_WIFI;
+    } else {
+      wifiLedMode = WIFI_LED_OFF;
+    }
+  } else {
+    if (mqtt_client.connected()) {
+      wifiLedMode = WIFI_LED_CONNECTED_MQTT_OK;
+    } else {
+      wifiLedMode = WIFI_LED_CONNECTED_MQTT_DOWN;
+    }
+  }
+
+  // GPS durumu
+  if (gps.location.isValid()) {
+    gpsLedMode = GPS_LED_FIX;
+  } else {
+    gpsLedMode = GPS_LED_SEARCHING;
+  }
 }
 
 // ============================================
@@ -719,33 +940,49 @@ void stopBLE() {
 
 bool connectWiFiDirect(const String& ssid, const String& password) {
   Serial.println("[WiFi] Connecting to: " + ssid);
-  delay(100);  // â† EKLE - WiFi init iÃ§in
+
+  WiFi.disconnect(true, true);
+  delay(100);
 
   WiFi.mode(WIFI_STA);
-  delay(100);  // â† EKLE - WiFi init iÃ§in
-  delay(100);  // â† EKLE - WiFi init iÃ§in
+  delay(100);
+
   WiFi.begin(ssid.c_str(), password.c_str());
-  
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 60) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
+
+  unsigned long start = millis();
+  unsigned long lastDot = 0;
+  unsigned long lastPatternTick = 0;
+
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 30000) {
+    unsigned long now = millis();
+
+    if (now - lastPatternTick >= 50) {
+      updateWifiLedPattern();
+      updateGpsLedPattern();
+      lastPatternTick = now;
+    }
+
+    if (now - lastDot >= 1000) {
+      Serial.print(".");
+      lastDot = now;
+    }
+
+    delay(50);
   }
+
   Serial.println();
-  
+
   if (WiFi.status() == WL_CONNECTED) {
     wifiConnected = true;
-    ledSet(LED_WIFI, true);
+    WiFi.setSleep(false);
     Serial.println("[WiFi] CONNECTED!");
     Serial.println("[WiFi] IP: " + WiFi.localIP().toString());
     Serial.printf("[WiFi] RSSI: %d dBm\n", WiFi.RSSI());
     return true;
   }
-  
+
   wifiConnected = false;
-  ledSet(LED_WIFI, false);
-  
+
   wl_status_t status = WiFi.status();
   if (status == WL_NO_SSID_AVAIL) {
     Serial.println("[WiFi] SSID not found");
@@ -754,7 +991,7 @@ bool connectWiFiDirect(const String& ssid, const String& password) {
   } else {
     Serial.println("[WiFi] Timeout");
   }
-  
+
   return false;
 }
 
@@ -982,6 +1219,9 @@ void processProvisionStateMachine() {
       Serial.println("[PROV] Serial: " + receivedSerial);
       Serial.println("[PROV] SSID: " + receivedSsid);
       
+      wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
+      gpsLedMode = GPS_LED_OFF;
+      
       // Notify app that we're processing
       updateWifiStatusChar(WIFI_STAT_CONNECTING);
       updateProvisioningStatus("STOPPING_BLE");
@@ -994,8 +1234,11 @@ void processProvisionStateMachine() {
     case PROV_STOPPING_BLE:
       Serial.println("[PROV] Stopping BLE before WiFi...");
       
+      wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
+      
       // CRITICAL: Stop BLE properly before WiFi
       stopBLE();
+      
       
       // Move to next state
       provisionState = PROV_BLE_STOPPED;
@@ -1004,6 +1247,8 @@ void processProvisionStateMachine() {
       
     case PROV_BLE_STOPPED:
       // Extra delay to ensure BLE is fully stopped
+      wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
+      gpsLedMode = GPS_LED_OFF;
       if (millis() - provisionStateTime < 500) {
         return;  // Wait
       }
@@ -1014,24 +1259,29 @@ void processProvisionStateMachine() {
       break;
       
     case PROV_CONNECTING_WIFI:
+      wifiLedMode = WIFI_LED_CONNECTING_WIFI;
       if (connectWiFiDirect(receivedSsid, receivedPassword)) {
         Serial.println("[PROV] WiFi connected!");
+        wifiLedMode = WIFI_LED_CONNECTED_MQTT_DOWN;
         provisionState = PROV_WIFI_CONNECTED;
         provisionStateTime = millis();
       } else {
         Serial.println("[PROV] WiFi connection failed");
+        wifiLedMode = WIFI_LED_OFF;
         provisionState = PROV_FAILED;
       }
       break;
       
     case PROV_WIFI_CONNECTED:
       Serial.println("[PROV] Activating device...");
+      wifiLedMode = WIFI_LED_CONNECTED_MQTT_DOWN;
       provisionState = PROV_ACTIVATING;
       provisionStateTime = millis();
       break;
       
     case PROV_ACTIVATING:
       {
+        wifiLedMode = WIFI_LED_PROVISION_ACTIVE;
         String deviceToken = "";
         if (activateDevice(deviceToken)) {
           Serial.println("[PROV] Activation successful!");
@@ -1052,6 +1302,9 @@ void processProvisionStateMachine() {
       
     case PROV_FAILED:
       Serial.println("[PROV] Provisioning failed, restarting BLE...");
+      
+      wifiLedMode = WIFI_LED_OFF;
+      gpsLedMode = GPS_LED_OFF;
       
       // Reset state
       wifiCredReceived = false;
@@ -1581,7 +1834,7 @@ void setup() {
   espChipId.toUpperCase();
   
   macAddress = getMacNoWiFi();
-  deviceName = "TulipFleet-" + espChipId.substring(8);
+  deviceName = "TulipFleet-" + espChipId.substring(4);
   
   Serial.println("[SYS] ESP Chip ID: " + espChipId);
   Serial.println("[SYS] MAC: " + macAddress);
@@ -1615,9 +1868,11 @@ void setup() {
     Serial.println("[ADXL] Not found on GPIO8/9 — events disabled");
   }
   
+// GPS baud rate test on GPIO18
   gpsSerial.begin(9600, SERIAL_8N1, 16, 17);
   Serial.println("[GPS] Ready");
-  
+
+
   // ── BLE_GATE (v4.9.0) ──────────────────────────────────────────────────────
   // !activated → FIRST_SETUP (süresiz BLE, kurulana kadar bekler)
   // activated  → REPROVISION_WINDOW (90s BLE window, sonra WiFi connect)
@@ -1652,6 +1907,20 @@ void setup() {
     Serial.println("[NTP] Configured");
   }
   
+  // GPS test after BLE init
+  {
+    gpsSerial.end();
+    delay(100);
+    gpsSerial.begin(9600, SERIAL_8N1, 16, 17);
+    delay(1500);
+    int c = 0;
+    unsigned long st = millis();
+    while (millis() - st < 1000) {
+      if (gpsSerial.available()) c++;
+    }
+    Serial.printf("[GPS-BLE-TEST] After BLE init: chars=%d\n", c);
+  }
+  
   Serial.println("\n[BOOT] Setup complete\n");
 }
 
@@ -1660,6 +1929,12 @@ void setup() {
 // ============================================
 
 void loop() {
+ 
+  // LED engine — her loop'ta calisir, non-blocking
+   updateSystemLedModes();
+   updateWifiLedPattern();
+   updateGpsLedPattern();
+
   // CRITICAL: Process provision state machine
   if (provisionState != PROV_IDLE) {
     processProvisionStateMachine();
@@ -1667,7 +1942,7 @@ void loop() {
   }
   
   // BLE boot window timeout (v4.9.0: BLE_GATE log)
-  if (bleBootWindowActive && bleInitialized) {
+   if (bleBootWindowActive && bleInitialized && isActivated) {
     unsigned long timeout = bleReprovisionMode ? BLE_REPROVISION_TIMEOUT_MS : BLE_BOOT_WINDOW_MS;
     
     if (millis() - bleBootWindowStart > timeout) {
@@ -1677,6 +1952,10 @@ void loop() {
       bleBootWindowActive = false;
       
       if (isActivated) {
+        // GPS UART'ı koru — WiFi öncesi detach et
+        gpsSerial.end();
+        delay(100);
+        
         Serial.println("[BOOT] Connecting to WiFi after BLE gate...");
         if (connectWiFi()) {
           mqtt_client.setServer(mqtt_server, mqtt_port);
@@ -1684,13 +1963,26 @@ void loop() {
         } else {
           Serial.println("[BOOT] WiFi failed after BLE gate — will retry in loop");
         }
+        
+        // WiFi bitti, GPS UART'ı yeniden aç
+        delay(200);
+        gpsSerial.begin(9600, SERIAL_8N1, 16, 17);
+        Serial.printf("[GPS] Reinit after WiFi - testing...\n");
+        
+        // 2sn bekle ve chars say
+        delay(2000);
+        int testChars = 0;
+        unsigned long testStart = millis();
+        while (millis() - testStart < 1000) {
+          if (gpsSerial.available()) { gpsSerial.read(); testChars++; }
+        }
+        Serial.printf("[GPS] Post-WiFi test: chars=%d\n", testChars);
       }
     }
   }
   
   // Normal operation (only if activated and connected)
-  // -- LED state: reflect real-time connection status --
-  ledSet(LED_WIFI, WiFi.status() == WL_CONNECTED);
+  // LED state artik updateSystemLedModes() tarafindan yonetiliyor
   if (WiFi.status() != WL_CONNECTED) wifiConnected = false;
 
   if (isActivated && wifiConnected) {
@@ -1704,10 +1996,10 @@ void loop() {
       currentLon = gps.location.lng();
       currentSpeed = gps.speed.kmph();
       gpsValid = true;
-      ledSet(LED_GPS, true);
+      // GPS LED artik updateSystemLedModes() tarafindan yonetiliyor
     } else {
       gpsValid = false;
-      ledSet(LED_GPS, false);
+      // GPS LED artik updateSystemLedModes() tarafindan yonetiliyor
     }
     
     // ADXL345 — read & smooth every loop cycle, check events
