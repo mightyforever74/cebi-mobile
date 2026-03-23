@@ -599,6 +599,7 @@ const AdminVehiclesStack = () => (
     <Stack.Screen name="VehiclesMain" component={AdminVehicles} />
     <Stack.Screen name="CreateVehicle" component={CreateVehicleScreen} />
     <Stack.Screen name="EditVehicle" component={EditVehicleScreen} />
+    <Stack.Screen name="VehicleTrack" component={VehicleTrackScreen} />
   </Stack.Navigator>
 );
 
