@@ -968,7 +968,9 @@
     "m": "м",
     "h": "ч",
     "min": "мин",
-    "sec": "сек"
+    "sec": "сек",
+    "kmh": "км/ч",
+    "point": "точка"
   },
   "root": {
     "loading": "Зареждане..."
@@ -1860,5 +1862,67 @@
     "totalZones": "зони общо",
     "activeZones": "активни",
     "tapEditToManage": "Натиснете редактиране за управление на зони"
+  },
+  "vehicleTrack": {
+    "title": "История на маршрута",
+    "export": "Експорт",
+    "loading": "Зареждане на маршрут...",
+    "retry": "Опитай отново",
+    "noData": "Няма данни за маршрут за този период",
+    "stats": {
+      "points": "точки",
+      "distance": "разстояние",
+      "duration": "продължителност",
+      "range": "обхват"
+    },
+    "presets": {
+      "lastHour": "Последен 1 час",
+      "last3Hours": "Последни 3 часа",
+      "today": "Днес"
+    },
+    "sections": {
+      "trips": "Пътувания",
+      "dailySummary": "Дневен отчет",
+      "timeline": "Хронология"
+    },
+    "summary": {
+      "trip": "Пътуване",
+      "distance": "Разстояние",
+      "drive": "Шофиране",
+      "idle": "Престой"
+    },
+    "tripDetail": {
+      "title": "Пътуване {{number}} Детайл",
+      "clear": "Изчисти избора",
+      "start": "Начало",
+      "end": "Край"
+    },
+    "stopDetail": {
+      "title": "Детайл на спирка",
+      "close": "Затвори",
+      "duration": "Продължителност"
+    }
+  },
+  "tripHistory": {
+    "start": "Начало",
+    "end": "Край"
+  },
+  "geocode": {
+    "addressNotFound": "Адресът не е намерен",
+    "addressLoadFailed": "Грешка при зареждане на адрес",
+    "addressLoading": "Зареждане на адрес..."
+  },
+  "reportExport": {
+    "title": "Експорт",
+    "sharePdf": "Сподели PDF",
+    "shareCsv": "Сподели CSV",
+    "cancel": "Отказ",
+    "sharePdfDialog": "Сподели PDF отчет",
+    "shareCsvDialog": "Сподели CSV отчет",
+    "noSession": "Сесията не е намерена. Моля, влезте отново.",
+    "shareUnavailable": "Споделянето не се поддържа на това устройство",
+    "exportFailed": "Експортът е неуспешен",
+    "exportError": "Грешка при експорт",
+    "shareError": "Възникна грешка при споделянето на файла"
   }
 }

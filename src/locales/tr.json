@@ -1039,7 +1039,9 @@
     "m": "m",
     "h": "sa",
     "min": "dk",
-    "sec": "sn"
+    "sec": "sn",
+    "kmh": "km/h",
+    "point": "nokta"
   },
   "fuel": {
     "title": "Yakıt Girişi",
@@ -1862,5 +1864,67 @@
     "totalZones": "toplam bölge",
     "activeZones": "aktif",
     "tapEditToManage": "Bölgeleri yönetmek için düzenle"
+  },
+  "vehicleTrack": {
+    "title": "Geçmiş Rota",
+    "export": "Dışa Aktar",
+    "loading": "Rota yükleniyor...",
+    "retry": "Tekrar Dene",
+    "noData": "Bu zaman aralığında rota verisi bulunamadı",
+    "stats": {
+      "points": "nokta",
+      "distance": "mesafe",
+      "duration": "süre",
+      "range": "aralık"
+    },
+    "presets": {
+      "lastHour": "Son 1 Saat",
+      "last3Hours": "Son 3 Saat",
+      "today": "Bugün"
+    },
+    "sections": {
+      "trips": "Seferler",
+      "dailySummary": "Günlük Özet",
+      "timeline": "Zaman Akışı"
+    },
+    "summary": {
+      "trip": "Sefer",
+      "distance": "Mesafe",
+      "drive": "Sürüş",
+      "idle": "Bekleme"
+    },
+    "tripDetail": {
+      "title": "Sefer {{number}} Detayı",
+      "clear": "Seçimi Kaldır",
+      "start": "Başlangıç",
+      "end": "Bitiş"
+    },
+    "stopDetail": {
+      "title": "Durak Detayı",
+      "close": "Kapat",
+      "duration": "Süre"
+    }
+  },
+  "tripHistory": {
+    "start": "Başlangıç",
+    "end": "Bitiş"
+  },
+  "geocode": {
+    "addressNotFound": "Adres bulunamadı",
+    "addressLoadFailed": "Adres yüklenemedi",
+    "addressLoading": "Adres yükleniyor..."
+  },
+  "reportExport": {
+    "title": "Dışa Aktar",
+    "sharePdf": "PDF paylaş",
+    "shareCsv": "CSV paylaş",
+    "cancel": "Vazgeç",
+    "sharePdfDialog": "PDF raporunu paylaş",
+    "shareCsvDialog": "CSV raporunu paylaş",
+    "noSession": "Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.",
+    "shareUnavailable": "Bu cihazda paylaşım desteklenmiyor",
+    "exportFailed": "Dışa aktarma başarısız",
+    "exportError": "Dışa Aktarma Hatası",
+    "shareError": "Dosya paylaşılırken bir hata oluştu"
   }
 }

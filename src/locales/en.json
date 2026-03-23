@@ -1840,5 +1840,76 @@
     "totalZones": "zones total",
     "activeZones": "active",
     "tapEditToManage": "Tap edit to manage zones"
+  },
+  "vehicleTrack": {
+    "title": "Route History",
+    "export": "Export",
+    "loading": "Loading route...",
+    "retry": "Retry",
+    "noData": "No route data found for this time range",
+    "stats": {
+      "points": "points",
+      "distance": "distance",
+      "duration": "duration",
+      "range": "range"
+    },
+    "presets": {
+      "lastHour": "Last 1 Hour",
+      "last3Hours": "Last 3 Hours",
+      "today": "Today"
+    },
+    "sections": {
+      "trips": "Trips",
+      "dailySummary": "Daily Summary",
+      "timeline": "Timeline"
+    },
+    "summary": {
+      "trip": "Trip",
+      "distance": "Distance",
+      "drive": "Drive",
+      "idle": "Idle"
+    },
+    "tripDetail": {
+      "title": "Trip {{number}} Detail",
+      "clear": "Clear Selection",
+      "start": "Start",
+      "end": "End"
+    },
+    "stopDetail": {
+      "title": "Stop Detail",
+      "close": "Close",
+      "duration": "Duration"
+    }
+  },
+  "tripHistory": {
+    "start": "Start",
+    "end": "End"
+  },
+  "geocode": {
+    "addressNotFound": "Address not found",
+    "addressLoadFailed": "Failed to load address",
+    "addressLoading": "Loading address..."
+  },
+  "reportExport": {
+    "title": "Export",
+    "sharePdf": "Share PDF",
+    "shareCsv": "Share CSV",
+    "cancel": "Cancel",
+    "sharePdfDialog": "Share PDF report",
+    "shareCsvDialog": "Share CSV report",
+    "noSession": "Session not found. Please log in again.",
+    "shareUnavailable": "Sharing is not supported on this device",
+    "exportFailed": "Export failed",
+    "exportError": "Export Error",
+    "shareError": "An error occurred while sharing the file"
+  },
+  "units": {
+    "km": "km",
+    "m": "m",
+    "h": "h",
+    "min": "min",
+    "sec": "sec",
+    "kmh": "km/h",
+    "point": "point"
   }
 }

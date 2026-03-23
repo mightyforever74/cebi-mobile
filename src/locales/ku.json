@@ -862,7 +862,9 @@
     "m": "m",
     "h": "st",
     "min": "dq",
-    "sec": "çrk"
+    "sec": "çrk",
+    "kmh": "km/st",
+    "point": "xal"
   },
   "root": {
     "loading": "Agahî tê barkirin..."
@@ -2002,5 +2004,67 @@
     "totalZones": "dever bi tevahî",
     "activeZones": "çalak",
     "tapEditToManage": "Ji bo rêvebirina devera bikirtînin"
+  },
+  "vehicleTrack": {
+    "title": "Dîroka Rê",
+    "export": "Derxistin",
+    "loading": "Rê tê barkirin...",
+    "retry": "Dîsa biceribîne",
+    "noData": "Di vê navberê de daneyên rê nehatin dîtin",
+    "stats": {
+      "points": "xal",
+      "distance": "mesafe",
+      "duration": "dem",
+      "range": "navber"
+    },
+    "presets": {
+      "lastHour": "Saeta dawî",
+      "last3Hours": "3 saetên dawî",
+      "today": "Îro"
+    },
+    "sections": {
+      "trips": "Rêwîtî",
+      "dailySummary": "Kurteya Rojane",
+      "timeline": "Demnamek"
+    },
+    "summary": {
+      "trip": "Rêwîtî",
+      "distance": "Mesafe",
+      "drive": "Ajokirin",
+      "idle": "Rawestîn"
+    },
+    "tripDetail": {
+      "title": "Rêwîtî {{number}} Hûragahî",
+      "clear": "Hilbijartinê jê bibe",
+      "start": "Destpêk",
+      "end": "Dawî"
+    },
+    "stopDetail": {
+      "title": "Hûragahiya Rawestînê",
+      "close": "Bigire",
+      "duration": "Dem"
+    }
+  },
+  "tripHistory": {
+    "start": "Destpêk",
+    "end": "Dawî"
+  },
+  "geocode": {
+    "addressNotFound": "Navnîşan nehate dîtin",
+    "addressLoadFailed": "Navnîşan barkirin têk çû",
+    "addressLoading": "Navnîşan tê barkirin..."
+  },
+  "reportExport": {
+    "title": "Derxistin",
+    "sharePdf": "PDF parve bike",
+    "shareCsv": "CSV parve bike",
+    "cancel": "Dev jê berde",
+    "sharePdfDialog": "Rapora PDF parve bike",
+    "shareCsvDialog": "Rapora CSV parve bike",
+    "noSession": "Danişîn nehate dîtin. Ji kerema xwe dîsa têkevin.",
+    "shareUnavailable": "Parvekirina li ser vê amûrê nayê piştgirî kirin",
+    "exportFailed": "Derxistin têk çû",
+    "exportError": "Çewtiya Derxistinê",
+    "shareError": "Di parvekirina pelê de çewtiyek derket"
   }
 }

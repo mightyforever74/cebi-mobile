@@ -867,7 +867,9 @@
     "m": "m",
     "h": "h",
     "min": "min",
-    "sec": "s"
+    "sec": "s",
+    "kmh": "km/h",
+    "point": "punto"
   },
   "root": {
     "loading": "Caricamento..."
@@ -1910,5 +1912,67 @@
     "totalZones": "zone totali",
     "activeZones": "attive",
     "tapEditToManage": "Tocca modifica per gestire le zone"
+  },
+  "vehicleTrack": {
+    "title": "Cronologia Percorso",
+    "export": "Esporta",
+    "loading": "Caricamento percorso...",
+    "retry": "Riprova",
+    "noData": "Nessun dato percorso trovato per questo periodo",
+    "stats": {
+      "points": "punti",
+      "distance": "distanza",
+      "duration": "durata",
+      "range": "intervallo"
+    },
+    "presets": {
+      "lastHour": "Ultima ora",
+      "last3Hours": "Ultime 3 ore",
+      "today": "Oggi"
+    },
+    "sections": {
+      "trips": "Viaggi",
+      "dailySummary": "Riepilogo Giornaliero",
+      "timeline": "Cronologia"
+    },
+    "summary": {
+      "trip": "Viaggio",
+      "distance": "Distanza",
+      "drive": "Guida",
+      "idle": "Inattivo"
+    },
+    "tripDetail": {
+      "title": "Viaggio {{number}} Dettaglio",
+      "clear": "Cancella selezione",
+      "start": "Inizio",
+      "end": "Fine"
+    },
+    "stopDetail": {
+      "title": "Dettaglio Sosta",
+      "close": "Chiudi",
+      "duration": "Durata"
+    }
+  },
+  "tripHistory": {
+    "start": "Inizio",
+    "end": "Fine"
+  },
+  "geocode": {
+    "addressNotFound": "Indirizzo non trovato",
+    "addressLoadFailed": "Impossibile caricare l'indirizzo",
+    "addressLoading": "Caricamento indirizzo..."
+  },
+  "reportExport": {
+    "title": "Esporta",
+    "sharePdf": "Condividi PDF",
+    "shareCsv": "Condividi CSV",
+    "cancel": "Annulla",
+    "sharePdfDialog": "Condividi report PDF",
+    "shareCsvDialog": "Condividi report CSV",
+    "noSession": "Sessione non trovata. Effettua nuovamente il login.",
+    "shareUnavailable": "Condivisione non supportata su questo dispositivo",
+    "exportFailed": "Esportazione fallita",
+    "exportError": "Errore di Esportazione",
+    "shareError": "Si è verificato un errore durante la condivisione del file"
   }
 }
