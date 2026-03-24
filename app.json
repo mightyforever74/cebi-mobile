@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tulipfleet.app",
-      "buildNumber": "27",
+      "buildNumber": "28",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
         "googleMapsApiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
@@ -32,7 +32,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "package": "com.tulipfleet.app",
-      "versionCode": 26,
+      "versionCode": 27,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
