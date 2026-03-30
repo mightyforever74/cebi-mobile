@@ -373,7 +373,7 @@ const AdminVehicles = ({ navigation }) => {
     const lastTime = vehicle.last_location_time
       ? new Date(vehicle.last_location_time).getTime()
       : 0;
-    const isOnline = now - lastTime < 5 * 60 * 1000;
+    const isOnline = vehicle.is_online === true;
 
     return (
       <TouchableOpacity
