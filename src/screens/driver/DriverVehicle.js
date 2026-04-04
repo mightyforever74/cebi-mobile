@@ -178,6 +178,10 @@ const makeStyles = (COLORS) =>
       color: COLORS.TEXT_SECONDARY,
       fontWeight: "600",
     },
+    fuelSubtext: {
+      fontSize: 13,
+      marginTop: 4,
+    },
     // Info Grid
     infoGrid: {
       flexDirection: "row",
@@ -468,19 +472,19 @@ const DriverVehicle = ({ navigation }) => {
         <Text style={styles.vehicleYear}>{vehicle.year}</Text>
         <View style={styles.connectionStatus}>
           <Ionicons
-            name={vehicle.esp32_connected ? "wifi" : "wifi-outline"}
+            name={vehicle.esp32Status?.connected ? "wifi" : "wifi-outline"}
             size={16}
-            color={vehicle.esp32_connected ? COLORS.SUCCESS : COLORS.MUTED}
+            color={vehicle.esp32Status?.connected ? COLORS.SUCCESS : COLORS.MUTED}
           />
           <Text
             style={[
               styles.connectionText,
               {
-                color: vehicle.esp32_connected ? COLORS.SUCCESS : COLORS.WHITE,
+                color: vehicle.esp32Status?.connected ? COLORS.SUCCESS : COLORS.WHITE,
               },
             ]}
           >
-            {vehicle.esp32_connected
+            {vehicle.esp32Status?.connected
               ? t("vehicle.connected")
               : t("vehicle.noConnection")}
           </Text>
@@ -490,28 +494,27 @@ const DriverVehicle = ({ navigation }) => {
       {/* Fuel Card */}
       <View style={styles.fuelCard}>
         <View style={styles.fuelHeader}>
-          <Ionicons name="water" size={24} color={fuelColor} />
+          <Ionicons name="water" size={24} color={COLORS.INFO} />
           <Text style={styles.fuelTitle}>{t("vehicle.fuelLevel")}</Text>
           <Text style={styles.fuelType}>
             {getFuelTypeLabel(vehicle.fuel_type)}
           </Text>
         </View>
-        <View style={styles.fuelBarContainer}>
-          <View
-            style={[
-              styles.fuelBar,
-              {
-                width: `${Math.round(fuelPercent)}%`,
-                backgroundColor: fuelColor,
-              },
-            ]}
-          />
-        </View>
         <View style={styles.fuelValues}>
-          <Text style={[styles.fuelPercentage, { color: fuelColor }]}>
-            {Math.round(fuelLevel)} / {Math.round(fuelCapacity)} L
-          </Text>
-          <Text style={styles.fuelPercentText}>%{Math.round(fuelPercent)}</Text>
+          <View>
+            <Text style={[styles.fuelPercentage, { color: COLORS.TEXT }]}>
+              {t("vehicle.tankCapacity")}: {Math.round(fuelCapacity)} L
+            </Text>
+            {lastFuelRecord ? (
+              <Text style={[styles.fuelSubtext, { color: COLORS.TEXT_SECONDARY }]}>
+                {t("vehicle.lastRefuel")}: {new Date(lastFuelRecord.record_date || lastFuelRecord.created_at).toLocaleDateString()} — {lastFuelRecord.amount_liters} L
+              </Text>
+            ) : (
+              <Text style={[styles.fuelSubtext, { color: COLORS.TEXT_SECONDARY }]}>
+                {t("vehicle.noRefuelRecord")}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
 
@@ -556,19 +559,6 @@ const DriverVehicle = ({ navigation }) => {
           <Text style={styles.detailValue}>
             {getFuelTypeLabel(vehicle.fuel_type)}
           </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t("vehicle.status")}</Text>
-          <View
-            style={[styles.statusBadge, { backgroundColor: COLORS.SUCCESS }]}
-          >
-            <Text style={styles.statusText}>
-              {t(`vehicle.statuses.${vehicle.status}`) ||
-                vehicle.status ||
-                t("vehicle.active")}
-            </Text>
-          </View>
         </View>
 
         {vehicle.esp32_device_id && (
