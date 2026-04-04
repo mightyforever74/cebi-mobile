@@ -281,7 +281,9 @@
       "orange": "Oranje",
       "brown": "Bruin",
       "beige": "Beige"
-    }
+    },
+    "lastRefuel": "Laatste Tankbeurt",
+    "noRefuelRecord": "Geen tankrecord gevonden"
   },
   "task": {
     "title": "Taakbeheer",
@@ -975,9 +977,7 @@
     "m": "m",
     "h": "u",
     "min": "min",
-    "sec": "sec",
-    "kmh": "km/u",
-    "point": "punt"
+    "sec": "sec"
   },
   "schedule": {
     "schedule": "Planning",
@@ -2001,67 +2001,5 @@
     "totalZones": "zones totaal",
     "activeZones": "actief",
     "tapEditToManage": "Tik op bewerken om zones te beheren"
-  },
-  "vehicleTrack": {
-    "title": "Routegeschiedenis",
-    "export": "Exporteren",
-    "loading": "Route laden...",
-    "retry": "Opnieuw proberen",
-    "noData": "Geen routegegevens gevonden voor dit tijdsbereik",
-    "stats": {
-      "points": "punten",
-      "distance": "afstand",
-      "duration": "duur",
-      "range": "bereik"
-    },
-    "presets": {
-      "lastHour": "Laatste uur",
-      "last3Hours": "Laatste 3 uur",
-      "today": "Vandaag"
-    },
-    "sections": {
-      "trips": "Ritten",
-      "dailySummary": "Dagelijks Overzicht",
-      "timeline": "Tijdlijn"
-    },
-    "summary": {
-      "trip": "Rit",
-      "distance": "Afstand",
-      "drive": "Rijden",
-      "idle": "Stilstand"
-    },
-    "tripDetail": {
-      "title": "Rit {{number}} Detail",
-      "clear": "Selectie wissen",
-      "start": "Start",
-      "end": "Einde"
-    },
-    "stopDetail": {
-      "title": "Stopdetail",
-      "close": "Sluiten",
-      "duration": "Duur"
-    }
-  },
-  "tripHistory": {
-    "start": "Start",
-    "end": "Einde"
-  },
-  "geocode": {
-    "addressNotFound": "Adres niet gevonden",
-    "addressLoadFailed": "Adres laden mislukt",
-    "addressLoading": "Adres laden..."
-  },
-  "reportExport": {
-    "title": "Exporteren",
-    "sharePdf": "PDF delen",
-    "shareCsv": "CSV delen",
-    "cancel": "Annuleren",
-    "sharePdfDialog": "PDF-rapport delen",
-    "shareCsvDialog": "CSV-rapport delen",
-    "noSession": "Sessie niet gevonden. Log opnieuw in.",
-    "shareUnavailable": "Delen wordt niet ondersteund op dit apparaat",
-    "exportFailed": "Export mislukt",
-    "exportError": "Exportfout",
-    "shareError": "Er is een fout opgetreden bij het delen van het bestand"
   }
 }

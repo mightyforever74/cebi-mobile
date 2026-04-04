@@ -230,36 +230,36 @@
     "geofences": "Deverên Jeofens"
   },
   "device": {
-    "title": "Rêveberiya Amûran",
-    "serial": "Hejmara Rêzê",
-    "status": "Rewş",
-    "online": "Serhêl",
-    "offline": "Negirêdayî",
-    "assigned": "Hatiye tayînkirin",
-    "unassigned": "Nehatiye tayînkirin",
-    "generateQR": "QR çêke",
-    "showQR": "QR nîşan bide",
-    "refreshQR": "QR nû bike",
-    "qrGenerated": "QR kod hate çêkirin",
-    "qrExpires": "Dema bidawîbûnê",
-    "scanQR": "QR bişkînin",
-    "searchBySerial": "Bi hejmara rêzê bigere",
-    "addToStock": "Li stokê zêde bike",
-    "assignToVehicle": "Li wesayîtê tayîn bike",
-    "assignDevice": "Amûrê tayîn bike",
-    "deviceAssigned": "Amûr hate tayînkirin",
-    "noDevices": "Amûr nehat dîtin",
-    "claimDevice": "Amûrê bistîne",
-    "activating": "Tê çalakkirin...",
-    "activated": "Hat çalakkirin",
+    "title": "RÃÆÃÂªveberiya AmÃÆÃÂ»ran",
+    "serial": "Hejmara RÃÆÃÂªzÃÆÃÂª",
+    "status": "RewÃâ¦ÃÂ¸",
+    "online": "SerhÃÆÃÂªl",
+    "offline": "NegirÃÆÃÂªdayÃÆÃÂ®",
+    "assigned": "Hatiye tayÃÆÃÂ®nkirin",
+    "unassigned": "Nehatiye tayÃÆÃÂ®nkirin",
+    "generateQR": "QR ÃÆÃÂ§ÃÆÃÂªke",
+    "showQR": "QR nÃÆÃÂ®Ãâ¦ÃÂ¸an bide",
+    "refreshQR": "QR nÃÆÃÂ» bike",
+    "qrGenerated": "QR kod hate ÃÆÃÂ§ÃÆÃÂªkirin",
+    "qrExpires": "Dema bidawÃÆÃÂ®bÃÆÃÂ»nÃÆÃÂª",
+    "scanQR": "QR biÃâ¦ÃÂ¸kÃÆÃÂ®ne",
+    "searchBySerial": "Bi hejmara rÃÆÃÂªzÃÆÃÂª bigere",
+    "addToStock": "Li stokÃÆÃÂª zÃÆÃÂªde bike",
+    "assignToVehicle": "Li wesayÃÆÃÂ®tÃÆÃÂª tayÃÆÃÂ®n bike",
+    "assignDevice": "AmÃÆÃÂ»rÃÆÃÂª tayÃÆÃÂ®n bike",
+    "deviceAssigned": "AmÃÆÃÂ»r hate tayÃÆÃÂ®nkirin",
+    "noDevices": "AmÃÆÃÂ»r nehat dÃÆÃÂ®tin",
+    "claimDevice": "AmÃÆÃÂ»rÃÆÃÂª bistÃÆÃÂ®ne",
+    "activating": "TÃÆÃÂª ÃÆÃÂ§alakkirin...",
+    "activated": "Hat ÃÆÃÂ§alakkirin",
     "statuses": {
       "CREATED": "Hatiye afirandin",
-      "PRINTED": "Hatiye çapkirin",
-      "IN_STOCK": "Di stokê de",
-      "ASSIGNED": "Hatiye tayînkirin",
-      "ACTIVATED": "Çalak",
-      "SUSPENDED": "Rawestayî",
-      "RETIRED": "Teqawît",
+      "PRINTED": "Hatiye ÃÆÃÂ§apkirin",
+      "IN_STOCK": "Di stokÃÆÃÂª de",
+      "ASSIGNED": "Hatiye tayÃÆÃÂ®nkirin",
+      "ACTIVATED": "ÃÆÃ¢â¬Â¡alak",
+      "SUSPENDED": "RawestayÃÆÃÂ®",
+      "RETIRED": "TeqawÃÆÃÂ®t",
       "LOST": "Winda"
     }
   },
@@ -334,7 +334,9 @@
       "orange": "Porteqalî",
       "brown": "Qehweyî",
       "beige": "Bêj"
-    }
+    },
+    "lastRefuel": "Dagirtina Dawî",
+    "noRefuelRecord": "Tomarek dagirtinê nehat dîtin"
   },
   "task": {
     "title": "Rêveberiya Peywiran",
@@ -862,9 +864,7 @@
     "m": "m",
     "h": "st",
     "min": "dq",
-    "sec": "çrk",
-    "kmh": "km/st",
-    "point": "xal"
+    "sec": "çrk"
   },
   "root": {
     "loading": "Agahî tê barkirin..."
@@ -2004,67 +2004,5 @@
     "totalZones": "dever bi tevahî",
     "activeZones": "çalak",
     "tapEditToManage": "Ji bo rêvebirina devera bikirtînin"
-  },
-  "vehicleTrack": {
-    "title": "Dîroka Rê",
-    "export": "Derxistin",
-    "loading": "Rê tê barkirin...",
-    "retry": "Dîsa biceribîne",
-    "noData": "Di vê navberê de daneyên rê nehatin dîtin",
-    "stats": {
-      "points": "xal",
-      "distance": "mesafe",
-      "duration": "dem",
-      "range": "navber"
-    },
-    "presets": {
-      "lastHour": "Saeta dawî",
-      "last3Hours": "3 saetên dawî",
-      "today": "Îro"
-    },
-    "sections": {
-      "trips": "Rêwîtî",
-      "dailySummary": "Kurteya Rojane",
-      "timeline": "Demnamek"
-    },
-    "summary": {
-      "trip": "Rêwîtî",
-      "distance": "Mesafe",
-      "drive": "Ajokirin",
-      "idle": "Rawestîn"
-    },
-    "tripDetail": {
-      "title": "Rêwîtî {{number}} Hûragahî",
-      "clear": "Hilbijartinê jê bibe",
-      "start": "Destpêk",
-      "end": "Dawî"
-    },
-    "stopDetail": {
-      "title": "Hûragahiya Rawestînê",
-      "close": "Bigire",
-      "duration": "Dem"
-    }
-  },
-  "tripHistory": {
-    "start": "Destpêk",
-    "end": "Dawî"
-  },
-  "geocode": {
-    "addressNotFound": "Navnîşan nehate dîtin",
-    "addressLoadFailed": "Navnîşan barkirin têk çû",
-    "addressLoading": "Navnîşan tê barkirin..."
-  },
-  "reportExport": {
-    "title": "Derxistin",
-    "sharePdf": "PDF parve bike",
-    "shareCsv": "CSV parve bike",
-    "cancel": "Dev jê berde",
-    "sharePdfDialog": "Rapora PDF parve bike",
-    "shareCsvDialog": "Rapora CSV parve bike",
-    "noSession": "Danişîn nehate dîtin. Ji kerema xwe dîsa têkevin.",
-    "shareUnavailable": "Parvekirina li ser vê amûrê nayê piştgirî kirin",
-    "exportFailed": "Derxistin têk çû",
-    "exportError": "Çewtiya Derxistinê",
-    "shareError": "Di parvekirina pelê de çewtiyek derket"
   }
 }

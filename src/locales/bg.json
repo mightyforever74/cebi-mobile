@@ -110,8 +110,7 @@
     "contactEmailSubject": "TulipFleet - Заявка за акаунт",
     "contactEmailBody": "Здравейте,\n\nБих искал да създам акаунт за TulipFleet.\n\nИме на фирма:\nЛице за контакт:\nТелефон:\nБрой превозни средства:\n\nБлагодаря.",
     "callNotAvailable": "Не може да се обади",
-    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet.",
-    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
+    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet."
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -342,7 +341,9 @@
       "orange": "Оранжев",
       "brown": "Кафяв",
       "beige": "Бежов"
-    }
+    },
+    "lastRefuel": "Последно зареждане",
+    "noRefuelRecord": "Няма запис за зареждане"
   },
   "profile": {
     "title": "Профил",
@@ -962,18 +963,14 @@
     "min": "мин",
     "noSpeed": "Изчакване на движение",
     "delayRisk": "РИСК ОТ ЗАКЪСНЕНИЕ",
-    "noEta": "ETA не е наличен",
-    "final_destination": "Крайна дестинация",
-    "nextStop": "Следваща спирка"
+    "noEta": "ETA не е наличен"
   },
   "units": {
     "km": "км",
     "m": "м",
     "h": "ч",
     "min": "мин",
-    "sec": "сек",
-    "kmh": "км/ч",
-    "point": "точка"
+    "sec": "сек"
   },
   "root": {
     "loading": "Зареждане..."
@@ -1865,67 +1862,5 @@
     "totalZones": "зони общо",
     "activeZones": "активни",
     "tapEditToManage": "Натиснете редактиране за управление на зони"
-  },
-  "vehicleTrack": {
-    "title": "История на маршрута",
-    "export": "Експорт",
-    "loading": "Зареждане на маршрут...",
-    "retry": "Опитай отново",
-    "noData": "Няма данни за маршрут за този период",
-    "stats": {
-      "points": "точки",
-      "distance": "разстояние",
-      "duration": "продължителност",
-      "range": "обхват"
-    },
-    "presets": {
-      "lastHour": "Последен 1 час",
-      "last3Hours": "Последни 3 часа",
-      "today": "Днес"
-    },
-    "sections": {
-      "trips": "Пътувания",
-      "dailySummary": "Дневен отчет",
-      "timeline": "Хронология"
-    },
-    "summary": {
-      "trip": "Пътуване",
-      "distance": "Разстояние",
-      "drive": "Шофиране",
-      "idle": "Престой"
-    },
-    "tripDetail": {
-      "title": "Пътуване {{number}} Детайл",
-      "clear": "Изчисти избора",
-      "start": "Начало",
-      "end": "Край"
-    },
-    "stopDetail": {
-      "title": "Детайл на спирка",
-      "close": "Затвори",
-      "duration": "Продължителност"
-    }
-  },
-  "tripHistory": {
-    "start": "Начало",
-    "end": "Край"
-  },
-  "geocode": {
-    "addressNotFound": "Адресът не е намерен",
-    "addressLoadFailed": "Грешка при зареждане на адрес",
-    "addressLoading": "Зареждане на адрес..."
-  },
-  "reportExport": {
-    "title": "Експорт",
-    "sharePdf": "Сподели PDF",
-    "shareCsv": "Сподели CSV",
-    "cancel": "Отказ",
-    "sharePdfDialog": "Сподели PDF отчет",
-    "shareCsvDialog": "Сподели CSV отчет",
-    "noSession": "Сесията не е намерена. Моля, влезте отново.",
-    "shareUnavailable": "Споделянето не се поддържа на това устройство",
-    "exportFailed": "Експортът е неуспешен",
-    "exportError": "Грешка при експорт",
-    "shareError": "Възникна грешка при споделянето на файла"
   }
 }
