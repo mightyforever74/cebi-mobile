@@ -64,11 +64,6 @@ const makeStyles = (COLORS) =>
       fontSize: 28,
       marginRight: COLORS.SPACING.sm, // 8
     },
-    logoText: {
-      ...COLORS.TYPOGRAPHY.styles.h3,
-      color: COLORS.WHITE,
-      letterSpacing: 1,
-    },
 
     // ── Middle ──
     middleSection: {

@@ -61,6 +61,8 @@ import WiFiPasswordScreen from "../screens/driver/WiFiPasswordScreen";
 import WiFiPickerScreen from "../screens/driver/WiFiPickerScreen";
 import AboutScreen from "../screens/shared/AboutScreen";
 
+import { Image } from "react-native";
+
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -182,7 +184,10 @@ const CustomDrawerContent = (props) => {
       {/* Header */}
       <View style={[styles.drawerHeader, { backgroundColor: roleColor }]}>
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>🌷</Text>
+          <Image
+            source={require("../../assets/bootsplash-logo.png")}
+            style={{ width: 48, height: 48, resizeMode: "contain" }}
+          />
         </View>
         <Text style={styles.drawerTitle}>TulipFleet</Text>
         <Text style={styles.drawerEmail}>
@@ -829,9 +834,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
-  },
-  logoText: {
-    fontSize: 30,
   },
   drawerTitle: {
     color: COLORS.white,

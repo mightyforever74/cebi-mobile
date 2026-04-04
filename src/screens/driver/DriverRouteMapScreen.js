@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -19,7 +20,6 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import { Linking } from "react-native";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
@@ -767,6 +767,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       // Resolve vehicle id: prefer task.vehicle_id, fallback to driver's assigned vehicle
       const resolveVehicleId = async () => {
+        const paramTask = route?.params?.task;
+        if (paramTask?.vehicle_id) return paramTask.vehicle_id;
         if (task?.vehicle_id) return task.vehicle_id;
         try {
           const resp = await driverAPI.getVehicle();
@@ -860,9 +862,14 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         const ey = p.latitude - a.latitude;
         return Math.sqrt(ex * ex + ey * ey);
       }
-      const t = Math.max(0, Math.min(1,
-        ((p.longitude - a.longitude) * dx + (p.latitude - a.latitude) * dy) / lenSq
-      ));
+      const t = Math.max(
+        0,
+        Math.min(
+          1,
+          ((p.longitude - a.longitude) * dx + (p.latitude - a.latitude) * dy) /
+            lenSq
+        )
+      );
       const projLng = a.longitude + t * dx;
       const projLat = a.latitude + t * dy;
       const ex = p.longitude - projLng;
@@ -872,11 +879,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     const rdp = (pts, eps) => {
       if (pts.length <= 2) return pts;
-      let maxD = 0, idx = 0;
-      const first = pts[0], last = pts[pts.length - 1];
+      let maxD = 0,
+        idx = 0;
+      const first = pts[0],
+        last = pts[pts.length - 1];
       for (let i = 1; i < pts.length - 1; i++) {
         const d = perpDist(pts[i], first, last);
-        if (d > maxD) { maxD = d; idx = i; }
+        if (d > maxD) {
+          maxD = d;
+          idx = i;
+        }
       }
       if (maxD > eps) {
         const left = rdp(pts.slice(0, idx + 1), eps);
@@ -1054,7 +1066,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       stopLocationTracking();
 
-      //  Waypoints: gorev ara noktalari 
+      //  Waypoints: gorev ara noktalari
       let waypoints = (task?.waypoints || [])
         .map((wp) => {
           if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
@@ -1064,7 +1076,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         })
         .filter(Boolean);
 
-      //  FIX: Gorevin baslangic noktasini (origin_coords) ilk waypoint olarak ekle 
+      //  FIX: Gorevin baslangic noktasini (origin_coords) ilk waypoint olarak ekle
       // Arac (ESP32 GPS) gorevin origin'inden farkli yerde olabilir.
       // rnek: Arac stanbul'da, gorev Ankara'dan basliyor -> Ankara ilk waypoint olmali.
       const sameCoord = (a, b, eps = 1e-4) =>
@@ -1699,7 +1711,15 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       {/* Follow Mode Toggle */}
       {isNavigating && (
-        <View style={{ position: "absolute", top: 60, right: 16, flexDirection: "column", gap: 8 }}>
+        <View
+          style={{
+            position: "absolute",
+            top: 60,
+            right: 16,
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
           <TouchableOpacity
             style={[
               styles.headerBtn,
@@ -1716,7 +1736,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           </TouchableOpacity>
           {getEndLocationCoords() && (
             <TouchableOpacity
-              style={[styles.headerBtn, { backgroundColor: COLORS.INFO || "#5E72E4" }]}
+              style={[
+                styles.headerBtn,
+                { backgroundColor: COLORS.INFO || "#5E72E4" },
+              ]}
               onPress={openInExternalMaps}
             >
               <Ionicons name="open-outline" size={22} color={COLORS.WHITE} />

@@ -776,9 +776,17 @@ export default function DeviceSetupScreen({ navigation, route }) {
       );
 
       if (!result.success) {
-        setError(result.message || "WiFi bağlantısı başarısız");
-        setStep(STEPS.ERROR);
-        return;
+        if (result.error === "NOT_CONNECTED") {
+          // ESP32 WiFi bağlantısı sonrası BLE'yi kapattı — normal davranış
+          // Provision başarılı, aktivasyon adımına geç
+          console.log(
+            "[WiFi] BLE disconnect after credentials — normal, continuing..."
+          );
+        } else {
+          setError(result.message || "WiFi bağlantısı başarısız");
+          setStep(STEPS.ERROR);
+          return;
+        }
       }
 
       try {
