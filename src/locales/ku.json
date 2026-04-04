@@ -334,9 +334,7 @@
       "orange": "Porteqalî",
       "brown": "Qehweyî",
       "beige": "Bêj"
-    },
-    "lastRefuel": "Dagirtina Dawî",
-    "noRefuelRecord": "Tomarek dagirtinê nehat dîtin"
+    }
   },
   "task": {
     "title": "Rêveberiya Peywiran",
@@ -2004,5 +2002,35 @@
     "totalZones": "dever bi tevahî",
     "activeZones": "çalak",
     "tapEditToManage": "Ji bo rêvebirina devera bikirtînin"
+  },
+  "editProfile": {
+    "title": "Profîlê Biguherîne",
+    "changePhoto": "Wêneyê Biguherîne",
+    "email": "E-posta",
+    "emailReadonly": "Navnîşana e-postê nayê guhertin",
+    "firstName": "Nav",
+    "firstNamePlaceholder": "Navê xwe binivîse",
+    "lastName": "Paşnav",
+    "lastNamePlaceholder": "Paşnavê xwe binivîse",
+    "phone": "Telefon",
+    "save": "Tomar bike",
+    "cancel": "Betal bike",
+    "saveSuccess": "Profîl hat nûkirin",
+    "saveError": "Profîl nehat nûkirin"
+  },
+  "changePassword": {
+    "title": "Şîfreyê Biguherîne",
+    "hint": "Ji bo ewlehiya xwe şîfreyek bihêz bikar bîne",
+    "currentPassword": "Şîfreya Niha",
+    "currentPlaceholder": "Şîfreya xwe ya niha binivîse",
+    "newPassword": "Şîfreya Nû",
+    "newPlaceholder": "Şîfreya xwe ya nû binivîse",
+    "confirmPassword": "Şîreyê Dubare Bike",
+    "confirmPlaceholder": "Şîreya nû dubare binivîse",
+    "submit": "Şîreyê Biguherîne",
+    "success": "Şîre bi serfirazî hat guhertin",
+    "error": "Şîre nehat guhertin",
+    "mismatch": "Şîre li hev nayên",
+    "tooShort": "Şîre divê herî kêm 6 tîp be"
   }
 }

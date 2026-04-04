@@ -281,9 +281,7 @@
       "orange": "Oranje",
       "brown": "Bruin",
       "beige": "Beige"
-    },
-    "lastRefuel": "Laatste Tankbeurt",
-    "noRefuelRecord": "Geen tankrecord gevonden"
+    }
   },
   "task": {
     "title": "Taakbeheer",
@@ -745,23 +743,33 @@
   },
   "editProfile": {
     "title": "Profiel Bewerken",
-    "firstName": "Voornaam",
-    "lastName": "Achternaam",
+    "changePhoto": "Foto Wijzigen",
     "email": "E-mail",
+    "emailReadonly": "E-mailadres kan niet worden gewijzigd",
+    "firstName": "Voornaam",
+    "firstNamePlaceholder": "Voer uw voornaam in",
+    "lastName": "Achternaam",
+    "lastNamePlaceholder": "Voer uw achternaam in",
     "phone": "Telefoon",
-    "save": "Wijzigingen Opslaan",
-    "success": "Profiel succesvol bijgewerkt",
-    "error": "Fout bij bijwerken van profiel"
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "saveSuccess": "Profiel bijgewerkt",
+    "saveError": "Profiel kon niet worden bijgewerkt"
   },
   "changePassword": {
     "title": "Wachtwoord Wijzigen",
+    "hint": "Gebruik een sterk wachtwoord voor uw veiligheid",
     "currentPassword": "Huidig Wachtwoord",
+    "currentPlaceholder": "Voer uw huidige wachtwoord in",
     "newPassword": "Nieuw Wachtwoord",
-    "confirmPassword": "Bevestig Nieuw Wachtwoord",
-    "save": "Wachtwoord Wijzigen",
+    "newPlaceholder": "Voer uw nieuwe wachtwoord in",
+    "confirmPassword": "Bevestig Wachtwoord",
+    "confirmPlaceholder": "Voer uw nieuwe wachtwoord opnieuw in",
+    "submit": "Wachtwoord Wijzigen",
     "success": "Wachtwoord succesvol gewijzigd",
-    "error": "Fout bij wijzigen van wachtwoord",
-    "mismatch": "Wachtwoorden komen niet overeen"
+    "error": "Wachtwoord kon niet worden gewijzigd",
+    "mismatch": "Wachtwoorden komen niet overeen",
+    "tooShort": "Wachtwoord moet minimaal 6 tekens zijn"
   },
   "map": {
     "title": "Navigatie",

@@ -442,9 +442,7 @@
       "orange": "Naranja",
       "brown": "Marrón",
       "beige": "Beige"
-    },
-    "lastRefuel": "Último Repostaje",
-    "noRefuelRecord": "No se encontró registro de repostaje"
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -500,23 +498,33 @@
   },
   "editProfile": {
     "title": "Editar Perfil",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
+    "changePhoto": "Cambiar Foto",
     "email": "Correo Electrónico",
+    "emailReadonly": "El correo electrónico no se puede cambiar",
+    "firstName": "Nombre",
+    "firstNamePlaceholder": "Ingrese su nombre",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "Ingrese su apellido",
     "phone": "Teléfono",
-    "save": "Guardar Cambios",
-    "success": "Perfil actualizado exitosamente",
-    "error": "Error al actualizar el perfil"
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "saveSuccess": "Perfil actualizado",
+    "saveError": "No se pudo actualizar el perfil"
   },
   "changePassword": {
     "title": "Cambiar Contraseña",
+    "hint": "Use una contraseña segura para su seguridad",
     "currentPassword": "Contraseña Actual",
+    "currentPlaceholder": "Ingrese su contraseña actual",
     "newPassword": "Nueva Contraseña",
-    "confirmPassword": "Confirmar Nueva Contraseña",
-    "save": "Cambiar Contraseña",
+    "newPlaceholder": "Ingrese su nueva contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "confirmPlaceholder": "Reingrese su nueva contraseña",
+    "submit": "Cambiar Contraseña",
     "success": "Contraseña cambiada exitosamente",
-    "error": "Error al cambiar la contraseña",
-    "mismatch": "Las contraseñas no coinciden"
+    "error": "No se pudo cambiar la contraseña",
+    "mismatch": "Las contraseñas no coinciden",
+    "tooShort": "La contraseña debe tener al menos 6 caracteres"
   },
   "deviceSetup": {
     "title": "Configuración del Dispositivo",

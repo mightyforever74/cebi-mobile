@@ -335,12 +335,7 @@ const DriverProfile = ({ navigation }) => {
           value="0"
           label={t("profile.totalKm")}
         />
-        <StatCard
-          icon="star"
-          iconColor={COLORS.WARNING}
-          value="-"
-          label={t("profile.score")}
-        />
+
       </View>
 
       {/* Account Settings */}
@@ -422,7 +417,7 @@ const DriverProfile = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("profile.about")}
-          subtitle={`${t("profile.version")} 1.0.0`}
+          subtitle={`${t("profile.version")} 2.0.5`}
           onPress={handleAbout}
         />
       </View>
@@ -440,8 +435,8 @@ const DriverProfile = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
+        <Text style={styles.footerText}>TulipFleet v2.0.5</Text>
+        <Text style={styles.footerSubtext}>© 2026 TulipFleet</Text>
       </View>
     </ScrollView>
   );

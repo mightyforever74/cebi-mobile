@@ -342,9 +342,7 @@
       "orange": "Arancione",
       "brown": "Marrone",
       "beige": "Beige"
-    },
-    "lastRefuel": "Ultimo Rifornimento",
-    "noRefuelRecord": "Nessun record di rifornimento trovato"
+    }
   },
   "task": {
     "title": "Gestione Attività",
@@ -510,23 +508,33 @@
   },
   "editProfile": {
     "title": "Modifica Profilo",
-    "firstName": "Nome",
-    "lastName": "Cognome",
+    "changePhoto": "Cambia Foto",
     "email": "Email",
+    "emailReadonly": "L'indirizzo email non può essere modificato",
+    "firstName": "Nome",
+    "firstNamePlaceholder": "Inserisci il tuo nome",
+    "lastName": "Cognome",
+    "lastNamePlaceholder": "Inserisci il tuo cognome",
     "phone": "Telefono",
-    "save": "Salva Modifiche",
-    "success": "Profilo aggiornato con successo",
-    "error": "Errore durante l'aggiornamento del profilo"
+    "save": "Salva",
+    "cancel": "Annulla",
+    "saveSuccess": "Profilo aggiornato",
+    "saveError": "Impossibile aggiornare il profilo"
   },
   "changePassword": {
     "title": "Cambia Password",
+    "hint": "Usa una password sicura per la tua sicurezza",
     "currentPassword": "Password Attuale",
+    "currentPlaceholder": "Inserisci la tua password attuale",
     "newPassword": "Nuova Password",
-    "confirmPassword": "Conferma Nuova Password",
-    "save": "Cambia Password",
+    "newPlaceholder": "Inserisci la tua nuova password",
+    "confirmPassword": "Conferma Password",
+    "confirmPlaceholder": "Reinserisci la tua nuova password",
+    "submit": "Cambia Password",
     "success": "Password cambiata con successo",
-    "error": "Errore durante il cambio password",
-    "mismatch": "Le password non corrispondono"
+    "error": "Impossibile cambiare la password",
+    "mismatch": "Le password non corrispondono",
+    "tooShort": "La password deve essere di almeno 6 caratteri"
   },
   "deviceSetup": {
     "title": "Configurazione Dispositivo",
