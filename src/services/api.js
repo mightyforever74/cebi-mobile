@@ -14,11 +14,11 @@ let inMemoryToken = null;
 // 401 event callback (AuthContext tarafÄ±ndan set edilir)
 let onUnauthorizedCallback = null;
 
-// KİRİTİK B: Spam lock - aynı anda birden fazla 401
+// KRÄ°TÄ°K B: Spam lock - aynÄ± anda birden fazla 401 iÃ§in
 let unauthorizedHandled = false;
 
 /**
- * Token memory'ye set et (AuthContext'ten )
+ * Token'Ä± memory'ye set et (AuthContext'ten Ã§aÄŸrÄ±lÄ±r)
  */
 export const setAuthToken = (token) => {
   inMemoryToken = token;
@@ -29,7 +29,7 @@ export const setAuthToken = (token) => {
 };
 
 /**
- * Token' memory'den temizle
+ * Token'Ä± memory'den temizle
  */
 export const clearAuthToken = () => {
   inMemoryToken = null;
@@ -37,7 +37,7 @@ export const clearAuthToken = () => {
 };
 
 /**
- * 401 callback'i set et (AuthContext logout )
+ * 401 callback'i set et (AuthContext logout iÃ§in)
  * Type guard eklendi
  */
 export const setOnUnauthorized = (callback) => {
@@ -45,10 +45,10 @@ export const setOnUnauthorized = (callback) => {
 };
 
 /**
- * Token' al - Ã¶nce memory, sonra storage utils
+ * Token'Ä± al - Ã¶nce memory, sonra storage utils
  */
 const getToken = async () => {
-  // 1. Ã–nce memory'den dene
+  // 1. Ã–nce memory'den dene (en hÄ±zlÄ±)
   if (inMemoryToken) {
     return inMemoryToken;
   }
@@ -67,7 +67,8 @@ const getToken = async () => {
 };
 
 // ============================================
-// KRÄ°TÄ°K A: Auth endpoint'leri
+// KRÄ°TÄ°K A: Auth endpoint'leri iÃ§in INTERCEPTOR'SIZ client
+// Login/logout/refresh bu client'Ä± kullanÄ±r
 // ============================================
 const authClient = axios.create({
   baseURL: API_BASE_URL,
@@ -78,7 +79,7 @@ const authClient = axios.create({
 });
 
 // ============================================
-// Normal API istekleri
+// Normal API istekleri iÃ§in interceptor'lÃ¼ client
 // ============================================
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -90,15 +91,9 @@ const api = axios.create({
 
 // ============================================
 // S6: ETag / 304 Cache (network cost reduction)
+// AdminDashboard 30s polling → veri degismediyse 304 = bos body
 // ============================================
-const etagCache = new Map(); // key: fullUrl → { etag, data }
-
-// Cache key: url + params (query param cakismasi onlenir)
-function getCacheKey(config) {
-  const base = config.url || "";
-  const p = config.params ? "?" + JSON.stringify(config.params) : "";
-  return base + p;
-}
+const etagCache = new Map(); // key: url → { etag, data }
 
 // Request interceptor - add token + ETag
 api.interceptors.request.use(
@@ -113,9 +108,8 @@ api.interceptors.request.use(
     }
 
     // ETag: GET request icin If-None-Match ekle
-    const key = getCacheKey(config);
-    if (config.method === "get" && etagCache.has(key)) {
-      config.headers["If-None-Match"] = etagCache.get(key).etag;
+    if (config.method === "get" && etagCache.has(config.url)) {
+      config.headers["If-None-Match"] = etagCache.get(config.url).etag;
     }
 
     return config;
@@ -128,17 +122,10 @@ api.interceptors.request.use(
 // Response interceptor - handle errors + ETag
 api.interceptors.response.use(
   (response) => {
-    const key = getCacheKey(response.config || {});
-
-    // Fix 4: 304 success handler'a duserse cache'den dondur
-    if (response.status === 304 && etagCache.has(key)) {
-      return { ...response, data: etagCache.get(key).data, cached: true };
-    }
-
     // ETag varsa cache'le
     const etag = response.headers?.etag;
     if (etag && response.config?.method === "get") {
-      etagCache.set(key, { etag, data: response.data });
+      etagCache.set(response.config.url, { etag, data: response.data });
     }
     return response;
   },
@@ -147,11 +134,8 @@ api.interceptors.response.use(
     const url = error.config?.url || "";
 
     // S6: 304 Not Modified → cache'den dondur
-    if (status === 304) {
-      const key = getCacheKey(error.config || {});
-      if (etagCache.has(key)) {
-        return { data: etagCache.get(key).data, status: 304, cached: true };
-      }
+    if (status === 304 && etagCache.has(url)) {
+      return { data: etagCache.get(url).data, status: 304, cached: true };
     }
 
     // KRÄ°TÄ°K B: Auth endpoint'lerinde 401 gelirse cleanup YAPMA
@@ -161,7 +145,7 @@ api.interceptors.response.use(
       url.includes("/api/auth/refresh") ||
       url.includes("/api/auth/register");
 
-    // Handle 401 Unauthorized
+    // Handle 401 Unauthorized (auth endpoint'leri hariÃ§)
     if (status === 401 && !isAuthEndpoint && !unauthorizedHandled) {
       console.log("ðŸ”’ [API] 401 - Token expired or invalid");
 
@@ -204,7 +188,7 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// AUTH ENDPOINTS
+// AUTH ENDPOINTS (interceptor'sÄ±z authClient kullanÄ±r)
 // ============================================
 
 export const authAPI = {
@@ -267,7 +251,7 @@ export const authAPI = {
 
   // Change password - token gerektirir
   changePassword: async (data) => {
-    const response = await api.put("/api/users/password", data);
+    const response = await api.put("/api/auth/change-password", data);
     return response.data;
   },
 
@@ -296,7 +280,7 @@ export const userAPI = {
   },
 
   changePassword: async (data) => {
-    const response = await api.put("/api/users/password", data);
+    const response = await api.put("/api/user/change-password", data);
     return response.data;
   },
 };
@@ -542,20 +526,6 @@ export const deviceAPI = {
     return response.data;
   },
 
-  // BLE seçim öncesi aktif cihaz kontrolü (chipId ile)
-  checkDeviceStatus: async (chipId) => {
-    const response = await api.get("/api/devices/check-status", {
-      params: { chipId },
-    });
-    return response.data;
-  },
-
-  // Cihaza MQTT üzerinden RESET_PROVISION komutu gönder (yeniden kurulum)
-  resetProvision: async (data) => {
-    const response = await api.post("/api/devices/reset-provision", data);
-    return response.data;
-  },
-
   getInfo: async (deviceId) => {
     const response = await api.get(`/api/devices/${deviceId}`);
     return response.data;
@@ -651,9 +621,9 @@ export const driverAPI = {
     return response.data;
   },
 
-  // Update vehicle settings
+  // Update vehicle settings (uses authClient per request)
   updateVehicleSettings: async (vehicleId, data) => {
-    const response = await api.put(
+    const response = await authClient.put(
       `/api/driver/vehicle/${vehicleId}/settings`,
       data
     );
@@ -782,34 +752,39 @@ export const taskAPI = {
     const response = await api.get("/api/tasks");
     return response.data;
   },
-};
 
-// ============================================
-// GEOFENCE API
-// ============================================
-export const geofenceAPI = {
-  getAll: async () => {
-    const response = await api.get("/api/geofences");
+  // Alias for backward compatibility
+  getAll: async () => taskAPI.getList(),
+
+  getById: async (id) => {
+    const response = await api.get(`/api/tasks/${id}`);
     return response.data;
   },
+
   create: async (data) => {
-    const response = await api.post("/api/geofences", data);
+    const response = await api.post("/api/tasks", data);
     return response.data;
   },
+
   update: async (id, data) => {
-    const response = await api.put(`/api/geofences/${id}`, data);
+    const response = await api.put(`/api/tasks/${id}`, data);
     return response.data;
   },
+
   delete: async (id) => {
-    const response = await api.delete(`/api/geofences/${id}?hard=true`);
+    const response = await api.delete(`/api/tasks/${id}`);
     return response.data;
   },
-  getEvents: async (id, limit = 50) => {
-    const response = await api.get(
-      `/api/geofences/${id}/events?limit=${limit}`
-    );
+
+  sendOffer: async (taskId, driverId) => {
+    const response = await api.post(`/api/tasks/${taskId}/offer`, {
+      driver_id: driverId,
+    });
     return response.data;
   },
+
+  // Delegate to driverTaskAPI
+  getDriverTasks: async () => driverTaskAPI.getMyTasks(),
 };
 
 // ============================================
