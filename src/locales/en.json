@@ -539,7 +539,7 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nFleet Management System\n© 2025 TulipFleet\n\nAll rights reserved."
+    "aboutMessage": "TulipFleet v2.0.5\n\nFleet Management System\n© 2026 TulipFleet\n\nAll rights reserved."
   },
   "deviceSetup": {
     "title": "Device Setup",
@@ -1840,35 +1840,5 @@
     "totalZones": "zones total",
     "activeZones": "active",
     "tapEditToManage": "Tap edit to manage zones"
-  },
-  "editProfile": {
-    "title": "Edit Profile",
-    "changePhoto": "Change Photo",
-    "email": "Email",
-    "emailReadonly": "Email address cannot be changed",
-    "firstName": "First Name",
-    "firstNamePlaceholder": "Enter your first name",
-    "lastName": "Last Name",
-    "lastNamePlaceholder": "Enter your last name",
-    "phone": "Phone",
-    "save": "Save",
-    "cancel": "Cancel",
-    "saveSuccess": "Profile updated",
-    "saveError": "Could not update profile"
-  },
-  "changePassword": {
-    "title": "Change Password",
-    "hint": "Use a strong password for your security",
-    "currentPassword": "Current Password",
-    "currentPlaceholder": "Enter your current password",
-    "newPassword": "New Password",
-    "newPlaceholder": "Enter your new password",
-    "confirmPassword": "Confirm Password",
-    "confirmPlaceholder": "Re-enter your new password",
-    "submit": "Change Password",
-    "success": "Password changed successfully",
-    "error": "Could not change password",
-    "mismatch": "Passwords do not match",
-    "tooShort": "Password must be at least 6 characters"
   }
 }

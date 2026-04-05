@@ -100,7 +100,7 @@
     "supportMessage": "Heeft u hulp nodig?",
     "sendEmail": "E-mail Versturen",
     "aboutTitle": "Over TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nVlootbeheersysteem\n© 2025 TulipFleet\n\nAlle rechten voorbehouden.",
+    "aboutMessage": "TulipFleet v2.0.5\n\nVlootbeheersysteem\n© 2026 TulipFleet\n\nAlle rechten voorbehouden.",
     "ok": "OK"
   },
   "auth": {
@@ -743,33 +743,23 @@
   },
   "editProfile": {
     "title": "Profiel Bewerken",
-    "changePhoto": "Foto Wijzigen",
-    "email": "E-mail",
-    "emailReadonly": "E-mailadres kan niet worden gewijzigd",
     "firstName": "Voornaam",
-    "firstNamePlaceholder": "Voer uw voornaam in",
     "lastName": "Achternaam",
-    "lastNamePlaceholder": "Voer uw achternaam in",
+    "email": "E-mail",
     "phone": "Telefoon",
-    "save": "Opslaan",
-    "cancel": "Annuleren",
-    "saveSuccess": "Profiel bijgewerkt",
-    "saveError": "Profiel kon niet worden bijgewerkt"
+    "save": "Wijzigingen Opslaan",
+    "success": "Profiel succesvol bijgewerkt",
+    "error": "Fout bij bijwerken van profiel"
   },
   "changePassword": {
     "title": "Wachtwoord Wijzigen",
-    "hint": "Gebruik een sterk wachtwoord voor uw veiligheid",
     "currentPassword": "Huidig Wachtwoord",
-    "currentPlaceholder": "Voer uw huidige wachtwoord in",
     "newPassword": "Nieuw Wachtwoord",
-    "newPlaceholder": "Voer uw nieuwe wachtwoord in",
-    "confirmPassword": "Bevestig Wachtwoord",
-    "confirmPlaceholder": "Voer uw nieuwe wachtwoord opnieuw in",
-    "submit": "Wachtwoord Wijzigen",
+    "confirmPassword": "Bevestig Nieuw Wachtwoord",
+    "save": "Wachtwoord Wijzigen",
     "success": "Wachtwoord succesvol gewijzigd",
-    "error": "Wachtwoord kon niet worden gewijzigd",
-    "mismatch": "Wachtwoorden komen niet overeen",
-    "tooShort": "Wachtwoord moet minimaal 6 tekens zijn"
+    "error": "Fout bij wijzigen van wachtwoord",
+    "mismatch": "Wachtwoorden komen niet overeen"
   },
   "map": {
     "title": "Navigatie",

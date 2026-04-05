@@ -373,7 +373,7 @@
     "supportMessage": "Нуждаете ли се от помощ?",
     "sendEmail": "Изпрати Имейл",
     "aboutTitle": "Относно TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nСистема за Управление на Флота\n© 2025 TulipFleet\n\nВсички права запазени.",
+    "aboutMessage": "TulipFleet v2.0.5\n\nСистема за управление на флота\n© 2026 TulipFleet\n\nВсички права запазени.",
     "ok": "ОК"
   },
   "task": {
@@ -1860,35 +1860,5 @@
     "totalZones": "зони общо",
     "activeZones": "активни",
     "tapEditToManage": "Натиснете редактиране за управление на зони"
-  },
-  "editProfile": {
-    "title": "Редактиране на Профил",
-    "changePhoto": "Промяна на Снимка",
-    "email": "Имейл",
-    "emailReadonly": "Имейл адресът не може да се промени",
-    "firstName": "Име",
-    "firstNamePlaceholder": "Въведете вашето име",
-    "lastName": "Фамилия",
-    "lastNamePlaceholder": "Въведете вашата фамилия",
-    "phone": "Телефон",
-    "save": "Запази",
-    "cancel": "Отказ",
-    "saveSuccess": "Профилът е актуализиран",
-    "saveError": "Профилът не можа да бъде актуализиран"
-  },
-  "changePassword": {
-    "title": "Промяна на Парола",
-    "hint": "Използвайте силна парола за вашата сигурност",
-    "currentPassword": "Текуща Парола",
-    "currentPlaceholder": "Въведете текущата си парола",
-    "newPassword": "Нова Парола",
-    "newPlaceholder": "Въведете новата си парола",
-    "confirmPassword": "Потвърди Парола",
-    "confirmPlaceholder": "Въведете новата си парола отново",
-    "submit": "Промяна на Паролата",
-    "success": "Паролата е променена успешно",
-    "error": "Паролата не можа да бъде променена",
-    "mismatch": "Паролите не съвпадат",
-    "tooShort": "Паролата трябва да е поне 6 символа"
   }
 }

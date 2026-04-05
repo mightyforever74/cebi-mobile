@@ -492,39 +492,29 @@
     "supportMessage": "¿Necesitas ayuda?",
     "sendEmail": "Enviar Correo",
     "aboutTitle": "Acerca de TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nSistema de Gestión de Flota\n© 2025 TulipFleet\n\nTodos los derechos reservados.",
+    "aboutMessage": "TulipFleet v2.0.5\n\nSistema de Gestión de Flotas\n© 2026 TulipFleet\n\nTodos los derechos reservados.",
     "ok": "OK",
     "supportTitle": "Soporte"
   },
   "editProfile": {
     "title": "Editar Perfil",
-    "changePhoto": "Cambiar Foto",
-    "email": "Correo Electrónico",
-    "emailReadonly": "El correo electrónico no se puede cambiar",
     "firstName": "Nombre",
-    "firstNamePlaceholder": "Ingrese su nombre",
     "lastName": "Apellido",
-    "lastNamePlaceholder": "Ingrese su apellido",
+    "email": "Correo Electrónico",
     "phone": "Teléfono",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "saveSuccess": "Perfil actualizado",
-    "saveError": "No se pudo actualizar el perfil"
+    "save": "Guardar Cambios",
+    "success": "Perfil actualizado exitosamente",
+    "error": "Error al actualizar el perfil"
   },
   "changePassword": {
     "title": "Cambiar Contraseña",
-    "hint": "Use una contraseña segura para su seguridad",
     "currentPassword": "Contraseña Actual",
-    "currentPlaceholder": "Ingrese su contraseña actual",
     "newPassword": "Nueva Contraseña",
-    "newPlaceholder": "Ingrese su nueva contraseña",
-    "confirmPassword": "Confirmar Contraseña",
-    "confirmPlaceholder": "Reingrese su nueva contraseña",
-    "submit": "Cambiar Contraseña",
+    "confirmPassword": "Confirmar Nueva Contraseña",
+    "save": "Cambiar Contraseña",
     "success": "Contraseña cambiada exitosamente",
-    "error": "No se pudo cambiar la contraseña",
-    "mismatch": "Las contraseñas no coinciden",
-    "tooShort": "La contraseña debe tener al menos 6 caracteres"
+    "error": "Error al cambiar la contraseña",
+    "mismatch": "Las contraseñas no coinciden"
   },
   "deviceSetup": {
     "title": "Configuración del Dispositivo",

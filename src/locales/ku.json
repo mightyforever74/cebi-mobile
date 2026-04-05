@@ -130,7 +130,7 @@
     "supportMessage": "Hewcedariya te bi alîkariyê heye?",
     "sendEmail": "E-nameyê Bişîne",
     "aboutTitle": "Derbarê TulipFleet",
-    "aboutMessage": "TulipFleet v1.0.0\n\nSîstema Rêveberiya Fîloyê\n© 2025 TulipFleet\n\nHemû maf parastî ne.",
+    "aboutMessage": "TulipFleet v2.0.5\n\nSîstema Rêveberiya Fîloyê\n© 2026 TulipFleet\n\nHemû maf hatine parastin.",
     "ok": "Baş e"
   },
   "auth": {
@@ -2002,35 +2002,5 @@
     "totalZones": "dever bi tevahî",
     "activeZones": "çalak",
     "tapEditToManage": "Ji bo rêvebirina devera bikirtînin"
-  },
-  "editProfile": {
-    "title": "Profîlê Biguherîne",
-    "changePhoto": "Wêneyê Biguherîne",
-    "email": "E-posta",
-    "emailReadonly": "Navnîşana e-postê nayê guhertin",
-    "firstName": "Nav",
-    "firstNamePlaceholder": "Navê xwe binivîse",
-    "lastName": "Paşnav",
-    "lastNamePlaceholder": "Paşnavê xwe binivîse",
-    "phone": "Telefon",
-    "save": "Tomar bike",
-    "cancel": "Betal bike",
-    "saveSuccess": "Profîl hat nûkirin",
-    "saveError": "Profîl nehat nûkirin"
-  },
-  "changePassword": {
-    "title": "Şîfreyê Biguherîne",
-    "hint": "Ji bo ewlehiya xwe şîfreyek bihêz bikar bîne",
-    "currentPassword": "Şîfreya Niha",
-    "currentPlaceholder": "Şîfreya xwe ya niha binivîse",
-    "newPassword": "Şîfreya Nû",
-    "newPlaceholder": "Şîfreya xwe ya nû binivîse",
-    "confirmPassword": "Şîreyê Dubare Bike",
-    "confirmPlaceholder": "Şîreya nû dubare binivîse",
-    "submit": "Şîreyê Biguherîne",
-    "success": "Şîre bi serfirazî hat guhertin",
-    "error": "Şîre nehat guhertin",
-    "mismatch": "Şîre li hev nayên",
-    "tooShort": "Şîre divê herî kêm 6 tîp be"
   }
 }
