@@ -270,297 +270,45 @@ const makeStyles = (COLORS) =>
     },
 
 
-    // ── Drive Assist ──
-    daSection: {
-      marginBottom: COLORS.SPACING.xs,
-    },
-    daSectionLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.TEXT_SECONDARY,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      marginBottom: COLORS.SPACING.sm,
-      paddingHorizontal: COLORS.SPACING.xs / 2,
-    },
-
-    // Büyük özet kart
-    daSummaryCard: {
-      borderRadius: COLORS.RADIUS.xl,
-      overflow: "hidden",
-      marginBottom: COLORS.SPACING.sm,
-      ...COLORS.SHADOWS.card,
-    },
-    daSummaryHeader: {
-      backgroundColor: withAlpha(COLORS.TEXT, 0.92),
-      padding: COLORS.SPACING.md,
-    },
-    daSummaryHeaderRow: {
+    // ── Drive Assist Card ──
+    daCardRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "flex-start",
-    },
-    daBadge: {
-      backgroundColor: withAlpha(COLORS.SUCCESS, 0.2),
-      borderWidth: 0.5,
-      borderColor: withAlpha(COLORS.SUCCESS, 0.5),
-      borderRadius: COLORS.RADIUS.full,
-      paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs - 1,
-    },
-    daBadgeText: {
-      color: COLORS.SUCCESS,
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-    },
-    daBadgeStandby: {
-      backgroundColor: withAlpha(COLORS.WHITE, 0.08),
-      borderColor: COLORS.WHITE_20,
-    },
-    daBadgeStandbyText: {
-      color: withAlpha(COLORS.WHITE, 0.6),
-    },
-    daEtaLabel: {
-      color: withAlpha(COLORS.WHITE, 0.5),
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      letterSpacing: 0.5,
-      textTransform: "uppercase",
-      marginBottom: COLORS.SPACING.xs / 2,
-    },
-    daEtaValue: {
-      color: COLORS.WHITE,
-      fontSize: COLORS.TYPOGRAPHY.sizes.xxxl,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      lineHeight: 36,
-    },
-    daEtaSub: {
-      color: withAlpha(COLORS.WHITE, 0.5),
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      marginTop: COLORS.SPACING.xs / 2,
-    },
-
-    // 4'lü grid
-    daGrid: {
-      flexDirection: "row",
-      backgroundColor: COLORS.CARD,
-      borderTopWidth: 0.5,
-      borderTopColor: COLORS.BORDER,
-    },
-    daGridCell: {
-      flex: 1,
       alignItems: "center",
-      paddingVertical: COLORS.SPACING.sm,
-      borderRightWidth: 0.5,
-      borderRightColor: COLORS.BORDER,
-    },
-    daGridCellLast: {
-      borderRightWidth: 0,
-    },
-    daGridEmoji: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      marginBottom: COLORS.SPACING.xs / 2,
-    },
-    daGridVal: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      color: COLORS.TEXT,
-    },
-    daGridKey: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 1,
-    },
-
-    // Uyarı satırı
-    daAlertRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.WARNING_LIGHT,
-      paddingHorizontal: COLORS.SPACING.md,
-      paddingVertical: COLORS.SPACING.sm,
-      gap: COLORS.SPACING.sm,
-    },
-    daAlertDot: {
-      width: 6,
-      height: 6,
-      borderRadius: COLORS.RADIUS.xs,
-      backgroundColor: COLORS.WARNING,
-    },
-    daAlertText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.TEXT,
-      flex: 1,
-    },
-
-    // 2 küçük kart row
-    daSmallRow: {
-      flexDirection: "row",
-      gap: COLORS.SPACING.sm,
       marginBottom: COLORS.SPACING.sm,
     },
-    daSmallCard: {
-      flex: 1,
-      backgroundColor: COLORS.CARD,
-      borderRadius: COLORS.RADIUS.lg,
-      borderWidth: 0.5,
-      borderColor: COLORS.BORDER,
-      padding: COLORS.SPACING.sm,
-      minHeight: 100,
+    daSpeakHint: {
+      padding: COLORS.SPACING.xs,
     },
-    daSmallCardHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: COLORS.SPACING.xs,
+    daAlertList: {
       marginBottom: COLORS.SPACING.xs,
     },
-    daSmallDot: {
-      width: 6,
-      height: 6,
-      borderRadius: COLORS.RADIUS.xs,
-    },
-    daSmallLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      letterSpacing: 0.5,
-      textTransform: "uppercase",
-      color: COLORS.TEXT_SECONDARY,
-    },
-    daSmallVal: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-      color: COLORS.TEXT,
-      lineHeight: 22,
-    },
-    daSmallSub: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.xs / 2,
-    },
-    daSmallWarn: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
-      color: COLORS.WARNING,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginTop: COLORS.SPACING.xs,
-    },
-    daSmallCritical: {
-      color: COLORS.ERROR,
-    },
-
-    // Güvenlik & Destek kartı
-    daSecCard: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: COLORS.RADIUS.lg,
-      borderWidth: 0.5,
-      borderColor: COLORS.BORDER,
-      padding: COLORS.SPACING.sm,
-      marginBottom: COLORS.SPACING.sm,
-    },
-    daSecTitle: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      color: COLORS.TEXT_SECONDARY,
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      marginBottom: COLORS.SPACING.sm,
-    },
-    daMainBtnRow: {
-      flexDirection: "row",
-      gap: COLORS.SPACING.sm,
-      marginBottom: COLORS.SPACING.sm,
-    },
-    daBtnSOS: {
-      flex: 1,
-      backgroundColor: COLORS.ERROR,
-      borderRadius: COLORS.RADIUS.md,
-      paddingVertical: COLORS.SPACING.sm + COLORS.SPACING.xs,
-      alignItems: "center",
-    },
-    daBtnSOSLabel: {
-      color: COLORS.WHITE,
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
-    },
-    daBtnSOSSub: {
-      color: COLORS.WHITE_80,
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      marginTop: 1,
-    },
-    daBtnSOSGhost: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-      borderRadius: COLORS.RADIUS.md,
-      paddingVertical: COLORS.SPACING.sm + COLORS.SPACING.xs,
-      alignItems: "center",
-      borderWidth: 0.5,
-      borderColor: COLORS.BORDER,
-    },
-    daBtnSOSGhostLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
-      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      color: COLORS.TEXT,
-    },
-    daBtnSOSGhostSub: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      color: COLORS.TEXT_SECONDARY,
-      marginTop: 1,
-    },
-    daActionRow: {
-      flexDirection: "row",
-      gap: COLORS.SPACING.xs,
-    },
-    daActionBtn: {
-      flex: 1,
-      backgroundColor: COLORS.BACKGROUND,
-      borderRadius: COLORS.RADIUS.sm,
-      paddingVertical: COLORS.SPACING.sm,
-      alignItems: "center",
-      borderWidth: 0.5,
-      borderColor: COLORS.BORDER,
-    },
-    daActionLabel: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      color: COLORS.TEXT,
-      marginTop: COLORS.SPACING.xs - 1,
-      textAlign: "center",
-    },
-    daLocRow: {
+    daAlertItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: COLORS.SPACING.xs,
-      marginTop: COLORS.SPACING.sm,
-      paddingTop: COLORS.SPACING.sm,
-      borderTopWidth: 0.5,
-      borderTopColor: COLORS.BORDER,
+      marginBottom: COLORS.SPACING.xs,
     },
-    daLocDot: {
-      width: 5,
-      height: 5,
-      borderRadius: COLORS.RADIUS.xs,
-      backgroundColor: COLORS.SUCCESS,
+    daAlertDot: {
+      width: 7,
+      height: 7,
+      borderRadius: COLORS.RADIUS.full,
+      marginRight: COLORS.SPACING.sm,
+      flexShrink: 0,
     },
-    daLocText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      color: COLORS.TEXT_SECONDARY,
-    },
-
-    // Standby state
-    daStandbyInfo: {
-      backgroundColor: COLORS.CARD,
-      borderRadius: COLORS.RADIUS.lg,
-      borderWidth: 0.5,
-      borderColor: COLORS.BORDER,
-      padding: COLORS.SPACING.md,
-      alignItems: "center",
-      marginBottom: COLORS.SPACING.sm,
-    },
-    daStandbyText: {
+    daAlertText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.TEXT_SECONDARY,
+      color: COLORS.TEXT,
+      flex: 1,
+    },
+    daTapHint: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.MUTED,
       textAlign: "center",
-      marginTop: COLORS.SPACING.sm,
+      marginTop: COLORS.SPACING.xs,
     },
 
     // ── Device Status Lamps ──
+
     deviceStatusRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -1212,308 +960,116 @@ const DriverDashboard = () => {
           </View>
         </Card>
 
-        {/* ══════════════════════════════════════════
-            DRIVE ASSIST — Sürüş Asistanı
-        ══════════════════════════════════════════ */}
-        {(() => {
-          const hasTask = !!driveAssist?.activeTask;
-          const task = driveAssist?.activeTask;
-          const traffic = driveAssist?.traffic;
-          const weather = driveAssist?.weather;
-
-          // ── Trafik yardımcıları ──
-          const trafficIcon = !traffic ? "⏳"
-            : traffic.delay_min === 0 ? "✅"
-            : traffic.delay_min < 10 ? "🟡"
-            : "🔴";
-          const trafficVal = !traffic ? t("dashboard.loading")
-            : traffic.delay_min === 0 ? t("dashboard.trafficClear")
-            : `+${traffic.delay_min} dk`;
-          const trafficCritical = traffic?.delay_min > 10;
-
-          // ── Hava yardımcıları ──
-          const weatherIcon = weather?.icon || "🌡️";
-          const weatherVal = weather ? `${weather.temp_c}°C` : t("dashboard.loading");
-          const weatherSub = weather?.description || "";
-          const weatherAlert = weather?.alert || null;
-          const windRisk = weather
-            ? weather.wind_kmh > 60 ? t("dashboard.windHigh")
-              : weather.wind_kmh > 40 ? t("dashboard.windModerate")
-              : null
-            : null;
-
-          return (
-            <>
-              {/* ── BÜYÜK ÖZET KART ── */}
-              <View style={styles.daSummaryCard}>
-                {/* Header: koyu arka plan */}
-                <View style={styles.daSummaryHeader}>
-                  <View style={styles.daSummaryHeaderRow}>
-                    <View>
-                      <Text style={styles.daEtaLabel}>
-                        {t("driveAssist.title")}
-                      </Text>
-                      {hasTask ? (
-                        <>
-                          <Text style={styles.daEtaValue}>
-                            {traffic?.duration_min
-                              ? `${traffic.duration_min} dk`
-                              : "— dk"}
-                            {" "}
-                            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, color: withAlpha(COLORS.WHITE, 0.45) }}>
-                              ETA
-                            </Text>
-                          </Text>
-                          <Text style={styles.daEtaSub}>
-                            {task?.end_location?.slice(0, 28) || t("driveAssist.activeRoute")}
-                          </Text>
-                        </>
-                      ) : (
-                        <>
-                          <Text style={[styles.daEtaValue, { fontSize: COLORS.TYPOGRAPHY.sizes.xxl, marginTop: COLORS.SPACING.xs }]}>
-                            {t("driveAssist.standbyMode")}
-                          </Text>
-                          <Text style={styles.daEtaSub}>
-                            {t("driveAssist.standbySub")}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                    <View style={[
-                      styles.daBadge,
-                      !hasTask && styles.daBadgeStandby
-                    ]}>
-                      <Text style={[
-                        styles.daBadgeText,
-                        !hasTask && styles.daBadgeStandbyText
-                      ]}>
-                        {hasTask ? t("driveAssist.activeTask") : t("driveAssist.standby")}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* 4'lü grid */}
-                <View style={styles.daGrid}>
-                  <View style={styles.daGridCell}>
-                    <Text style={styles.daGridEmoji}>🚦</Text>
-                    <Text style={[
-                      styles.daGridVal,
-                      trafficCritical && { color: COLORS.ERROR }
-                    ]}>
-                      {trafficVal}
-                    </Text>
-                    <Text style={styles.daGridKey}>{t("driveAssist.traffic")}</Text>
-                  </View>
-                  <View style={styles.daGridCell}>
-                    <Text style={styles.daGridEmoji}>
-                      {weather?.icon || "🌡️"}
-                    </Text>
-                    <Text style={styles.daGridVal}>{weatherVal}</Text>
-                    <Text style={styles.daGridKey}>{t("driveAssist.weather")}</Text>
-                  </View>
-                  <View style={styles.daGridCell}>
-                    <Text style={styles.daGridEmoji}>❄️</Text>
-                    <Text style={[
-                      styles.daGridVal,
-                      weather?.alert?.toLowerCase().includes("don") || weather?.alert?.toLowerCase().includes("ice")
-                        ? { color: COLORS.ERROR }
-                        : { color: COLORS.SUCCESS }
-                    ]}>
-                      {weather?.alert?.toLowerCase().includes("don") || weather?.alert?.toLowerCase().includes("ice")
-                        ? t("driveAssist.iceRisk")
-                        : t("driveAssist.noIce")}
-                    </Text>
-                    <Text style={styles.daGridKey}>{t("driveAssist.ice")}</Text>
-                  </View>
-                  <View style={[styles.daGridCell, styles.daGridCellLast]}>
-                    <Text style={styles.daGridEmoji}>💨</Text>
-                    <Text style={[
-                      styles.daGridVal,
-                      weather?.wind_kmh > 60 && { color: COLORS.ERROR }
-                    ]}>
-                      {weather?.wind_kmh ?? "—"}
-                    </Text>
-                    <Text style={styles.daGridKey}>km/h</Text>
-                  </View>
-                </View>
-
-                {/* Uyarı satırı — sadece kritik durumda */}
-                {(traffic?.incidents?.length > 0 || weatherAlert || windRisk) && (
-                  <View style={styles.daAlertRow}>
-                    <View style={styles.daAlertDot} />
-                    <Text style={styles.daAlertText} numberOfLines={1}>
-                      {traffic?.incidents?.[0] || weatherAlert || windRisk}
-                    </Text>
-                  </View>
-                )}
+        {/* ── Drive Assist Card ── */}
+        <Card noMarginBottom={false}>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => {
+              // Sesli ikaz — expo-speech ile tüm uyarıları oku
+              const alerts = [];
+              if (driveAssist?.traffic?.delay_min > 0) {
+                alerts.push(
+                  t("driveAssist.speechTraffic", {
+                    route: driveAssist.traffic.route_label || "",
+                    delay: driveAssist.traffic.delay_min,
+                  })
+                );
+                if (driveAssist.traffic.incidents?.length > 0) {
+                  alerts.push(driveAssist.traffic.incidents[0]);
+                }
+              }
+              if (driveAssist?.weather?.alert) {
+                alerts.push(driveAssist.weather.alert);
+              }
+              if (driveAssist?.weather?.wind_kmh > 40) {
+                alerts.push(
+                  t("driveAssist.speechWind", { kmh: driveAssist.weather.wind_kmh })
+                );
+              }
+              if (alerts.length === 0) {
+                alerts.push(t("driveAssist.speechAllClear"));
+              }
+              const fullText = alerts.join(". ");
+              Speech.speak(fullText, {
+                language: i18n.language === "tr" ? "tr-TR"
+                  : i18n.language === "nl" ? "nl-NL"
+                  : i18n.language === "de" ? "de-DE"
+                  : "en-US",
+                rate: 0.9,
+              });
+            }}
+          >
+            <View style={styles.daCardRow}>
+              <Text style={styles.cardTitle}>{t("driveAssist.title")}</Text>
+              <View style={styles.daSpeakHint}>
+                <Ionicons name="volume-medium-outline" size={16} color={COLORS.MUTED} />
               </View>
+            </View>
 
-              {/* ── 2 KÜÇÜK KART ── */}
-              <View style={styles.daSmallRow}>
-                {/* Yol Trafiği */}
-                <View style={styles.daSmallCard}>
-                  <View style={styles.daSmallCardHeader}>
-                    <View style={[styles.daSmallDot, {
-                      backgroundColor: trafficCritical ? COLORS.ERROR
-                        : traffic?.delay_min > 0 ? COLORS.WARNING
-                        : COLORS.SUCCESS
-                    }]} />
-                    <Text style={styles.daSmallLabel}>
-                      {t("driveAssist.routeTraffic")}
-                    </Text>
-                  </View>
-                  <Text style={styles.daSmallVal}>
-                    {assistLoading ? t("dashboard.loading")
-                      : !traffic ? t("dashboard.dataUnavailable")
-                      : traffic.delay_min === 0 ? t("dashboard.trafficClear")
-                      : traffic.delay_min < 10 ? t("driveAssist.trafficModerate")
-                      : t("driveAssist.trafficHeavy")}
+            {/* Uyarı satırları */}
+            <View style={styles.daAlertList}>
+              {/* Trafik */}
+              {driveAssist?.traffic?.delay_min > 0 ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.WARNING }]} />
+                  <Text style={styles.daAlertText} numberOfLines={1}>
+                    {driveAssist.traffic.route_label
+                      ? `${driveAssist.traffic.route_label} — `
+                      : ""}
+                    +{driveAssist.traffic.delay_min} {t("dashboard.minutesDelay")}
                   </Text>
-                  {traffic?.route_label && (
-                    <Text style={styles.daSmallSub} numberOfLines={1}>
-                      {traffic.route_label}
-                    </Text>
-                  )}
-                  {traffic?.incidents?.length > 0 && (
-                    <Text style={[styles.daSmallWarn, trafficCritical && styles.daSmallCritical]}
-                      numberOfLines={1}>
-                      {traffic.incidents[0]}
-                    </Text>
-                  )}
                 </View>
+              ) : driveAssist?.traffic?.delay_min === 0 ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.SUCCESS }]} />
+                  <Text style={styles.daAlertText}>{t("dashboard.trafficClear")}</Text>
+                </View>
+              ) : null}
 
-                {/* Yol Hava Riski */}
-                <View style={styles.daSmallCard}>
-                  <View style={styles.daSmallCardHeader}>
-                    <View style={[styles.daSmallDot, {
-                      backgroundColor: weatherAlert ? COLORS.ERROR
-                        : windRisk ? COLORS.WARNING
-                        : COLORS.INFO
-                    }]} />
-                    <Text style={styles.daSmallLabel}>
-                      {t("driveAssist.roadWeather")}
-                    </Text>
-                  </View>
-                  <Text style={styles.daSmallVal}>
-                    {assistLoading ? t("dashboard.loading")
-                      : !weather ? t("dashboard.dataUnavailable")
-                      : `${weather.temp_c}°C — ${weather.description}`}
+              {/* Hava */}
+              {driveAssist?.weather?.alert ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.ERROR }]} />
+                  <Text style={styles.daAlertText} numberOfLines={1}>
+                    {driveAssist.weather.alert}
                   </Text>
-                  {weather?.wind_kmh > 0 && (
-                    <Text style={styles.daSmallSub}>
-                      {windRisk || `${weather.wind_kmh} km/h`}
-                    </Text>
-                  )}
-                  {weatherAlert && (
-                    <Text style={[styles.daSmallWarn, styles.daSmallCritical]}
-                      numberOfLines={1}>
-                      {weatherAlert}
-                    </Text>
-                  )}
                 </View>
-              </View>
-
-              {/* ── GÜVENLİK & DESTEK KARTI ── */}
-              <View style={styles.daSecCard}>
-                <Text style={styles.daSecTitle}>
-                  {t("driveAssist.safetySupport")}
-                </Text>
-                <View style={styles.daMainBtnRow}>
-                  <TouchableOpacity
-                    style={styles.daBtnSOS}
-                    onPress={() => {
-                      // OS native emergency dial akışını aç
-                      // 112 Avrupa fallback — label'da görünmez
-                      const EMERGENCY_NUMBER = "112";
-                      Linking.openURL(`tel:${EMERGENCY_NUMBER}`).catch(() => {
-                        Alert.alert(
-                          t("driveAssist.emergencyCallTitle"),
-                          t("driveAssist.emergencyCallFallback", { number: EMERGENCY_NUMBER })
-                        );
-                      });
-                    }}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.daBtnSOSLabel}>
-                      {t("driveAssist.emergencyCall")}
-                    </Text>
-                    <Text style={styles.daBtnSOSSub}>
-                      {t("driveAssist.emergencyCallSub")}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.daBtnSOSGhost}
-                    onPress={() => {
-                      Alert.alert(
-                        t("driveAssist.sosTitle"),
-                        t("driveAssist.sosConfirm"),
-                        [
-                          { text: t("common.cancel"), style: "cancel" },
-                          { text: t("driveAssist.send"), style: "destructive",
-                            onPress: () => {
-                              /* Faz 2: backend SOS endpoint */
-                              Alert.alert("SOS", t("driveAssist.sosSent"));
-                            }
-                          },
-                        ]
-                      );
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.daBtnSOSGhostLabel}>
-                      {t("driveAssist.sosSend")}
-                    </Text>
-                    <Text style={styles.daBtnSOSGhostSub}>
-                      {t("driveAssist.sosDesc")}
-                    </Text>
-                  </TouchableOpacity>
+              ) : driveAssist?.weather?.temp_c !== undefined ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.INFO }]} />
+                  <Text style={styles.daAlertText}>
+                    {driveAssist.weather.icon} {driveAssist.weather.temp_c}°C
+                    {driveAssist.weather.description ? ` — ${driveAssist.weather.description}` : ""}
+                  </Text>
                 </View>
+              ) : null}
 
-                <View style={styles.daActionRow}>
-                  <TouchableOpacity
-                    style={styles.daActionBtn}
-                    onPress={() => navigation.navigate("HelpCenter")}
-                  >
-                    <Ionicons name="call-outline" size={16} color={COLORS.PRIMARY} />
-                    <Text style={styles.daActionLabel}>
-                      {t("driveAssist.dispatcher")}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.daActionBtn}
-                    onPress={() => Alert.alert(t("driveAssist.delayReport"), t("driveAssist.comingSoon"))}
-                  >
-                    <Ionicons name="time-outline" size={16} color={COLORS.WARNING} />
-                    <Text style={styles.daActionLabel}>
-                      {t("driveAssist.reportDelay")}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.daActionBtn}
-                    onPress={() => Alert.alert(t("driveAssist.issueReport"), t("driveAssist.comingSoon"))}
-                  >
-                    <Ionicons name="construct-outline" size={16} color={COLORS.MUTED} />
-                    <Text style={styles.daActionLabel}>
-                      {t("driveAssist.reportIssue")}
-                    </Text>
-                  </TouchableOpacity>
+              {/* Yükleniyor veya API yok */}
+              {!driveAssist || (assistLoading && !driveAssist.traffic && !driveAssist.weather) ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
+                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
+                    {t("dashboard.loading")}
+                  </Text>
                 </View>
+              ) : null}
 
-                {vehicle && (
-                  <View style={styles.daLocRow}>
-                    <View style={styles.daLocDot} />
-                    <Text style={styles.daLocText}>
-                      {t("driveAssist.lastLocation")}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </>
-          );
-        })()}
+              {/* Standby — aktif görev yok */}
+              {driveAssist && !driveAssist.activeTask && !driveAssist.traffic && !driveAssist.weather ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
+                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
+                    {t("driveAssist.standbySub")}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
 
-                {/* ── Language Modal ── */}
+            <Text style={styles.daTapHint}>{t("driveAssist.tapToSpeak")}</Text>
+          </TouchableOpacity>
+        </Card>
+
+        {/* ── Language Modal ── */}
         <Modal
           visible={langModalVisible}
           transparent

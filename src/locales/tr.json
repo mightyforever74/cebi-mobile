@@ -80,7 +80,7 @@
     "supportMessage": "Yardıma mı ihtiyacınız var?",
     "sendEmail": "E-posta Gönder",
     "aboutTitle": "TulipFleet Hakkında",
-    "aboutMessage": "TulipFleet v1.0.0 Filo Yönetim Sistemi © 2025 TulipFleet Tüm hakları saklıdır.",
+    "aboutMessage": "TulipFleet v2.0.5\n\nFilo Yönetim Sistemi\n© 2026 TulipFleet\n\nTüm hakları saklıdır.",
     "ok": "Tamam"
   },
   "auth": {
@@ -469,7 +469,12 @@
     "totalDistance": "Toplam Mesafe",
     "avgScore": "Ort. Puan",
     "activeTasksCount": "Aktif",
-    "fuelEntry": "Yakıt Girişi"
+    "fuelEntry": "Yakıt Girişi",
+    "todayKm": "Bugün KM",
+    "monthKm": "Bu Ay KM",
+    "trafficClear": "Akıcı",
+    "loading": "Yükleniyor",
+    "dataUnavailable": "Veri yok"
   },
   "tasks": {
     "title": "Görevlerim",
@@ -1863,34 +1868,12 @@
     "activeZones": "aktif",
     "tapEditToManage": "Bölgeleri yönetmek için düzenle"
   },
-  "editProfile": {
-    "title": "Profili Düzenle",
-    "changePhoto": "Fotoğraf Değiştir",
-    "email": "E-posta",
-    "emailReadonly": "E-posta adresi değiştirilemez",
-    "firstName": "Ad",
-    "firstNamePlaceholder": "Adınızı girin",
-    "lastName": "Soyad",
-    "lastNamePlaceholder": "Soyadınızı girin",
-    "phone": "Telefon",
-    "save": "Kaydet",
-    "cancel": "İptal",
-    "saveSuccess": "Profil güncellendi",
-    "saveError": "Profil güncellenemedi"
-  },
-  "changePassword": {
-    "title": "Şifre Değiştir",
-    "hint": "Güvenliğiniz için güçlü bir şifre kullanın",
-    "currentPassword": "Mevcut Şifre",
-    "currentPlaceholder": "Mevcut şifrenizi girin",
-    "newPassword": "Yeni Şifre",
-    "newPlaceholder": "Yeni şifrenizi girin",
-    "confirmPassword": "Şifre Tekrar",
-    "confirmPlaceholder": "Yeni şifrenizi tekrar girin",
-    "submit": "Şifreyi Değiştir",
-    "success": "Şifre başarıyla değiştirildi",
-    "error": "Şifre değiştirilemedi",
-    "mismatch": "Şifreler eşleşmiyor",
-    "tooShort": "Şifre en az 6 karakter olmalı"
+  "driveAssist": {
+    "title": "Sürüş Asistanı",
+    "standbySub": "Görev geldiğinde rota bilgisi burada",
+    "tapToSpeak": "Sesli okumak için dokun",
+    "speechTraffic": "{{route}} güzergahında {{delay}} dakika gecikme var",
+    "speechWind": "Dikkat, rüzgar hızı saatte {{kmh}} kilometre",
+    "speechAllClear": "Güzergahında trafik veya hava sorunu bulunmuyor"
   }
 }
