@@ -32,6 +32,7 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
+import * as Speech from "expo-speech";
 
 // ─────────────────────────────────────────────
 // FUEL TYPE LABELS (i18n fallback)
