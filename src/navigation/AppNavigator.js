@@ -740,6 +740,7 @@ const ProfileStack = () => (
     <Stack.Screen name="ProfileMain" component={DriverProfile} />
     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+    <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
   </Stack.Navigator>
 );
 
