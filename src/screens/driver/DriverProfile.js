@@ -1,5 +1,5 @@
-// src/screens/driver/DriverProfile.js
-// TulipFleet - Sürücü Profil Ekranı
+﻿// src/screens/driver/DriverProfile.js
+// TulipFleet - SÃ¼rÃ¼cÃ¼ Profil EkranÄ±
 // Updated: 22 Ocak 2026 - Dark Mode Migration
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,10 +19,10 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 
-// ❌ KALDIRILDI: Local COLORS objesi
+// âŒ KALDIRILDI: Local COLORS objesi
 
 // ============================================
-// makeStyles - BÜYÜK HARF TOKEN'LAR
+// makeStyles - BÃœYÃœK HARF TOKEN'LAR
 // ============================================
 const makeStyles = (COLORS) =>
   StyleSheet.create({
@@ -197,7 +197,7 @@ const DriverProfile = ({ navigation }) => {
   const [locationEnabled, setLocationEnabled] = useState(true);
 
   // ============================================
-  // Nested Components (COLORS erişimi için içeride)
+  // Nested Components (COLORS eriÅŸimi iÃ§in iÃ§eride)
   // ============================================
 
   // Setting Item Component
@@ -339,12 +339,6 @@ const DriverProfile = ({ navigation }) => {
           value="0"
           label={t("profile.totalKm")}
         />
-        <StatCard
-          icon="star"
-          iconColor={COLORS.WARNING}
-          value="-"
-          label={t("profile.score")}
-        />
       </View>
 
       {/* Account Settings */}
@@ -445,12 +439,12 @@ const DriverProfile = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
+        <Text style={styles.footerSubtext}>Â© 2025 TulipFleet</Text>
       </View>
     </ScrollView>
   );
 };
 
-// ❌ ESKİ StyleSheet SİLİNDİ - artık makeStyles kullanılıyor
+// âŒ ESKÄ° StyleSheet SÄ°LÄ°NDÄ° - artÄ±k makeStyles kullanÄ±lÄ±yor
 
 export default DriverProfile;
