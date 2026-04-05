@@ -584,15 +584,12 @@ const DriverDashboard = () => {
   const fetchDriveAssist = useCallback(async (activeTask, vehicle) => {
     setAssistLoading(true);
     try {
-      const [trafficRes, weatherRes] = await Promise.allSettled([
-        driverAPI.getRouteTraffic(activeTask),
-        driverAPI.getRouteWeather(activeTask),
-      ]);
+      const res = await driverAPI.getDriveConditions();
       setDriveAssist({
         activeTask,
         vehicle,
-        traffic: trafficRes.status === 'fulfilled' ? trafficRes.value : null,
-        weather: weatherRes.status === 'fulfilled' ? weatherRes.value : null,
+        traffic: res.traffic || null,
+        weather: res.weather || null,
       });
     } catch (err) {
       console.error('[DriveAssist] error:', err);
