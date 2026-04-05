@@ -1,6 +1,6 @@
-// src/screens/driver/DriverRouteMapScreen.js
+﻿// src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 19 Şubat 2026 - UTF-8 cleanup, smart down sample, route fixes
+// Updated: 19 Åubat 2026 - UTF-8 cleanup, smart down sample, route fixes
 // Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
 
 import { Ionicons } from "@expo/vector-icons";
@@ -25,9 +25,9 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 
-// Google Maps API Key — .env veya app.config.js üzerinden alınmalı
-// EXPO_PUBLIC_ prefix'i ile Expo'da erişilebilir
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taşı, fallback kaldır
+// Google Maps API Key â€” .env veya app.config.js Ã¼zerinden alÄ±nmalÄ±
+// EXPO_PUBLIC_ prefix'i ile Expo'da eriÅŸilebilir
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taÅŸÄ±, fallback kaldÄ±r
 
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
@@ -415,7 +415,7 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
 
-    // Waypoints Panel placement (compactBottomBar kaldırıldı, bottom azaltıldı)
+    // Waypoints Panel placement (compactBottomBar kaldÄ±rÄ±ldÄ±, bottom azaltÄ±ldÄ±)
     waypointsPanel: {
       position: "absolute",
       bottom: 16,
@@ -791,12 +791,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const res = await vehicleAPI.getLatestLocation(vehicleId);
       // Normalize response: backend may return { location: {...} } or raw coords
       const loc = res?.location || res?.data || res;
-      if (loc && loc.latitude && loc.longitude) {
-        setLocation({
-          latitude: parseFloat(loc.latitude),
-          longitude: parseFloat(loc.longitude),
-        });
-        if (loc.heading !== undefined && loc.heading !== null)
+      const coords = normalizeCoords(loc);
+      if (coords) {
+        setLocation(coords);
+        if (loc?.heading !== undefined && loc?.heading !== null)
           setHeading(parseFloat(loc.heading) || 0);
       } else {
         setLocationError(t("routeMap.locationNotAvailable"));
@@ -914,7 +912,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       `[Nav] Smart downsample: ${points.length} -> ${result.length} points (eps=${eps.toFixed(6)})`
     );
 
-    // Guard: RDP cok agresif sadeleştiyse orijinal noktalara geri don
+    // Guard: RDP cok agresif sadeleÅŸtiyse orijinal noktalara geri don
     if (result.length < 50)
       return points.slice(0, Math.min(points.length, maxPoints));
 
@@ -1167,11 +1165,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           if (!vehicleId) return;
           const res = await vehicleAPI.getLatestLocation(vehicleId);
           const loc = res?.location || res?.data || res;
-          if (loc && loc.latitude && loc.longitude) {
-            const coords = {
-              latitude: parseFloat(loc.latitude),
-              longitude: parseFloat(loc.longitude),
-            };
+          const coords = normalizeCoords(loc);
+          if (coords) {
 
             // Smooth marker animation: slide instead of teleport
             if (markerRef.current && Platform.OS === "android") {
@@ -1695,7 +1690,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* compactBottomBar kaldırıldı - km/dk/Tamamla WaypointsPanel.infoBar'a taşındı */}
+      {/* compactBottomBar kaldÄ±rÄ±ldÄ± - km/dk/Tamamla WaypointsPanel.infoBar'a taÅŸÄ±ndÄ± */}
 
       {/* PENDING REVIEW BANNER */}
       {isPendingReview && location && (
@@ -1706,7 +1701,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           <View style={styles.pendingTextContainer}>
             <Text style={styles.pendingTitle}>{t("routeMap.pendingTask")}</Text>
             <Text style={styles.pendingSubtitle}>
-              {task.title || t("routeMap.newTaskOffer")} •{" "}
+              {task.title || t("routeMap.newTaskOffer")} â€¢{" "}
               {getDistance() ? `${getDistance()} km` : ""}
             </Text>
           </View>
@@ -1824,3 +1819,4 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 };
 
 export default DriverRouteMapScreen;
+
