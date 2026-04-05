@@ -672,6 +672,21 @@ export const driverAPI = {
     const response = await api.get(`/api/driver/tasks/${taskId}/events`);
     return response.data;
   },
+  // Drive Conditions - aggregation endpoint
+  getDriveConditions: async () => {
+    const response = await api.get("/api/driver/drive-conditions");
+    return response.data;
+  },
+
+  getRouteTraffic: async () => {
+    const response = await api.get("/api/driver/route-traffic");
+    return response.data;
+  },
+
+  getRouteWeather: async () => {
+    const response = await api.get("/api/driver/route-weather");
+    return response.data;
+  },
 };
 
 // ============================================
