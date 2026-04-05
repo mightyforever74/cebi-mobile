@@ -1,6 +1,6 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 19 ubat 2026 - UTF-8 cleanup, smart downsample, route fixes
+// Updated: 19 Şubat 2026 - UTF-8 cleanup, smart down sample, route fixes
 // Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
 
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -21,12 +20,14 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
+import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 
-// Google Maps API Key
-const GOOGLE_MAPS_API_KEY = "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk";
+// Google Maps API Key — .env veya app.config.js üzerinden alınmalı
+// EXPO_PUBLIC_ prefix'i ile Expo'da erişilebilir
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taşı, fallback kaldır
 
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
@@ -59,14 +60,14 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.BACKGROUND,
     },
     loadingText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     errorText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: COLORS.SPACING.md,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
       paddingHorizontal: 30,
@@ -75,16 +76,16 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.PRIMARY,
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 10,
+      paddingHorizontal: COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
       marginTop: 20,
-      gap: 8,
+      // gap removed
     },
     retryBtnText: {
       color: COLORS.WHITE,
-      fontWeight: "600",
-      fontSize: 14,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
     },
 
     // Header Buttons
@@ -94,30 +95,24 @@ const makeStyles = (COLORS) =>
       left: 16,
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
       elevation: 4,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      ...COLORS.SHADOWS.card,
     },
     headerBtn: {
       position: "absolute",
       top: 50,
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
       elevation: 4,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      ...COLORS.SHADOWS.card,
     },
     centerBtn: {
       right: 16,
@@ -139,7 +134,7 @@ const makeStyles = (COLORS) =>
     locationMarker: {
       backgroundColor: COLORS.PRIMARY,
       padding: 8,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       borderWidth: 3,
       borderColor: COLORS.WHITE,
       elevation: 4,
@@ -151,7 +146,7 @@ const makeStyles = (COLORS) =>
     navMarkerOuter: {
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: COLORS.RADIUS.xxl,
       backgroundColor: COLORS.PRIMARY + "33", // 0.2 opacity
       alignItems: "center",
       justifyContent: "center",
@@ -159,7 +154,7 @@ const makeStyles = (COLORS) =>
     navMarkerInner: {
       width: 36,
       height: 36,
-      borderRadius: 18,
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
       justifyContent: "center",
@@ -180,8 +175,8 @@ const makeStyles = (COLORS) =>
     },
     destinationMarker: {
       backgroundColor: COLORS.ERROR,
-      padding: 10,
-      borderRadius: 20,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xl,
       borderWidth: 3,
       borderColor: COLORS.WHITE,
       elevation: 4,
@@ -196,29 +191,26 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.CARD,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 16,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.lg,
       elevation: 8,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
+      ...COLORS.SHADOWS.card,
     },
     compactItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      // gap removed
     },
     compactValue: {
       color: COLORS.TEXT,
-      fontSize: 15,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
     compactTaskNo: {
       color: COLORS.PRIMARY,
-      fontSize: 13,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
     compactDivider: {
       width: 1,
@@ -230,7 +222,7 @@ const makeStyles = (COLORS) =>
       marginLeft: "auto",
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: COLORS.RADIUS.xxl,
       backgroundColor: COLORS.SUCCESS,
       alignItems: "center",
       justifyContent: "center",
@@ -247,14 +239,14 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
-      padding: 10,
-      borderRadius: 10,
-      gap: 8,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed
     },
     routeLoadingText: {
       color: COLORS.WHITE,
-      fontSize: 13,
-      fontWeight: "500",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
 
     // Pending Review Banner
@@ -266,46 +258,43 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SURFACE,
-      padding: 16,
-      borderRadius: 16,
+      padding: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.lg,
       elevation: 6,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.15,
-      shadowRadius: 6,
+      ...COLORS.SHADOWS.card,
       borderLeftWidth: 4,
       borderLeftColor: COLORS.WARNING,
     },
     pendingIconContainer: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.INPUT_ERROR,
       alignItems: "center",
       justifyContent: "center",
     },
     pendingTextContainer: {
       flex: 1,
-      marginLeft: 12,
+      marginLeft: COLORS.SPACING.sm,
     },
     pendingTitle: {
-      fontSize: 15,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
     },
     pendingSubtitle: {
-      fontSize: 12,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
       marginTop: 2,
     },
     pendingActions: {
       flexDirection: "row",
-      gap: 8,
+      // gap removed
     },
     rejectBtn: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.INPUT_ERROR,
       alignItems: "center",
       justifyContent: "center",
@@ -313,7 +302,7 @@ const makeStyles = (COLORS) =>
     acceptBtn: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SUCCESS,
       alignItems: "center",
       justifyContent: "center",
@@ -326,113 +315,110 @@ const makeStyles = (COLORS) =>
       right: 16,
       bottom: 30,
       backgroundColor: COLORS.SURFACE,
-      borderRadius: 20,
-      padding: 20,
+      borderRadius: COLORS.RADIUS.xl,
+      padding: COLORS.SPACING.lg,
       elevation: 8,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
+      ...COLORS.SHADOWS.card,
     },
     taskHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
-      marginBottom: 16,
+      marginBottom: COLORS.SPACING.md,
     },
     taskCode: {
-      fontSize: 12,
-      color: COLORS.PRIMARY,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      color: COLORS.MUTED,
+      fontWeight: COLORS.TYPOGRAPHY.weights.normal,
+      marginTop: 2,
     },
     taskTitle: {
-      fontSize: 18,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.xl,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT,
-      marginTop: 4,
     },
     statusBadge: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SECONDARY,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 20,
-      gap: 4,
+      paddingHorizontal: COLORS.SPACING.sm,
+      paddingVertical: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.xl,
+      // gap removed
     },
     statusText: {
-      fontSize: 11,
-      fontWeight: "600",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
     },
     locationsContainer: {
       backgroundColor: COLORS.BACKGROUND,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 12,
+      borderRadius: COLORS.RADIUS.md,
+      padding: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
     },
     locationRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      gap: 12,
+      // gap removed
     },
     locationDot: {
       width: 12,
       height: 12,
-      borderRadius: 6,
-      marginTop: 4,
+      borderRadius: COLORS.RADIUS.sm,
+      marginTop: COLORS.SPACING.xs,
     },
     locationLine: {
       width: 2,
       height: 16,
       backgroundColor: COLORS.DIVIDER,
-      marginLeft: 5,
+      marginLeft: COLORS.SPACING.xs,
       marginVertical: 4,
     },
     locationInfo: {
       flex: 1,
     },
     locationLabel: {
-      fontSize: 11,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     locationText: {
-      fontSize: 14,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT,
       marginTop: 2,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     distanceContainer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      marginBottom: 16,
+      // gap removed
+      marginBottom: COLORS.SPACING.md,
     },
     distanceText: {
-      fontSize: 13,
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
       color: COLORS.TEXT_SECONDARY,
-      fontWeight: "500",
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
     },
     startBtn: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: COLORS.PRIMARY,
-      paddingVertical: 14,
-      borderRadius: 12,
-      gap: 8,
+      paddingVertical: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.md,
+      // gap removed
     },
     startBtnText: {
       color: COLORS.WHITE,
-      fontWeight: "700",
-      fontSize: 16,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      fontSize: COLORS.TYPOGRAPHY.sizes.lg,
     },
 
-    // Waypoints Panel placement
+    // Waypoints Panel placement (compactBottomBar kaldırıldı, bottom azaltıldı)
     waypointsPanel: {
       position: "absolute",
-      bottom: 100,
+      bottom: 16,
       left: 0,
       right: 0,
     },
@@ -441,17 +427,13 @@ const makeStyles = (COLORS) =>
     waypointMarker: {
       width: 28,
       height: 28,
-      borderRadius: 14,
+      borderRadius: COLORS.RADIUS.lg,
       backgroundColor: COLORS.MUTED,
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 2,
       borderColor: COLORS.WHITE,
-      shadowColor: COLORS.SHADOW,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
+      ...COLORS.SHADOWS.card,
     },
     waypointCompleted: {
       backgroundColor: COLORS.SUCCESS,
@@ -462,8 +444,8 @@ const makeStyles = (COLORS) =>
     },
     waypointMarkerText: {
       color: COLORS.WHITE,
-      fontSize: 12,
-      fontWeight: "700",
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
     },
   });
 
@@ -474,7 +456,29 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const styles = useThemedStyles(makeStyles);
-  const { COLORS } = useTheme();
+  const { COLORS, isDark } = useTheme();
+
+  // Google Maps dark mode style
+  const darkMapStyle = isDark ? [
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+    { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+    { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+    { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
+  ] : [];
 
   // 1) normalizeCoords
   const normalizeCoords = useCallback((c) => {
@@ -767,8 +771,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       // Resolve vehicle id: prefer task.vehicle_id, fallback to driver's assigned vehicle
       const resolveVehicleId = async () => {
-        const paramTask = route?.params?.task;
-        if (paramTask?.vehicle_id) return paramTask.vehicle_id;
         if (task?.vehicle_id) return task.vehicle_id;
         try {
           const resp = await driverAPI.getVehicle();
@@ -911,6 +913,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     console.log(
       `[Nav] Smart downsample: ${points.length} -> ${result.length} points (eps=${eps.toFixed(6)})`
     );
+
+    // Guard: RDP cok agresif sadeleştiyse orijinal noktalara geri don
+    if (result.length < 50)
+      return points.slice(0, Math.min(points.length, maxPoints));
+
     return result;
   };
 
@@ -941,7 +948,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       if (limitedWaypoints.length > 0) {
         const waypointStr = limitedWaypoints
-          .map((wp) => `via:${wp.latitude},${wp.longitude}`)
+          .map((wp) => `${wp.latitude},${wp.longitude}`)
           .join("|");
         url += `&waypoints=${encodeURIComponent(waypointStr)}`;
       }
@@ -964,7 +971,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         });
 
         if (stepCoords.length > 0) {
-          const sampled = downsampleRoute(stepCoords); // smart RDP downsample
+          const sampled = stepCoords; // downsample KAPALI - steps polyline zaten yol geometrisini birebir verir
           let totalDistance = 0;
           let totalDuration = 0;
           (route.legs || []).forEach((leg) => {
@@ -1107,7 +1114,15 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
         setTimeout(() => {
           if (mapRef.current && routeData.coordinates.length > 1) {
-            mapRef.current.fitToCoordinates(routeData.coordinates, {
+            // fitToCoordinates icin max 200 nokta (crash engelle)
+            const fitCoords =
+              routeData.coordinates.length > 200
+                ? routeData.coordinates.filter(
+                    (_, i) =>
+                      i % Math.ceil(routeData.coordinates.length / 200) === 0
+                  )
+                : routeData.coordinates;
+            mapRef.current.fitToCoordinates(fitCoords, {
               edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
               animated: true,
             });
@@ -1144,10 +1159,11 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       // Polling function that fetches latest location from backend
       const pollLocation = async () => {
         try {
-          const vehicleId =
-            task?.vehicle_id ||
-            (await driverAPI.getVehicle())?.vehicle?.id ||
-            (await driverAPI.getVehicle())?.id;
+          let vehicleId = task?.vehicle_id;
+          if (!vehicleId) {
+            const vehicleResp = await driverAPI.getVehicle();
+            vehicleId = vehicleResp?.vehicle?.id || vehicleResp?.id;
+          }
           if (!vehicleId) return;
           const res = await vehicleAPI.getLatestLocation(vehicleId);
           const loc = res?.location || res?.data || res;
@@ -1399,60 +1415,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return geocodedDestination;
   };
 
-  // Open destination in external maps app (Apple Maps / Google Maps)
-  const openInExternalMaps = () => {
-    const dest = getEndLocationCoords();
-    if (!dest) return;
-
-    const { latitude, longitude } = dest;
-    const label = task?.end_location || task?.title || "Destination";
-
-    if (Platform.OS === "ios") {
-      // iOS: offer Apple Maps and Google Maps
-      Alert.alert(
-        t("routeMap.openInMaps") || "Open in Maps",
-        t("routeMap.chooseMapApp") || "Choose navigation app",
-        [
-          {
-            text: "Apple Maps",
-            onPress: () => {
-              const url = `maps:?daddr=${latitude},${longitude}&dirflg=d`;
-              Linking.openURL(url);
-            },
-          },
-          {
-            text: "Google Maps",
-            onPress: () => {
-              const url = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=driving`;
-              Linking.canOpenURL(url).then((supported) => {
-                if (supported) {
-                  Linking.openURL(url);
-                } else {
-                  Linking.openURL(
-                    `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`
-                  );
-                }
-              });
-            },
-          },
-          { text: t("common.cancel") || "Cancel", style: "cancel" },
-        ]
-      );
-    } else {
-      // Android: Google Maps direct
-      const url = `google.navigation:q=${latitude},${longitude}`;
-      Linking.canOpenURL(url).then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Linking.openURL(
-            `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`
-          );
-        }
-      });
-    }
-  };
-
   const getDistance = () => {
     if (task?.route_json?.distance) return task.route_json.distance;
     if (task?.total_distance_km) return task.total_distance_km;
@@ -1543,8 +1505,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       {location ? (
         <MapView
           ref={mapRef}
-          provider={Platform.OS === "ios" ? undefined : PROVIDER_GOOGLE}
+          provider={PROVIDER_GOOGLE}
           style={StyleSheet.absoluteFillObject}
+          customMapStyle={darkMapStyle}
+          showsBuildings={!isDark}
           initialRegion={{
             latitude: location.latitude,
             longitude: location.longitude,
@@ -1576,30 +1540,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               Alert.alert(t("routeMap.coordinateCopied"), coords);
             }}
           >
-            {isNavigating ? (
-              <View style={styles.navMarkerContainer}>
-                <View style={styles.navMarkerOuter}>
-                  <View style={styles.navMarkerInner}>
-                    <View style={styles.navArrow} />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.locationMarker}>
-                <Ionicons name="navigate" size={20} color={COLORS.WHITE} />
-              </View>
-            )}
+            <NavMarker color={COLORS.PRIMARY} />
           </Marker>
 
           {/* Destination Marker */}
           {isNavigating && getEndLocationCoords() && (
             <Marker
               coordinate={getEndLocationCoords()}
-              title={t("routeMap.target")}
+              anchor={{ x: 0.5, y: 1 }}
             >
-              <View style={styles.destinationMarker}>
-                <Ionicons name="flag" size={20} color={COLORS.WHITE} />
-              </View>
+              <DestinationMarker label={t("routeMap.target")} />
             </Marker>
           )}
 
@@ -1665,7 +1615,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* Waypoints Panel - Collapsible */}
-      {Array.isArray(waypoints) && waypoints.length > 0 && (
+      {(origin ||
+        destination ||
+        (Array.isArray(waypoints) && waypoints.length > 0)) && (
         <WaypointsPanel
           waypoints={waypoints}
           currentWaypointIndex={currentWaypointIndex}
@@ -1677,6 +1629,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             destination && handleWaypointPress(destination, -1)
           }
           onWaypointComplete={handleWaypointComplete}
+          distance={
+            isNavigating && navigationInfo ? navigationInfo.distance : null
+          }
+          duration={isNavigating && navigationInfo ? navigationInfo.eta : null}
+          onComplete={isNavigating ? handleCompleteTask : null}
+          actionLoading={actionLoading}
           style={styles.waypointsPanel}
         />
       )}
@@ -1711,41 +1669,20 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
       {/* Follow Mode Toggle */}
       {isNavigating && (
-        <View
-          style={{
-            position: "absolute",
-            top: 60,
-            right: 16,
-            flexDirection: "column",
-            gap: 8,
-          }}
+        <TouchableOpacity
+          style={[
+            styles.headerBtn,
+            styles.followBtn,
+            followMode && styles.followBtnActive,
+          ]}
+          onPress={() => setFollowMode(!followMode)}
         >
-          <TouchableOpacity
-            style={[
-              styles.headerBtn,
-              styles.followBtn,
-              followMode && styles.followBtnActive,
-            ]}
-            onPress={() => setFollowMode(!followMode)}
-          >
-            <Ionicons
-              name={followMode ? "navigate" : "navigate-outline"}
-              size={22}
-              color={followMode ? COLORS.WHITE : COLORS.SUCCESS}
-            />
-          </TouchableOpacity>
-          {getEndLocationCoords() && (
-            <TouchableOpacity
-              style={[
-                styles.headerBtn,
-                { backgroundColor: COLORS.INFO || "#5E72E4" },
-              ]}
-              onPress={openInExternalMaps}
-            >
-              <Ionicons name="open-outline" size={22} color={COLORS.WHITE} />
-            </TouchableOpacity>
-          )}
-        </View>
+          <Ionicons
+            name={followMode ? "navigate" : "navigate-outline"}
+            size={22}
+            color={followMode ? COLORS.WHITE : COLORS.SUCCESS}
+          />
+        </TouchableOpacity>
       )}
 
       {/* Route Loading Indicator */}
@@ -1758,48 +1695,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* COMPACT BOTTOM BAR - in_progress (navInfo + Tamamla) */}
-      {isNavigating && navigationInfo && (
-        <View style={styles.compactBottomBar}>
-          {/* Distance */}
-          <View style={styles.compactItem}>
-            <Ionicons name="speedometer" size={18} color={COLORS.MUTED} />
-            <Text style={styles.compactValue}>
-              {navigationInfo.distance} km
-            </Text>
-          </View>
-
-          <View style={styles.compactDivider} />
-
-          {/* ETA */}
-          <View style={styles.compactItem}>
-            <Ionicons name="time" size={18} color={COLORS.MUTED} />
-            <Text style={styles.compactValue}>
-              {navigationInfo.eta} {t("routeMap.min")}
-            </Text>
-          </View>
-
-          <View style={styles.compactDivider} />
-
-          {/* Task No */}
-          <View style={styles.compactItem}>
-            <Text style={styles.compactTaskNo}>{getShortTaskNo()}</Text>
-          </View>
-
-          {/* Complete Button */}
-          <TouchableOpacity
-            style={styles.compactCompleteBtn}
-            onPress={handleCompleteTask}
-            disabled={actionLoading}
-          >
-            {actionLoading ? (
-              <ActivityIndicator size="small" color={COLORS.WHITE} />
-            ) : (
-              <Ionicons name="checkmark" size={24} color={COLORS.WHITE} />
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* compactBottomBar kaldırıldı - km/dk/Tamamla WaypointsPanel.infoBar'a taşındı */}
 
       {/* PENDING REVIEW BANNER */}
       {isPendingReview && location && (
@@ -1842,10 +1738,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         <View style={styles.taskCard}>
           <View style={styles.taskHeader}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
               <Text style={styles.taskTitle} numberOfLines={1}>
                 {task.title || t("routeMap.deliveryTask")}
               </Text>
+              <Text style={styles.taskCode}>{getShortTaskNo()}</Text>
             </View>
             <View style={styles.statusBadge}>
               <Ionicons
