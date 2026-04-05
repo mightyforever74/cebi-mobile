@@ -426,7 +426,7 @@ const DriverProfile = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("profile.about")}
-          subtitle={`${t("profile.version")} 1.0.0`}
+          subtitle={`${t("profile.version")} 2.0.5`}
           onPress={handleAbout}
         />
       </View>
