@@ -283,7 +283,9 @@
     "deviceNotFound": "Dispositivo no encontrado",
     "enterSerial": "Número de serie del dispositivo",
     "enterSerialMessage": "Enter the serial number from QR code (e.g., TF-2025-00008-5)",
-    "serialEmpty": "Serial number cannot be empty"
+    "serialEmpty": "Serial number cannot be empty",
+    "todayKm": "Hoy KM",
+    "monthKm": "Este mes KM"
   },
   "task": {
     "title": "Gestión de tareas",

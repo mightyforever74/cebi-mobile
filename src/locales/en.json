@@ -424,7 +424,9 @@
     "totalDistance": "Total Distance",
     "avgScore": "Avg Score",
     "activeTasksCount": "Active",
-    "fuelEntry": "Fuel Entry"
+    "fuelEntry": "Fuel Entry",
+    "todayKm": "Today KM",
+    "monthKm": "This Month KM"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",

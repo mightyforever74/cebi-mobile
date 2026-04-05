@@ -98,7 +98,9 @@
     "totalDistance": "Dûrahiya Giştî",
     "avgScore": "Puanta Navîn",
     "activeTasksCount": "Peywirên Çalak",
-    "fuelEntry": "Têkeve Sotemenî"
+    "fuelEntry": "Têkeve Sotemenî",
+    "todayKm": "Îro KM",
+    "monthKm": "Vê mehê KM"
   },
   "profile": {
     "title": "Profîl",

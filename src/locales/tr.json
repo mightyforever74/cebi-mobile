@@ -469,7 +469,9 @@
     "totalDistance": "Toplam Mesafe",
     "avgScore": "Ort. Puan",
     "activeTasksCount": "Aktif",
-    "fuelEntry": "Yakıt Girişi"
+    "fuelEntry": "Yakıt Girişi",
+    "todayKm": "Bugün KM",
+    "monthKm": "Bu Ay KM"
   },
   "tasks": {
     "title": "Görevlerim",

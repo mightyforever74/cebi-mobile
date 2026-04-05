@@ -227,6 +227,36 @@ const makeStyles = (COLORS) =>
       marginHorizontal: COLORS.SPACING.sm,
     },
 
+    // ── Device Status Lamps (GPS + WiFi) ──
+    deviceStatusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: COLORS.SPACING.sm,
+      paddingTop: COLORS.SPACING.sm,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.BORDER,
+      gap: COLORS.SPACING.sm,
+    },
+    deviceStatusLamp: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: COLORS.BACKGROUND,
+      borderRadius: COLORS.RADIUS.sm,
+      paddingVertical: 7,
+      paddingHorizontal: 10,
+      gap: 6,
+    },
+    deviceStatusDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+    },
+    deviceStatusLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+    },
+
     // ── Task card ──
     taskCard: {
       backgroundColor: COLORS.BACKGROUND,
@@ -735,6 +765,41 @@ const DriverDashboard = () => {
                   </Text>
                 </View>
               </View>
+
+              {/* ── Device Status Lamps ── */}
+              {(() => {
+                const wifiOk = !!vehicle.esp32_connected;
+                const gpsOk =
+                  vehicle.last_gps_lat != null && vehicle.last_gps_lat !== 0;
+                const wifiColor = wifiOk ? "#2196F3" : COLORS.MUTED;
+                const wifiIcon = wifiOk ? "wifi" : "wifi-outline";
+                const wifiStatus = wifiOk ? "✓" : "—";
+                const gpsColor = gpsOk
+                  ? COLORS.SUCCESS
+                  : wifiOk
+                  ? COLORS.ERROR
+                  : COLORS.MUTED;
+                const gpsIcon = gpsOk ? "location" : "location-outline";
+                const gpsStatus = gpsOk ? "✓" : wifiOk ? "✗" : "—";
+                return (
+                  <View style={styles.deviceStatusRow}>
+                    <View style={styles.deviceStatusLamp}>
+                      <Ionicons name={wifiIcon} size={15} color={wifiColor} />
+                      <View style={[styles.deviceStatusDot, { backgroundColor: wifiColor }]} />
+                      <Text style={[styles.deviceStatusLabel, { color: wifiColor }]}>
+                        WiFi {wifiStatus}
+                      </Text>
+                    </View>
+                    <View style={styles.deviceStatusLamp}>
+                      <Ionicons name={gpsIcon} size={15} color={gpsColor} />
+                      <View style={[styles.deviceStatusDot, { backgroundColor: gpsColor }]} />
+                      <Text style={[styles.deviceStatusLabel, { color: gpsColor }]}>
+                        GPS {gpsStatus}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })()}
             </Card>
           </TouchableOpacity>
         ) : (
@@ -824,16 +889,16 @@ const DriverDashboard = () => {
             />
             <StatCard
               compact
-              icon="navigate-outline"
-              label={t("dashboard.activeTasksCount")}
-              value={stats?.active_tasks || 0}
+              icon="today-outline"
+              label={t("dashboard.todayKm")}
+              value={formatKm(stats?.today_km)}
               colorToken="INFO"
             />
             <StatCard
               compact
-              icon="speedometer-outline"
-              label={t("dashboard.totalKm")}
-              value={formatKm(stats?.total_km)}
+              icon="calendar-outline"
+              label={t("dashboard.monthKm")}
+              value={formatKm(stats?.month_km)}
               colorToken="PRIMARY"
             />
           </View>

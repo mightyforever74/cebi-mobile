@@ -489,7 +489,9 @@
     "enterSerialMessage": "Voer het serienummer van de QR-code in (bijv. TF-2025-00008-5)",
     "serialEmpty": "Serienummer mag niet leeg zijn",
     "deviceNotFound": "Apparaat niet gevonden",
-    "deviceCheckFailed": "Apparaatcontrole mislukt"
+    "deviceCheckFailed": "Apparaatcontrole mislukt",
+    "todayKm": "Vandaag KM",
+    "monthKm": "Deze Maand KM"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
