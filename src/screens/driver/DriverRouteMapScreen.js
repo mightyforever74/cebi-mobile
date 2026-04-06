@@ -1398,13 +1398,15 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   };
 
   const getStartLocation = () => {
-    if (task?.route_json?.origin) return task.route_json.origin;
+    // route_json.origin koordinat objesidir ({lat,lng}) — render edilemez
+    // Adres string'i icin start_location kullan
     if (task?.start_location) return task.start_location;
     return null;
   };
 
   const getEndLocation = () => {
-    if (task?.route_json?.destination) return task.route_json.destination;
+    // route_json.destination koordinat objesidir ({lat,lng}) — render edilemez
+    // Adres string'i icin end_location kullan
     if (task?.end_location) return task.end_location;
     return null;
   };
