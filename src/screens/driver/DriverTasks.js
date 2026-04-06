@@ -321,10 +321,19 @@ const DriverTasks = ({ navigation }) => {
   };
 
   // ── Derived data ──
+  // Tek arac / tek aktif gorev kurali:
+  // in_progress: ayni anda yalnizca 1 adet olabilir
+  // queued: accepted, pending, assigned, pending_review
+  const inProgressTask = tasks.find((t) => t.status === "in_progress");
+  const queuedTasks    = tasks.filter((t) =>
+    ["pending_review", "accepted", "pending", "assigned"].includes(t.status)
+  );
+
   const filteredTasks = activeTab === "completed"
     ? completedTasks
-    : tasks.filter((task) => ["pending_review","accepted","in_progress","pending","assigned"].includes(task.status || "pending"));
-  const activeCount        = tasks.filter((t) => ["pending_review","accepted","in_progress","pending","assigned"].includes(t.status)).length;
+    : [...(inProgressTask ? [inProgressTask] : []), ...queuedTasks];
+
+  const activeCount        = (inProgressTask ? 1 : 0) + queuedTasks.length;
   const completedCount     = completedTasks.length;
   const pendingReviewCount = tasks.filter((t) => t.status === "pending_review").length;
 
