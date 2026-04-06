@@ -1,8 +1,8 @@
-// src/screens/driver/DriverTasks.js
-// TulipFleet - Sürücü Görevlerim Ekranı
+﻿// src/screens/driver/DriverTasks.js
+// TulipFleet - SÃ¼rÃ¼cÃ¼ GÃ¶revlerim EkranÄ±
 // v3.0 - Phase 0 Regeneration: colorUtils, DataState (loading/error only)
-// NOT: statusBadge → StatusBadge değil — config.icon+color+bg esnekliği korunuyor
-// NOT: ActivityIndicator (buton içi) korunuyor — page-level loading → DataState
+// NOT: statusBadge â†’ StatusBadge deÄŸil â€” config.icon+color+bg esnekliÄŸi korunuyor
+// NOT: ActivityIndicator (buton iÃ§i) korunuyor â€” page-level loading â†’ DataState
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -24,9 +24,9 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { withAlpha } from "../../utils/colorUtils";
 import { driverTaskAPI, taskOffersAPI } from "../../services/api";
 
-// ─────────────────────────────────────────────
-// STATUS CONFIG — icon+color+bg esnekliği için StatusBadge kullanılmıyor
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// STATUS CONFIG â€” icon+color+bg esnekliÄŸi iÃ§in StatusBadge kullanÄ±lmÄ±yor
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const getStatusConfig = (COLORS) => ({
   pending_review: { color: COLORS.WARNING,  bg: COLORS.INPUT_ERROR,   icon: "notifications",   key: "pending_review" },
   accepted:       { color: COLORS.INFO,     bg: COLORS.SECONDARY,     icon: "checkmark-circle",key: "accepted"       },
@@ -38,21 +38,21 @@ const getStatusConfig = (COLORS) => ({
   cancelled:      { color: COLORS.ERROR,    bg: COLORS.INPUT_ERROR,   icon: "close-circle",    key: "cancelled"      },
 });
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CO2 / FUEL CONSTANTS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CO2_FACTORS      = { diesel:0.27, gasoline:0.23, petrol:0.23, lpg:0.21, electric:0.05, hybrid:0.15, default:0.25 };
 const FUEL_CONSUMPTION = { diesel:8.5,  gasoline:9.5,  petrol:9.5,  lpg:11.0, electric:0,    hybrid:5.5,  default:9.0  };
 
-// ─────────────────────────────────────────────
-// makeStyles — Phase 0 temizlenmiş
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// makeStyles â€” Phase 0 temizlenmiÅŸ
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container:   { flex: 1, backgroundColor: COLORS.BACKGROUND },
     listContent: { padding: COLORS.SPACING.md, paddingTop: 8 },
 
-    // ── Tabs ──
+    // â”€â”€ Tabs â”€â”€
     tabContainer: {
       flexDirection:    "row",
       backgroundColor:  COLORS.SURFACE,
@@ -70,7 +70,7 @@ const makeStyles = (COLORS) =>
     activeTabBadge:{ backgroundColor: withAlpha(COLORS.WHITE, 0.2) },
     tabBadgeText: { color: COLORS.WHITE, fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.bold },
 
-    // ── Analytics ──
+    // â”€â”€ Analytics â”€â”€
     analyticsContainer:  { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.lg, marginBottom: COLORS.SPACING.md, overflow: "hidden" },
     analyticsHeader:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: COLORS.SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.DIVIDER },
     analyticsHeaderLeft: { flexDirection: "row", alignItems: "center" },
@@ -108,13 +108,13 @@ const makeStyles = (COLORS) =>
     distanceItem:        { flexDirection: "row", alignItems: "center" },
     distanceText:        { fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_SECONDARY, fontWeight: COLORS.TYPOGRAPHY.weights.medium },
 
-    // ── Pending review alert ──
+    // â”€â”€ Pending review alert â”€â”€
     pendingReviewAlert:        { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.WARNING, borderRadius: COLORS.RADIUS.md, padding: 14, marginBottom: COLORS.SPACING.sm, borderLeftWidth: 4, borderLeftColor: COLORS.WARNING, opacity: 0.9 },
     pendingReviewAlertContent: { flex: 1, marginLeft: COLORS.SPACING.sm },
     pendingReviewAlertTitle:   { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.WHITE },
     pendingReviewAlertSubtitle:{ fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: withAlpha(COLORS.WHITE, 0.8), marginTop: 2 },
 
-    // ── Offers card ──
+    // â”€â”€ Offers card â”€â”€
     offersCard:          { backgroundColor: COLORS.PRIMARY, borderRadius: COLORS.RADIUS.md, marginBottom: COLORS.SPACING.md, padding: COLORS.SPACING.md, ...COLORS.SHADOWS.card },
     offersContent:       { flexDirection: "row", alignItems: "center" },
     offersIconContainer: { position: "relative", marginRight: 14 },
@@ -124,7 +124,7 @@ const makeStyles = (COLORS) =>
     offersTitle:         { fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.WHITE },
     offersSubtitle:      { fontSize: COLORS.TYPOGRAPHY.sizes.md, color: withAlpha(COLORS.WHITE, 0.8), marginTop: 2 },
 
-    // ── Task card ──
+    // â”€â”€ Task card â”€â”€
     card:              { backgroundColor: COLORS.CARD, borderRadius: COLORS.RADIUS.md, marginBottom: COLORS.SPACING.sm, ...COLORS.SHADOWS.card, overflow: "hidden" },
     cardPendingReview: { borderWidth: 2, borderColor: COLORS.WARNING },
     newTaskBanner:     { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: COLORS.WARNING, paddingVertical: COLORS.SPACING.xs },
@@ -133,7 +133,7 @@ const makeStyles = (COLORS) =>
     taskIdContainer:   { flexDirection: "row", alignItems: "center", flex: 1 },
     taskId:            { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginLeft: COLORS.SPACING.sm },
     completedDate:     { fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_SECONDARY, marginLeft: COLORS.SPACING.sm, backgroundColor: COLORS.BACKGROUND, paddingHorizontal: COLORS.SPACING.xs, paddingVertical: 2, borderRadius: COLORS.RADIUS.xs },
-    // statusBadge/statusText KORUNUYOR — config.icon+color+bg dinamik esneklik
+    // statusBadge/statusText KORUNUYOR â€” config.icon+color+bg dinamik esneklik
     statusBadge:       { flexDirection: "row", alignItems: "center", paddingHorizontal: COLORS.SPACING.sm, paddingVertical: 5, borderRadius: COLORS.RADIUS.sm },
     statusText:        { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold, marginLeft: 4 },
     cardBody:          { padding: 14 },
@@ -147,9 +147,9 @@ const makeStyles = (COLORS) =>
     metaItem:          { flexDirection: "row", alignItems: "center", marginRight: 15, marginTop: COLORS.SPACING.xs },
     metaText:          { fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_SECONDARY, marginLeft: 4 },
 
-    // ── Action buttons ──
+    // â”€â”€ Action buttons â”€â”€
     actionButtonsContainer: { borderTopWidth: 1, borderTopColor: COLORS.DIVIDER, padding: COLORS.SPACING.sm },
-    // loadingContainer KORUNUYOR — buton içi spinner wrapper
+    // loadingContainer KORUNUYOR â€” buton iÃ§i spinner wrapper
     loadingContainer:  { flexDirection: "row", alignItems: "center", justifyContent: "center" },
     loadingText:       { marginTop: COLORS.SPACING.sm, color: COLORS.TEXT_SECONDARY },
     actionButtons:     { flexDirection: "row" },
@@ -164,15 +164,15 @@ const makeStyles = (COLORS) =>
     withdrawButton:    { backgroundColor: COLORS.ERROR },
     acceptedButtonText:{ color: COLORS.WHITE, fontWeight: COLORS.TYPOGRAPHY.weights.bold, fontSize: COLORS.TYPOGRAPHY.sizes.md },
 
-    // ── Empty (FlatList ListEmptyComponent — DataState değil) ──
+    // â”€â”€ Empty (FlatList ListEmptyComponent â€” DataState deÄŸil) â”€â”€
     emptyContainer:{ flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 60, backgroundColor: COLORS.BACKGROUND },
     emptyTitle:    { fontSize: COLORS.TYPOGRAPHY.sizes.xl, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginTop: COLORS.SPACING.md },
     emptySubtitle: { fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT_SECONDARY, textAlign: "center", marginTop: COLORS.SPACING.sm, paddingHorizontal: COLORS.SPACING.lg },
   });
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // COMPONENT
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DriverTasks = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const styles      = useThemedStyles(makeStyles);
@@ -189,10 +189,10 @@ const DriverTasks = ({ navigation }) => {
   const [actionLoading,      setActionLoading]      = useState(null);
   const [expandedAnalytics,  setExpandedAnalytics]  = useState(false);
 
-  // ── Helpers ──
+  // â”€â”€ Helpers â”€â”€
   const navigateToMap = (task) => {
     if (!task?.vehicle_id) {
-      Alert.alert(t("tasks.noVehicleAssigned","Araç Atanmamış"), t("tasks.contactAdmin","Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin."), [{ text: t("common.ok","Tamam") }]);
+      Alert.alert(t("tasks.noVehicleAssigned","AraÃ§ AtanmamÄ±ÅŸ"), t("tasks.contactAdmin","Bu gÃ¶reve araÃ§ atanmamÄ±ÅŸ. LÃ¼tfen admin ile iletiÅŸime geÃ§in."), [{ text: t("common.ok","Tamam") }]);
       return;
     }
     navigation.navigate("Navigation", { task });
@@ -209,7 +209,7 @@ const DriverTasks = ({ navigation }) => {
   };
   const formatShortDate = (d) => d ? new Date(d).toLocaleDateString(getLocale(), { day:"2-digit", month:"short" }) : "-";
 
-  // ── Fetch ──
+  // â”€â”€ Fetch â”€â”€
   const fetchTasks = async () => {
     try {
       setError(null);
@@ -239,7 +239,7 @@ const DriverTasks = ({ navigation }) => {
   const onRefresh = useCallback(() => { setRefreshing(true); fetchTasks(); fetchPendingOffers(); }, [activeTab]);
   useEffect(() => { fetchTasks(); }, [activeTab]);
 
-  // ── Tab change ──
+  // â”€â”€ Tab change â”€â”€
   const handleTabChange = async (tab) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
@@ -256,7 +256,7 @@ const DriverTasks = ({ navigation }) => {
     finally { setLoading(false); }
   };
 
-  // ── Actions ──
+  // â”€â”€ Actions â”€â”€
   const handleAcceptTask = async (task) => {
     Alert.alert(t("tasks.acceptTask"), t("tasks.acceptTaskConfirm", { title: task.title || task.task_no }), [
       { text: t("tasks.cancel"), style: "cancel" },
@@ -267,7 +267,7 @@ const DriverTasks = ({ navigation }) => {
           try {
             await driverTaskAPI.acceptTask(task.id);
             setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: "accepted" } : t));
-            Alert.alert(`✅ ${t("tasks.taskAccepted")}`, t("tasks.wantToTrackOnMap"), [
+            Alert.alert(`âœ… ${t("tasks.taskAccepted")}`, t("tasks.wantToTrackOnMap"), [
               { text: t("tasks.yes"), onPress: () => navigateToMap({ ...task, status: "accepted" }) },
               { text: t("tasks.no"), style: "cancel", onPress: () => fetchTasks() },
             ]);
@@ -320,7 +320,7 @@ const DriverTasks = ({ navigation }) => {
     ]);
   };
 
-  // ── Derived data ──
+  // â”€â”€ Derived data â”€â”€
   // Tek arac / tek aktif gorev kurali:
   // in_progress: ayni anda yalnizca 1 adet olabilir
   // queued: accepted, pending, assigned, pending_review
@@ -337,7 +337,7 @@ const DriverTasks = ({ navigation }) => {
   const completedCount     = completedTasks.length;
   const pendingReviewCount = tasks.filter((t) => t.status === "pending_review").length;
 
-  // ── Analytics ──
+  // â”€â”€ Analytics â”€â”€
   const calculateAnalytics = () => {
     if (completedTasks.length === 0) return { totalTasks:0, totalKm:0, avgKm:0, maxKm:0, minKm:0, avgDurationMin:0, onTimeCount:0, lateCount:0, onTimePercent:100, latePercent:0, totalFuelL:0, avgFuelPer100km:0, totalCO2kg:0, avgCO2perKm:0, cityPercent:50, highwayPercent:50, safetyScore:0, hardBrakeCount:0, accidentCount:0, electricPercent:0, fossilPercent:0 };
     const distances = completedTasks.map((t) => getDistance(t)).filter((d) => d > 0);
@@ -389,7 +389,7 @@ const DriverTasks = ({ navigation }) => {
       totalCO2kg: totalCO2kg.toFixed(1),  avgCO2perKm: (avgCO2perKm*1000).toFixed(0),
       cityPercent: totalRouteKm > 0 ? ((cityKm/totalRouteKm)*100).toFixed(0) : 50,
       highwayPercent: totalRouteKm > 0 ? ((highwayKm/totalRouteKm)*100).toFixed(0) : 50,
-      safetyScore: 0, // TODO: gerçek DB hesabı (şu an random üretiyor — kaldırıldı)
+      safetyScore: 0, // TODO: gerÃ§ek DB hesabÄ± (ÅŸu an random Ã¼retiyor â€” kaldÄ±rÄ±ldÄ±)
       hardBrakeCount: Math.floor(completedTasks.length * 0.1),
       accidentCount: 0,
       electricPercent: totalET > 0 ? ((electricTasks/totalET)*100).toFixed(0) : 0,
@@ -398,7 +398,7 @@ const DriverTasks = ({ navigation }) => {
   };
   const analytics = calculateAnalytics();
 
-  // ── Render helpers ──
+  // â”€â”€ Render helpers â”€â”€
   const renderAnalyticsCards = () => {
     if (activeTab !== "completed" || completedTasks.length === 0) return null;
     return (
@@ -433,7 +433,7 @@ const DriverTasks = ({ navigation }) => {
                 <Ionicons name="leaf" size={22} color={COLORS.SUCCESS} />
               </View>
               <Text style={styles.summaryValue}>{analytics.totalCO2kg}</Text>
-              <Text style={styles.summaryLabel}>kg CO₂</Text>
+              <Text style={styles.summaryLabel}>kg COâ‚‚</Text>
             </View>
           </View>
         </View>
@@ -462,7 +462,7 @@ const DriverTasks = ({ navigation }) => {
               <View style={styles.sectionContent}>
                 <View style={styles.metricRow}>
                   <View style={styles.metricItem}><Text style={styles.metricValue}>{analytics.avgFuelPer100km} L</Text><Text style={styles.metricLabel}>/100km</Text></View>
-                  <View style={styles.metricItem}><Text style={styles.metricValue}>{analytics.avgCO2perKm} g</Text><Text style={styles.metricLabel}>CO₂/km</Text></View>
+                  <View style={styles.metricItem}><Text style={styles.metricValue}>{analytics.avgCO2perKm} g</Text><Text style={styles.metricLabel}>COâ‚‚/km</Text></View>
                   <View style={styles.metricItem}><Text style={styles.metricValue}>{analytics.totalFuelL} L</Text><Text style={styles.metricLabel}>{t("tasks.total")}</Text></View>
                 </View>
               </View>
@@ -589,7 +589,7 @@ const DriverTasks = ({ navigation }) => {
               <Text style={styles.taskId}>{getShortTaskNo()}</Text>
               {isCompleted && item.completed_at && <Text style={styles.completedDate}>{formatShortDate(item.completed_at)}</Text>}
             </View>
-            {/* statusBadge KORUNUYOR — config.icon+color+bg için */}
+            {/* statusBadge KORUNUYOR â€” config.icon+color+bg iÃ§in */}
             <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
               <Ionicons name={config.icon} size={12} color={config.color} />
               <Text style={[styles.statusText, { color: config.color }]}>{getStatusLabel(config.key)}</Text>
@@ -671,7 +671,7 @@ const DriverTasks = ({ navigation }) => {
   );
 
   return (
-    // DataState sadece page-level loading/error için — empty FlatList'e bırakıldı
+    // DataState sadece page-level loading/error iÃ§in â€” empty FlatList'e bÄ±rakÄ±ldÄ±
     <DataState
       loading={loading && !refreshing}
       error={error && !refreshing ? error : null}
@@ -679,7 +679,7 @@ const DriverTasks = ({ navigation }) => {
       retryLabel={t("tasks.retry")}
     >
       <View style={styles.container}>
-        {/* ── Tabs ── */}
+        {/* â”€â”€ Tabs â”€â”€ */}
         <View style={styles.tabContainer}>
           <TouchableOpacity style={[styles.tab, activeTab === "active" && styles.activeTab]} onPress={() => handleTabChange("active")}>
             <Text style={[styles.tabText, activeTab === "active" && styles.activeTabText]}>{t("tasks.active")}</Text>
@@ -715,3 +715,5 @@ const DriverTasks = ({ navigation }) => {
 };
 
 export default DriverTasks;
+
+
