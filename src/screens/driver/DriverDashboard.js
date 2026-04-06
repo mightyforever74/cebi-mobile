@@ -281,28 +281,46 @@ const makeStyles = (COLORS) =>
     daSpeakHint: {
       padding: COLORS.SPACING.xs,
     },
-    daAlertList: {
-      marginBottom: COLORS.SPACING.xs,
-    },
-    daAlertItem: {
+    // StatCard stili — alt alta iki satır
+    daRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: COLORS.SPACING.xs,
+      borderRadius: COLORS.RADIUS.lg,
+      padding: COLORS.SPACING.sm,
+      marginBottom: COLORS.SPACING.sm,
+      ...COLORS.SHADOWS.card,
     },
-    daAlertDot: {
-      width: 7,
-      height: 7,
-      borderRadius: COLORS.RADIUS.full,
+    daIconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: COLORS.RADIUS.md,
+      alignItems: "center",
+      justifyContent: "center",
       marginRight: COLORS.SPACING.sm,
-      flexShrink: 0,
     },
-    daAlertText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.md,
-      color: COLORS.TEXT,
+    daTextWrap: {
       flex: 1,
     },
+    daRowLabel: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      marginBottom: 2,
+      opacity: 0.7,
+    },
+    daRowValue: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      lineHeight: 20,
+    },
+    daRowSub: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      marginTop: 2,
+      opacity: 0.75,
+    },
     daTapHint: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
       textAlign: "center",
       marginTop: COLORS.SPACING.xs,
@@ -1004,71 +1022,56 @@ const DriverDashboard = () => {
               </View>
             </View>
 
-            {/* Uyarı satırları */}
-            <View style={styles.daAlertList}>
-              {/* Trafik */}
-              {driveAssist?.traffic?.delay_min > 0 ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.WARNING }]} />
-                  <Text style={styles.daAlertText} numberOfLines={1}>
-                    {driveAssist.traffic.route_label
-                      ? `${driveAssist.traffic.route_label} — `
-                      : ""}
-                    +{driveAssist.traffic.delay_min} {t("dashboard.minutesDelay")}
-                  </Text>
+            {/* ── İki modern yatay kutu ── */}
+            {/* Trafik Satırı */}
+            {(() => {
+              const tr = driveAssist?.traffic;
+              const isCrit = tr?.delay_min > 10;
+              const isWarn = tr?.delay_min > 0 && tr?.delay_min <= 10;
+              const isClear = tr?.delay_min === 0;
+              const trColor = isCrit ? COLORS.ERROR : isWarn ? COLORS.WARNING : isClear ? COLORS.SUCCESS : COLORS.MUTED;
+              const trBg    = withAlpha(trColor, 0.10);
+              const trIcon  = isCrit ? "warning-outline" : isWarn ? "alert-circle-outline" : isClear ? "checkmark-circle-outline" : "car-outline";
+              const trValue = tr
+                ? (tr.delay_min > 0 ? `+${tr.delay_min} dk gecikme` : t("dashboard.trafficClear"))
+                : (driveAssist && !driveAssist.activeTask ? t("driveAssist.standbySub") : "—");
+              const trSub = tr?.route_label || "";
+              return (
+                <View style={[styles.daRow, { backgroundColor: trBg }]}>
+                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(trColor, 0.15) }]}>
+                    <Ionicons name={trIcon} size={22} color={trColor} />
+                  </View>
+                  <View style={styles.daTextWrap}>
+                    <Text style={[styles.daRowLabel, { color: trColor }]}>Trafik</Text>
+                    <Text style={[styles.daRowValue, { color: trColor }]} numberOfLines={1}>{trValue}</Text>
+                    {!!trSub && <Text style={[styles.daRowSub, { color: trColor }]} numberOfLines={1}>{trSub}</Text>}
+                  </View>
                 </View>
-              ) : driveAssist?.traffic?.delay_min === 0 ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.SUCCESS }]} />
-                  <Text style={styles.daAlertText}>{t("dashboard.trafficClear")}</Text>
-                </View>
-              ) : driveAssist && !driveAssist.traffic ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
-                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
-                    {t("driveAssist.noActiveRoute", "Güzergah bilgisi için görev başlatın")}
-                  </Text>
-                </View>
-              ) : null}
+              );
+            })()}
 
-              {/* Hava */}
-              {driveAssist?.weather?.alert ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.ERROR }]} />
-                  <Text style={styles.daAlertText} numberOfLines={1}>
-                    {driveAssist.weather.alert}
-                  </Text>
+            {/* Hava Satırı */}
+            {(() => {
+              const we = driveAssist?.weather;
+              const hasAlert = !!we?.alert;
+              const weColor  = hasAlert ? COLORS.ERROR : we ? COLORS.INFO : COLORS.MUTED;
+              const weBg     = withAlpha(weColor, 0.10);
+              const weIcon   = hasAlert ? "thunderstorm-outline" : we ? "partly-sunny-outline" : "cloud-outline";
+              const weValue  = we ? `${we.temp_c}°C — ${we.description || ""}` : "—";
+              const weSub    = we?.alert || "";
+              return (
+                <View style={[styles.daRow, { backgroundColor: weBg, marginBottom: COLORS.SPACING.xs }]}>
+                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(weColor, 0.15) }]}>
+                    <Ionicons name={weIcon} size={22} color={weColor} />
+                  </View>
+                  <View style={styles.daTextWrap}>
+                    <Text style={[styles.daRowLabel, { color: weColor }]}>Hava</Text>
+                    <Text style={[styles.daRowValue, { color: weColor }]} numberOfLines={1}>{weValue}</Text>
+                    {!!weSub && <Text style={[styles.daRowSub, { color: weColor }]} numberOfLines={1}>{weSub}</Text>}
+                  </View>
                 </View>
-              ) : driveAssist?.weather?.temp_c !== undefined ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.INFO }]} />
-                  <Text style={styles.daAlertText}>
-                    {driveAssist.weather.icon} {driveAssist.weather.temp_c}°C
-                    {driveAssist.weather.description ? ` — ${driveAssist.weather.description}` : ""}
-                  </Text>
-                </View>
-              ) : null}
-
-              {/* Yükleniyor veya API yok */}
-              {!driveAssist || (assistLoading && !driveAssist.traffic && !driveAssist.weather) ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
-                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
-                    {t("dashboard.loading")}
-                  </Text>
-                </View>
-              ) : null}
-
-              {/* Standby — aktif görev yok */}
-              {driveAssist && !driveAssist.activeTask && !driveAssist.traffic && !driveAssist.weather ? (
-                <View style={styles.daAlertItem}>
-                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
-                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
-                    {t("driveAssist.standbySub")}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+              );
+            })()}
 
             <Text style={styles.daTapHint}>{t("driveAssist.tapToSpeak")}</Text>
           </TouchableOpacity>
