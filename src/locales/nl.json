@@ -489,12 +489,7 @@
     "enterSerialMessage": "Voer het serienummer van de QR-code in (bijv. TF-2025-00008-5)",
     "serialEmpty": "Serienummer mag niet leeg zijn",
     "deviceNotFound": "Apparaat niet gevonden",
-    "deviceCheckFailed": "Apparaatcontrole mislukt",
-    "todayKm": "Vandaag KM",
-    "monthKm": "Maand KM",
-    "trafficClear": "Vloeiend",
-    "loading": "Laden",
-    "dataUnavailable": "Niet beschikbaar"
+    "deviceCheckFailed": "Apparaatcontrole mislukt"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -2007,10 +2002,11 @@
   },
   "driveAssist": {
     "title": "Rijassistent",
-    "standbySub": "Route-info verschijnt bij een actieve taak",
-    "tapToSpeak": "Tik voor gesproken melding",
+    "tapToSpeak": "Tik om voor te lezen",
+    "standbySub": "Route wordt bewaakt",
+    "noActiveRoute": "Start een taak voor route-informatie",
+    "speechAllClear": "Geen verkeers- of weersproblemen op uw route",
     "speechTraffic": "{{delay}} minuten vertraging op {{route}}",
-    "speechWind": "Let op, windsnelheid {{kmh}} kilometer per uur",
-    "speechAllClear": "Geen verkeers- of weerproblemen op uw route"
+    "speechWind": "Harde wind: {{kmh}} km/u"
   }
 }

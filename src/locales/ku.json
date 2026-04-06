@@ -98,12 +98,7 @@
     "totalDistance": "Dûrahiya Giştî",
     "avgScore": "Puanta Navîn",
     "activeTasksCount": "Peywirên Çalak",
-    "fuelEntry": "Têkeve Sotemenî",
-    "todayKm": "Îro KM",
-    "monthKm": "Meh KM",
-    "trafficClear": "Azad",
-    "loading": "Bar dibe",
-    "dataUnavailable": "Tune"
+    "fuelEntry": "Têkeve Sotemenî"
   },
   "profile": {
     "title": "Profîl",
@@ -2010,10 +2005,11 @@
   },
   "driveAssist": {
     "title": "Alîkarê Ajokariyê",
-    "standbySub": "Agahiyên rêyê dê bi erkekê çalak xuya bibin",
-    "tapToSpeak": "Ji bo guhdarîkirinê dest bide",
-    "speechTraffic": "Li {{route}} {{delay}} deq derengî heye",
-    "speechWind": "Bala xwe bide, ba {{kmh}} km/s e",
-    "speechAllClear": "Li ser rêya we pirsgirêka trafîk an hewayê tune"
+    "tapToSpeak": "Destê xwe lêxe û bibihîze",
+    "standbySub": "Rê tê şopandin",
+    "noActiveRoute": "Ji bo agahdariya rê erêyek dest pê bike",
+    "speechAllClear": "Li ser rêça we pirsgirêkek tune",
+    "speechTraffic": "{{delay}} deqe dereng li {{route}}",
+    "speechWind": "Bayê bihêz: {{kmh}} km/s"
   }
 }

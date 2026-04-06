@@ -469,12 +469,7 @@
     "totalDistance": "Toplam Mesafe",
     "avgScore": "Ort. Puan",
     "activeTasksCount": "Aktif",
-    "fuelEntry": "Yakıt Girişi",
-    "todayKm": "Bugün KM",
-    "monthKm": "Bu Ay KM",
-    "trafficClear": "Akıcı",
-    "loading": "Yükleniyor",
-    "dataUnavailable": "Veri yok"
+    "fuelEntry": "Yakıt Girişi"
   },
   "tasks": {
     "title": "Görevlerim",
@@ -1870,10 +1865,11 @@
   },
   "driveAssist": {
     "title": "Sürüş Asistanı",
-    "standbySub": "Görev geldiğinde rota bilgisi burada",
     "tapToSpeak": "Sesli okumak için dokun",
-    "speechTraffic": "{{route}} güzergahında {{delay}} dakika gecikme var",
-    "speechWind": "Dikkat, rüzgar hızı saatte {{kmh}} kilometre",
-    "speechAllClear": "Güzergahında trafik veya hava sorunu bulunmuyor"
+    "standbySub": "Güzergah izleniyor",
+    "noActiveRoute": "Güzergah bilgisi için görev başlatın",
+    "speechAllClear": "Güzergahta trafik ve hava sorunu yok",
+    "speechTraffic": "{{route}}güzergahında {{delay}} dakika gecikme var",
+    "speechWind": "Kuvvetli rüzgar: {{kmh}} kilometre hız"
   }
 }

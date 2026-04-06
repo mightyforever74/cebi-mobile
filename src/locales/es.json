@@ -283,12 +283,7 @@
     "deviceNotFound": "Dispositivo no encontrado",
     "enterSerial": "Número de serie del dispositivo",
     "enterSerialMessage": "Enter the serial number from QR code (e.g., TF-2025-00008-5)",
-    "serialEmpty": "Serial number cannot be empty",
-    "todayKm": "Hoy KM",
-    "monthKm": "Mes KM",
-    "trafficClear": "Fluido",
-    "loading": "Cargando",
-    "dataUnavailable": "No disponible"
+    "serialEmpty": "Serial number cannot be empty"
   },
   "task": {
     "title": "Gestión de tareas",
@@ -1942,10 +1937,11 @@
   },
   "driveAssist": {
     "title": "Asistente de conducción",
-    "standbySub": "La info de ruta aparecerá con una tarea activa",
-    "tapToSpeak": "Toca para escuchar alertas",
-    "speechTraffic": "{{delay}} minutos de retraso en {{route}}",
-    "speechWind": "Atención, viento a {{kmh}} kilómetros por hora",
-    "speechAllClear": "Sin problemas de tráfico o clima en tu ruta"
+    "tapToSpeak": "Toca para escuchar",
+    "standbySub": "Monitoreando ruta",
+    "noActiveRoute": "Inicia una tarea para ver info de ruta",
+    "speechAllClear": "Sin problemas de tráfico ni clima en su ruta",
+    "speechTraffic": "Retraso de {{delay}} minutos en {{route}}",
+    "speechWind": "Viento fuerte: {{kmh}} km/h"
   }
 }

@@ -1022,6 +1022,13 @@ const DriverDashboard = () => {
                   <View style={[styles.daAlertDot, { backgroundColor: COLORS.SUCCESS }]} />
                   <Text style={styles.daAlertText}>{t("dashboard.trafficClear")}</Text>
                 </View>
+              ) : driveAssist && !driveAssist.traffic ? (
+                <View style={styles.daAlertItem}>
+                  <View style={[styles.daAlertDot, { backgroundColor: COLORS.MUTED }]} />
+                  <Text style={[styles.daAlertText, { color: COLORS.MUTED }]}>
+                    {t("driveAssist.noActiveRoute", "Güzergah bilgisi için görev başlatın")}
+                  </Text>
+                </View>
               ) : null}
 
               {/* Hava */}

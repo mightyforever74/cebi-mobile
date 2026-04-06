@@ -424,12 +424,7 @@
     "totalDistance": "Total Distance",
     "avgScore": "Avg Score",
     "activeTasksCount": "Active",
-    "fuelEntry": "Fuel Entry",
-    "todayKm": "Today KM",
-    "monthKm": "Month KM",
-    "trafficClear": "Clear",
-    "loading": "Loading",
-    "dataUnavailable": "Unavailable"
+    "fuelEntry": "Fuel Entry"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -1848,10 +1843,11 @@
   },
   "driveAssist": {
     "title": "Drive Assist",
-    "standbySub": "Route info will appear when task is assigned",
-    "tapToSpeak": "Tap to hear alerts",
+    "tapToSpeak": "Tap to speak",
+    "standbySub": "Monitoring route",
+    "noActiveRoute": "Start a task to see route info",
+    "speechAllClear": "No traffic or weather issues on your route",
     "speechTraffic": "{{delay}} minute delay on {{route}}",
-    "speechWind": "Caution, wind speed {{kmh}} kilometers per hour",
-    "speechAllClear": "No traffic or weather issues on your route"
+    "speechWind": "Strong wind: {{kmh}} km/h"
   }
 }

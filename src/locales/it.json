@@ -292,12 +292,7 @@
     "enterSerialMessage": "Inserisci il numero di serie dal codice QR (es. TF-2025-00008-5)",
     "serialEmpty": "Il numero di serie non può essere vuoto",
     "deviceNotFound": "Dispositivo non trovato",
-    "deviceCheckFailed": "Controllo dispositivo fallito",
-    "todayKm": "Oggi KM",
-    "monthKm": "Mese KM",
-    "trafficClear": "Scorrevole",
-    "loading": "Caricamento",
-    "dataUnavailable": "Non disponibile"
+    "deviceCheckFailed": "Controllo dispositivo fallito"
   },
   "vehicle": {
     "title": "Il Mio Veicolo",
@@ -1918,10 +1913,11 @@
   },
   "driveAssist": {
     "title": "Assistente di guida",
-    "standbySub": "Info rotta disponibile con attività attiva",
-    "tapToSpeak": "Tocca per ascoltare gli avvisi",
+    "tapToSpeak": "Tocca per ascoltare",
+    "standbySub": "Percorso monitorato",
+    "noActiveRoute": "Avvia un'attività per vedere le info sul percorso",
+    "speechAllClear": "Nessun problema di traffico o meteo sul percorso",
     "speechTraffic": "Ritardo di {{delay}} minuti su {{route}}",
-    "speechWind": "Attenzione, vento a {{kmh}} chilometri orari",
-    "speechAllClear": "Nessun problema di traffico o meteo sul percorso"
+    "speechWind": "Vento forte: {{kmh}} km/h"
   }
 }
