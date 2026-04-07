@@ -198,8 +198,15 @@ const DriverTasks = ({ navigation }) => {
     navigation.navigate("Navigation", { task });
   };
   const getStatusLabel = (statusKey) => t(`tasks.statuses.${statusKey}`, statusKey);
-  const getOrigin      = (task) => task.route_json?.origin || task.start_location || null;
-  const getDestination = (task) => task.route_json?.destination || task.end_location || null;
+  const formatLocation = (loc) => {
+    if (!loc) return null;
+    if (typeof loc === "string") return loc;
+    if (typeof loc === "object" && loc.lat != null && loc.lng != null)
+      return `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
+    return null;
+  };
+  const getOrigin      = (task) => task.start_location || formatLocation(task.route_json?.origin) || null;
+  const getDestination = (task) => task.end_location || formatLocation(task.route_json?.destination) || null;
   const getDistance    = (task) => parseFloat(task.route_json?.distance) || parseFloat(task.total_distance_km) || 0;
   const getFuelType    = (task) => task.vehicle_fuel_type || task.fuel_type || "diesel";
 
@@ -715,5 +722,6 @@ const DriverTasks = ({ navigation }) => {
 };
 
 export default DriverTasks;
+
 
 
