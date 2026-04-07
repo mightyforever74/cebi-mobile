@@ -281,7 +281,7 @@ const makeStyles = (COLORS) =>
     daSpeakHint: {
       padding: COLORS.SPACING.xs,
     },
-    // StatCard stili â€” alt alta iki satÄ±r
+    // StatCard stili  -  alt alta iki satÄ±r
     daRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -577,7 +577,7 @@ const DriverDashboard = () => {
       );
       setStats(statsRes.stats || {});
 
-      // Drive Assist â€” aktif gÃ¶revi ilet
+      // Drive Assist  -  aktif gÃ¶revi ilet
       const active = (tasksRes.tasks || []).find(t =>
         ['in_progress', 'accepted', 'pending_review'].includes(t.status)
       ) || null;
@@ -790,6 +790,108 @@ const DriverDashboard = () => {
           </View>
         </TouchableOpacity>
 
+
+        {/* â”€â”€ Drive Assist Card â”€â”€ */}
+        <Card noMarginBottom={false}>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => {
+              // Sesli ikaz  -  expo-speech ile tÃ¼m uyarÄ±larÄ± oku
+              const alerts = [];
+              if (driveAssist?.traffic?.delay_min > 0) {
+                alerts.push(
+                  t("driveAssist.speechTraffic", {
+                    route: driveAssist.traffic.route_label || "",
+                    delay: driveAssist.traffic.delay_min,
+                  })
+                );
+                if (driveAssist.traffic.incidents?.length > 0) {
+                  alerts.push(driveAssist.traffic.incidents[0]);
+                }
+              }
+              if (driveAssist?.weather?.alert) {
+                alerts.push(driveAssist.weather.alert);
+              }
+              if (driveAssist?.weather?.wind_kmh > 40) {
+                alerts.push(
+                  t("driveAssist.speechWind", { kmh: driveAssist.weather.wind_kmh })
+                );
+              }
+              if (alerts.length === 0) {
+                alerts.push(t("driveAssist.speechAllClear"));
+              }
+              const fullText = alerts.join(". ");
+              Speech.speak(fullText, {
+                language: i18n.language === "tr" ? "tr-TR"
+                  : i18n.language === "nl" ? "nl-NL"
+                  : i18n.language === "de" ? "de-DE"
+                  : "en-US",
+                rate: 0.9,
+              });
+            }}
+          >
+            <View style={styles.daCardRow}>
+              <Text style={styles.cardTitle}>{t("driveAssist.title")}</Text>
+              <View style={styles.daSpeakHint}>
+                <Ionicons name="volume-medium-outline" size={16} color={COLORS.MUTED} />
+              </View>
+            </View>
+
+            {/* â”€â”€ Ä°ki modern yatay kutu â”€â”€ */}
+            {/* Trafik SatÄ±rÄ± */}
+            {(() => {
+              const tr = driveAssist?.traffic;
+              const isCrit = tr?.delay_min > 10;
+              const isWarn = tr?.delay_min > 0 && tr?.delay_min <= 10;
+              const isClear = tr?.delay_min === 0;
+              const trColor = isCrit ? COLORS.ERROR : isWarn ? COLORS.WARNING : isClear ? COLORS.SUCCESS : COLORS.MUTED;
+              const trBg    = withAlpha(trColor, 0.10);
+              const trIcon  = isCrit ? "warning-outline" : isWarn ? "alert-circle-outline" : isClear ? "checkmark-circle-outline" : "car-outline";
+              const trValue = tr
+                ? (tr.delay_min > 0 ? `+${tr.delay_min} dk gecikme` : t("dashboard.trafficClear"))
+                : (driveAssist && !driveAssist.activeTask ? t("driveAssist.standbySub") : " - ");
+              const trSub = tr?.route_label || "";
+              return (
+                <View style={[styles.daRow, { backgroundColor: trBg }]}>
+                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(trColor, 0.15) }]}>
+                    <Ionicons name={trIcon} size={22} color={trColor} />
+                  </View>
+                  <View style={styles.daTextWrap}>
+                    <Text style={[styles.daRowLabel, { color: trColor }]}>Trafik</Text>
+                    <Text style={[styles.daRowValue, { color: trColor }]} numberOfLines={1}>{trValue}</Text>
+                    {!!trSub && <Text style={[styles.daRowSub, { color: trColor }]} numberOfLines={1}>{trSub}</Text>}
+                  </View>
+                </View>
+              );
+            })()}
+
+            {/* Hava SatÄ±rÄ± */}
+            {(() => {
+              const we = driveAssist?.weather;
+              const hasAlert = !!we?.alert;
+              const weColor  = hasAlert ? COLORS.ERROR : we ? COLORS.INFO : COLORS.MUTED;
+              const weBg     = withAlpha(weColor, 0.10);
+              const weIcon   = hasAlert ? "thunderstorm-outline" : we ? "partly-sunny-outline" : "cloud-outline";
+              const weValue  = we ? `${we.temp_c}C  -  ${we.description || ""}` : " - ";
+              const weSub    = we?.alert || "";
+              return (
+                <View style={[styles.daRow, { backgroundColor: weBg, marginBottom: COLORS.SPACING.xs }]}>
+                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(weColor, 0.15) }]}>
+                    <Ionicons name={weIcon} size={22} color={weColor} />
+                  </View>
+                  <View style={styles.daTextWrap}>
+                    <Text style={[styles.daRowLabel, { color: weColor }]}>Hava</Text>
+                    <Text style={[styles.daRowValue, { color: weColor }]} numberOfLines={1}>{weValue}</Text>
+                    {!!weSub && <Text style={[styles.daRowSub, { color: weColor }]} numberOfLines={1}>{weSub}</Text>}
+                  </View>
+                </View>
+              );
+            })()}
+
+            <Text style={styles.daTapHint}>{t("driveAssist.tapToSpeak")}</Text>
+          </TouchableOpacity>
+        </Card>
+
         {/* â”€â”€ Vehicle Card â”€â”€ */}
         {vehicle ? (
           <TouchableOpacity onPress={handleVehiclePress} activeOpacity={0.8}>
@@ -861,12 +963,12 @@ const DriverDashboard = () => {
                     <View style={styles.deviceStatusLamp}>
                       <Ionicons name={wifiIcon} size={15} color={wifiColor} />
                       <View style={[styles.deviceStatusDot, { backgroundColor: wifiColor }]} />
-                      <Text style={[styles.deviceStatusLabel, { color: wifiColor }]}>WiFi {wifiOk ? "âœ“" : "â€”"}</Text>
+                      <Text style={[styles.deviceStatusLabel, { color: wifiColor }]}>WiFi {wifiOk ? "âœ“" : " - "}</Text>
                     </View>
                     <View style={styles.deviceStatusLamp}>
                       <Ionicons name={gpsIcon} size={15} color={gpsColor} />
                       <View style={[styles.deviceStatusDot, { backgroundColor: gpsColor }]} />
-                      <Text style={[styles.deviceStatusLabel, { color: gpsColor }]}>GPS {gpsOk ? "âœ“" : wifiOk ? "âœ—" : "â€”"}</Text>
+                      <Text style={[styles.deviceStatusLabel, { color: gpsColor }]}>GPS {gpsOk ? "âœ“" : wifiOk ? "âœ—" : " - "}</Text>
                     </View>
                   </View>
                 );
@@ -973,107 +1075,6 @@ const DriverDashboard = () => {
               colorToken="PRIMARY"
             />
           </View>
-        </Card>
-
-        {/* â”€â”€ Drive Assist Card â”€â”€ */}
-        <Card noMarginBottom={false}>
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => {
-              // Sesli ikaz â€” expo-speech ile tÃ¼m uyarÄ±larÄ± oku
-              const alerts = [];
-              if (driveAssist?.traffic?.delay_min > 0) {
-                alerts.push(
-                  t("driveAssist.speechTraffic", {
-                    route: driveAssist.traffic.route_label || "",
-                    delay: driveAssist.traffic.delay_min,
-                  })
-                );
-                if (driveAssist.traffic.incidents?.length > 0) {
-                  alerts.push(driveAssist.traffic.incidents[0]);
-                }
-              }
-              if (driveAssist?.weather?.alert) {
-                alerts.push(driveAssist.weather.alert);
-              }
-              if (driveAssist?.weather?.wind_kmh > 40) {
-                alerts.push(
-                  t("driveAssist.speechWind", { kmh: driveAssist.weather.wind_kmh })
-                );
-              }
-              if (alerts.length === 0) {
-                alerts.push(t("driveAssist.speechAllClear"));
-              }
-              const fullText = alerts.join(". ");
-              Speech.speak(fullText, {
-                language: i18n.language === "tr" ? "tr-TR"
-                  : i18n.language === "nl" ? "nl-NL"
-                  : i18n.language === "de" ? "de-DE"
-                  : "en-US",
-                rate: 0.9,
-              });
-            }}
-          >
-            <View style={styles.daCardRow}>
-              <Text style={styles.cardTitle}>{t("driveAssist.title")}</Text>
-              <View style={styles.daSpeakHint}>
-                <Ionicons name="volume-medium-outline" size={16} color={COLORS.MUTED} />
-              </View>
-            </View>
-
-            {/* â”€â”€ Ä°ki modern yatay kutu â”€â”€ */}
-            {/* Trafik SatÄ±rÄ± */}
-            {(() => {
-              const tr = driveAssist?.traffic;
-              const isCrit = tr?.delay_min > 10;
-              const isWarn = tr?.delay_min > 0 && tr?.delay_min <= 10;
-              const isClear = tr?.delay_min === 0;
-              const trColor = isCrit ? COLORS.ERROR : isWarn ? COLORS.WARNING : isClear ? COLORS.SUCCESS : COLORS.MUTED;
-              const trBg    = withAlpha(trColor, 0.10);
-              const trIcon  = isCrit ? "warning-outline" : isWarn ? "alert-circle-outline" : isClear ? "checkmark-circle-outline" : "car-outline";
-              const trValue = tr
-                ? (tr.delay_min > 0 ? `+${tr.delay_min} dk gecikme` : t("dashboard.trafficClear"))
-                : (driveAssist && !driveAssist.activeTask ? t("driveAssist.standbySub") : "â€”");
-              const trSub = tr?.route_label || "";
-              return (
-                <View style={[styles.daRow, { backgroundColor: trBg }]}>
-                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(trColor, 0.15) }]}>
-                    <Ionicons name={trIcon} size={22} color={trColor} />
-                  </View>
-                  <View style={styles.daTextWrap}>
-                    <Text style={[styles.daRowLabel, { color: trColor }]}>Trafik</Text>
-                    <Text style={[styles.daRowValue, { color: trColor }]} numberOfLines={1}>{trValue}</Text>
-                    {!!trSub && <Text style={[styles.daRowSub, { color: trColor }]} numberOfLines={1}>{trSub}</Text>}
-                  </View>
-                </View>
-              );
-            })()}
-
-            {/* Hava SatÄ±rÄ± */}
-            {(() => {
-              const we = driveAssist?.weather;
-              const hasAlert = !!we?.alert;
-              const weColor  = hasAlert ? COLORS.ERROR : we ? COLORS.INFO : COLORS.MUTED;
-              const weBg     = withAlpha(weColor, 0.10);
-              const weIcon   = hasAlert ? "thunderstorm-outline" : we ? "partly-sunny-outline" : "cloud-outline";
-              const weValue  = we ? `${we.temp_c}Â°C â€” ${we.description || ""}` : "â€”";
-              const weSub    = we?.alert || "";
-              return (
-                <View style={[styles.daRow, { backgroundColor: weBg, marginBottom: COLORS.SPACING.xs }]}>
-                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(weColor, 0.15) }]}>
-                    <Ionicons name={weIcon} size={22} color={weColor} />
-                  </View>
-                  <View style={styles.daTextWrap}>
-                    <Text style={[styles.daRowLabel, { color: weColor }]}>Hava</Text>
-                    <Text style={[styles.daRowValue, { color: weColor }]} numberOfLines={1}>{weValue}</Text>
-                    {!!weSub && <Text style={[styles.daRowSub, { color: weColor }]} numberOfLines={1}>{weSub}</Text>}
-                  </View>
-                </View>
-              );
-            })()}
-
-            <Text style={styles.daTapHint}>{t("driveAssist.tapToSpeak")}</Text>
-          </TouchableOpacity>
         </Card>
 
         {/* â”€â”€ Language Modal â”€â”€ */}
