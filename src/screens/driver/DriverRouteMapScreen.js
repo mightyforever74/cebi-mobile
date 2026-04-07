@@ -22,8 +22,10 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
+import { withAlpha } from "../../utils/colorUtils";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
+import * as Speech from "expo-speech";
 
 // Google Maps API Key â€” .env veya app.config.js Ã¼zerinden alÄ±nmalÄ±
 // EXPO_PUBLIC_ prefix'i ile Expo'da eriÅŸilebilir
@@ -224,6 +226,28 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       justifyContent: "center",
       ...COLORS.SHADOWS.card,
+    },
+
+    // Drive Conditions Banner
+    condBanner: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: 0,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+    },
+    condBannerText: {
+      flex: 1,
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginLeft: COLORS.SPACING.sm,
+    },
+    condSpeakBtn: {
+      padding: COLORS.SPACING.xs,
     },
 
     // Route Loading
@@ -560,6 +584,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   );
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
 
+  // Drive Conditions (trafik + hava banner)
+  const [driveConditions, setDriveConditions] = useState(null);
+  const [conditionsLoading, setConditionsLoading] = useState(false);
+
   const routeFetchedRef = useRef(false);
   const lastRouteTaskIdRef = useRef(null);
   const watchSubscriptionRef = useRef(null);
@@ -747,6 +775,25 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   // DATA LOADING
   // =========
 
+  // Drive Conditions fetch
+  const fetchDriveConditions = async () => {
+    setConditionsLoading(true);
+    try {
+      const [trafficRes, weatherRes] = await Promise.allSettled([
+        driverAPI.getRouteTraffic(),
+        driverAPI.getRouteWeather(),
+      ]);
+      setDriveConditions({
+        traffic: trafficRes.status === "fulfilled" ? trafficRes.value?.traffic : null,
+        weather: weatherRes.status === "fulfilled" ? weatherRes.value?.weather : null,
+      });
+    } catch (err) {
+      console.log("[RouteMap] DriveConditions error:", err);
+    } finally {
+      setConditionsLoading(false);
+    }
+  };
+
   const loadActiveTask = async () => {
     try {
       const res = await driverTaskAPI.getMyTasks();
@@ -757,6 +804,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         null;
       const active = activeTask ? normalizeTaskPayload(activeTask) : null;
       setTask(active);
+      if (active) fetchDriveConditions();
     } catch (e) {
       console.log("[Nav] Task load error:", e);
     }
@@ -1682,6 +1730,47 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       )}
 
+      {/* Drive Conditions Banner */}
+      {driveConditions && !conditionsLoading && (() => {
+        const tr = driveConditions?.traffic;
+        const we = driveConditions?.weather;
+        const isCrit = (tr?.delay_min > 10) || !!we?.alert;
+        const isWarn = !isCrit && tr?.delay_min > 0;
+        const bgColor = isCrit
+          ? withAlpha(COLORS.ERROR, 0.92)
+          : isWarn
+          ? withAlpha(COLORS.WARNING, 0.92)
+          : withAlpha(COLORS.SUCCESS, 0.92);
+        const iconName = isCrit ? "warning" : isWarn ? "alert-circle" : "checkmark-circle";
+        let bannerText = "";
+        if (tr?.delay_min > 0) bannerText += `+${tr.delay_min} dk gecikme`;
+        if (we?.alert) bannerText += (bannerText ? " - " : "") + we.alert;
+        if (!bannerText && we?.temp_c !== undefined)
+          bannerText = `${we.temp_c}C - ${we.description || ""}`;
+        if (!bannerText) return null;
+        const speechText = [
+          tr?.delay_min > 0 ? `Guzergahta ${tr.delay_min} dakika gecikme var.` : "",
+          we?.alert ? we.alert + "." : "",
+          !we?.alert && we?.temp_c !== undefined ? `Hava ${we.temp_c} derece.` : "",
+        ].filter(Boolean).join(" ");
+        return (
+          <TouchableOpacity
+            key="condBanner"
+            style={[styles.condBanner, { backgroundColor: bgColor }]}
+            onPress={() => speechText && Speech.speak(speechText, { language: "tr-TR", rate: 0.9 })}
+            activeOpacity={0.85}
+          >
+            <Ionicons name={iconName} size={16} color={COLORS.WHITE} />
+            <Text style={[styles.condBannerText, { color: COLORS.WHITE }]} numberOfLines={1}>
+              {bannerText}
+            </Text>
+            <View style={styles.condSpeakBtn}>
+              <Ionicons name="volume-medium-outline" size={14} color={COLORS.WHITE} />
+            </View>
+          </TouchableOpacity>
+        );
+      })()}
+
       {/* Route Loading Indicator */}
       {routeLoading && (
         <View style={styles.routeLoadingBar}>
@@ -1821,5 +1910,6 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 };
 
 export default DriverRouteMapScreen;
+
 
 
