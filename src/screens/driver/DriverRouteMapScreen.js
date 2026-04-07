@@ -70,7 +70,7 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.lg,
       color: COLORS.TEXT_SECONDARY,
       textAlign: "center",
-      paddingHorizontal: 30,
+      paddingHorizontal: COLORS.SPACING.xl,
     },
     retryBtn: {
       flexDirection: "row",
@@ -79,7 +79,7 @@ const makeStyles = (COLORS) =>
       paddingHorizontal: COLORS.SPACING.lg,
       paddingVertical: COLORS.SPACING.sm,
       borderRadius: COLORS.RADIUS.md,
-      marginTop: 20,
+      marginTop: COLORS.SPACING.lg,
       // gap removed
     },
     retryBtnText: {
@@ -91,31 +91,29 @@ const makeStyles = (COLORS) =>
     // Header Buttons
     backBtn: {
       position: "absolute",
-      top: 50,
-      left: 16,
+      top: COLORS.SPACING.xxxl,
+      left: COLORS.SPACING.md,
       width: 44,
       height: 44,
       borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
-      elevation: 4,
       ...COLORS.SHADOWS.card,
     },
     headerBtn: {
       position: "absolute",
-      top: 50,
+      top: COLORS.SPACING.xxxl,
       width: 44,
       height: 44,
       borderRadius: COLORS.RADIUS.xl,
       backgroundColor: COLORS.SURFACE,
       alignItems: "center",
       justifyContent: "center",
-      elevation: 4,
       ...COLORS.SHADOWS.card,
     },
     centerBtn: {
-      right: 16,
+      right: COLORS.SPACING.md,
     },
     fitBtn: {
       right: 70,
@@ -133,7 +131,7 @@ const makeStyles = (COLORS) =>
     // Markers
     locationMarker: {
       backgroundColor: COLORS.PRIMARY,
-      padding: 8,
+      padding: COLORS.SPACING.sm,
       borderRadius: COLORS.RADIUS.xl,
       borderWidth: 3,
       borderColor: COLORS.WHITE,
@@ -185,16 +183,15 @@ const makeStyles = (COLORS) =>
     // COMPACT BOTTOM BAR (in_progress)
     compactBottomBar: {
       position: "absolute",
-      bottom: 30,
-      left: 16,
-      right: 16,
+      bottom: COLORS.SPACING.lg,
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.CARD,
       paddingVertical: COLORS.SPACING.sm,
       paddingHorizontal: COLORS.SPACING.md,
       borderRadius: COLORS.RADIUS.lg,
-      elevation: 8,
       ...COLORS.SHADOWS.card,
     },
     compactItem: {
@@ -216,7 +213,7 @@ const makeStyles = (COLORS) =>
       width: 1,
       height: 20,
       backgroundColor: COLORS.DIVIDER,
-      marginHorizontal: 12,
+      marginHorizontal: COLORS.SPACING.sm,
     },
     compactCompleteBtn: {
       marginLeft: "auto",
@@ -226,15 +223,15 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.SUCCESS,
       alignItems: "center",
       justifyContent: "center",
-      elevation: 4,
+      ...COLORS.SHADOWS.card,
     },
 
     // Route Loading
     routeLoadingBar: {
       position: "absolute",
-      top: 110,
-      left: 16,
-      right: 16,
+      top: 110, // header butonlari 48px + bosluk — sabit kalmali
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -252,15 +249,14 @@ const makeStyles = (COLORS) =>
     // Pending Review Banner
     pendingBanner: {
       position: "absolute",
-      bottom: 30,
-      left: 16,
-      right: 16,
+      bottom: COLORS.SPACING.lg,
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.SURFACE,
       padding: COLORS.SPACING.md,
       borderRadius: COLORS.RADIUS.lg,
-      elevation: 6,
       ...COLORS.SHADOWS.card,
       borderLeftWidth: 4,
       borderLeftColor: COLORS.WARNING,
@@ -311,13 +307,12 @@ const makeStyles = (COLORS) =>
     // Task Card (accepted)
     taskCard: {
       position: "absolute",
-      left: 16,
-      right: 16,
-      bottom: 30,
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      bottom: COLORS.SPACING.lg,
       backgroundColor: COLORS.SURFACE,
       borderRadius: COLORS.RADIUS.xl,
       padding: COLORS.SPACING.lg,
-      elevation: 8,
       ...COLORS.SHADOWS.card,
     },
     taskHeader: {
@@ -373,7 +368,7 @@ const makeStyles = (COLORS) =>
       height: 16,
       backgroundColor: COLORS.DIVIDER,
       marginLeft: COLORS.SPACING.xs,
-      marginVertical: 4,
+      marginVertical: COLORS.SPACING.xs,
     },
     locationInfo: {
       flex: 1,
@@ -418,7 +413,7 @@ const makeStyles = (COLORS) =>
     // Waypoints Panel placement (compactBottomBar kaldÄ±rÄ±ldÄ±, bottom azaltÄ±ldÄ±)
     waypointsPanel: {
       position: "absolute",
-      bottom: 16,
+      bottom: COLORS.SPACING.md,
       left: 0,
       right: 0,
     },
@@ -588,22 +583,22 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    if (task?.status === "in_progress" && location) {
-      const shouldFetch =
-        !routeFetchedRef.current || lastRouteTaskIdRef.current !== task.id;
-
-      if (shouldFetch) {
-        routeFetchedRef.current = true;
-        lastRouteTaskIdRef.current = task.id;
-        fetchRouteAndStartNav();
-      }
-    }
-
     if (!task || task.status !== "in_progress") {
-      routeFetchedRef.current = false;
       lastRouteTaskIdRef.current = null;
+      routeFetchedRef.current = false;
+      return;
     }
-  }, [task?.status, task?.id, location]);
+
+    if (!location) return;
+    if (!geocodedDestination) return;
+
+    const routeKey = task.id + ":" + geocodedDestination.latitude + ":" + geocodedDestination.longitude;
+    if (lastRouteTaskIdRef.current === routeKey) return;
+
+    lastRouteTaskIdRef.current = routeKey;
+    routeFetchedRef.current = true;
+    fetchRouteAndStartNav();
+  }, [task?.status, task?.id, location, geocodedDestination]);
 
   // ======
   // GEOCODING - Text adres -> Koordinat (cache + abort + normalize)
@@ -1826,4 +1821,5 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 };
 
 export default DriverRouteMapScreen;
+
 
