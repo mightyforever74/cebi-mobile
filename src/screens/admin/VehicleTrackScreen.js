@@ -1939,7 +1939,7 @@ const makeStyles = (COLORS) =>
     statLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT_MUTED,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
       textAlign: "center",
     },
     noDataContainer: {
@@ -2008,9 +2008,9 @@ const makeStyles = (COLORS) =>
       color: COLORS.TEXT_PRIMARY,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs / 2,
+      paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.xs,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
       overflow: "hidden",
     },
     playbackMarker: {
@@ -2044,7 +2044,7 @@ const makeStyles = (COLORS) =>
       marginTop: COLORS.SPACING.xs,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs / 2,
+      paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.xs,
       ...COLORS.SHADOWS.xs,
     },
@@ -2092,7 +2092,7 @@ const makeStyles = (COLORS) =>
     stopText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     stopCloseBtn: {
       marginTop: COLORS.SPACING.sm,
@@ -2127,7 +2127,7 @@ const makeStyles = (COLORS) =>
       paddingVertical: COLORS.SPACING.xs,
       paddingHorizontal: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.sm,
-      marginBottom: COLORS.SPACING.xs / 2,
+      marginBottom: COLORS.SPACING.xs,
     },
     tripRowActive: {
       backgroundColor: COLORS.PRIMARY + "15",
@@ -2183,7 +2183,7 @@ const makeStyles = (COLORS) =>
       marginTop: COLORS.SPACING.xs,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs / 2,
+      paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.xs,
       ...COLORS.SHADOWS.xs,
     },
@@ -2217,15 +2217,15 @@ const makeStyles = (COLORS) =>
     tripCardText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     tripAddressRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     tripAddressIcon: {
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
       marginRight: COLORS.SPACING.xs,
     },
     tripAddressText: {
@@ -2288,7 +2288,7 @@ const makeStyles = (COLORS) =>
     timelineRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      marginBottom: COLORS.SPACING.xs / 2,
+      marginBottom: COLORS.SPACING.xs,
       paddingVertical: COLORS.SPACING.xs,
       paddingHorizontal: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.sm,
@@ -2302,14 +2302,14 @@ const makeStyles = (COLORS) =>
       width: 10,
       height: 10,
       borderRadius: COLORS.RADIUS.sm,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     timelineLine: {
       width: 2,
       flex: 1,
       minHeight: 20,
       backgroundColor: COLORS.DIVIDER,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     timelineContent: {
       flex: 1,

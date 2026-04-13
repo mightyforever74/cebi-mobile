@@ -204,8 +204,8 @@ const mStyles = StyleSheet.create({
   label: {
     marginTop: COLORS.SPACING.xs,
     paddingHorizontal: COLORS.SPACING.xs,
-    paddingVertical: COLORS.SPACING.xs / 2,
-    borderRadius: COLORS.RADIUS.xs || 4,
+    paddingVertical: COLORS.SPACING.xs,
+    borderRadius: COLORS.RADIUS.sm,
     elevation: 2,
     shadowColor: COLORS.BLACK,
     shadowOffset: { width: 0, height: 1 },

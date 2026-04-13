@@ -168,7 +168,7 @@ const makeStyles = (COLORS) =>
     zoneMeta: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     zoneBadgeRow: {
       flexDirection: "row",
@@ -181,7 +181,7 @@ const makeStyles = (COLORS) =>
       alignItems: "center",
       borderRadius: COLORS.RADIUS.sm,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs / 2,
+      paddingVertical: COLORS.SPACING.xs,
       marginRight: COLORS.SPACING.xs,
       marginTop: COLORS.SPACING.xs,
     },
@@ -248,7 +248,7 @@ const makeStyles = (COLORS) =>
     modalHandle: {
       width: 40,
       height: 4,
-      borderRadius: COLORS.RADIUS.xs || 2,
+      borderRadius: COLORS.RADIUS.sm,
       backgroundColor: COLORS.DIVIDER,
       alignSelf: "center",
       marginTop: COLORS.SPACING.sm,
@@ -385,7 +385,7 @@ const makeStyles = (COLORS) =>
     switchLabelSub: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     hourRow: {
       flexDirection: "row",

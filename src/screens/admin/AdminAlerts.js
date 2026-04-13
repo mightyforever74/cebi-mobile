@@ -150,7 +150,7 @@ const makeStyles = (COLORS) =>
     summaryLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
     summaryLabelActive: {
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
@@ -234,7 +234,7 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
-      marginTop: COLORS.SPACING.xs / 2,
+      marginTop: COLORS.SPACING.xs,
     },
 
     // Context row: driver + speed + time
