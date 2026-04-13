@@ -464,7 +464,7 @@ const AdminReportsScreen = () => {
 
 const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-  tabBar: { backgroundColor: COLORS.SURFACE, borderBottomWidth: 1, borderBottomColor: COLORS.DIVIDER, flexGrow: 0 },
+  tabBar: { backgroundColor: COLORS.SURFACE, borderBottomWidth: 1, borderBottomColor: COLORS.DIVIDER, maxHeight: 48 },
   tabBarContent: { paddingHorizontal: COLORS.SPACING.sm, paddingVertical: COLORS.SPACING.xs },
   tab: { flexDirection: "row", alignItems: "center", paddingHorizontal: COLORS.SPACING.sm, paddingVertical: COLORS.SPACING.xs, marginRight: COLORS.SPACING.xs, borderRadius: COLORS.RADIUS.pill, borderWidth: 1, borderColor: "transparent" },
   tabText: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, marginLeft: COLORS.SPACING.xs / 2 },
