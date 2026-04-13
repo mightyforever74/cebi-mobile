@@ -117,14 +117,14 @@ const AdminReportsScreen = () => {
 
   const renderLoading = (msg) => (
     <View style={styles.centerWrap}>
-      <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+      <ActivityIndicator size="large" colorToken="PRIMARY" />
       <Text style={styles.centerText}>{msg}</Text>
     </View>
   );
 
   const renderError = (retry) => (
     <View style={styles.centerWrap}>
-      <Ionicons name="alert-circle-outline" size={40} color={COLORS.ERROR} />
+      <Ionicons name="alert-circle-outline" size={40} colorToken="ERROR" />
       <Text style={styles.centerText}>Veri yüklenemedi</Text>
       <TouchableOpacity style={[styles.retryBtn, { backgroundColor: COLORS.PRIMARY }]} onPress={retry}>
         <Text style={[styles.retryText, { color: COLORS.WHITE }]}>Tekrar Dene</Text>
@@ -141,23 +141,23 @@ const AdminReportsScreen = () => {
       <>
         <SectionTitle title="Görev Özeti" styles={styles} />
         <View style={styles.statGrid}>
-          <View style={styles.statCell}><StatCard icon="list-outline" label="Toplam Görev" value={opsData.total} color={COLORS.PRIMARY} /></View>
-          <View style={styles.statCell}><StatCard icon="checkmark-circle-outline" label="Tamamlanan" value={opsData.completed} sub={rate} color={COLORS.SUCCESS} /></View>
-          <View style={styles.statCell}><StatCard icon="close-circle-outline" label="İptal / Red" value={(opsData.cancelled||0)+(opsData.rejected||0)} color={COLORS.ERROR} /></View>
-          <View style={styles.statCell}><StatCard icon="time-outline" label="Bekleyen" value={opsData.pending||0} color={COLORS.WARNING} /></View>
+          <View style={styles.statCell}><StatCard icon="list-outline" label="Toplam Görev" value={opsData.total} colorToken="PRIMARY" /></View>
+          <View style={styles.statCell}><StatCard icon="checkmark-circle-outline" label="Tamamlanan" value={opsData.completed} sub={rate} colorToken="SUCCESS" /></View>
+          <View style={styles.statCell}><StatCard icon="close-circle-outline" label="İptal / Red" value={(opsData.cancelled||0)+(opsData.rejected||0)} colorToken="ERROR" /></View>
+          <View style={styles.statCell}><StatCard icon="time-outline" label="Bekleyen" value={opsData.pending||0} colorToken="WARNING" /></View>
         </View>
 
         <SectionTitle title="Performans" styles={styles} />
         <View style={styles.statGrid}>
-          <View style={styles.statCell}><StatCard icon="rocket-outline" label="Zamanında Başlama" value={opsData.onTimeStart != null ? `%${opsData.onTimeStart}` : "—"} sub="±15 dk" color={COLORS.INFO} /></View>
-          <View style={styles.statCell}><StatCard icon="flag-outline" label="Zamanında Teslim" value={opsData.onTimeDelivery != null ? `%${opsData.onTimeDelivery}` : "—"} sub="±15 dk" color={COLORS.INFO} /></View>
-          <View style={styles.statCell}><StatCard icon="timer-outline" label="Ort. Görev Süresi" value={opsData.avgDuration != null ? `${Math.round(opsData.avgDuration)} dk` : "—"} color={COLORS.PRIMARY} /></View>
-          <View style={styles.statCell}><StatCard icon="warning-outline" label="Geciken Görev" value={opsData.delayedCount ?? "—"} color={COLORS.WARNING} /></View>
+          <View style={styles.statCell}><StatCard icon="rocket-outline" label="Zamanında Başlama" value={opsData.onTimeStart != null ? `%${opsData.onTimeStart}` : "—"} sub="±15 dk" colorToken="INFO" /></View>
+          <View style={styles.statCell}><StatCard icon="flag-outline" label="Zamanında Teslim" value={opsData.onTimeDelivery != null ? `%${opsData.onTimeDelivery}` : "—"} sub="±15 dk" colorToken="INFO" /></View>
+          <View style={styles.statCell}><StatCard icon="timer-outline" label="Ort. Görev Süresi" value={opsData.avgDuration != null ? `${Math.round(opsData.avgDuration)} dk` : "—"} colorToken="PRIMARY" /></View>
+          <View style={styles.statCell}><StatCard icon="warning-outline" label="Geciken Görev" value={opsData.delayedCount ?? "—"} colorToken="WARNING" /></View>
         </View>
 
         <Card>
           <View style={styles.infoRow}>
-            <Ionicons name="information-circle-outline" size={16} color={COLORS.INFO} />
+            <Ionicons name="information-circle-outline" size={16} colorToken="INFO" />
             <Text style={styles.infoText}>
               Zamanında başlama/teslim için{" "}
               <Text style={[styles.infoText, { fontWeight: COLORS.TYPOGRAPHY.weights.semibold, color: COLORS.PRIMARY }]}>
@@ -181,10 +181,10 @@ const AdminReportsScreen = () => {
       <>
         <SectionTitle title="Yakıt Özeti" styles={styles} />
         <View style={styles.statGrid}>
-          <View style={styles.statCell}><StatCard icon="water-outline" label="Toplam Tüketim" value={summary ? `${parseFloat(summary.total_liters||0).toFixed(0)} L` : "—"} color={COLORS.PRIMARY} /></View>
-          <View style={styles.statCell}><StatCard icon="card-outline" label="Toplam Maliyet" value={summary ? `€${parseFloat(summary.total_cost||0).toFixed(0)}` : "—"} color={COLORS.WARNING} /></View>
-          <View style={styles.statCell}><StatCard icon="speedometer-outline" label="Ort. Tüketim" value={summary ? `${parseFloat(summary.avg_consumption||0).toFixed(1)} L/100` : "—"} color={COLORS.INFO} /></View>
-          <View style={styles.statCell}><StatCard icon="navigate-outline" label="Toplam KM" value={summary ? parseInt(summary.total_km||0).toLocaleString("tr-TR") : "—"} color={COLORS.SUCCESS} /></View>
+          <View style={styles.statCell}><StatCard icon="water-outline" label="Toplam Tüketim" value={summary ? `${parseFloat(summary.total_liters||0).toFixed(0)} L` : "—"} colorToken="PRIMARY" /></View>
+          <View style={styles.statCell}><StatCard icon="card-outline" label="Toplam Maliyet" value={summary ? `€${parseFloat(summary.total_cost||0).toFixed(0)}` : "—"} colorToken="WARNING" /></View>
+          <View style={styles.statCell}><StatCard icon="speedometer-outline" label="Ort. Tüketim" value={summary ? `${parseFloat(summary.avg_consumption||0).toFixed(1)} L/100` : "—"} colorToken="INFO" /></View>
+          <View style={styles.statCell}><StatCard icon="navigate-outline" label="Toplam KM" value={summary ? parseInt(summary.total_km||0).toLocaleString("tr-TR") : "—"} colorToken="SUCCESS" /></View>
         </View>
 
         {fuelSavings?.has_baseline && savings && (
@@ -192,7 +192,7 @@ const AdminReportsScreen = () => {
             <SectionTitle title="Tasarruf Analizi" styles={styles} />
             <Card>
               <View style={styles.savingsHeader}>
-                <Ionicons name="trending-down" size={24} color={COLORS.SUCCESS} />
+                <Ionicons name="trending-down" size={24} colorToken="SUCCESS" />
                 <Text style={[styles.savingsBig, { color: COLORS.SUCCESS }]}>
                   %{parseFloat(savings.consumption_improvement_percent||0).toFixed(1)}
                 </Text>
@@ -283,7 +283,7 @@ const AdminReportsScreen = () => {
               label="Toplam CO₂e"
               value={totalCo2kg > 0 ? `${(totalCo2kg / 1000).toFixed(2)} ton` : "—"}
               sub="DEFRA 2023"
-              color={COLORS.SUCCESS}
+              colorToken="SUCCESS"
             />
           </View>
           <View style={styles.statCell}>
@@ -292,7 +292,7 @@ const AdminReportsScreen = () => {
               label="Araç Sayısı"
               value={vehicleEmissions.filter(v => v.co2e_kg > 0).length}
               sub="emisyon kaydı olan"
-              color={COLORS.PRIMARY}
+              colorToken="PRIMARY"
             />
           </View>
           <View style={styles.statCell}>
@@ -300,7 +300,7 @@ const AdminReportsScreen = () => {
               icon="water-outline"
               label="Toplam Yakıt"
               value={totalLiters > 0 ? `${totalLiters.toFixed(0)} L` : "—"}
-              color={COLORS.INFO}
+              colorToken="INFO"
             />
           </View>
           <View style={styles.statCell}>
@@ -310,7 +310,7 @@ const AdminReportsScreen = () => {
               value={summary?.total_km > 0
                 ? `${(totalCo2kg / parseInt(summary.total_km)).toFixed(3)}`
                 : "—"}
-              color={COLORS.WARNING}
+              colorToken="WARNING"
             />
           </View>
         </View>
@@ -376,7 +376,7 @@ const AdminReportsScreen = () => {
         <SectionTitle title="Metodoloji" styles={styles} />
         <Card>
           <View style={styles.methodRow}>
-            <Ionicons name="information-circle-outline" size={18} color={COLORS.INFO} />
+            <Ionicons name="information-circle-outline" size={18} colorToken="INFO" />
             <View style={styles.methodContent}>
               <Text style={[styles.methodTitle, { color: COLORS.TEXT }]}>DEFRA 2023 GHG Conversion Factors</Text>
               <Text style={[styles.methodDesc, { color: COLORS.TEXT_SECONDARY }]}>
