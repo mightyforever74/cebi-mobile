@@ -72,20 +72,21 @@ const GEOFENCE_COLOR_KEYS = {
   sensitive_area: { strokeKey: "SECONDARY", opacity: 0.15 },
 };
 
-// Marker colors by status
-const MARKER_COLORS = {
-  in_use: "#10B981", // Green - active
-  available: "#3B82F6", // Blue - available
-  maintenance: "#F59E0B", // Yellow - maintenance
-  offline: "#9CA3AF", // Gray - offline
-  default: "#6366F1", // Indigo - default
-};
+// Marker colors by status — COLORS token bazlı
+const getMarkerColor = (COLORS, status) => ({
+  in_use: COLORS.SUCCESS,
+  available: COLORS.PRIMARY,
+  maintenance: COLORS.WARNING,
+  offline: COLORS.MUTED,
+  default: COLORS.INFO,
+})[status] || COLORS.INFO;
 
 // ============================================================================
 // VEHICLE MARKER COMPONENT
 // ============================================================================
 
 const VehicleMarker = ({ vehicle, isSelected, onPress }) => {
+  const { COLORS } = useTheme();
   const now = Date.now();
   const lastTime = vehicle.last_location_time
     ? new Date(vehicle.last_location_time).getTime()
@@ -96,8 +97,8 @@ const VehicleMarker = ({ vehicle, isSelected, onPress }) => {
   const isMoving = speed > 2;
 
   const markerColor = isOnline
-    ? MARKER_COLORS[vehicle.status] || MARKER_COLORS.default
-    : MARKER_COLORS.offline;
+    ? getMarkerColor(COLORS, vehicle.status)
+    : COLORS.MUTED;
 
   return (
     <Marker
@@ -133,7 +134,7 @@ const VehicleMarker = ({ vehicle, isSelected, onPress }) => {
           <Ionicons
             name={isMoving ? "car-sport" : "car"}
             size={isSelected ? 18 : 14}
-            color="#FFFFFF"
+            color={COLORS.WHITE}
           />
         </View>
 
@@ -170,18 +171,18 @@ const mStyles = StyleSheet.create({
     borderBottomWidth: 10,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderBottomColor: "#3B82F6",
+    borderBottomColor: COLORS.PRIMARY,
   },
   body: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: COLORS.RADIUS.lg,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2.5,
-    borderColor: "#FFFFFF",
+    borderColor: COLORS.WHITE,
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: COLORS.BLACK,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -189,31 +190,31 @@ const mStyles = StyleSheet.create({
   bodySelected: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: COLORS.RADIUS.xl,
     borderWidth: 3,
   },
   pulse: {
     position: "absolute",
     width: 52,
     height: 52,
-    borderRadius: 26,
+    borderRadius: COLORS.RADIUS.xl,
     borderWidth: 2,
     opacity: 0.3,
   },
   label: {
-    marginTop: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    marginTop: COLORS.SPACING.xs,
+    paddingHorizontal: COLORS.SPACING.xs,
+    paddingVertical: COLORS.SPACING.xs / 2,
+    borderRadius: COLORS.RADIUS.xs || 4,
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: COLORS.BLACK,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
   labelText: {
-    color: "#FFFFFF",
-    fontSize: 10,
+    color: COLORS.WHITE,
+    fontSize: COLORS.TYPOGRAPHY.sizes.xs,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
