@@ -252,13 +252,155 @@ const AdminReportsScreen = () => {
     );
   };
 
+  // ─── SÜRDÜRÜLEBİLİRLİK ──────────────────────────────────────────────────────
+  const renderSustainability = () => {
+    const summary = fuelData?.summary;
+    const vehicles = fuelData?.vehicles || [];
+
+    // DEFRA 2023 katsayıları
+    const CO2_FACTORS = { diesel: 2.68, gasoline: 2.31, lpg: 1.51, electric: 0 };
+
+    // Araç bazlı CO2e
+    const vehicleEmissions = vehicles.map((v) => {
+      const liters = parseFloat(v.total_liters || 0);
+      const factor = CO2_FACTORS[v.fuel_type] || CO2_FACTORS.diesel;
+      return {
+        ...v,
+        co2e_kg: liters * factor,
+        co2e_ton: (liters * factor) / 1000,
+      };
+    });
+    const totalCo2kg = vehicleEmissions.reduce((s, v) => s + v.co2e_kg, 0);
+    const totalLiters = parseFloat(summary?.total_liters || 0);
+
+    return (
+      <>
+        <SectionTitle title="Emisyon Özeti" styles={styles} />
+        <View style={styles.statGrid}>
+          <View style={styles.statCell}>
+            <StatCard
+              icon="leaf-outline"
+              label="Toplam CO₂e"
+              value={totalCo2kg > 0 ? `${(totalCo2kg / 1000).toFixed(2)} ton` : "—"}
+              sub="DEFRA 2023"
+              color={COLORS.SUCCESS}
+            />
+          </View>
+          <View style={styles.statCell}>
+            <StatCard
+              icon="car-outline"
+              label="Araç Sayısı"
+              value={vehicleEmissions.filter(v => v.co2e_kg > 0).length}
+              sub="emisyon kaydı olan"
+              color={COLORS.PRIMARY}
+            />
+          </View>
+          <View style={styles.statCell}>
+            <StatCard
+              icon="water-outline"
+              label="Toplam Yakıt"
+              value={totalLiters > 0 ? `${totalLiters.toFixed(0)} L` : "—"}
+              color={COLORS.INFO}
+            />
+          </View>
+          <View style={styles.statCell}>
+            <StatCard
+              icon="navigate-outline"
+              label="kg CO₂e / km"
+              value={summary?.total_km > 0
+                ? `${(totalCo2kg / parseInt(summary.total_km)).toFixed(3)}`
+                : "—"}
+              color={COLORS.WARNING}
+            />
+          </View>
+        </View>
+
+        {vehicleEmissions.filter(v => v.co2e_kg > 0).length > 0 && (
+          <>
+            <SectionTitle title="Araç Bazlı Emisyon" styles={styles} />
+            {vehicleEmissions
+              .filter(v => v.co2e_kg > 0)
+              .sort((a, b) => b.co2e_kg - a.co2e_kg)
+              .map((v, idx) => {
+                const pct = totalCo2kg > 0 ? (v.co2e_kg / totalCo2kg) * 100 : 0;
+                return (
+                  <Card key={v.vehicle_id}>
+                    <View style={styles.vehicleRow}>
+                      <View style={[styles.rankBadge, { backgroundColor: withAlpha(COLORS.SUCCESS, 0.12) }]}>
+                        <Text style={[styles.rankText, { color: COLORS.SUCCESS }]}>{idx + 1}</Text>
+                      </View>
+                      <View style={styles.vehicleInfo}>
+                        <Text style={[styles.vehiclePlate, { color: COLORS.TEXT }]}>{v.plate_no}</Text>
+                        <Text style={[styles.vehicleDriver, { color: COLORS.TEXT_MUTED }]}>
+                          {v.fuel_type?.toUpperCase() || "DIESEL"}
+                        </Text>
+                      </View>
+                      <View style={styles.vehicleRight}>
+                        <Text style={[styles.vehicleConsumption, { color: COLORS.TEXT }]}>
+                          {v.co2e_kg.toFixed(0)} kg
+                        </Text>
+                        <Text style={[styles.vehicleDriver, { color: COLORS.TEXT_MUTED }]}>
+                          %{pct.toFixed(0)} pay
+                        </Text>
+                      </View>
+                    </View>
+                  </Card>
+                );
+              })}
+          </>
+        )}
+
+        <SectionTitle title="Kapsam Durumu" styles={styles} />
+        <Card>
+          {[
+            { scope: "Scope 1", label: "Doğrudan Emisyon (Yakıt)", status: "partial", desc: "Yakıt tüketiminden tahmini CO₂e — boundary tanımı eksik" },
+            { scope: "Scope 2", label: "Elektrik / Enerji", status: "missing", desc: "EV şarj ve satın alınan enerji verisi yok" },
+            { scope: "Scope 3", label: "Değer Zinciri", status: "missing", desc: "Tedarik zinciri, bakım, taşeron emisyonları yok" },
+          ].map((item, idx) => {
+            const statusColor = item.status === "partial" ? COLORS.WARNING : COLORS.ERROR;
+            const statusLabel = item.status === "partial" ? "Kısmi" : "Eksik";
+            return (
+              <View key={item.scope} style={[styles.scopeRow, idx > 0 && { borderTopWidth: 1, borderTopColor: COLORS.DIVIDER, marginTop: COLORS.SPACING.sm, paddingTop: COLORS.SPACING.sm }]}>
+                <View style={[styles.scopeBadge, { backgroundColor: withAlpha(statusColor, 0.12) }]}>
+                  <Text style={[styles.scopeBadgeText, { color: statusColor }]}>{statusLabel}</Text>
+                </View>
+                <View style={styles.scopeInfo}>
+                  <Text style={[styles.scopeTitle, { color: COLORS.TEXT }]}>{item.scope} — {item.label}</Text>
+                  <Text style={[styles.scopeDesc, { color: COLORS.TEXT_MUTED }]}>{item.desc}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </Card>
+
+        <SectionTitle title="Metodoloji" styles={styles} />
+        <Card>
+          <View style={styles.methodRow}>
+            <Ionicons name="information-circle-outline" size={18} color={COLORS.INFO} />
+            <View style={styles.methodContent}>
+              <Text style={[styles.methodTitle, { color: COLORS.TEXT }]}>DEFRA 2023 GHG Conversion Factors</Text>
+              <Text style={[styles.methodDesc, { color: COLORS.TEXT_SECONDARY }]}>
+                Diesel: 2.68 kg CO₂e/L · Benzin: 2.31 kg CO₂e/L · LPG: 1.51 kg CO₂e/L
+              </Text>
+              <Text style={[styles.methodNote, { color: COLORS.TEXT_MUTED }]}>
+                Tank dolum kayıtlarına dayalı Scope 1 tahmini. Bu hesaplama tam CSRD/ESRS
+                beyanının yerine geçmez; CSRD hazırlık sürecini destekler.
+                Scope 2 ve Scope 3 dahil değildir.
+              </Text>
+            </View>
+          </View>
+        </Card>
+      </>
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "operations": return renderOperations();
       case "fuel": return renderFuel();
       case "driverQuality": return <ComingSoon title="Sürücü Kalitesi" styles={styles} COLORS={COLORS} />;
       case "fleetEfficiency": return <ComingSoon title="Filo Verimliliği" styles={styles} COLORS={COLORS} />;
-      case "sustainability": return <ComingSoon title="Sürdürülebilirlik" styles={styles} COLORS={COLORS} />;
+      case "sustainability": return renderSustainability();
       default: return null;
     }
   };
@@ -360,6 +502,20 @@ const makeStyles = (COLORS) => StyleSheet.create({
   centerText: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_MUTED, marginTop: COLORS.SPACING.sm },
   retryBtn: { marginTop: COLORS.SPACING.md, paddingHorizontal: COLORS.SPACING.lg, paddingVertical: COLORS.SPACING.xs, borderRadius: COLORS.RADIUS.pill },
   retryText: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
+  // Scope rows
+  scopeRow: { flexDirection: "row", alignItems: "flex-start" },
+  scopeBadge: { borderRadius: COLORS.RADIUS.sm, paddingHorizontal: COLORS.SPACING.xs, paddingVertical: COLORS.SPACING.xs / 2, marginRight: COLORS.SPACING.sm, minWidth: 48, alignItems: "center" },
+  scopeBadgeText: { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
+  scopeInfo: { flex: 1 },
+  scopeTitle: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
+  scopeDesc: { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs / 2 },
+  // Methodology
+  methodRow: { flexDirection: "row", alignItems: "flex-start" },
+  methodContent: { flex: 1, marginLeft: COLORS.SPACING.xs },
+  methodTitle: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold, marginBottom: COLORS.SPACING.xs / 2 },
+  methodDesc: { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginBottom: COLORS.SPACING.xs },
+  methodNote: { fontSize: COLORS.TYPOGRAPHY.sizes.xs, lineHeight: 16 },
+  // Coming soon
   comingSoonWrap: { alignItems: "center", paddingVertical: COLORS.SPACING.xxxl },
   comingSoonTitle: { fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.semibold, color: COLORS.TEXT, marginTop: COLORS.SPACING.md },
   comingSoonBadge: { borderRadius: COLORS.RADIUS.pill, paddingHorizontal: COLORS.SPACING.md, paddingVertical: COLORS.SPACING.xs / 2, marginTop: COLORS.SPACING.sm },
