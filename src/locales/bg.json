@@ -1721,30 +1721,9 @@
   "reports": {
     "loading": "Зареждане на отчети...",
     "noData": "Данните не могат да бъдат заредени",
-    "fleetStatus": "Статус на флота",
-    "taskSummary": "Обобщение на задачи",
-    "alertSummary": "Обобщение на предупреждения",
-    "totalVehicles": "Общо превозни средства",
-    "totalDrivers": "Общо шофьори",
     "totalTasks": "Общо задачи",
     "completed": "Завършени",
-    "totalAlerts": "Общо предупреждения",
-    "criticalAlerts": "Критични предупреждения",
     "active": "активен",
-    "resolved": "разрешен",
-    "vehiclePerformance": "Ефективност на превозните средства",
-    "driverPerformance": "Ефективност на шофьорите",
-    "alertDistribution": "Разпределение на предупрежденията",
-    "taskDistribution": "Разпределение на задачите",
-    "noVehicleData": "Няма данни за превозни средства",
-    "noDriverData": "Няма данни за шофьори",
-    "noAlertData": "Няма данни за предупреждения",
-    "noTaskData": "Няма данни за задачи",
-    "noAlertsInPeriod": "Няма предупреждения за този период",
-    "noTasksInPeriod": "Няма задачи за този период",
-    "statusActive": "Активен",
-    "statusAvailable": "Свободен",
-    "statusInactive": "Неактивен",
     "tasks": "Задачи",
     "alerts": "Предупреждения",
     "success": "Успех",
@@ -1752,18 +1731,51 @@
     "last30Days": "Последните 30 дни",
     "last90Days": "Последните 90 дни",
     "tabs": {
-      "summary": "Обобщение",
-      "vehicles": "Превозни средства",
-      "drivers": "Шофьори",
-      "alerts": "Предупреждения",
-      "tasks": "Задачи"
+      "operations": "Операции",
+      "fuel": "Гориво и Разходи",
+      "driverQuality": "Качество на Шофиране",
+      "fleetEfficiency": "Ефективност на Флота",
+      "sustainability": "Устойчивост"
     },
-    "alertTypes": {
-      "hardBrake": "Рязко спиране",
-      "hardAccel": "Рязко ускорение",
-      "hardTurn": "Рязък завой",
-      "impact": "Удар",
-      "overspeed": "Превишаване на скоростта"
+    "operations": {
+      "totalTasks": "Общо Задачи",
+      "completed": "Завършени",
+      "cancelled": "Отменени",
+      "rejected": "Отхвърлени",
+      "onTimeStart": "Навременно Начало",
+      "onTimeDelivery": "Навременна Доставка",
+      "avgDuration": "Средна Продължителност",
+      "avgWaitTime": "Средно Чакане",
+      "waypointCompletion": "Изпълнение на Точки",
+      "delayedTasks": "Закъснели Задачи"
+    },
+    "fuel": {
+      "totalLiters": "Общ Разход",
+      "totalCost": "Общи Разходи",
+      "per100km": "Средно Л/100км",
+      "perKm": "Цена на км",
+      "byVehicle": "По Превозно Средство",
+      "fullTankOnly": "Анализ Пълен Бак",
+      "anomaly": "Аномалия",
+      "currencyBreakdown": "Разбивка по Валута"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Задачи на Шофьор",
+      "safetyScore": "Оценка за Безопасност",
+      "per100km": "На 100 км",
+      "trainingNote": "Показател за обучение и подобрение"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Задачи на Превозно Средство",
+      "kmPerVehicle": "км на Превозно Средство",
+      "utilization": "Степен на Използване",
+      "costPerTask": "Разход на Задача"
+    },
+    "sustainability": {
+      "totalCo2": "Общо CO₂e",
+      "byVehicle": "Емисии по Превозно Средство",
+      "methodology": "Методология",
+      "methodologyNote": "DEFRA 2023 — Оценка Обхват 1 на база зареждания."
     }
   },
   "geofence": {

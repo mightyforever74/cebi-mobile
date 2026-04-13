@@ -1823,30 +1823,9 @@
   "reports": {
     "loading": "Rapporten laden...",
     "noData": "Gegevens konden niet worden geladen",
-    "fleetStatus": "Vlootstatus",
-    "taskSummary": "Taakoverzicht",
-    "alertSummary": "Meldingsoverzicht",
-    "totalVehicles": "Totaal voertuigen",
-    "totalDrivers": "Totaal chauffeurs",
     "totalTasks": "Totaal taken",
     "completed": "Voltooid",
-    "totalAlerts": "Totaal meldingen",
-    "criticalAlerts": "Kritieke meldingen",
     "active": "actief",
-    "resolved": "opgelost",
-    "vehiclePerformance": "Voertuigprestaties",
-    "driverPerformance": "Chauffeusprestaties",
-    "alertDistribution": "Meldingsverdeling",
-    "taskDistribution": "Taakverdeling",
-    "noVehicleData": "Geen voertuigdata",
-    "noDriverData": "Geen chauffeurdata",
-    "noAlertData": "Geen meldingsdata",
-    "noTaskData": "Geen taakdata",
-    "noAlertsInPeriod": "Geen meldingen in deze periode",
-    "noTasksInPeriod": "Geen taken in deze periode",
-    "statusActive": "Actief",
-    "statusAvailable": "Beschikbaar",
-    "statusInactive": "Inactief",
     "tasks": "Taken",
     "alerts": "Meldingen",
     "success": "Succes",
@@ -1854,18 +1833,51 @@
     "last30Days": "Laatste 30 dagen",
     "last90Days": "Laatste 90 dagen",
     "tabs": {
-      "summary": "Overzicht",
-      "vehicles": "Voertuigen",
-      "drivers": "Chauffeurs",
-      "alerts": "Meldingen",
-      "tasks": "Taken"
+      "operations": "Operaties",
+      "fuel": "Brandstof & Kosten",
+      "driverQuality": "Rijderskwaliteit",
+      "fleetEfficiency": "Vlootefficiëntie",
+      "sustainability": "Duurzaamheid"
     },
-    "alertTypes": {
-      "hardBrake": "Hard remmen",
-      "hardAccel": "Hard optrekken",
-      "hardTurn": "Scherpe bocht",
-      "impact": "Impact",
-      "overspeed": "Snelheidsoverschrijding"
+    "operations": {
+      "totalTasks": "Totaal Taken",
+      "completed": "Voltooid",
+      "cancelled": "Geannuleerd",
+      "rejected": "Afgewezen",
+      "onTimeStart": "Op Tijd Gestart",
+      "onTimeDelivery": "Op Tijd Geleverd",
+      "avgDuration": "Gem. Taakduur",
+      "avgWaitTime": "Gem. Wachttijd",
+      "waypointCompletion": "Waypoint Voltooiing",
+      "delayedTasks": "Vertraagde Taken"
+    },
+    "fuel": {
+      "totalLiters": "Totaal Verbruik",
+      "totalCost": "Totale Kosten",
+      "per100km": "Gem. L/100km",
+      "perKm": "Kosten per km",
+      "byVehicle": "Per Voertuig",
+      "fullTankOnly": "Vol Tank Analyse",
+      "anomaly": "Anomalie",
+      "currencyBreakdown": "Valuta Verdeling"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Taken per Rijder",
+      "safetyScore": "Veiligheidsscore",
+      "per100km": "Per 100 km",
+      "trainingNote": "Training en verbeteringsstatistiek"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Taken per Voertuig",
+      "kmPerVehicle": "km per Voertuig",
+      "utilization": "Gebruiksgraad",
+      "costPerTask": "Kosten per Taak"
+    },
+    "sustainability": {
+      "totalCo2": "Totaal CO₂e",
+      "byVehicle": "Emissies per Voertuig",
+      "methodology": "Methodologie",
+      "methodologyNote": "DEFRA 2023 — Scope 1 schatting op basis van tankregistraties."
     }
   },
   "geofence": {

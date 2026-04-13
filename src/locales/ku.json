@@ -1863,30 +1863,9 @@
   "reports": {
     "loading": "Rapor tên barkirin...",
     "noData": "Dane nekarî bêne barkirin",
-    "fleetStatus": "Rewşa fîloyê",
-    "taskSummary": "Kurtahiya karên",
-    "alertSummary": "Kurtahiya hişyariyên",
-    "totalVehicles": "Giştî wesayît",
-    "totalDrivers": "Giştî ajokar",
     "totalTasks": "Giştî kar",
     "completed": "Qediyayî",
-    "totalAlerts": "Giştî hişyarî",
-    "criticalAlerts": "Hişyariyên krîtîk",
     "active": "çalak",
-    "resolved": "çareser bû",
-    "vehiclePerformance": "Performansa wesayîtê",
-    "driverPerformance": "Performansa ajokarê",
-    "alertDistribution": "Belavbûna hişyariyê",
-    "taskDistribution": "Belavbûna karê",
-    "noVehicleData": "Daneya wesayîtê tune",
-    "noDriverData": "Daneya ajokarê tune",
-    "noAlertData": "Daneya hişyariyê tune",
-    "noTaskData": "Daneya karê tune",
-    "noAlertsInPeriod": "Di vê serdemê de hişyarî tune",
-    "noTasksInPeriod": "Di vê serdemê de kar tune",
-    "statusActive": "Çalak",
-    "statusAvailable": "Berdest",
-    "statusInactive": "Neçalak",
     "tasks": "Kar",
     "alerts": "Hişyarî",
     "success": "Serkeftin",
@@ -1894,18 +1873,51 @@
     "last30Days": "30 Rojên Dawî",
     "last90Days": "90 Rojên Dawî",
     "tabs": {
-      "summary": "Kurtahî",
-      "vehicles": "Wesayît",
-      "drivers": "Ajokar",
-      "alerts": "Hişyarî",
-      "tasks": "Kar"
+      "operations": "Operasyon",
+      "fuel": "Sotemenî û Lêdan",
+      "driverQuality": "Kalîteya Ajovan",
+      "fleetEfficiency": "Bandoriya Fîloyê",
+      "sustainability": "Domdarî"
     },
-    "alertTypes": {
-      "hardBrake": "Sekinandina tund",
-      "hardAccel": "Lezbûna tund",
-      "hardTurn": "Zivirandina tund",
-      "impact": "Lêdan",
-      "overspeed": "Zêdebûna leza"
+    "operations": {
+      "totalTasks": "Hemû Peywir",
+      "completed": "Temamkirî",
+      "cancelled": "Betal",
+      "rejected": "Refzkirin",
+      "onTimeStart": "Destpêka Di Wextê",
+      "onTimeDelivery": "Radestkirina Di Wextê",
+      "avgDuration": "Navîn Dirêjahî",
+      "avgWaitTime": "Navîn Bendî",
+      "waypointCompletion": "Temamkirina Xalan",
+      "delayedTasks": "Peywirên Dereng"
+    },
+    "fuel": {
+      "totalLiters": "Tevahî Vexwarin",
+      "totalCost": "Tevahî Lêdan",
+      "per100km": "Navîn L/100km",
+      "perKm": "Lêdana km",
+      "byVehicle": "Ji Wesayît",
+      "fullTankOnly": "Analîza Tangê Tijî",
+      "anomaly": "Anormalî",
+      "currencyBreakdown": "Dabeşkirina Diravî"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Peywir Ji Ajovan",
+      "safetyScore": "Pûana Ewlehiyê",
+      "per100km": "Ji 100 km",
+      "trainingNote": "Metrîka perwerde û baştirkirinê"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Peywir Ji Wesayît",
+      "kmPerVehicle": "km Ji Wesayît",
+      "utilization": "Rêjeya Bikaranînê",
+      "costPerTask": "Lêdana Peywirê"
+    },
+    "sustainability": {
+      "totalCo2": "Tevahî CO₂e",
+      "byVehicle": "Emîsyon Ji Wesayît",
+      "methodology": "Metodolojî",
+      "methodologyNote": "DEFRA 2023 — Texmîna Scope 1 li ser bingeha tomar tankê."
     }
   },
   "geofence": {

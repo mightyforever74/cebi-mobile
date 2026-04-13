@@ -1723,30 +1723,9 @@
   "reports": {
     "loading": "Raporlar yükleniyor...",
     "noData": "Veri yüklenemedi",
-    "fleetStatus": "Filo Durumu",
-    "taskSummary": "Görev Özeti",
-    "alertSummary": "Uyarı Özeti",
-    "totalVehicles": "Toplam Araç",
-    "totalDrivers": "Toplam Sürücü",
     "totalTasks": "Toplam Görev",
     "completed": "Tamamlanan",
-    "totalAlerts": "Toplam Uyarı",
-    "criticalAlerts": "Kritik Uyarı",
     "active": "aktif",
-    "resolved": "çözüldü",
-    "vehiclePerformance": "Araç Performansı",
-    "driverPerformance": "Sürücü Performansı",
-    "alertDistribution": "Uyarı Dağılımı",
-    "taskDistribution": "Görev Dağılımı",
-    "noVehicleData": "Araç verisi yok",
-    "noDriverData": "Sürücü verisi yok",
-    "noAlertData": "Uyarı verisi yok",
-    "noTaskData": "Görev verisi yok",
-    "noAlertsInPeriod": "Bu dönemde uyarı yok",
-    "noTasksInPeriod": "Bu dönemde görev yok",
-    "statusActive": "Aktif",
-    "statusAvailable": "Müsait",
-    "statusInactive": "Pasif",
     "tasks": "Görev",
     "alerts": "Uyarı",
     "success": "Başarı",
@@ -1754,18 +1733,51 @@
     "last30Days": "Son 30 Gün",
     "last90Days": "Son 90 Gün",
     "tabs": {
-      "summary": "Özet",
-      "vehicles": "Araçlar",
-      "drivers": "Sürücüler",
-      "alerts": "Uyarılar",
-      "tasks": "Görevler"
+      "operations": "Operasyon",
+      "fuel": "Yakıt & Maliyet",
+      "driverQuality": "Sürücü Kalitesi",
+      "fleetEfficiency": "Filo Verimliliği",
+      "sustainability": "Sürdürülebilirlik"
     },
-    "alertTypes": {
-      "hardBrake": "Ani Fren",
-      "hardAccel": "Sert Hızlanma",
-      "hardTurn": "Sert Viraj",
-      "impact": "Çarpma",
-      "overspeed": "Hız Aşımı"
+    "operations": {
+      "totalTasks": "Toplam Görev",
+      "completed": "Tamamlanan",
+      "cancelled": "İptal",
+      "rejected": "Reddedilen",
+      "onTimeStart": "Zamanında Başlama",
+      "onTimeDelivery": "Zamanında Teslim",
+      "avgDuration": "Ort. Görev Süresi",
+      "avgWaitTime": "Ort. Bekleme",
+      "waypointCompletion": "Güzergah Tamamlama",
+      "delayedTasks": "Geciken Görevler"
+    },
+    "fuel": {
+      "totalLiters": "Toplam Tüketim",
+      "totalCost": "Toplam Maliyet",
+      "per100km": "L/100km Ort.",
+      "perKm": "km Başına Maliyet",
+      "byVehicle": "Araç Bazlı",
+      "fullTankOnly": "Tam Dolum Analizi",
+      "anomaly": "Anormal Tüketim",
+      "currencyBreakdown": "Para Birimi Dağılımı"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Sürücü Başına Görev",
+      "safetyScore": "Güvenli Sürüş Skoru",
+      "per100km": "100 km Başına",
+      "trainingNote": "Eğitim ve iyileştirme metriği"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Araç Başına Görev",
+      "kmPerVehicle": "Araç Başına KM",
+      "utilization": "Kullanım Oranı",
+      "costPerTask": "Görev Başına Maliyet"
+    },
+    "sustainability": {
+      "totalCo2": "Toplam CO₂e",
+      "byVehicle": "Araç Bazlı Emisyon",
+      "methodology": "Metodoloji",
+      "methodologyNote": "DEFRA 2023 GHG Conversion Factors — tank dolum kayıtlarına dayalı Scope 1 tahmini."
     }
   },
   "geofence": {

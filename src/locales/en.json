@@ -1701,30 +1701,9 @@
   "reports": {
     "loading": "Loading reports...",
     "noData": "Could not load data",
-    "fleetStatus": "Fleet Status",
-    "taskSummary": "Task Summary",
-    "alertSummary": "Alert Summary",
-    "totalVehicles": "Total Vehicles",
-    "totalDrivers": "Total Drivers",
     "totalTasks": "Total Tasks",
     "completed": "Completed",
-    "totalAlerts": "Total Alerts",
-    "criticalAlerts": "Critical Alerts",
     "active": "active",
-    "resolved": "resolved",
-    "vehiclePerformance": "Vehicle Performance",
-    "driverPerformance": "Driver Performance",
-    "alertDistribution": "Alert Distribution",
-    "taskDistribution": "Task Distribution",
-    "noVehicleData": "No vehicle data",
-    "noDriverData": "No driver data",
-    "noAlertData": "No alert data",
-    "noTaskData": "No task data",
-    "noAlertsInPeriod": "No alerts in this period",
-    "noTasksInPeriod": "No tasks in this period",
-    "statusActive": "Active",
-    "statusAvailable": "Available",
-    "statusInactive": "Inactive",
     "tasks": "Tasks",
     "alerts": "Alerts",
     "success": "Success",
@@ -1732,18 +1711,51 @@
     "last30Days": "Last 30 Days",
     "last90Days": "Last 90 Days",
     "tabs": {
-      "summary": "Summary",
-      "vehicles": "Vehicles",
-      "drivers": "Drivers",
-      "alerts": "Alerts",
-      "tasks": "Tasks"
+      "operations": "Operations",
+      "fuel": "Fuel & Cost",
+      "driverQuality": "Driver Quality",
+      "fleetEfficiency": "Fleet Efficiency",
+      "sustainability": "Sustainability"
     },
-    "alertTypes": {
-      "hardBrake": "Hard Brake",
-      "hardAccel": "Hard Accel",
-      "hardTurn": "Hard Turn",
-      "impact": "Impact",
-      "overspeed": "Overspeed"
+    "operations": {
+      "totalTasks": "Total Tasks",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected",
+      "onTimeStart": "On-Time Start",
+      "onTimeDelivery": "On-Time Delivery",
+      "avgDuration": "Avg. Task Duration",
+      "avgWaitTime": "Avg. Wait Time",
+      "waypointCompletion": "Waypoint Completion",
+      "delayedTasks": "Delayed Tasks"
+    },
+    "fuel": {
+      "totalLiters": "Total Consumption",
+      "totalCost": "Total Cost",
+      "per100km": "Avg L/100km",
+      "perKm": "Cost per km",
+      "byVehicle": "By Vehicle",
+      "fullTankOnly": "Full Tank Analysis",
+      "anomaly": "Anomaly Detection",
+      "currencyBreakdown": "Currency Breakdown"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Tasks per Driver",
+      "safetyScore": "Safety Score",
+      "per100km": "Per 100 km",
+      "trainingNote": "Training and improvement metric"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Tasks per Vehicle",
+      "kmPerVehicle": "km per Vehicle",
+      "utilization": "Utilization Rate",
+      "costPerTask": "Cost per Task"
+    },
+    "sustainability": {
+      "totalCo2": "Total CO₂e",
+      "byVehicle": "Emissions by Vehicle",
+      "methodology": "Methodology",
+      "methodologyNote": "DEFRA 2023 GHG Conversion Factors — Scope 1 estimate based on fuel fill records."
     }
   },
   "geofence": {

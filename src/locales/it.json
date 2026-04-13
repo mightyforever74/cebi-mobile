@@ -1567,30 +1567,9 @@
   "reports": {
     "loading": "Caricamento report...",
     "noData": "Impossibile caricare i dati",
-    "fleetStatus": "Stato flotta",
-    "taskSummary": "Riepilogo compiti",
-    "alertSummary": "Riepilogo avvisi",
-    "totalVehicles": "Veicoli totali",
-    "totalDrivers": "Autisti totali",
     "totalTasks": "Compiti totali",
     "completed": "Completati",
-    "totalAlerts": "Avvisi totali",
-    "criticalAlerts": "Avvisi critici",
     "active": "attivo",
-    "resolved": "risolto",
-    "vehiclePerformance": "Prestazioni veicoli",
-    "driverPerformance": "Prestazioni autisti",
-    "alertDistribution": "Distribuzione avvisi",
-    "taskDistribution": "Distribuzione compiti",
-    "noVehicleData": "Nessun dato veicolo",
-    "noDriverData": "Nessun dato autista",
-    "noAlertData": "Nessun dato avvisi",
-    "noTaskData": "Nessun dato compiti",
-    "noAlertsInPeriod": "Nessun avviso in questo periodo",
-    "noTasksInPeriod": "Nessun compito in questo periodo",
-    "statusActive": "Attivo",
-    "statusAvailable": "Disponibile",
-    "statusInactive": "Inattivo",
     "tasks": "Compiti",
     "alerts": "Avvisi",
     "success": "Successo",
@@ -1598,18 +1577,51 @@
     "last30Days": "Ultimi 30 giorni",
     "last90Days": "Ultimi 90 giorni",
     "tabs": {
-      "summary": "Riepilogo",
-      "vehicles": "Veicoli",
-      "drivers": "Autisti",
-      "alerts": "Avvisi",
-      "tasks": "Compiti"
+      "operations": "Operazioni",
+      "fuel": "Carburante e Costi",
+      "driverQuality": "Qualità del Conducente",
+      "fleetEfficiency": "Efficienza della Flotta",
+      "sustainability": "Sostenibilità"
     },
-    "alertTypes": {
-      "hardBrake": "Frenata brusca",
-      "hardAccel": "Accelerazione brusca",
-      "hardTurn": "Curva brusca",
-      "impact": "Impatto",
-      "overspeed": "Eccesso di velocità"
+    "operations": {
+      "totalTasks": "Totale Compiti",
+      "completed": "Completati",
+      "cancelled": "Annullati",
+      "rejected": "Rifiutati",
+      "onTimeStart": "Inizio Puntuale",
+      "onTimeDelivery": "Consegna Puntuale",
+      "avgDuration": "Durata Media",
+      "avgWaitTime": "Attesa Media",
+      "waypointCompletion": "Completamento Waypoint",
+      "delayedTasks": "Compiti in Ritardo"
+    },
+    "fuel": {
+      "totalLiters": "Consumo Totale",
+      "totalCost": "Costo Totale",
+      "per100km": "Media L/100km",
+      "perKm": "Costo per km",
+      "byVehicle": "Per Veicolo",
+      "fullTankOnly": "Analisi Pieno",
+      "anomaly": "Anomalia",
+      "currencyBreakdown": "Ripartizione Valuta"
+    },
+    "driverQuality": {
+      "tasksPerDriver": "Compiti per Conducente",
+      "safetyScore": "Punteggio Sicurezza",
+      "per100km": "Per 100 km",
+      "trainingNote": "Metrica di formazione e miglioramento"
+    },
+    "fleet": {
+      "tasksPerVehicle": "Compiti per Veicolo",
+      "kmPerVehicle": "km per Veicolo",
+      "utilization": "Tasso di Utilizzo",
+      "costPerTask": "Costo per Compito"
+    },
+    "sustainability": {
+      "totalCo2": "CO₂e Totale",
+      "byVehicle": "Emissioni per Veicolo",
+      "methodology": "Metodologia",
+      "methodologyNote": "DEFRA 2023 — Stima Scope 1 basata su registrazioni carburante."
     }
   },
   "geofence": {
