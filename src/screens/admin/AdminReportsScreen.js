@@ -167,11 +167,11 @@ const AdminReportsScreen = () => {
 
   const KpiCard = ({ label, value, sub, color }) => (
     <View style={styles.kpiCell}>
-      <Card style={{ borderLeftWidth: 3, borderLeftColor: color }}>
+      <View style={[styles.kpiCard, { borderLeftColor: color }]}>
         <Text style={[styles.kpiValue, { color: COLORS.TEXT }]}>{value}</Text>
         <Text style={[styles.kpiLabel, { color: COLORS.TEXT_SECONDARY }]}>{label}</Text>
         {sub ? <Text style={[styles.kpiSub, { color: COLORS.TEXT_MUTED }]}>{sub}</Text> : null}
-      </Card>
+      </View>
     </View>
   );
 
@@ -210,12 +210,12 @@ const AdminReportsScreen = () => {
           <KpiCard label="Ort. Görev Süresi"  value="—"              color={COLORS.PRIMARY} />
           <KpiCard label="Geciken Görev"       value="—"              color={COLORS.WARNING} />
         </View>
-        <Card style={{ flexDirection: "row", alignItems: "flex-start" }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.INFO} />
           <Text style={[styles.infoText, { color: COLORS.TEXT_SECONDARY }]}>
             Zamanında başlama/teslim için <Text style={{ fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.PRIMARY }}>/api/reports/operations</Text> endpoint'i tamamlandığında aktif olacak.
           </Text>
-        </Card>
+        </View>
       </>
     );
   };
@@ -244,7 +244,7 @@ const AdminReportsScreen = () => {
         {fuelSavings?.has_baseline && savings && (
           <>
             <Text style={[styles.sectionTitle, { color: COLORS.TEXT }]}>Tasarruf Analizi</Text>
-            <Card>
+            <View>
               <View style={styles.savingsHeader}>
                 <Ionicons name="trending-down" size={22} color={COLORS.SUCCESS} />
                 <Text style={[styles.savingsBig, { color: COLORS.SUCCESS }]}>%{fmt1(savings.consumption_improvement_percent)}</Text>
@@ -263,7 +263,7 @@ const AdminReportsScreen = () => {
                   </View>
                 ))}
               </View>
-            </Card>
+            </View>
           </>
         )}
 
@@ -275,7 +275,7 @@ const AdminReportsScreen = () => {
               const pc  = v.performance === "good" || v.performance === "excellent"
                 ? COLORS.SUCCESS : v.performance === "poor" ? COLORS.ERROR : COLORS.WARNING;
               return (
-                <Card key={v.vehicle_id} style={{ marginBottom: COLORS.SPACING.xs }}>
+                <View key={v.vehicle_id} style={[styles.vehicleCard, { marginBottom: COLORS.SPACING.xs }]}>
                   <View style={[styles.rankBadge, { backgroundColor: withAlpha(pc, 0.12) }]}>
                     <Text style={[styles.rankText, { color: pc }]}>{idx + 1}</Text>
                   </View>
@@ -291,7 +291,7 @@ const AdminReportsScreen = () => {
                       </View>
                     )}
                   </View>
-                </Card>
+                </View>
               );
             })}
           </>
@@ -329,7 +329,7 @@ const AdminReportsScreen = () => {
             {emissions.filter(v => v.co2e > 0).sort((a,b) => b.co2e - a.co2e).map((v, idx) => {
               const pct = totalCo2 > 0 ? (v.co2e/totalCo2*100).toFixed(0) : 0;
               return (
-                <Card key={v.vehicle_id} style={{ marginBottom: COLORS.SPACING.xs }}>
+                <View key={v.vehicle_id} style={[styles.vehicleCard, { marginBottom: COLORS.SPACING.xs }]}>
                   <View style={[styles.rankBadge, { backgroundColor: withAlpha(COLORS.SUCCESS, 0.12) }]}>
                     <Text style={[styles.rankText, { color: COLORS.SUCCESS }]}>{idx+1}</Text>
                   </View>
@@ -341,7 +341,7 @@ const AdminReportsScreen = () => {
                     <Text style={[styles.vehicleVal, { color: COLORS.TEXT }]}>{v.co2e.toFixed(0)} kg</Text>
                     <Text style={[styles.vehicleSub, { color: COLORS.TEXT_MUTED }]}>%{pct} pay</Text>
                   </View>
-                </Card>
+                </View>
               );
             })}
           </>
@@ -355,7 +355,7 @@ const AdminReportsScreen = () => {
         ].map(item => {
           const sc = item.status === "partial" ? COLORS.WARNING : COLORS.ERROR;
           return (
-            <Card key={item.scope}>
+            <View key={item.scope}>
               <View style={styles.scopeRow}>
                 <View style={[styles.scopeBadge, { backgroundColor: withAlpha(sc, 0.12) }]}>
                   <Text style={[styles.scopeBadgeText, { color: sc }]}>{item.status === "partial" ? "Kısmi" : "Eksik"}</Text>
@@ -365,12 +365,12 @@ const AdminReportsScreen = () => {
                   <Text style={[styles.scopeDesc, { color: COLORS.TEXT_MUTED }]}>{item.desc}</Text>
                 </View>
               </View>
-            </Card>
+            </View>
           );
         })}
 
         <Text style={[styles.sectionTitle, { color: COLORS.TEXT }]}>Metodoloji</Text>
-        <Card style={{ flexDirection: "row", alignItems: "flex-start" }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
           <Ionicons name="information-circle-outline" size={18} color={COLORS.INFO} />
           <Text style={[styles.infoText, { color: COLORS.TEXT_SECONDARY }]}>
             <Text style={{ fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT }}>DEFRA 2023 GHG Conversion Factors{"\n"}</Text>
@@ -379,7 +379,7 @@ const AdminReportsScreen = () => {
               Tank dolum kayıtlarına dayalı Scope 1 tahmini. Tam CSRD/ESRS beyanının yerine geçmez; CSRD hazırlık sürecini destekler.
             </Text>
           </Text>
-        </Card>
+        </View>
       </>
     );
   };
