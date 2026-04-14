@@ -40,7 +40,6 @@ import { vehicleAPI } from "../../services/api";
 import { geocodingAPI } from "../../services/geocoding";
 import { exportTripReport } from "../../services/reportExport";
 import { calculateDistance, toFloat } from "../../utils/mapMath";
-import { withAlpha } from "../../utils/colorUtils";
 
 // ============================================================================
 // CONSTANTS
@@ -350,7 +349,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
           name={iconName}
           size={16}
           color={COLORS.PRIMARY}
-          style={{ marginRight: COLORS.SPACING.xs }}
+          style={{ marginRight: 6 }}
         />
         <Text style={styles.accordionTitle}>{title}</Text>
       </View>
@@ -1271,7 +1270,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
               <ActivityIndicator
                 size="small"
                 color={COLORS.PRIMARY}
-                style={{ marginLeft: COLORS.SPACING.xs }}
+                style={{ marginLeft: 6 }}
               />
             ) : (
               <Text style={styles.stopAddressText} numberOfLines={2}>
@@ -1852,7 +1851,7 @@ const makeStyles = (COLORS) =>
     },
     sheetOverlay: {
       flex: 1,
-      backgroundColor: withAlpha(COLORS.BLACK, 0.35),
+      backgroundColor: "rgba(0,0,0,0.35)",
       justifyContent: "flex-end",
     },
     sheetCard: {
@@ -1932,14 +1931,14 @@ const makeStyles = (COLORS) =>
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
       color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 4,
       textAlign: "center",
     },
 
     statLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT_MUTED,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
       textAlign: "center",
     },
     noDataContainer: {
@@ -2008,9 +2007,9 @@ const makeStyles = (COLORS) =>
       color: COLORS.TEXT_PRIMARY,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs,
+      paddingVertical: 2,
       borderRadius: COLORS.RADIUS.xs,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
       overflow: "hidden",
     },
     playbackMarker: {
@@ -2032,7 +2031,7 @@ const makeStyles = (COLORS) =>
     idleMarker: {
       width: 28,
       height: 28,
-      borderRadius: COLORS.RADIUS.lg,
+      borderRadius: 14,
       backgroundColor: COLORS.WARNING,
       alignItems: "center",
       justifyContent: "center",
@@ -2041,10 +2040,10 @@ const makeStyles = (COLORS) =>
       ...COLORS.SHADOWS.md,
     },
     idleBadge: {
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 4,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs,
+      paddingVertical: 2,
       borderRadius: COLORS.RADIUS.xs,
       ...COLORS.SHADOWS.xs,
     },
@@ -2092,7 +2091,7 @@ const makeStyles = (COLORS) =>
     stopText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     stopCloseBtn: {
       marginTop: COLORS.SPACING.sm,
@@ -2127,7 +2126,7 @@ const makeStyles = (COLORS) =>
       paddingVertical: COLORS.SPACING.xs,
       paddingHorizontal: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.sm,
-      marginBottom: COLORS.SPACING.xs,
+      marginBottom: 2,
     },
     tripRowActive: {
       backgroundColor: COLORS.PRIMARY + "15",
@@ -2135,7 +2134,7 @@ const makeStyles = (COLORS) =>
     tripNumberBadge: {
       width: 24,
       height: 24,
-      borderRadius: COLORS.RADIUS.md,
+      borderRadius: 12,
       backgroundColor: COLORS.PRIMARY,
       alignItems: "center",
       justifyContent: "center",
@@ -2166,7 +2165,7 @@ const makeStyles = (COLORS) =>
     tripMarker: {
       width: 30,
       height: 30,
-      borderRadius: COLORS.RADIUS.lg,
+      borderRadius: 15,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,
@@ -2180,10 +2179,10 @@ const makeStyles = (COLORS) =>
       backgroundColor: COLORS.ERROR,
     },
     tripMarkerBadge: {
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 4,
       backgroundColor: COLORS.SURFACE,
       paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs,
+      paddingVertical: 2,
       borderRadius: COLORS.RADIUS.xs,
       ...COLORS.SHADOWS.xs,
     },
@@ -2217,15 +2216,15 @@ const makeStyles = (COLORS) =>
     tripCardText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
       color: COLORS.TEXT_PRIMARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     tripAddressRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     tripAddressIcon: {
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
       marginRight: COLORS.SPACING.xs,
     },
     tripAddressText: {
@@ -2288,7 +2287,7 @@ const makeStyles = (COLORS) =>
     timelineRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      marginBottom: COLORS.SPACING.xs,
+      marginBottom: 2,
       paddingVertical: COLORS.SPACING.xs,
       paddingHorizontal: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.sm,
@@ -2301,15 +2300,15 @@ const makeStyles = (COLORS) =>
     timelineDot: {
       width: 10,
       height: 10,
-      borderRadius: COLORS.RADIUS.sm,
-      marginTop: COLORS.SPACING.xs,
+      borderRadius: 5,
+      marginTop: 3,
     },
     timelineLine: {
       width: 2,
       flex: 1,
       minHeight: 20,
       backgroundColor: COLORS.DIVIDER,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     timelineContent: {
       flex: 1,

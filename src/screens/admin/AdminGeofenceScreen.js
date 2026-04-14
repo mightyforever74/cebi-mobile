@@ -113,7 +113,7 @@ const makeStyles = (COLORS) =>
     headerStatText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
     headerStatBold: {
       fontWeight: COLORS.TYPOGRAPHY.weights.bold,
@@ -131,13 +131,13 @@ const makeStyles = (COLORS) =>
       color: COLORS.WHITE,
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
 
     // ── List ──
     listContent: {
       padding: COLORS.SPACING.md,
-      paddingBottom: COLORS.SPACING.xl,
+      paddingBottom: 32,
     },
     zoneCard: {
       marginBottom: COLORS.SPACING.sm,
@@ -168,7 +168,7 @@ const makeStyles = (COLORS) =>
     zoneMeta: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     zoneBadgeRow: {
       flexDirection: "row",
@@ -180,15 +180,15 @@ const makeStyles = (COLORS) =>
       flexDirection: "row",
       alignItems: "center",
       borderRadius: COLORS.RADIUS.sm,
-      paddingHorizontal: COLORS.SPACING.xs,
-      paddingVertical: COLORS.SPACING.xs,
-      marginRight: COLORS.SPACING.xs,
-      marginTop: COLORS.SPACING.xs,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      marginRight: 4,
+      marginTop: 4,
     },
     zoneTagText: {
-      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontSize: 11,
       fontWeight: COLORS.TYPOGRAPHY.weights.medium,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 3,
     },
     zoneActions: {
       flexDirection: "row",
@@ -209,20 +209,12 @@ const makeStyles = (COLORS) =>
       borderRadius: COLORS.RADIUS.lg,
       alignItems: "center",
       justifyContent: "center",
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
 
     // ── Map preview strip ──
     mapStrip: {
-      height: 220,
-      marginHorizontal: COLORS.SPACING.md,
-      marginBottom: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.card,
-      overflow: "hidden",
-      ...COLORS.SHADOWS.card,
-    },
-    mapStripExpanded: {
-      height: 340,
+      height: 160,
       marginHorizontal: COLORS.SPACING.md,
       marginBottom: COLORS.SPACING.sm,
       borderRadius: COLORS.RADIUS.card,
@@ -236,7 +228,7 @@ const makeStyles = (COLORS) =>
     // ── Modal ──
     modalOverlay: {
       flex: 1,
-      backgroundColor: withAlpha(COLORS.BLACK, 0.5),
+      backgroundColor: "rgba(0,0,0,0.5)",
       justifyContent: "flex-end",
     },
     modalSheet: {
@@ -248,7 +240,7 @@ const makeStyles = (COLORS) =>
     modalHandle: {
       width: 40,
       height: 4,
-      borderRadius: COLORS.RADIUS.sm,
+      borderRadius: 2,
       backgroundColor: COLORS.DIVIDER,
       alignSelf: "center",
       marginTop: COLORS.SPACING.sm,
@@ -269,7 +261,7 @@ const makeStyles = (COLORS) =>
       color: COLORS.TEXT,
     },
     modalClose: {
-      padding: COLORS.SPACING.xs,
+      padding: 4,
     },
     modalScroll: {
       paddingHorizontal: COLORS.SPACING.md,
@@ -322,7 +314,7 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.medium,
       color: COLORS.TEXT_SECONDARY,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
     segmentTextActive: {
       color: COLORS.WHITE,
@@ -344,7 +336,7 @@ const makeStyles = (COLORS) =>
     categoryChipText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.medium,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
     radiusPresets: {
       flexDirection: "row",
@@ -353,7 +345,7 @@ const makeStyles = (COLORS) =>
     radiusChip: {
       borderRadius: COLORS.RADIUS.pill,
       paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
+      paddingVertical: 4,
       marginRight: COLORS.SPACING.xs,
       marginBottom: COLORS.SPACING.xs,
       borderWidth: 1,
@@ -385,7 +377,7 @@ const makeStyles = (COLORS) =>
     switchLabelSub: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT_SECONDARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     hourRow: {
       flexDirection: "row",
@@ -440,7 +432,7 @@ const makeStyles = (COLORS) =>
       borderWidth: 1,
       borderColor: COLORS.DIVIDER,
       paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.sm,
+      paddingVertical: 8,
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       color: COLORS.TEXT,
       marginRight: COLORS.SPACING.xs,
@@ -467,9 +459,9 @@ const makeStyles = (COLORS) =>
       position: "absolute",
       top: COLORS.SPACING.xs,
       left: COLORS.SPACING.xs,
-      backgroundColor: withAlpha(COLORS.BLACK, 0.55),
+      backgroundColor: withAlpha("#000000", 0.55),
       borderRadius: COLORS.RADIUS.md,
-      padding: COLORS.SPACING.xs,
+      padding: 6,
       zIndex: 10,
     },
     drawMap: {
@@ -477,7 +469,7 @@ const makeStyles = (COLORS) =>
     },
     drawHint: {
       // overlay: harita üzeri okunabilirlik için #000 sabit — theme token değil, bilinçli istisna
-      backgroundColor: withAlpha(COLORS.BLACK, 0.55),
+      backgroundColor: withAlpha("#000000", 0.55),
       paddingHorizontal: COLORS.SPACING.sm,
       paddingVertical: COLORS.SPACING.xs,
       borderRadius: COLORS.RADIUS.md,
@@ -486,7 +478,7 @@ const makeStyles = (COLORS) =>
       alignSelf: "center",
     },
     drawHintText: {
-      color: COLORS.WHITE,
+      color: "#FFFFFF",
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       textAlign: "center",
     },
@@ -495,17 +487,17 @@ const makeStyles = (COLORS) =>
       top: COLORS.SPACING.xs,
       right: COLORS.SPACING.xs,
       // overlay: harita üzeri okunabilirlik için #000 sabit — bilinçli istisna
-      backgroundColor: withAlpha(COLORS.BLACK, 0.55),
+      backgroundColor: withAlpha("#000000", 0.55),
       borderRadius: COLORS.RADIUS.md,
       paddingHorizontal: COLORS.SPACING.sm,
-      paddingVertical: COLORS.SPACING.xs,
+      paddingVertical: 4,
       flexDirection: "row",
       alignItems: "center",
     },
     drawClearText: {
-      color: COLORS.WHITE,
+      color: "#FFFFFF",
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
 
     // ── Save button ──
@@ -549,8 +541,6 @@ export default function AdminGeofenceScreen() {
   const [mapSearch, setMapSearch] = useState(""); // harita arama
   const [mapSearching, setMapSearching] = useState(false);
   const [mapFullscreen, setMapFullscreen] = useState(false);
-  const [mapExpanded, setMapExpanded] = useState(false);
-  const [mapRegion, setMapRegion] = useState(DEFAULT_REGION);
   // -- Vehicle picker --
   const [vehicles, setVehicles] = useState([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
@@ -599,37 +589,7 @@ export default function AdminGeofenceScreen() {
       setError(null);
       setLoading(true);
       const data = await geofenceAPI.getAll();
-      const zones = data.geofences ?? data.zones ?? [];
-      setZones(zones);
-      // Tüm geofence'leri kapsayacak şekilde haritayı fit et
-      if (zones.length > 0) {
-        const allCoords = [];
-        zones.forEach((z) => {
-          if (z.fence_type === 'circle' && z.coordinates?.lat && z.coordinates?.lng) {
-            allCoords.push({ latitude: parseFloat(z.coordinates.lat), longitude: parseFloat(z.coordinates.lng) });
-          } else if (Array.isArray(z.coordinates)) {
-            z.coordinates.forEach((c) => {
-              if (c.lat && c.lng) allCoords.push({ latitude: parseFloat(c.lat), longitude: parseFloat(c.lng) });
-            });
-          }
-        });
-        if (allCoords.length > 0) {
-          // Bounding box hesapla
-          const lats = allCoords.map((c) => c.latitude);
-          const lngs = allCoords.map((c) => c.longitude);
-          const minLat = Math.min(...lats);
-          const maxLat = Math.max(...lats);
-          const minLng = Math.min(...lngs);
-          const maxLng = Math.max(...lngs);
-          const padding = 0.15;
-          setMapRegion({
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLng + maxLng) / 2,
-            latitudeDelta: Math.max(maxLat - minLat + padding, 0.05),
-            longitudeDelta: Math.max(maxLng - minLng + padding, 0.05),
-          });
-        }
-      }
+      setZones(data.geofences ?? data.zones ?? []);
     } catch (e) {
       setError(e);
     } finally {
@@ -1078,19 +1038,14 @@ export default function AdminGeofenceScreen() {
 
       {/* ── Map strip (active zones overview) ── */}
       {!loading && !error && zones.length > 0 && (
-        <TouchableOpacity
-          activeOpacity={0.95}
-          onPress={() => setMapExpanded((v) => !v)}
-          style={mapExpanded ? styles.mapStripExpanded : styles.mapStrip}
-        >
+        <View style={styles.mapStrip}>
           <MapView
             ref={mapRef}
             style={styles.mapStripMap}
             provider={PROVIDER_GOOGLE}
-            region={mapRegion}
-            onRegionChangeComplete={mapExpanded ? setMapRegion : undefined}
-            scrollEnabled={mapExpanded}
-            zoomEnabled={mapExpanded}
+            initialRegion={DEFAULT_REGION}
+            scrollEnabled={false}
+            zoomEnabled={false}
             rotateEnabled={false}
             pitchEnabled={false}
             toolbarEnabled={false}
@@ -1117,7 +1072,7 @@ export default function AdminGeofenceScreen() {
               )
             )}
           </MapView>
-        </TouchableOpacity>
+        </View>
       )}
 
       {/* ── Page state: loading / error ── */}
@@ -1211,7 +1166,7 @@ export default function AdminGeofenceScreen() {
                     name={form.vehicle_id ? "car" : "car-outline"}
                     size={16}
                     color={form.vehicle_id ? COLORS.PRIMARY : COLORS.ERROR}
-                    style={{ marginRight: COLORS.SPACING.sm }}
+                    style={{ marginRight: 8 }}
                   />
                   <Text
                     style={{
@@ -1273,7 +1228,7 @@ export default function AdminGeofenceScreen() {
                           name="search-outline"
                           size={16}
                           color={COLORS.TEXT_SECONDARY}
-                          style={{ marginRight: COLORS.SPACING.xs }}
+                          style={{ marginRight: 6 }}
                         />
                         <TextInput
                           style={{
@@ -1319,7 +1274,7 @@ export default function AdminGeofenceScreen() {
                         keyExtractor={(v) => v.id}
                         contentContainerStyle={{
                           paddingHorizontal: COLORS.SPACING.md,
-                          paddingBottom: COLORS.SPACING.lg,
+                          paddingBottom: 24,
                         }}
                         ListEmptyComponent={
                           <EmptyState
@@ -1602,9 +1557,9 @@ export default function AdminGeofenceScreen() {
                   disabled={mapSearching}
                 >
                   {mapSearching ? (
-                    <ActivityIndicator size="small" color={COLORS.WHITE} />
+                    <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Ionicons name="search-outline" size={18} color={COLORS.WHITE} />
+                    <Ionicons name="search-outline" size={18} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
               </View>
@@ -1625,7 +1580,7 @@ export default function AdminGeofenceScreen() {
                   <Ionicons
                     name={mapFullscreen ? "contract-outline" : "expand-outline"}
                     size={16}
-                    color={COLORS.WHITE}
+                    color="#FFFFFF"
                   />
                 </TouchableOpacity>
                 <MapView
@@ -1686,19 +1641,19 @@ export default function AdminGeofenceScreen() {
                           style={{
                             width: 22,
                             height: 22,
-                            borderRadius: COLORS.RADIUS.pill,
+                            borderRadius: 11,
                             backgroundColor:
                               catColors[form.category] ?? COLORS.PRIMARY,
                             borderWidth: 2,
-                            borderColor: COLORS.WHITE,
+                            borderColor: "#FFFFFF",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
                           <Text
                             style={{
-                              color: COLORS.WHITE,
-                              fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+                              color: "#FFFFFF",
+                              fontSize: 9,
                               fontWeight: "bold",
                             }}
                           >
@@ -1721,7 +1676,7 @@ export default function AdminGeofenceScreen() {
                     <Ionicons
                       name="refresh-outline"
                       size={12}
-                      color={COLORS.WHITE}
+                      color="#FFFFFF"
                     />
                     <Text style={styles.drawClearText}>
                       {t("geofence.clearPoints")}

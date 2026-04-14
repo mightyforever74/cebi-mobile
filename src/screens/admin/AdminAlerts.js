@@ -121,7 +121,7 @@ const SEVERITY_ORDER = ["critical", "warning", "info"];
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-    listContent: { padding: COLORS.SPACING.sm, paddingBottom: COLORS.SPACING.xl },
+    listContent: { padding: COLORS.SPACING.sm, paddingBottom: 40 },
 
     // ── Summary header ──
     summaryRow: {
@@ -150,7 +150,7 @@ const makeStyles = (COLORS) =>
     summaryLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
     summaryLabelActive: {
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
@@ -178,7 +178,7 @@ const makeStyles = (COLORS) =>
     sectionDot: {
       width: 8,
       height: 8,
-      borderRadius: COLORS.RADIUS.xs || 4,
+      borderRadius: 4,
       marginRight: COLORS.SPACING.xs,
     },
     sectionTitle: {
@@ -234,7 +234,7 @@ const makeStyles = (COLORS) =>
       fontSize: COLORS.TYPOGRAPHY.sizes.sm,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
       color: COLORS.PRIMARY,
-      marginTop: COLORS.SPACING.xs,
+      marginTop: 2,
     },
 
     // Context row: driver + speed + time
@@ -254,13 +254,13 @@ const makeStyles = (COLORS) =>
     contextText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.MUTED,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
     contextTextBold: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
 
     // Description
@@ -288,7 +288,7 @@ const makeStyles = (COLORS) =>
     actionBtnText: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
-      marginLeft: COLORS.SPACING.xs,
+      marginLeft: 4,
     },
     actionDivider: {
       width: 1,
@@ -328,8 +328,8 @@ const makeStyles = (COLORS) =>
 // HELPERS
 // ─────────────────────────────────────────────
 const getAlertConfig = (alertType) =>
-  ALERT_CONFIG_MAP[alertType?.toLowerCase?.()] ||
   ALERT_CONFIG_MAP[alertType] ||
+  ALERT_CONFIG_MAP[alertType?.toUpperCase?.()] ||
   ALERT_CONFIG_MAP.default;
 
 const formatRelativeTime = (dateString, t) => {
@@ -778,7 +778,7 @@ const AdminAlerts = ({ navigation }) => {
               name={resolvedOpen ? "chevron-up" : "chevron-down"}
               size={16}
               color={COLORS.MUTED}
-              style={{ marginLeft: COLORS.SPACING.xs }}
+              style={{ marginLeft: 4 }}
             />
           </View>
         </TouchableOpacity>
