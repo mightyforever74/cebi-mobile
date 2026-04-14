@@ -30,59 +30,59 @@ const makeStyles = (COLORS) =>
     tab:             { flexDirection: "row", alignItems: "center", paddingHorizontal: COLORS.SPACING.sm, paddingVertical: COLORS.SPACING.xs, marginRight: COLORS.SPACING.xs, borderRadius: COLORS.RADIUS.pill, borderWidth: 1, borderColor: "transparent" },
     tabText:         { fontSize: COLORS.TYPOGRAPHY.sizes.sm, marginLeft: COLORS.SPACING.xs },
     soonDot:         { borderRadius: COLORS.RADIUS.pill, width: 16, height: 16, alignItems: "center", justifyContent: "center", marginLeft: COLORS.SPACING.xs },
-    soonText:        { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: "700" },
+    soonText:        { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: COLORS.TYPOGRAPHY.weights.bold },
     dateRow:         { flexDirection: "row", backgroundColor: COLORS.SURFACE, borderBottomWidth: 1, borderBottomColor: COLORS.DIVIDER, paddingHorizontal: COLORS.SPACING.md, paddingVertical: COLORS.SPACING.sm },
     dateBtn:         { flex: 1, alignItems: "center", paddingVertical: COLORS.SPACING.xs, borderRadius: COLORS.RADIUS.sm, marginRight: COLORS.SPACING.xs },
-    dateBtnText:     { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "500" },
+    dateBtnText:     { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.medium },
     scroll:          { flex: 1 },
     scrollContent:   { padding: COLORS.SPACING.md, paddingBottom: COLORS.SPACING.xl },
-    sectionTitle:    { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: "700", marginTop: COLORS.SPACING.md, marginBottom: COLORS.SPACING.sm },
+    sectionTitle:    { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: COLORS.TYPOGRAPHY.weights.bold, marginTop: COLORS.SPACING.md, marginBottom: COLORS.SPACING.sm },
     // KPI grid — 2 sütun, gap yerine margin
     kpiGrid:         { flexDirection: "row", flexWrap: "wrap" },
     kpiCell:         { width: "50%", paddingRight: COLORS.SPACING.xs, marginBottom: COLORS.SPACING.xs },
     kpiCard:         { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.sm, borderLeftWidth: 3, ...COLORS.SHADOWS.card },
-    kpiValue:        { fontSize: COLORS.TYPOGRAPHY.sizes.xl, fontWeight: "700", marginTop: COLORS.SPACING.xs },
+    kpiValue:        { fontSize: COLORS.TYPOGRAPHY.sizes.xl, fontWeight: COLORS.TYPOGRAPHY.weights.bold, marginTop: COLORS.SPACING.xs },
     kpiLabel:        { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     kpiSub:          { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     // Info card
     infoCard:        { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.sm, marginTop: COLORS.SPACING.sm, flexDirection: "row", alignItems: "flex-start", ...COLORS.SHADOWS.card },
-    infoText:        { fontSize: COLORS.TYPOGRAPHY.sizes.xs, flex: 1, marginLeft: COLORS.SPACING.xs, lineHeight: 18 },
+    infoText:        { fontSize: COLORS.TYPOGRAPHY.sizes.xs, flex: 1, marginLeft: COLORS.SPACING.xs },
     // Savings card
     savingsCard:     { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.md, marginBottom: COLORS.SPACING.sm, ...COLORS.SHADOWS.card },
     savingsHeader:   { flexDirection: "row", alignItems: "center", marginBottom: COLORS.SPACING.sm },
-    savingsBig:      { fontSize: COLORS.TYPOGRAPHY.sizes.xl, fontWeight: "700", marginLeft: COLORS.SPACING.sm },
+    savingsBig:      { fontSize: COLORS.TYPOGRAPHY.sizes.xl, fontWeight: COLORS.TYPOGRAPHY.weights.bold, marginLeft: COLORS.SPACING.sm },
     savingsSubLabel: { fontSize: COLORS.TYPOGRAPHY.sizes.sm, marginLeft: COLORS.SPACING.xs },
     savingsRow:      { flexDirection: "row", justifyContent: "space-around" },
     savingsItem:     { alignItems: "center" },
-    savingsVal:      { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: "600" },
+    savingsVal:      { fontSize: COLORS.TYPOGRAPHY.sizes.md, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     savingsKey:      { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     // Vehicle row
     vehicleCard:     { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.sm, marginBottom: COLORS.SPACING.xs, flexDirection: "row", alignItems: "center", ...COLORS.SHADOWS.card },
     rankBadge:       { width: 32, height: 32, borderRadius: COLORS.RADIUS.md, alignItems: "center", justifyContent: "center", marginRight: COLORS.SPACING.sm },
-    rankText:        { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "700" },
+    rankText:        { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.bold },
     vehicleInfo:     { flex: 1 },
-    vehiclePlate:    { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "600" },
+    vehiclePlate:    { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     vehicleDriver:   { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     vehicleRight:    { alignItems: "flex-end" },
-    vehicleVal:      { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "600" },
+    vehicleVal:      { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     vehicleSub:      { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     anomalyBadge:    { borderRadius: COLORS.RADIUS.pill, paddingHorizontal: COLORS.SPACING.xs, paddingVertical: COLORS.SPACING.xs, marginTop: COLORS.SPACING.xs },
-    anomalyText:     { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: "600" },
+    anomalyText:     { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     // Scope row
     scopeCard:       { backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.sm, marginBottom: COLORS.SPACING.xs, ...COLORS.SHADOWS.card },
     scopeRow:        { flexDirection: "row", alignItems: "flex-start" },
     scopeBadge:      { borderRadius: COLORS.RADIUS.sm, paddingHorizontal: COLORS.SPACING.xs, paddingVertical: COLORS.SPACING.xs, marginRight: COLORS.SPACING.sm, minWidth: 52, alignItems: "center" },
-    scopeBadgeText:  { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: "600" },
+    scopeBadgeText:  { fontSize: COLORS.TYPOGRAPHY.sizes.xs, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     scopeInfo:       { flex: 1 },
-    scopeTitle:      { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "600" },
+    scopeTitle:      { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     scopeDesc:       { fontSize: COLORS.TYPOGRAPHY.sizes.xs, marginTop: COLORS.SPACING.xs },
     // Center (loading/error/coming soon)
     centerWrap:      { alignItems: "center", paddingVertical: COLORS.SPACING.xl },
     centerText:      { fontSize: COLORS.TYPOGRAPHY.sizes.sm, marginTop: COLORS.SPACING.sm, textAlign: "center" },
     retryBtn:        { marginTop: COLORS.SPACING.md, paddingHorizontal: COLORS.SPACING.lg, paddingVertical: COLORS.SPACING.sm, borderRadius: COLORS.RADIUS.pill },
-    retryBtnText:    { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "600" },
+    retryBtnText:    { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     soonBadge:       { borderRadius: COLORS.RADIUS.pill, paddingHorizontal: COLORS.SPACING.md, paddingVertical: COLORS.SPACING.xs, marginTop: COLORS.SPACING.sm },
-    soonBadgeText:   { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: "600" },
+    soonBadgeText:   { fontSize: COLORS.TYPOGRAPHY.sizes.sm, fontWeight: COLORS.TYPOGRAPHY.weights.semibold },
     soonDesc:        { fontSize: COLORS.TYPOGRAPHY.sizes.sm, marginTop: COLORS.SPACING.sm, textAlign: "center", paddingHorizontal: COLORS.SPACING.xl },
   });
 
@@ -167,11 +167,11 @@ const AdminReportsScreen = () => {
 
   const KpiCard = ({ label, value, sub, color }) => (
     <View style={styles.kpiCell}>
-      <View style={[styles.kpiCard, { borderLeftColor: color }]}>
+      <Card style={{ borderLeftWidth: 3, borderLeftColor: color }}>
         <Text style={[styles.kpiValue, { color: COLORS.TEXT }]}>{value}</Text>
         <Text style={[styles.kpiLabel, { color: COLORS.TEXT_SECONDARY }]}>{label}</Text>
         {sub ? <Text style={[styles.kpiSub, { color: COLORS.TEXT_MUTED }]}>{sub}</Text> : null}
-      </View>
+      </Card>
     </View>
   );
 
@@ -210,10 +210,10 @@ const AdminReportsScreen = () => {
           <KpiCard label="Ort. Görev Süresi"  value="—"              color={COLORS.PRIMARY} />
           <KpiCard label="Geciken Görev"       value="—"              color={COLORS.WARNING} />
         </View>
-        <View style={styles.infoCard}>
+        <Card style={{ flexDirection: "row", alignItems: "flex-start" }}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.INFO} />
           <Text style={[styles.infoText, { color: COLORS.TEXT_SECONDARY }]}>
-            Zamanında başlama/teslim için <Text style={{ fontWeight: "700", color: COLORS.PRIMARY }}>/api/reports/operations</Text> endpoint'i tamamlandığında aktif olacak.
+            Zamanında başlama/teslim için <Text style={{ fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.PRIMARY }}>/api/reports/operations</Text> endpoint'i tamamlandığında aktif olacak.
           </Text>
         </View>
       </>
@@ -244,7 +244,7 @@ const AdminReportsScreen = () => {
         {fuelSavings?.has_baseline && savings && (
           <>
             <Text style={[styles.sectionTitle, { color: COLORS.TEXT }]}>Tasarruf Analizi</Text>
-            <View style={styles.savingsCard}>
+            <Card>
               <View style={styles.savingsHeader}>
                 <Ionicons name="trending-down" size={22} color={COLORS.SUCCESS} />
                 <Text style={[styles.savingsBig, { color: COLORS.SUCCESS }]}>%{fmt1(savings.consumption_improvement_percent)}</Text>
@@ -263,7 +263,7 @@ const AdminReportsScreen = () => {
                   </View>
                 ))}
               </View>
-            </View>
+            </Card>
           </>
         )}
 
@@ -275,7 +275,7 @@ const AdminReportsScreen = () => {
               const pc  = v.performance === "good" || v.performance === "excellent"
                 ? COLORS.SUCCESS : v.performance === "poor" ? COLORS.ERROR : COLORS.WARNING;
               return (
-                <View key={v.vehicle_id} style={styles.vehicleCard}>
+                <Card key={v.vehicle_id} style={{ marginBottom: COLORS.SPACING.xs }}>
                   <View style={[styles.rankBadge, { backgroundColor: withAlpha(pc, 0.12) }]}>
                     <Text style={[styles.rankText, { color: pc }]}>{idx + 1}</Text>
                   </View>
@@ -291,7 +291,7 @@ const AdminReportsScreen = () => {
                       </View>
                     )}
                   </View>
-                </View>
+                </Card>
               );
             })}
           </>
@@ -329,7 +329,7 @@ const AdminReportsScreen = () => {
             {emissions.filter(v => v.co2e > 0).sort((a,b) => b.co2e - a.co2e).map((v, idx) => {
               const pct = totalCo2 > 0 ? (v.co2e/totalCo2*100).toFixed(0) : 0;
               return (
-                <View key={v.vehicle_id} style={styles.vehicleCard}>
+                <Card key={v.vehicle_id} style={{ marginBottom: COLORS.SPACING.xs }}>
                   <View style={[styles.rankBadge, { backgroundColor: withAlpha(COLORS.SUCCESS, 0.12) }]}>
                     <Text style={[styles.rankText, { color: COLORS.SUCCESS }]}>{idx+1}</Text>
                   </View>
@@ -355,7 +355,7 @@ const AdminReportsScreen = () => {
         ].map(item => {
           const sc = item.status === "partial" ? COLORS.WARNING : COLORS.ERROR;
           return (
-            <View key={item.scope} style={styles.scopeCard}>
+            <Card key={item.scope}>
               <View style={styles.scopeRow}>
                 <View style={[styles.scopeBadge, { backgroundColor: withAlpha(sc, 0.12) }]}>
                   <Text style={[styles.scopeBadgeText, { color: sc }]}>{item.status === "partial" ? "Kısmi" : "Eksik"}</Text>
@@ -370,10 +370,10 @@ const AdminReportsScreen = () => {
         })}
 
         <Text style={[styles.sectionTitle, { color: COLORS.TEXT }]}>Metodoloji</Text>
-        <View style={styles.infoCard}>
+        <Card style={{ flexDirection: "row", alignItems: "flex-start" }}>
           <Ionicons name="information-circle-outline" size={18} color={COLORS.INFO} />
           <Text style={[styles.infoText, { color: COLORS.TEXT_SECONDARY }]}>
-            <Text style={{ fontWeight: "700", color: COLORS.TEXT }}>DEFRA 2023 GHG Conversion Factors{"\n"}</Text>
+            <Text style={{ fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT }}>DEFRA 2023 GHG Conversion Factors{"\n"}</Text>
             Diesel: 2.68 · Benzin: 2.31 · LPG: 1.51 kg CO₂e/L{"\n"}
             <Text style={{ color: COLORS.TEXT_MUTED }}>
               Tank dolum kayıtlarına dayalı Scope 1 tahmini. Tam CSRD/ESRS beyanının yerine geçmez; CSRD hazırlık sürecini destekler.
