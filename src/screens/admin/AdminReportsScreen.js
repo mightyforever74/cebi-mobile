@@ -215,7 +215,7 @@ const AdminReportsScreen = () => {
           <Text style={[styles.infoText, { color: COLORS.TEXT_SECONDARY }]}>
             Zamanında başlama/teslim için <Text style={{ fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.PRIMARY }}>/api/reports/operations</Text> endpoint'i tamamlandığında aktif olacak.
           </Text>
-        </View>
+        </Card>
       </>
     );
   };
@@ -379,7 +379,7 @@ const AdminReportsScreen = () => {
               Tank dolum kayıtlarına dayalı Scope 1 tahmini. Tam CSRD/ESRS beyanının yerine geçmez; CSRD hazırlık sürecini destekler.
             </Text>
           </Text>
-        </View>
+        </Card>
       </>
     );
   };
