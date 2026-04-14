@@ -341,7 +341,7 @@ const AdminReportsScreen = () => {
                     <Text style={[styles.vehicleVal, { color: COLORS.TEXT }]}>{v.co2e.toFixed(0)} kg</Text>
                     <Text style={[styles.vehicleSub, { color: COLORS.TEXT_MUTED }]}>%{pct} pay</Text>
                   </View>
-                </View>
+                </Card>
               );
             })}
           </>
@@ -365,7 +365,7 @@ const AdminReportsScreen = () => {
                   <Text style={[styles.scopeDesc, { color: COLORS.TEXT_MUTED }]}>{item.desc}</Text>
                 </View>
               </View>
-            </View>
+            </Card>
           );
         })}
 
