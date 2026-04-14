@@ -3,8 +3,6 @@
 // PDF export: expo-print + expo-sharing
 
 import { Ionicons } from "@expo/vector-icons";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -185,7 +183,6 @@ const AdminReportsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [exporting, setExporting] = useState(false);
 
   const DATE_RANGES = [
     { label: "Son 7 Gün", days: 7 },
@@ -213,27 +210,12 @@ const AdminReportsScreen = () => {
     fetchData(selectedDays);
   }, [selectedDays, fetchData]);
 
-  const handleExportPdf = async () => {
-    if (!data) return;
-    try {
-      setExporting(true);
-      const html = buildPdfHtml(data, "TulipFleet", selectedDays);
-      const { uri } = await Print.printToFileAsync({ html, base64: false });
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(uri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Operasyon Raporu",
-          UTI: "com.adobe.pdf",
-        });
-      } else {
-        await Print.printAsync({ html });
-      }
-    } catch (e) {
-      Alert.alert("Hata", "PDF oluşturulamadı: " + e.message);
-    } finally {
-      setExporting(false);
-    }
+  const handleExportPdf = () => {
+    Alert.alert(
+      "PDF Export",
+      "PDF export özelliği yakında aktif olacak. Şu an rapor verilerini ekranda görüntüleyebilirsiniz.",
+      [{ text: "Tamam" }]
+    );
   };
 
   const KpiCard = ({ label, value, color }) => (
@@ -298,13 +280,8 @@ const AdminReportsScreen = () => {
 
       {/* PDF Export */}
       <TouchableOpacity style={styles.pdfBtn} onPress={handleExportPdf} disabled={exporting}>
-        {exporting
-          ? <ActivityIndicator size="small" color={COLORS.WHITE} />
-          : <Ionicons name="document-text-outline" size={18} color={COLORS.WHITE} />
-        }
-        <Text style={styles.pdfBtnText}>
-          {exporting ? "PDF Oluşturuluyor..." : "PDF İndir / Paylaş"}
-        </Text>
+        <Ionicons name="document-text-outline" size={18} color={COLORS.WHITE} />
+        <Text style={styles.pdfBtnText}>PDF İndir / Paylaş (Yakında)</Text>
       </TouchableOpacity>
 
       {/* Content */}
