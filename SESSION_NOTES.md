@@ -3,6 +3,7 @@
 > Her oturumun BAŞINDA bu dosya okunur, sonunda güncellenir ve push edilir.
 
 Son güncelleme: 15 Nisan 2026 — Kapanış oturumu
+Son commit: 1dffc83 (tulipfleet main)
 
 ---
 
@@ -96,6 +97,7 @@ Son güncelleme: 15 Nisan 2026 — Kapanış oturumu
 | deleteAccount i18n | ✅ 7 dil | |
 | Driver Navigation dark mode | ✅ Zaten mevcuttu | |
 | Sprint A1 distance_source | ✅ Staging | Production bekliyor |
+| DE + FR dil desteği | ✅ commit 1dffc83 | 9 dil — de.json, fr.json, i18n.js |
 | QA Repo kapanışı | ✅ commit e299af9 | |
 
 ---
@@ -104,10 +106,22 @@ Son güncelleme: 15 Nisan 2026 — Kapanış oturumu
 
 ### 1. Sprint A — distance_source Production
 - [ ] A1 production: `ALTER TABLE tasks ADD COLUMN distance_source VARCHAR(10) NOT NULL DEFAULT 'manual'`
-- [ ] A2: Task complete GPS mesafe (Haversine)
-- [ ] A3: GPS yetersizse route_json fallback
+- [ ] **A2 (Revize) — Odometer-first distance model:**
+  - Görev tamamlama ekranına `odometer_end` girişi eklenir
+  - `tasks` tablosuna `odometer_start`, `odometer_end`, `odometer_distance_km` eklenir
+  - `odometer_distance_km = odometer_end - odometer_start`
+  - Validasyon: `odometer_end >= odometer_start`, negatif fark reddedilir
+  - `distance_source` önceliği: `manual` (odometre) → `gps` (Haversine) → `route` (route_json)
+  - Raporlama: `COALESCE(odometer_distance_km, actual_distance_km)` — route fallback yalnızca her ikisi de yoksa
+  - `actual_distance_km` korunuyor — fallback + karşılaştırma metriği
+  - Seçim mantığı SQL katmanında merkezi — rapor/dashboard/yakıt aynı değeri kullanır
+- [ ] A3: route_json fallback (A2 sonrası)
 - [ ] A4: Mevcut completed backfill → distance_source = 'manual'
-- [ ] A5: /api/reports/operations distance_source dağılımı
+- [ ] A5: /api/reports/operations distance_source dağılımı + COALESCE mesafe
+
+### 1b. Sprint A2 — Odometer frontend
+- [ ] DriverRouteMapScreen odometerModal test (gerçek görev ile)
+- [ ] `routeMap.odometerPrompt` i18n — de.json ve fr.json'a eklenmeli
 
 ### 2. Küçük Fixes
 - [ ] Firmware: MQTT IP → mqtt.tulipfleet.com
