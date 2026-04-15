@@ -4,8 +4,10 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 import bg from "./bg.json";
+import de from "./de.json";
 import en from "./en.json";
 import es from "./es.json";
+import fr from "./fr.json";
 import it from "./it.json";
 import ku from "./ku.json";
 import nl from "./nl.json";
@@ -16,12 +18,14 @@ const STORAGE_KEY = "tulipfleet_language";
 // Desteklenen diller
 export const LANGUAGES = [
   { code: "tr", name: "Türkçe", flag: "🇹🇷" },
-  { code: "en", name: "English (US)", flag: "🇺🇸" },
-  { code: "ku", name: "Kurdî", flag: "🟢" },
+  { code: "en", name: "English", flag: "🇺🇸" },
   { code: "nl", name: "Nederlands", flag: "🇳🇱" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" }, // ← ekle
+  { code: "fr", name: "Français", flag: "🇫🇷" }, // ← ekle
   { code: "it", name: "Italiano", flag: "🇮🇹" },
   { code: "bg", name: "Български", flag: "🇧🇬" },
   { code: "es", name: "Español", flag: "🇪🇸" },
+  { code: "ku", name: "Kurdî", flag: "🟢" },
 ];
 
 const languageDetector = {
@@ -56,6 +60,8 @@ i18n
       it: { translation: it },
       bg: { translation: bg },
       es: { translation: es },
+      de: { translation: de },
+      fr: { translation: fr },
     },
     fallbackLng: "tr",
     interpolation: {
