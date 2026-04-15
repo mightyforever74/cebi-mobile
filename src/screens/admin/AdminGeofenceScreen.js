@@ -41,15 +41,74 @@ import { withAlpha } from "../../utils/colorUtils";
 // ─── Constants ────────────────────────────────────────────────────────────────
 const FENCE_TYPES = ["circle", "polygon"];
 
+// ─── Nominatim Forward Geocode ────────────────────────────────────────────────
+// Public Nominatim policy:
+//   - Max 1 req/sec
+//   - User-Agent / Referer zorunlu
+//   - Autocomplete yasak (sadece kullanıcı tetiklemeli)
+//   - Cache önerilir
+const _nominatimCache = new Map();     // key → {lat, lon, ts}
+const NOMINATIM_CACHE_TTL = 10 * 60 * 1000; // 10 dakika
+let _nominatimLastCall = 0;            // rate limit: 1 req/sec
+
+async function nominatimSearch(query, withCountry = true) {
+  // Cache kontrolü
+  const cacheKey = `${query}|${withCountry}`;
+  const cached = _nominatimCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < NOMINATIM_CACHE_TTL) {
+    return cached;
+  }
+
+  // Rate limit: 1 req/sec
+  const now = Date.now();
+  const elapsed = now - _nominatimLastCall;
+  if (elapsed < 1000) {
+    await new Promise((r) => setTimeout(r, 1000 - elapsed));
+  }
+  _nominatimLastCall = Date.now();
+
+  const params = new URLSearchParams({
+    q: query,
+    format: "jsonv2",
+    limit: "1",
+    addressdetails: "1",
+    ...(withCountry && { countrycodes: "nl,be,de,fr,gb,tr" }),
+  });
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?${params}`,
+    {
+      headers: {
+        "User-Agent": "TulipFleet/2.0 (fleet@tulipfleet.com)",
+        "Referer": "https://tulipfleet.com",
+      },
+    }
+  );
+
+  if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
+  const json = await res.json();
+  if (!Array.isArray(json) || json.length === 0) return null;
+
+  const result = {
+    lat: parseFloat(json[0].lat),
+    lon: parseFloat(json[0].lon),
+    displayName: json[0].display_name || query,
+    ts: Date.now(),
+  };
+  _nominatimCache.set(cacheKey, result);
+  return result;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const RADIUS_PRESETS = [100, 250, 500, 1000, 2500, 5000];
 
 const CATEGORY_ICONS = {
-  general: "location-outline",
-  depot: "business-outline",
-  city_center: "storefront-outline",
-  emission_zone: "leaf-outline",
-  border: "flag-outline",
-  sensitive_area: "warning-outline",
+  general:        "locate-outline",
+  depot:          "cube-outline",
+  city_center:    "business-outline",
+  emission_zone:  "analytics-outline",
+  border:         "trail-sign-outline",
+  sensitive_area: "shield-outline",
 };
 
 const CATEGORY_COLORS = (COLORS) => ({
@@ -62,10 +121,10 @@ const CATEGORY_COLORS = (COLORS) => ({
 });
 
 const DEFAULT_REGION = {
-  latitude: 41.0082,
-  longitude: 28.9784,
-  latitudeDelta: 0.15,
-  longitudeDelta: 0.15,
+  latitude: 52.3676,
+  longitude: 4.9041,
+  latitudeDelta: 0.5,
+  longitudeDelta: 0.5,
 };
 
 const EMPTY_FORM = {
@@ -212,18 +271,183 @@ const makeStyles = (COLORS) =>
       marginLeft: 4,
     },
 
-    // ── Map preview strip ──
-    mapStrip: {
-      height: 160,
-      marginHorizontal: COLORS.SPACING.md,
-      marginBottom: COLORS.SPACING.sm,
-      borderRadius: COLORS.RADIUS.card,
-      overflow: "hidden",
-      ...COLORS.SHADOWS.card,
-    },
-    mapStripMap: {
+    // ── Full-screen map ──
+    map: {
       flex: 1,
     },
+    mapLoadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: withAlpha(COLORS.BACKGROUND, 0.6),
+    },
+
+    // ── Floating buttons (Live Map style) ──
+    floatListBtn: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      left: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    floatListBadge: {
+      position: "absolute",
+      top: -COLORS.SPACING.xs,
+      right: -COLORS.SPACING.xs,
+      minWidth: COLORS.SPACING.md,
+      height: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: COLORS.SPACING.xs,
+    },
+    floatListBadgeText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+      color: COLORS.WHITE,
+    },
+    floatRefreshBtn: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 48 : COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      backgroundColor: COLORS.SURFACE,
+      padding: COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.xxl,
+      ...COLORS.SHADOWS.md,
+    },
+    floatStatsBar: {
+      position: "absolute",
+      left: COLORS.SPACING.md,
+      right: COLORS.SPACING.md,
+      bottom: Platform.OS === "ios" ? 34 : COLORS.SPACING.lg,
+      paddingVertical: COLORS.SPACING.sm,
+      paddingHorizontal: COLORS.SPACING.md,
+      borderRadius: COLORS.RADIUS.card,
+      backgroundColor: COLORS.SURFACE,
+      ...COLORS.SHADOWS.card,
+    },
+    floatStatsText: {
+      textAlign: "center",
+      ...COLORS.TYPOGRAPHY.styles.bodySmall,
+      color: COLORS.TEXT_PRIMARY,
+      fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+    },
+    floatStatsActive: {
+      color: COLORS.SUCCESS,
+    },
+    floatStatsHint: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: COLORS.SPACING.xs,
+    },
+    floatStatsHintText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+      color: COLORS.TEXT_MUTED,
+      marginLeft: COLORS.SPACING.xs,
+    },
+    fab: {
+      position: "absolute",
+      right: COLORS.SPACING.md,
+      bottom: Platform.OS === "ios" ? 100 : 88,
+      width: COLORS.SPACING.xxxl + COLORS.SPACING.sm,
+      height: COLORS.SPACING.xxxl + COLORS.SPACING.sm,
+      borderRadius: COLORS.RADIUS.full,
+      backgroundColor: COLORS.PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+      ...COLORS.SHADOWS.card,
+    },
+    // ── Zone marker (araç marker gibi) ──
+    zonePinWrap: {
+      alignItems: "center",
+    },
+    zonePinBody: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: "#FFFFFF",
+      elevation: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.45,
+      shadowRadius: 5,
+    },
+    zonePinTail: {
+      width: 0,
+      height: 0,
+      borderLeftWidth: 7,
+      borderRightWidth: 7,
+      borderTopWidth: 10,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+      marginTop: -1,
+    },
+    zonePinLabel: {
+      marginTop: 3,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: 4,
+      maxWidth: 110,
+      elevation: 3,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.25,
+      shadowRadius: 2,
+    },
+    zonePinLabelText: {
+      color: "#FFFFFF",
+      fontSize: 10,
+      fontWeight: "700",
+      letterSpacing: 0.2,
+    },
+
+    // ── Zone list bottom sheet ──
+    sheetOverlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheetBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: withAlpha(COLORS.BLACK, 0.4),
+    },
+    sheetContainer: {
+      backgroundColor: COLORS.SURFACE,
+      borderTopLeftRadius: COLORS.RADIUS.xxl,
+      borderTopRightRadius: COLORS.RADIUS.xxl,
+      maxHeight: "75%",
+      ...COLORS.SHADOWS.card,
+    },
+    sheetHandle: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: COLORS.DIVIDER,
+      alignSelf: "center",
+      marginTop: COLORS.SPACING.sm,
+    },
+    sheetHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: COLORS.SPACING.md,
+      paddingVertical: COLORS.SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.DIVIDER,
+    },
+    sheetTitle: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.md,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      color: COLORS.TEXT,
+    },
+
+    // ── Map preview strip (artık kullanılmıyor, silindi) ──
 
     // ── Modal ──
     modalOverlay: {
@@ -535,6 +759,7 @@ export default function AdminGeofenceScreen() {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editZone, setEditZone] = useState(null); // null = new
+  const [showZoneList, setShowZoneList] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [drawPoints, setDrawPoints] = useState([]); // polygon points
   const [circleCenter, setCircleCenter] = useState(null); // circle center
@@ -555,29 +780,30 @@ export default function AdminGeofenceScreen() {
     [zones]
   );
 
-  // ── Map search ──
+  // ── Map search (Nominatim OSM — kullanıcı tetiklemeli, autocomplete yok) ──
   const handleMapSearch = useCallback(async () => {
     const q = mapSearch.trim();
     if (!q) return;
+    setMapSearching(true);
     try {
-      setMapSearching(true);
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.status === "OK" && json.results.length > 0) {
-        const { lat, lng } = json.results[0].geometry.location;
+      // Önce ülke filtreli dene, bulamazsa global fallback
+      let result = await nominatimSearch(q, true);
+      if (!result) {
+        result = await nominatimSearch(q, false);
+      }
+      if (result) {
         drawMapRef.current?.animateToRegion(
           {
-            latitude: lat,
-            longitude: lng,
+            latitude: result.lat,
+            longitude: result.lon,
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           },
           800
         );
       }
-    } catch {
-      /* sessiz fail */
+    } catch (e) {
+      console.warn("[Geofence] Geocode error:", e?.message);
     } finally {
       setMapSearching(false);
     }
@@ -991,6 +1217,8 @@ export default function AdminGeofenceScreen() {
             center: { latitude: coords.lat, longitude: coords.lng },
             radius: parseFloat(z.radius) || 500,
             color: catColor,
+            category: z.category || "general",
+            name: z.name || "",
           };
         }
         if (z.fence_type === "polygon" && Array.isArray(coords)) {
@@ -1002,6 +1230,8 @@ export default function AdminGeofenceScreen() {
               longitude: c.lng,
             })),
             color: catColor,
+            category: z.category || "general",
+            name: z.name || "",
           };
         }
         return null;
@@ -1009,96 +1239,173 @@ export default function AdminGeofenceScreen() {
       .filter(Boolean);
   }, [zones, catColors, COLORS]);
 
+  // Zone'lar yüklenince haritayı otomatik fit et
+  useEffect(() => {
+    if (!mapRef.current || mapOverlays.length === 0) return;
+    const coords = [];
+    mapOverlays.forEach((ov) => {
+      if (ov.type === "circle") coords.push(ov.center);
+      else if (ov.type === "polygon" && ov.coordinates)
+        ov.coordinates.forEach((c) => coords.push(c));
+    });
+    if (coords.length === 0) return;
+    setTimeout(() => {
+      mapRef.current?.fitToCoordinates(coords, {
+        edgePadding: { top: 80, right: 40, bottom: 80, left: 40 },
+        animated: false,
+      });
+    }, 400);
+  }, [mapOverlays]);
+
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* ── Header stats bar ── */}
-      <View style={styles.headerBar}>
-        <View style={styles.headerStats}>
-          <Ionicons
-            name="layers-outline"
-            size={16}
-            color={COLORS.TEXT_SECONDARY}
-          />
-          <Text style={styles.headerStatText}>
-            <Text style={styles.headerStatBold}>{zones.length}</Text>{" "}
-            {t("geofence.totalZones")}
-            {"  ·  "}
-            <Text style={styles.headerStatBold}>{activeCount}</Text>{" "}
-            {t("geofence.active")}
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.addButton} onPress={openNew}>
-          <Ionicons name="add" size={16} color={COLORS.WHITE} />
-          <Text style={styles.addButtonText}>{t("geofence.addZone")}</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* ── Map strip (active zones overview) ── */}
-      {!loading && !error && zones.length > 0 && (
-        <View style={styles.mapStrip}>
-          <MapView
-            ref={mapRef}
-            style={styles.mapStripMap}
-            provider={PROVIDER_GOOGLE}
-            initialRegion={DEFAULT_REGION}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            rotateEnabled={false}
-            pitchEnabled={false}
-            toolbarEnabled={false}
-            moveOnMarkerPress={false}
-          >
-            {mapOverlays.map((ov) =>
-              ov.type === "circle" ? (
-                <Circle
-                  key={ov.id}
-                  center={ov.center}
-                  radius={ov.radius}
-                  fillColor={withAlpha(ov.color, 0.18)}
-                  strokeColor={withAlpha(ov.color, 0.7)}
-                  strokeWidth={1.5}
-                />
-              ) : (
-                <Polygon
-                  key={ov.id}
-                  coordinates={ov.coordinates}
-                  fillColor={withAlpha(ov.color, 0.18)}
-                  strokeColor={withAlpha(ov.color, 0.7)}
-                  strokeWidth={1.5}
-                />
-              )
-            )}
-          </MapView>
-        </View>
-      )}
-
-      {/* ── Page state: loading / error ── */}
-      {loading && <DataState loading />}
-      {!loading && error && <DataState error={error} onRetry={loadZones} />}
-
-      {/* ── Zone list ── */}
-      {!loading && !error && (
-        <FlatList
-          data={zones}
-          keyExtractor={(item, index) =>
-            item?.id ? String(item.id) : `zone-${index}`
-          }
-          renderItem={renderZone}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <EmptyState
-              size="sm"
-              icon="location-outline"
-              title={t("geofence.emptyTitle")}
-              subtitle={t("geofence.emptyDesc")}
-              action={{ label: t("geofence.addFirstZone"), onPress: openNew }}
+      {/* ── Full-screen Map ── */}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={PROVIDER_GOOGLE}
+        initialRegion={DEFAULT_REGION}
+        scrollEnabled
+        zoomEnabled
+        rotateEnabled={false}
+        pitchEnabled={false}
+        toolbarEnabled={false}
+        moveOnMarkerPress={false}
+      >
+        {mapOverlays.map((ov) =>
+          ov.type === "circle" ? (
+            <Circle
+              key={ov.id}
+              center={ov.center}
+              radius={ov.radius}
+              fillColor={withAlpha(ov.color, 0.18)}
+              strokeColor={withAlpha(ov.color, 0.7)}
+              strokeWidth={2}
             />
-          }
-        />
+          ) : (
+            <Polygon
+              key={ov.id}
+              coordinates={ov.coordinates}
+              fillColor={withAlpha(ov.color, 0.18)}
+              strokeColor={withAlpha(ov.color, 0.7)}
+              strokeWidth={2}
+            />
+          )
+        )}
+        {mapOverlays.map((ov) => {
+          const coord = ov.type === "circle" ? ov.center : ov.coordinates?.[0];
+          if (!coord) return null;
+          return (
+            <Marker
+              key={`pin-${ov.id}`}
+              coordinate={coord}
+              title={ov.name}
+              pinColor={ov.color}
+              tracksViewChanges={false}
+            />
+          );
+        })}
+      </MapView>
+
+      {/* ── Loading overlay ── */}
+      {loading && (
+        <View style={styles.mapLoadingOverlay}>
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+        </View>
       )}
+
+      {/* ── List button (top-left) ── */}
+      <TouchableOpacity
+        style={styles.floatListBtn}
+        onPress={() => setShowZoneList(true)}
+      >
+        <Ionicons name="list" size={22} color={COLORS.PRIMARY} />
+        {zones.length > 0 && (
+          <View style={styles.floatListBadge}>
+            <Text style={styles.floatListBadgeText}>{zones.length}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* ── Refresh button (top-right) ── */}
+      <TouchableOpacity style={styles.floatRefreshBtn} onPress={loadZones}>
+        <Ionicons name="refresh" size={22} color={COLORS.PRIMARY} />
+      </TouchableOpacity>
+
+      {/* ── Stats bar (bottom) ── */}
+      {!loading && !error && (
+        <TouchableOpacity
+          style={styles.floatStatsBar}
+          onPress={() => setShowZoneList(true)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.floatStatsText}>
+            {"🗺️"} {zones.length} {t("geofence.totalZones")}
+            {"  |  "}
+            <Text style={styles.floatStatsActive}>
+              {"● "}{activeCount} {t("geofence.active")}
+            </Text>
+          </Text>
+          <View style={styles.floatStatsHint}>
+            <Ionicons name="chevron-up" size={14} color={COLORS.TEXT_MUTED} />
+            <Text style={styles.floatStatsHintText}>{t("geofence.tapEditToManage", "Tap to manage")}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* ── FAB: Add Zone (bottom-right) ── */}
+      <TouchableOpacity style={styles.fab} onPress={openNew}>
+        <Ionicons name="add" size={26} color={COLORS.WHITE} />
+      </TouchableOpacity>
+
+      {/* ── Zone list bottom sheet ── */}
+      <Modal
+        visible={showZoneList}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowZoneList(false)}
+      >
+        <View style={styles.sheetOverlay}>
+          <TouchableOpacity
+            style={styles.sheetBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowZoneList(false)}
+          />
+          <View style={styles.sheetContainer}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>
+                {zones.length} {t("geofence.totalZones")} · {activeCount} {t("geofence.active")}
+              </Text>
+              <TouchableOpacity onPress={() => setShowZoneList(false)}>
+                <Ionicons name="close" size={22} color={COLORS.TEXT_SECONDARY} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={zones}
+              keyExtractor={(item, index) =>
+                item?.id ? String(item.id) : `zone-${index}`
+              }
+              renderItem={renderZone}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  size="sm"
+                  icon="location-outline"
+                  title={t("geofence.emptyTitle")}
+                  subtitle={t("geofence.emptyDesc")}
+                  action={{ label: t("geofence.addFirstZone"), onPress: () => { setShowZoneList(false); openNew(); } }}
+                />
+              }
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* ════════════════════════════════════════════════════════════════════
           ADD / EDIT MODAL

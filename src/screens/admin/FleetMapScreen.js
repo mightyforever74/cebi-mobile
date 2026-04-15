@@ -46,8 +46,8 @@ import {
 
 const REFRESH_INTERVAL = 10000;
 const INITIAL_REGION = {
-  latitude: 41.015137,
-  longitude: 28.97953,
+  latitude: 52.3676,
+  longitude: 4.9041,
   latitudeDelta: 0.15,
   longitudeDelta: 0.15,
 };
@@ -599,35 +599,8 @@ const FleetMapScreen = ({ navigation }) => {
         <Ionicons name="arrow-back" size={22} color={COLORS.PRIMARY} />
       </TouchableOpacity>
 
-      {/* Mode Segment Bar */}
+      {/* Mode Segment Bar — sadece Zones butonu */}
       <View style={styles.segmentBar}>
-        <TouchableOpacity
-          style={[
-            styles.segmentBtn,
-            mapMode === MAP_MODE.VEHICLES && styles.segmentBtnActive,
-          ]}
-          onPress={() => handleModeSwitch(MAP_MODE.VEHICLES)}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name="car-outline"
-            size={15}
-            color={
-              mapMode === MAP_MODE.VEHICLES
-                ? COLORS.WHITE
-                : COLORS.TEXT_SECONDARY
-            }
-          />
-          <Text
-            style={[
-              styles.segmentText,
-              mapMode === MAP_MODE.VEHICLES && styles.segmentTextActive,
-            ]}
-          >
-            {t("fleetMap.vehicles")}
-          </Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[
             styles.segmentBtn,

@@ -1,9 +1,10 @@
 // src/screens/admin/AdminSettings.js
-// TulipFleet - Admin Ayarlar EkranÄ± (DriverSettings seviyesi - Full Featured)
+// TulipFleet - Admin Ayarlar Ekranı (DriverSettings seviyesi - Full Featured)
 // Updated: 23 Ocak 2026
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
@@ -40,6 +41,12 @@ const STORAGE_KEYS = {
 
 // Base URL
 const BASE_URL = "https://tulipfleet.com";
+
+// App version — expo-constants'tan dinamik
+const APP_VERSION =
+  Constants.expoConfig?.version ??
+  Constants.manifest?.version ??
+  "2.0.5";
 
 // ============================================
 // makeStyles
@@ -266,7 +273,7 @@ const AdminSettings = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  // Bildirim ayarlarÄ±
+  // Bildirim ayarları
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [alertNotifications, setAlertNotifications] = useState(true);
   const [taskNotifications, setTaskNotifications] = useState(true);
@@ -281,7 +288,12 @@ const AdminSettings = ({ navigation }) => {
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [changePasswordModal, setChangePasswordModal] = useState(false);
   const [privacyModal, setPrivacyModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Delete account state
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Profile edit state
   const [firstName, setFirstName] = useState(
@@ -350,7 +362,7 @@ const AdminSettings = ({ navigation }) => {
   // Settings Logic
   // ============================================
 
-  // AyarlarÄ± yÃ¼kle
+  // Ayarları yükle
   const loadSettings = useCallback(async () => {
     try {
       const keys = Object.values(STORAGE_KEYS);
@@ -422,11 +434,11 @@ const AdminSettings = ({ navigation }) => {
         Alert.alert(
           t("settings.notifications"),
           t("settings.notificationPermissionDenied") ||
-            "Bildirim izni verilmedi. Ayarlardan etkinleÅŸtirebilirsiniz.",
+            "Bildirim izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
           [
             { text: t("common.cancel"), style: "cancel" },
             {
-              text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
+              text: t("settings.openSettings") || "Ayarları Aç",
               onPress: () => Linking.openSettings(),
             },
           ]
@@ -479,11 +491,11 @@ const AdminSettings = ({ navigation }) => {
         Alert.alert(
           t("settings.locationService"),
           t("settings.locationPermissionDenied") ||
-            "Konum izni verilmedi. Ayarlardan etkinleÅŸtirebilirsiniz.",
+            "Konum izni verilmedi. Ayarlardan etkinleştirebilirsiniz.",
           [
             { text: t("common.cancel"), style: "cancel" },
             {
-              text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
+              text: t("settings.openSettings") || "Ayarları Aç",
               onPress: () => Linking.openSettings(),
             },
           ]
@@ -500,11 +512,11 @@ const AdminSettings = ({ navigation }) => {
     Alert.alert(
       t("settings.gpsAccuracy"),
       t("settings.gpsAccuracyMessage") ||
-        "GPS doÄŸruluÄŸu cihaz ayarlarÄ±ndan yÃ¶netilir.",
+        "GPS doğruluğu cihaz ayarlarından yönetilir.",
       [
         { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("settings.openSettings") || "AyarlarÄ± AÃ§",
+          text: t("settings.openSettings") || "Ayarları Aç",
           onPress: () => {
             if (Platform.OS === "ios") {
               Linking.openURL("app-settings:");
@@ -524,9 +536,9 @@ const AdminSettings = ({ navigation }) => {
 
   const handleClearCache = () => {
     Alert.alert(
-      t("settings.clearCacheTitle") || "Ã–nbelleÄŸi Temizle",
+      t("settings.clearCacheTitle") || "Önbelleği Temizle",
       t("settings.clearCacheMessage") ||
-        "Uygulama Ã¶nbelleÄŸini temizlemek istediÄŸinize emin misiniz?",
+        "Uygulama önbelleğini temizlemek istediğinize emin misiniz?",
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -550,15 +562,15 @@ const AdminSettings = ({ navigation }) => {
               }
 
               Alert.alert(
-                t("common.success") || "BaÅŸarÄ±lÄ±",
-                (t("settings.cacheCleared") || "Ã–nbellek temizlendi") +
-                  ` (${cacheKeys.length} ${t("settings.itemsCleared") || "Ã¶ÄŸe"})`
+                t("common.success") || "Başarılı",
+                (t("settings.cacheCleared") || "Önbellek temizlendi") +
+                  ` (${cacheKeys.length} ${t("settings.itemsCleared") || "öğe"})`
               );
             } catch (error) {
               console.error("Cache clear error:", error);
               Alert.alert(
                 t("common.error") || "Hata",
-                t("settings.cacheClearFailed") || "Ã–nbellek temizlenemedi"
+                t("settings.cacheClearFailed") || "Önbellek temizlenemedi"
               );
             } finally {
               setClearingCache(false);
@@ -569,7 +581,7 @@ const AdminSettings = ({ navigation }) => {
     );
   };
 
-  // âœ… YENÄ° KOD
+  // âœ… YENİ KOD
   const handleHelpCenter = () => {
     navigation.navigate("HelpCenterScreen");
   };
@@ -577,7 +589,7 @@ const AdminSettings = ({ navigation }) => {
   const handleSupport = () => {
     const subject = encodeURIComponent("TulipFleet Admin App - Destek Talebi");
     const body = encodeURIComponent(
-      `\n\n---\nKullanÄ±cÄ±: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
+      `\n\n---\nKullanıcı: ${user?.email || "N/A"}\nRol: Admin\nPlatform: ${Platform.OS}\nVersiyon: 1.0.0`
     );
     Linking.openURL(
       `mailto:info@tulipfleet.com?subject=${subject}&body=${body}`
@@ -594,13 +606,13 @@ const AdminSettings = ({ navigation }) => {
 
   const handleLogout = () => {
     Alert.alert(
-      t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap",
+      t("settings.logout") || "Çıkış Yap",
       t("settings.logoutConfirm") ||
-        "Ã‡Ä±kÄ±ÅŸ yapmak istediÄŸinize emin misiniz?",
+        "Çıkış yapmak istediğinize emin misiniz?",
       [
-        { text: t("common.cancel") || "Ä°ptal", style: "cancel" },
+        { text: t("common.cancel") || "İptal", style: "cancel" },
         {
-          text: t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap",
+          text: t("settings.logout") || "Çıkış Yap",
           style: "destructive",
           onPress: async () => {
             try {
@@ -614,12 +626,30 @@ const AdminSettings = ({ navigation }) => {
     );
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      Alert.alert(t("common.error") || "Hata", t("settings.deleteAccount.passwordRequired") || "Şifre gerekli");
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await userAPI.deleteAccount(deletePassword);
+      setDeleteModal(false);
+      await logout();
+    } catch (e) {
+      const msg = e?.response?.data?.error || t("settings.deleteAccount.failed") || "Hesap silinemedi";
+      Alert.alert(t("common.error") || "Hata", msg);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // Profil kaydetme
   const handleSaveProfile = async () => {
     if (!firstName.trim()) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.firstNameRequired") || "Ad alanÄ± zorunludur"
+        t("settings.firstNameRequired") || "Ad alanı zorunludur"
       );
       return;
     }
@@ -633,8 +663,8 @@ const AdminSettings = ({ navigation }) => {
       });
 
       Alert.alert(
-        t("common.success") || "BaÅŸarÄ±lÄ±",
-        t("settings.profileUpdated") || "Profil gÃ¼ncellendi"
+        t("common.success") || "Başarılı",
+        t("settings.profileUpdated") || "Profil güncellendi"
       );
       setEditProfileModal(false);
     } catch (error) {
@@ -643,19 +673,19 @@ const AdminSettings = ({ navigation }) => {
         t("common.error") || "Hata",
         error?.response?.data?.error ||
           t("settings.profileUpdateFailed") ||
-          "Profil gÃ¼ncellenemedi"
+          "Profil güncellenemedi"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  // Åžifre deÄŸiÅŸtirme
+  // Şifre değiştirme
   const handleSavePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.allFieldsRequired") || "TÃ¼m alanlar zorunludur"
+        t("settings.allFieldsRequired") || "Tüm alanlar zorunludur"
       );
       return;
     }
@@ -664,7 +694,7 @@ const AdminSettings = ({ navigation }) => {
       Alert.alert(
         t("common.error") || "Hata",
         t("settings.passwordTooShort") ||
-          "Yeni ÅŸifre en az 6 karakter olmalÄ±dÄ±r"
+          "Yeni şifre en az 6 karakter olmalıdır"
       );
       return;
     }
@@ -672,7 +702,7 @@ const AdminSettings = ({ navigation }) => {
     if (newPassword !== confirmPassword) {
       Alert.alert(
         t("common.error") || "Hata",
-        t("settings.passwordsDoNotMatch") || "Åžifreler eÅŸleÅŸmiyor"
+        t("settings.passwordsDoNotMatch") || "Şifreler eşleşmiyor"
       );
       return;
     }
@@ -685,8 +715,8 @@ const AdminSettings = ({ navigation }) => {
       });
 
       Alert.alert(
-        t("common.success") || "BaÅŸarÄ±lÄ±",
-        t("settings.passwordChanged") || "Åžifre deÄŸiÅŸtirildi"
+        t("common.success") || "Başarılı",
+        t("settings.passwordChanged") || "Şifre değiştirildi"
       );
       setChangePasswordModal(false);
       setCurrentPassword("");
@@ -747,7 +777,7 @@ const AdminSettings = ({ navigation }) => {
         <Text style={styles.profileEmail}>{user?.email || ""}</Text>
         <View style={styles.roleBadge}>
           <Text style={styles.roleText}>
-            {t("settings.adminRole") || "YÃ–NETÄ°CÄ°"}
+            {t("settings.adminRole") || "YÖNETİCİ"}
           </Text>
         </View>
       </View>
@@ -758,9 +788,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="person-outline"
           iconColor={COLORS.PRIMARY}
-          title={t("settings.editProfile") || "Profili DÃ¼zenle"}
+          title={t("settings.editProfile") || "Profili Düzenle"}
           subtitle={
-            t("settings.editProfileSubtitle") || "Ä°sim, telefon bilgileri"
+            t("settings.editProfileSubtitle") || "İsim, telefon bilgileri"
           }
           onPress={() => setEditProfileModal(true)}
         />
@@ -768,9 +798,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="lock-closed-outline"
           iconColor={COLORS.WARNING}
-          title={t("settings.changePassword") || "Åžifre DeÄŸiÅŸtir"}
+          title={t("settings.changePassword") || "Şifre Değiştir"}
           subtitle={
-            t("settings.changePasswordSubtitle") || "GÃ¼venlik ayarlarÄ±"
+            t("settings.changePasswordSubtitle") || "Güvenlik ayarları"
           }
           onPress={() => setChangePasswordModal(true)}
         />
@@ -778,14 +808,14 @@ const AdminSettings = ({ navigation }) => {
 
       {/* Bildirimler */}
       <SectionHeader
-        title={t("settings.sections.notifications") || "BÄ°LDÄ°RÄ°MLER"}
+        title={t("settings.sections.notifications") || "BİLDİRİMLER"}
       />
       <View style={styles.settingGroup}>
         <SettingItem
           icon="notifications-outline"
           iconColor={COLORS.PRIMARY}
           title={t("settings.pushNotifications") || "Push Bildirimleri"}
-          subtitle={t("settings.receiveAlerts") || "TÃ¼m bildirimleri al"}
+          subtitle={t("settings.receiveAlerts") || "Tüm bildirimleri al"}
           showArrow={false}
           rightElement={
             <Switch
@@ -803,9 +833,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="warning-outline"
               iconColor={COLORS.ERROR}
-              title={t("settings.alertNotifications") || "UyarÄ± Bildirimleri"}
+              title={t("settings.alertNotifications") || "Uyarı Bildirimleri"}
               subtitle={
-                t("settings.criticalAlerts") || "Kritik uyarÄ±lar ve alarmlar"
+                t("settings.criticalAlerts") || "Kritik uyarılar ve alarmlar"
               }
               showArrow={false}
               rightElement={
@@ -824,9 +854,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="clipboard-outline"
               iconColor={COLORS.WARNING}
-              title={t("settings.taskNotifications") || "GÃ¶rev Bildirimleri"}
+              title={t("settings.taskNotifications") || "Görev Bildirimleri"}
               subtitle={
-                t("settings.taskUpdates") || "GÃ¶rev durumu gÃ¼ncellemeleri"
+                t("settings.taskUpdates") || "Görev durumu güncellemeleri"
               }
               showArrow={false}
               rightElement={
@@ -864,9 +894,9 @@ const AdminSettings = ({ navigation }) => {
             <SettingItem
               icon="phone-portrait-outline"
               iconColor={COLORS.TEXT_SECONDARY}
-              title={t("settings.vibration") || "TitreÅŸim"}
+              title={t("settings.vibration") || "Titreşim"}
               subtitle={
-                t("settings.notificationVibration") || "Bildirim titreÅŸimi"
+                t("settings.notificationVibration") || "Bildirim titreşimi"
               }
               showArrow={false}
               rightElement={
@@ -894,9 +924,9 @@ const AdminSettings = ({ navigation }) => {
           title={t("settings.locationService") || "Konum Servisi"}
           subtitle={
             locationPermission === "granted"
-              ? t("settings.locationGranted") || "Ä°zin verildi âœ“"
+              ? t("settings.locationGranted") || "İzin verildi âœ“"
               : t("settings.requiredForTracking") ||
-                "AraÃ§ takibi iÃ§in gerekli"
+                "Araç takibi için gerekli"
           }
           showArrow={false}
           rightElement={
@@ -912,8 +942,8 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="navigate-outline"
           iconColor={COLORS.INFO}
-          title={t("settings.gpsAccuracy") || "GPS DoÄŸruluÄŸu"}
-          subtitle={t("settings.highAccuracy") || "YÃ¼ksek doÄŸruluk"}
+          title={t("settings.gpsAccuracy") || "GPS Doğruluğu"}
+          subtitle={t("settings.highAccuracy") || "Yüksek doğruluk"}
           onPress={handleGPSAccuracy}
         />
       </View>
@@ -927,11 +957,11 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon={isDark ? "moon" : "sunny"}
           iconColor={isDark ? COLORS.WARNING : COLORS.TEXT}
-          title={t("settings.darkMode") || "KaranlÄ±k Mod"}
+          title={t("settings.darkMode") || "Karanlık Mod"}
           subtitle={
             isDark
-              ? t("settings.darkModeOn") || "AÃ§Ä±k ðŸŒ™"
-              : t("settings.darkModeOff") || "KapalÄ± â˜€ï¸"
+              ? t("settings.darkModeOn") || "Açık ðŸŒ™"
+              : t("settings.darkModeOff") || "Kapalı â˜€ï¸"
           }
           showArrow={false}
           rightElement={
@@ -947,9 +977,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="trash-outline"
           iconColor={COLORS.ERROR}
-          title={t("settings.clearCache") || "Ã–nbelleÄŸi Temizle"}
+          title={t("settings.clearCache") || "Önbelleği Temizle"}
           subtitle={
-            t("settings.clearCacheSubtitle") || "GeÃ§ici dosyalarÄ± temizle"
+            t("settings.clearCacheSubtitle") || "Geçici dosyaları temizle"
           }
           onPress={handleClearCache}
           loading={clearingCache}
@@ -963,9 +993,9 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="help-circle-outline"
           iconColor={COLORS.INFO}
-          title={t("settings.helpCenter") || "YardÄ±m Merkezi"}
+          title={t("settings.helpCenter") || "Yardım Merkezi"}
           subtitle={
-            t("settings.helpCenterSubtitle") || "SSS ve kullanÄ±m kÄ±lavuzu"
+            t("settings.helpCenterSubtitle") || "SSS ve kullanım kılavuzu"
           }
           onPress={handleHelpCenter}
         />
@@ -973,7 +1003,7 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="chatbubble-outline"
           iconColor={COLORS.SUCCESS}
-          title={t("settings.contactUs") || "Bize UlaÅŸÄ±n"}
+          title={t("settings.contactUs") || "Bize Ulaşın"}
           subtitle="info@tulipfleet.com"
           onPress={handleSupport}
         />
@@ -981,39 +1011,142 @@ const AdminSettings = ({ navigation }) => {
         <SettingItem
           icon="document-text-outline"
           iconColor={COLORS.TEXT_SECONDARY}
-          title={t("settings.privacyPolicy") || "Gizlilik PolitikasÄ±"}
-          subtitle={t("settings.usageTerms") || "KullanÄ±m koÅŸullarÄ±"}
+          title={t("settings.privacyPolicy") || "Gizlilik Politikası"}
+          subtitle={t("settings.usageTerms") || "Kullanım koşulları"}
           onPress={handlePrivacyPolicy}
         />
         <View style={styles.divider} />
         <SettingItem
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
-          title={t("settings.aboutApp") || "Uygulama HakkÄ±nda"}
-          subtitle={(t("settings.version") || "Versiyon") + " 1.0.0"}
+          title={t("settings.aboutApp") || "Uygulama Hakkında"}
+          subtitle={(t("settings.version") || "Versiyon") + " " + APP_VERSION}
           onPress={handleAbout}
         />
       </View>
 
-      {/* Ã‡Ä±kÄ±ÅŸ */}
+      {/* Çıkış */}
       <View style={styles.settingGroup}>
+        <SettingItem
+          icon="person-remove-outline"
+          iconColor={COLORS.ERROR}
+          title={t("settings.deleteAccount.title") || "Hesabı Sil"}
+          subtitle={t("settings.deleteAccount.subtitle") || "Hesabını kalıcı olarak sil"}
+          onPress={() => { setDeletePassword(""); setDeleteModal(true); }}
+        />
+        <View style={styles.divider} />
         <SettingItem
           icon="log-out-outline"
           iconColor={COLORS.ERROR}
-          title={t("settings.logout") || "Ã‡Ä±kÄ±ÅŸ Yap"}
-          subtitle={t("settings.logoutSubtitle") || "HesabÄ±ndan Ã§Ä±kÄ±ÅŸ yap"}
+          title={t("settings.logout") || "Çıkış Yap"}
+          subtitle={t("settings.logoutSubtitle") || "Hesabından çıkış yap"}
           onPress={handleLogout}
         />
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>Â© 2025 TulipFleet</Text>
+        <Text style={styles.footerText}>TulipFleet v{APP_VERSION}</Text>
+        <Text style={styles.footerSubtext}>© 2026 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
 
-      {/* Profil DÃ¼zenle Modal */}
+      {/* Delete Account Modal */}
+      <Modal
+        visible={deleteModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setDeleteModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: COLORS.SPACING.lg,
+        }}>
+          <View style={{
+            backgroundColor: COLORS.SURFACE,
+            borderRadius: COLORS.RADIUS.card,
+            padding: COLORS.SPACING.lg,
+            width: "100%",
+          }}>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+              fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+              color: COLORS.ERROR,
+              marginBottom: COLORS.SPACING.sm,
+            }}>
+              {t("settings.deleteAccount.title") || "Hesabı Sil"}
+            </Text>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+              color: COLORS.TEXT_SECONDARY,
+              marginBottom: COLORS.SPACING.md,
+            }}>
+              {t("settings.deleteAccount.warning") || "Bu işlem geri alınamaz. Tüm verileriniz silinecektir."}
+            </Text>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: COLORS.INPUT_BORDER,
+                borderRadius: COLORS.RADIUS.md,
+                padding: COLORS.SPACING.sm,
+                fontSize: COLORS.TYPOGRAPHY.sizes.md,
+                color: COLORS.TEXT,
+                backgroundColor: COLORS.BACKGROUND,
+                marginBottom: COLORS.SPACING.md,
+              }}
+              placeholder={t("settings.deleteAccount.passwordPlaceholder") || "Şifrenizi girin"}
+              placeholderTextColor={COLORS.TEXT_MUTED}
+              secureTextEntry
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              autoCapitalize="none"
+            />
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.BACKGROUND,
+                  alignItems: "center",
+                  marginRight: COLORS.SPACING.sm,
+                  borderWidth: 1,
+                  borderColor: COLORS.DIVIDER,
+                }}
+                onPress={() => setDeleteModal(false)}
+                disabled={deleteLoading}
+              >
+                <Text style={{ color: COLORS.TEXT_SECONDARY, fontWeight: COLORS.TYPOGRAPHY.weights.medium }}>
+                  {t("common.cancel") || "İptal"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.ERROR,
+                  alignItems: "center",
+                }}
+                onPress={handleDeleteAccount}
+                disabled={deleteLoading}
+              >
+                {deleteLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={{ color: "#fff", fontWeight: COLORS.TYPOGRAPHY.weights.semibold }}>
+                      {t("settings.deleteAccount.confirm") || "Hesabı Sil"}
+                    </Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profil Düzenle Modal */}
       <Modal
         visible={editProfileModal}
         transparent
@@ -1023,7 +1156,7 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {t("settings.editProfile") || "Profili DÃ¼zenle"}
+              {t("settings.editProfile") || "Profili Düzenle"}
             </Text>
 
             <Text style={styles.inputLabel}>
@@ -1033,7 +1166,7 @@ const AdminSettings = ({ navigation }) => {
               style={styles.modalInput}
               value={firstName}
               onChangeText={setFirstName}
-              placeholder={t("settings.firstNamePlaceholder") || "AdÄ±nÄ±z"}
+              placeholder={t("settings.firstNamePlaceholder") || "Adınız"}
               placeholderTextColor={COLORS.PLACEHOLDER}
             />
 
@@ -1044,7 +1177,7 @@ const AdminSettings = ({ navigation }) => {
               style={styles.modalInput}
               value={lastName}
               onChangeText={setLastName}
-              placeholder={t("settings.lastNamePlaceholder") || "SoyadÄ±nÄ±z"}
+              placeholder={t("settings.lastNamePlaceholder") || "Soyadınız"}
               placeholderTextColor={COLORS.PLACEHOLDER}
             />
 
@@ -1067,7 +1200,7 @@ const AdminSettings = ({ navigation }) => {
                 disabled={saving}
               >
                 <Text style={styles.modalButtonCancelText}>
-                  {t("common.cancel") || "Ä°ptal"}
+                  {t("common.cancel") || "İptal"}
                 </Text>
               </TouchableOpacity>
 
@@ -1089,7 +1222,7 @@ const AdminSettings = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Åžifre DeÄŸiÅŸtir Modal */}
+      {/* Şifre Değiştir Modal */}
       <Modal
         visible={changePasswordModal}
         transparent
@@ -1099,25 +1232,25 @@ const AdminSettings = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {t("settings.changePassword") || "Åžifre DeÄŸiÅŸtir"}
+              {t("settings.changePassword") || "Şifre Değiştir"}
             </Text>
 
             <Text style={styles.inputLabel}>
-              {t("settings.currentPassword") || "Mevcut Åžifre"}
+              {t("settings.currentPassword") || "Mevcut Şifre"}
             </Text>
             <TextInput
               style={styles.modalInput}
               value={currentPassword}
               onChangeText={setCurrentPassword}
               placeholder={
-                t("settings.currentPasswordPlaceholder") || "Mevcut ÅŸifreniz"
+                t("settings.currentPasswordPlaceholder") || "Mevcut şifreniz"
               }
               placeholderTextColor={COLORS.PLACEHOLDER}
               secureTextEntry
             />
 
             <Text style={styles.inputLabel}>
-              {t("settings.newPassword") || "Yeni Åžifre"}
+              {t("settings.newPassword") || "Yeni Şifre"}
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -1131,7 +1264,7 @@ const AdminSettings = ({ navigation }) => {
             />
 
             <Text style={styles.inputLabel}>
-              {t("settings.confirmPassword") || "Yeni Åžifre (Tekrar)"}
+              {t("settings.confirmPassword") || "Yeni Şifre (Tekrar)"}
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -1139,7 +1272,7 @@ const AdminSettings = ({ navigation }) => {
               onChangeText={setConfirmPassword}
               placeholder={
                 t("settings.confirmPasswordPlaceholder") ||
-                "Yeni ÅŸifrenizi tekrarlayÄ±n"
+                "Yeni şifrenizi tekrarlayın"
               }
               placeholderTextColor={COLORS.PLACEHOLDER}
               secureTextEntry
@@ -1152,7 +1285,7 @@ const AdminSettings = ({ navigation }) => {
                 disabled={saving}
               >
                 <Text style={styles.modalButtonCancelText}>
-                  {t("common.cancel") || "Ä°ptal"}
+                  {t("common.cancel") || "İptal"}
                 </Text>
               </TouchableOpacity>
 
@@ -1165,7 +1298,7 @@ const AdminSettings = ({ navigation }) => {
                   <ActivityIndicator size="small" color={COLORS.WHITE} />
                 ) : (
                   <Text style={styles.modalButtonSaveText}>
-                    {t("settings.change") || "DeÄŸiÅŸtir"}
+                    {t("settings.change") || "Değiştir"}
                   </Text>
                 )}
               </TouchableOpacity>

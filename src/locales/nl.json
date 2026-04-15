@@ -1,4 +1,40 @@
 {
+  "vehicleTrack": {
+    "title": "Voertuigroute",
+    "loading": "Routegegevens laden...",
+    "noData": "Geen gegevens gevonden voor deze periode",
+    "presets": {
+      "lastHour": "Afgelopen uur",
+      "last3Hours": "Afgelopen 3 uur",
+      "today": "Vandaag"
+    },
+    "stats": {
+      "points": "Locatiepunten",
+      "distance": "Afstand",
+      "duration": "Duur",
+      "range": "Tijdsbereik"
+    },
+    "sections": {
+      "dailySummary": "Dagelijkse samenvatting",
+      "timeline": "Tijdlijn",
+      "trips": "Ritten"
+    },
+    "summary": {
+      "distance": "Totale afstand",
+      "drive": "Rijtijd",
+      "idle": "Stationair",
+      "trip": "Aantal ritten"
+    },
+    "stopDetail": {
+      "title": "Stopdetail",
+      "close": "Sluiten"
+    },
+    "tripDetail": {
+      "start": "Start",
+      "end": "Einde",
+      "clear": "Wissen"
+    }
+  },
   "common": {
     "loading": "Laden...",
     "save": "Opslaan",
@@ -324,6 +360,15 @@
     }
   },
   "settings": {
+    "deleteAccount": {
+      "title": "Account verwijderen",
+      "subtitle": "Uw account permanent verwijderen",
+      "warning": "Deze actie kan niet ongedaan worden gemaakt. Al uw gegevens worden verwijderd.",
+      "passwordPlaceholder": "Voer uw wachtwoord in",
+      "passwordRequired": "Wachtwoord is verplicht",
+      "confirm": "Account verwijderen",
+      "failed": "Account verwijderen mislukt"
+    },
     "aboutDescription": "TulipFleet is een professionele applicatie ontworpen voor wagenparkbeheer.",
     "adminRole": "BEHEERDER",
     "alertNotifications": "Waarschuwingsmeldingen",
@@ -1590,7 +1635,9 @@
     "deleteVehicle": "Voertuig verwijderen",
     "deleteConfirm": "Weet u zeker dat u dit voertuig wilt verwijderen?",
     "vehicleDeleted": "Voertuig succesvol verwijderd",
-    "deleteFailed": "Verwijderen mislukt"
+    "deleteFailed": "Verwijderen mislukt",
+    "deleteBlockedTitle": "Apparaat Gekoppeld",
+    "deleteBlockedMsg": "Voertuig {{plate}} heeft een gekoppeld apparaat. Ontkoppel het apparaat eerst."
   },
   "adminTasks": {
     "filterAll": "Alle",
@@ -1673,7 +1720,8 @@
       "daysAgo": "{{count}} dag geleden"
     },
     "filterCritical": "Kritiek",
-    "filterVehicle": "Voertuig"
+    "filterVehicle": "Voertuig",
+    "mapButton": "Kaart"
   },
   "createDriver": {
     "accountInfo": "Accountgegevens",
@@ -1706,6 +1754,7 @@
     "requestingPermission": "Cameratoegang aanvragen..."
   },
   "routeMap": {
+    "odometerPrompt": "Voer de kilometerstand in (optioneel):",
     "loading": "Route laden...",
     "vehicleNotFound": "Voertuig niet gevonden",
     "locationNotAvailable": "Locatie niet beschikbaar",
@@ -1821,64 +1870,84 @@
     }
   },
   "reports": {
-    "loading": "Rapporten laden...",
-    "noData": "Gegevens konden niet worden geladen",
-    "totalTasks": "Totaal taken",
-    "completed": "Voltooid",
-    "active": "actief",
-    "tasks": "Taken",
-    "alerts": "Meldingen",
-    "success": "Succes",
-    "last7Days": "Laatste 7 dagen",
-    "last30Days": "Laatste 30 dagen",
-    "last90Days": "Laatste 90 dagen",
+    "loading": "Rapport laden...",
     "tabs": {
       "operations": "Operaties",
       "fuel": "Brandstof & Kosten",
-      "driverQuality": "Rijderskwaliteit",
-      "fleetEfficiency": "Vlootefficiëntie",
+      "driving": "Rijkwaliteit",
+      "fleet": "Vlootefficiëntie",
       "sustainability": "Duurzaamheid"
     },
-    "operations": {
-      "totalTasks": "Totaal Taken",
-      "completed": "Voltooid",
-      "cancelled": "Geannuleerd",
-      "rejected": "Afgewezen",
-      "onTimeStart": "Op Tijd Gestart",
-      "onTimeDelivery": "Op Tijd Geleverd",
-      "avgDuration": "Gem. Taakduur",
-      "avgWaitTime": "Gem. Wachttijd",
-      "waypointCompletion": "Waypoint Voltooiing",
-      "delayedTasks": "Vertraagde Taken"
+    "filter": {
+      "7d": "7D",
+      "30d": "30D",
+      "90d": "90D"
     },
-    "fuel": {
-      "totalLiters": "Totaal Verbruik",
-      "totalCost": "Totale Kosten",
-      "per100km": "Gem. L/100km",
-      "perKm": "Kosten per km",
-      "byVehicle": "Per Voertuig",
-      "fullTankOnly": "Vol Tank Analyse",
-      "anomaly": "Anomalie",
-      "currencyBreakdown": "Valuta Verdeling"
+    "kpi": {
+      "totalTasks": "Totale Taken",
+      "completedTasks": "Voltooid",
+      "cancelledTasks": "Geannuleerd / Afgewezen",
+      "pending": "In Uitvoering",
+      "avgDuration": "Gem. Duur (min)",
+      "delayedTasks": "Vertraagde Taken",
+      "onTimeStartRate": "Op Tijd Gestart %",
+      "totalAlerts": "Totale Meldingen"
     },
-    "driverQuality": {
-      "tasksPerDriver": "Taken per Rijder",
-      "safetyScore": "Veiligheidsscore",
-      "per100km": "Per 100 km",
-      "trainingNote": "Training en verbeteringsstatistiek"
+    "quality": {
+      "reliable": "Betrouwbaar",
+      "partial": "Gedeeltelijk",
+      "partialTolerance30m": "Gedeeltelijk — ±30min tolerantie"
     },
-    "fleet": {
-      "tasksPerVehicle": "Taken per Voertuig",
-      "kmPerVehicle": "km per Voertuig",
-      "utilization": "Gebruiksgraad",
-      "costPerTask": "Kosten per Taak"
+    "sections": {
+      "taskSummary": "Taakoverzicht",
+      "vehiclePerformance": "Voertuigprestaties",
+      "driverSummary": "Chauffeuroverzicht"
     },
-    "sustainability": {
-      "totalCo2": "Totaal CO₂e",
-      "byVehicle": "Emissies per Voertuig",
-      "methodology": "Methodologie",
-      "methodologyNote": "DEFRA 2023 — Scope 1 schatting op basis van tankregistraties."
-    }
+    "table": {
+      "vehicle": "Voertuig",
+      "tasks": "Taken",
+      "completed": "Klaar",
+      "distance": "Afstand",
+      "driver": "Chauffeur",
+      "alerts": "Meldingen",
+      "avgDuration": "Gem. Duur"
+    },
+    "placeholder": {
+      "fuel": {
+        "title": "Brandstof & Kosten",
+        "desc": "Brandstofverbruik en kostenanalyse verschijnt hier binnenkort."
+      },
+      "driving": {
+        "title": "Rijkwaliteit",
+        "desc": "Hard remmen, scherpe bochten en snelheidsanalyse komt binnenkort."
+      },
+      "fleet": {
+        "title": "Vlootefficiëntie",
+        "desc": "Voertuiggebruik en efficiëntieanalyse komt binnenkort."
+      },
+      "sustainability": {
+        "title": "Duurzaamheid",
+        "desc": "CO₂-voetafdruk en CSRD-nalevingsrapport komt binnenkort."
+      }
+    },
+    "driving": {
+      "driverScores": "Chauffeurscores",
+      "tasks": "taken",
+      "hardBrake": "Hard Remmen",
+      "hardTurn": "Scherpe Bocht",
+      "hardAccel": "Hard Optrekken",
+      "overspeed": "Snelheidsoverschrijding",
+      "impact": "Impact",
+      "noData": "Geen Gegevens",
+      "noDataDesc": "Geen actieve chauffeurs gevonden voor deze periode.",
+      "limitationsTitle": "Scorebeperkingen",
+      "contextClean": "0 gebeurtenissen · perfecte score",
+      "scoreNA": "Score niet beschikbaar",
+      "reasonInsufficient": "onvoldoende afstand",
+      "reasonNoData": "onvoldoende gegevens"
+    },
+    "error": "Gegevens konden niet worden geladen",
+    "retry": "Opnieuw proberen"
   },
   "geofence": {
     "title": "Geofence Zones",

@@ -526,7 +526,7 @@ const AlertCard = ({ item, COLORS, styles, t, onResolve, onDelete, onMap }) => {
             >
               <Ionicons name="map-outline" size={16} color={COLORS.PRIMARY} />
               <Text style={[styles.actionBtnText, { color: COLORS.PRIMARY }]}>
-                Map
+                {t("adminAlerts.mapButton")}
               </Text>
             </TouchableOpacity>
             <View style={styles.actionDivider} />

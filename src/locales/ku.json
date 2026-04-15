@@ -1,4 +1,40 @@
 {
+  "vehicleTrack": {
+    "title": "Rêça Wesayîtê",
+    "loading": "Daneyên rêçê bar dibin...",
+    "noData": "Di vê heyamê de dane nehat dîtin",
+    "presets": {
+      "lastHour": "Saeta Dawî",
+      "last3Hours": "3 Saetên Dawî",
+      "today": "Îro"
+    },
+    "stats": {
+      "points": "Xalên Cîhî",
+      "distance": "Dûrahî",
+      "duration": "Dem",
+      "range": "Navbera Demê"
+    },
+    "sections": {
+      "dailySummary": "Kurtahiya Rojane",
+      "timeline": "Xêza Demê",
+      "trips": "Seferên"
+    },
+    "summary": {
+      "distance": "Dûrahiya Giştî",
+      "drive": "Dema Ajotinê",
+      "idle": "Dema Sekinanê",
+      "trip": "Hejmara Seferan"
+    },
+    "stopDetail": {
+      "title": "Hûrguliyên Rawestan",
+      "close": "Bigire"
+    },
+    "tripDetail": {
+      "start": "Destpêk",
+      "end": "Dawî",
+      "clear": "Paqij bike"
+    }
+  },
   "common": {
     "loading": "Tê barkirin...",
     "save": "Tomar bike",
@@ -377,6 +413,15 @@
     }
   },
   "settings": {
+    "deleteAccount": {
+      "title": "Hesabê jê bibe",
+      "subtitle": "Hesabê xwe bi temamî jê bibe",
+      "warning": "Ev çalakî nayê paşvegerandin. Hemû daneyên te dê bên jêbirin.",
+      "passwordPlaceholder": "Şîfreya xwe binivîse",
+      "passwordRequired": "Şîfre pêwîst e",
+      "confirm": "Hesabê jê bibe",
+      "failed": "Jêbirina hesabê bi ser neket"
+    },
     "aboutDescription": "TulipFleet ji bo birêvebirina filoyê serlêdanek pêşeyê ye.",
     "adminRole": "BIRÊVEBIR",
     "alertNotifications": "Agahdariyên hişyarî",
@@ -524,6 +569,7 @@
     }
   },
   "routeMap": {
+    "odometerPrompt": "Mîlometreya wesayîtê binivîsin (bijarte):",
     "loading": "Cih tê barkirin...",
     "vehicleNotFound": "Wesayît nehat dîtin",
     "locationNotAvailable": "Cih ne peyda ye",
@@ -1745,7 +1791,9 @@
     "deleteVehicle": "Wesayîtê jê bibe",
     "deleteConfirm": "Hûn dixin ewle in ku hûn vê wesayîtê jêbirin?",
     "vehicleDeleted": "Wesayît bi serfirazî hat jêbirin",
-    "deleteFailed": "Jêbirin têk çû"
+    "deleteFailed": "Jêbirin têk çû",
+    "deleteBlockedTitle": "Cihaz Girêdayî",
+    "deleteBlockedMsg": "Wesaîta {{plate}} cihazek girêdayî heye. Berî jêbirinê cihazê veqetînin."
   },
   "adminTasks": {
     "filterAll": "Hemû",
@@ -1778,6 +1826,8 @@
     "deleteFailed": "Jêbirin têk çû"
   },
   "adminAlerts": {
+    "mapButton": "Li nexşeyê nîşan bide",
+    "adminAlerts": { "mapButton": "Li nexşeyê nîşan bide" },
     "filterAll": "Hemû",
     "filterActive": "Çalak",
     "filterResolved": "Çareser bû",
@@ -1861,64 +1911,84 @@
     "requestingPermission": "Destûra kamerayê tê xwestin..."
   },
   "reports": {
-    "loading": "Rapor tên barkirin...",
-    "noData": "Dane nekarî bêne barkirin",
-    "totalTasks": "Giştî kar",
-    "completed": "Qediyayî",
-    "active": "çalak",
-    "tasks": "Kar",
-    "alerts": "Hişyarî",
-    "success": "Serkeftin",
-    "last7Days": "7 Rojên Dawî",
-    "last30Days": "30 Rojên Dawî",
-    "last90Days": "90 Rojên Dawî",
+    "loading": "Rapor tê barkirin...",
     "tabs": {
       "operations": "Operasyon",
-      "fuel": "Sotemenî û Lêdan",
-      "driverQuality": "Kalîteya Ajovan",
-      "fleetEfficiency": "Bandoriya Fîloyê",
+      "fuel": "Benzîn & Mesref",
+      "driving": "Kalîteya Ajokariyê",
+      "fleet": "Karîgeriya Fîloyê",
       "sustainability": "Domdarî"
     },
-    "operations": {
-      "totalTasks": "Hemû Peywir",
-      "completed": "Temamkirî",
-      "cancelled": "Betal",
-      "rejected": "Refzkirin",
-      "onTimeStart": "Destpêka Di Wextê",
-      "onTimeDelivery": "Radestkirina Di Wextê",
-      "avgDuration": "Navîn Dirêjahî",
-      "avgWaitTime": "Navîn Bendî",
-      "waypointCompletion": "Temamkirina Xalan",
-      "delayedTasks": "Peywirên Dereng"
+    "filter": {
+      "7d": "7R",
+      "30d": "30R",
+      "90d": "90R"
     },
-    "fuel": {
-      "totalLiters": "Tevahî Vexwarin",
-      "totalCost": "Tevahî Lêdan",
-      "per100km": "Navîn L/100km",
-      "perKm": "Lêdana km",
-      "byVehicle": "Ji Wesayît",
-      "fullTankOnly": "Analîza Tangê Tijî",
-      "anomaly": "Anormalî",
-      "currencyBreakdown": "Dabeşkirina Diravî"
+    "kpi": {
+      "totalTasks": "Tevahiya Karên",
+      "completedTasks": "Temamkirî",
+      "cancelledTasks": "Betal / Redkirî",
+      "pending": "Di Pêvajoyê de",
+      "avgDuration": "Dirêjahiya Navîn (deq)",
+      "delayedTasks": "Karên Dereng",
+      "onTimeStartRate": "Destpêka Bi Wext %",
+      "totalAlerts": "Tevahiya Hişyariyan"
     },
-    "driverQuality": {
-      "tasksPerDriver": "Peywir Ji Ajovan",
-      "safetyScore": "Pûana Ewlehiyê",
-      "per100km": "Ji 100 km",
-      "trainingNote": "Metrîka perwerde û baştirkirinê"
+    "quality": {
+      "reliable": "Pêbawer",
+      "partial": "Beş",
+      "partialTolerance30m": "Beş — ±30deq tolerans"
     },
-    "fleet": {
-      "tasksPerVehicle": "Peywir Ji Wesayît",
-      "kmPerVehicle": "km Ji Wesayît",
-      "utilization": "Rêjeya Bikaranînê",
-      "costPerTask": "Lêdana Peywirê"
+    "sections": {
+      "taskSummary": "Kurtaya Karên",
+      "vehiclePerformance": "Performansa Wesayitan",
+      "driverSummary": "Kurtaya Ajokaran"
     },
-    "sustainability": {
-      "totalCo2": "Tevahî CO₂e",
-      "byVehicle": "Emîsyon Ji Wesayît",
-      "methodology": "Metodolojî",
-      "methodologyNote": "DEFRA 2023 — Texmîna Scope 1 li ser bingeha tomar tankê."
-    }
+    "table": {
+      "vehicle": "Wesaît",
+      "tasks": "Kar",
+      "completed": "Temam",
+      "distance": "Dûrî",
+      "driver": "Ajokar",
+      "alerts": "Hişyarî",
+      "avgDuration": "Dirêjahiya Navîn"
+    },
+    "placeholder": {
+      "fuel": {
+        "title": "Benzîn & Mesref",
+        "desc": "Hema hatî xuya dibe."
+      },
+      "driving": {
+        "title": "Kalîteya Ajokariyê",
+        "desc": "Hema hatî."
+      },
+      "fleet": {
+        "title": "Karîgeriya Fîloyê",
+        "desc": "Hema hatî."
+      },
+      "sustainability": {
+        "title": "Domdarî",
+        "desc": "Hema hatî."
+      }
+    },
+    "driving": {
+      "driverScores": "Pûanên Ajokaran",
+      "tasks": "kar",
+      "hardBrake": "Frena Tund",
+      "hardTurn": "Zivirîna Tund",
+      "hardAccel": "Lezbûna Tund",
+      "overspeed": "Zêdebûna Lez",
+      "impact": "Lêdan",
+      "noData": "Dane Tune",
+      "noDataDesc": "Ji bo vê serdemê ajokarek çalak nehat dîtin.",
+      "limitationsTitle": "Sînorên Pûanê",
+      "contextClean": "0 bûyer · pûana temam",
+      "scoreNA": "Pûan nayê hesibandin",
+      "reasonInsufficient": "dûrî têrnakin",
+      "reasonNoData": "dane têrnakin"
+    },
+    "error": "Dane nekarîn werin barkirin",
+    "retry": "Dîsa biceribîne"
   },
   "geofence": {
     "title": "Deverên Jeofens",

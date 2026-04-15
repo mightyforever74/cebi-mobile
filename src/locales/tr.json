@@ -1,4 +1,40 @@
 {
+  "vehicleTrack": {
+    "title": "Araç Rotası",
+    "loading": "Rota verileri yükleniyor...",
+    "noData": "Bu zaman diliminde veri bulunamadı",
+    "presets": {
+      "lastHour": "Son 1 Saat",
+      "last3Hours": "Son 3 Saat",
+      "today": "Bugün"
+    },
+    "stats": {
+      "points": "Konum Noktası",
+      "distance": "Mesafe",
+      "duration": "Süre",
+      "range": "Zaman Aralığı"
+    },
+    "sections": {
+      "dailySummary": "Günlük Özet",
+      "timeline": "Zaman Çizelgesi",
+      "trips": "Seferler"
+    },
+    "summary": {
+      "distance": "Toplam Mesafe",
+      "drive": "Sürüş Süresi",
+      "idle": "Bekleme Süresi",
+      "trip": "Sefer Sayısı"
+    },
+    "stopDetail": {
+      "title": "Durak Detayı",
+      "close": "Kapat"
+    },
+    "tripDetail": {
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "clear": "Temizle"
+    }
+  },
   "common": {
     "loading": "Yükleniyor...",
     "save": "Kaydet",
@@ -304,6 +340,15 @@
     }
   },
   "settings": {
+    "deleteAccount": {
+      "title": "Hesabı Sil",
+      "subtitle": "Hesabınızı kalıcı olarak silin",
+      "warning": "Bu işlem geri alınamaz. Tüm verileriniz silinecektir.",
+      "passwordPlaceholder": "Şifrenizi girin",
+      "passwordRequired": "Şifre gerekli",
+      "confirm": "Hesabı Sil",
+      "failed": "Hesap silinemedi"
+    },
     "title": "Ayarlar",
     "language": "Dil",
     "selectLanguage": "Dil Seçin",
@@ -1605,7 +1650,9 @@
     "deleteVehicle": "Aracı Sil",
     "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?",
     "vehicleDeleted": "Araç başarıyla silindi",
-    "deleteFailed": "Araç silinemedi"
+    "deleteFailed": "Araç silinemedi",
+    "deleteBlockedTitle": "Cihaz Bağlı",
+    "deleteBlockedMsg": "{{plate}} plakalı araçta bağlı bir cihaz var. Silmeden önce cihazı araçtan ayırın."
   },
   "adminTasks": {
     "filterAll": "Tümü",
@@ -1638,6 +1685,7 @@
     "deleteFailed": "Görev silinemedi"
   },
   "adminAlerts": {
+    "mapButton": "Haritada Göster",
     "filterAll": "Tümü",
     "filterActive": "Aktif",
     "filterResolved": "Çözüldü",
@@ -1688,7 +1736,8 @@
       "daysAgo": "{{count}} gün önce"
     },
     "filterCritical": "Kritik",
-    "filterVehicle": "Araç"
+    "filterVehicle": "Araç",
+    "mapButton": "Harita"
   },
   "createDriver": {
     "accountInfo": "Hesap Bilgileri",
@@ -1721,64 +1770,84 @@
     "requestingPermission": "Kamera izni isteniyor..."
   },
   "reports": {
-    "loading": "Raporlar yükleniyor...",
-    "noData": "Veri yüklenemedi",
-    "totalTasks": "Toplam Görev",
-    "completed": "Tamamlanan",
-    "active": "aktif",
-    "tasks": "Görev",
-    "alerts": "Uyarı",
-    "success": "Başarı",
-    "last7Days": "Son 7 Gün",
-    "last30Days": "Son 30 Gün",
-    "last90Days": "Son 90 Gün",
+    "loading": "Rapor yükleniyor...",
     "tabs": {
-      "operations": "Operasyon",
+      "operations": "Operasyonlar",
       "fuel": "Yakıt & Maliyet",
-      "driverQuality": "Sürücü Kalitesi",
-      "fleetEfficiency": "Filo Verimliliği",
+      "driving": "Sürüş Kalitesi",
+      "fleet": "Filo Verimliliği",
       "sustainability": "Sürdürülebilirlik"
     },
-    "operations": {
+    "filter": {
+      "7d": "7G",
+      "30d": "30G",
+      "90d": "90G"
+    },
+    "kpi": {
       "totalTasks": "Toplam Görev",
-      "completed": "Tamamlanan",
-      "cancelled": "İptal",
-      "rejected": "Reddedilen",
-      "onTimeStart": "Zamanında Başlama",
-      "onTimeDelivery": "Zamanında Teslim",
-      "avgDuration": "Ort. Görev Süresi",
-      "avgWaitTime": "Ort. Bekleme",
-      "waypointCompletion": "Güzergah Tamamlama",
-      "delayedTasks": "Geciken Görevler"
+      "completedTasks": "Tamamlanan",
+      "cancelledTasks": "İptal / Reddedilen",
+      "pending": "Devam Eden",
+      "avgDuration": "Ort. Süre (dk)",
+      "delayedTasks": "Geciken Görev",
+      "onTimeStartRate": "Zamanında Başlama %",
+      "totalAlerts": "Toplam Uyarı"
     },
-    "fuel": {
-      "totalLiters": "Toplam Tüketim",
-      "totalCost": "Toplam Maliyet",
-      "per100km": "L/100km Ort.",
-      "perKm": "km Başına Maliyet",
-      "byVehicle": "Araç Bazlı",
-      "fullTankOnly": "Tam Dolum Analizi",
-      "anomaly": "Anormal Tüketim",
-      "currencyBreakdown": "Para Birimi Dağılımı"
+    "quality": {
+      "reliable": "Güvenilir",
+      "partial": "Kısmi",
+      "partialTolerance30m": "Kısmi — ±30dk tolerans"
     },
-    "driverQuality": {
-      "tasksPerDriver": "Sürücü Başına Görev",
-      "safetyScore": "Güvenli Sürüş Skoru",
-      "per100km": "100 km Başına",
-      "trainingNote": "Eğitim ve iyileştirme metriği"
+    "sections": {
+      "taskSummary": "Görev Özeti",
+      "vehiclePerformance": "Araç Performansı",
+      "driverSummary": "Sürücü Özeti"
     },
-    "fleet": {
-      "tasksPerVehicle": "Araç Başına Görev",
-      "kmPerVehicle": "Araç Başına KM",
-      "utilization": "Kullanım Oranı",
-      "costPerTask": "Görev Başına Maliyet"
+    "table": {
+      "vehicle": "Araç",
+      "tasks": "Görev",
+      "completed": "Tamam",
+      "distance": "Mesafe",
+      "driver": "Sürücü",
+      "alerts": "Uyarı",
+      "avgDuration": "Ort. Süre"
     },
-    "sustainability": {
-      "totalCo2": "Toplam CO₂e",
-      "byVehicle": "Araç Bazlı Emisyon",
-      "methodology": "Metodoloji",
-      "methodologyNote": "DEFRA 2023 GHG Conversion Factors — tank dolum kayıtlarına dayalı Scope 1 tahmini."
-    }
+    "placeholder": {
+      "fuel": {
+        "title": "Yakıt & Maliyet",
+        "desc": "Yakıt tüketimi ve maliyet analizi yakında bu sekmede görünecek."
+      },
+      "driving": {
+        "title": "Sürüş Kalitesi",
+        "desc": "Sert fren, sert viraj ve hız aşımı analizi yakında bu sekmede görünecek."
+      },
+      "fleet": {
+        "title": "Filo Verimliliği",
+        "desc": "Araç kullanım oranları ve verimlilik analizi yakında bu sekmede görünecek."
+      },
+      "sustainability": {
+        "title": "Sürdürülebilirlik",
+        "desc": "Karbon ayak izi ve CSRD uyumluluk raporu yakında bu sekmede görünecek."
+      }
+    },
+    "driving": {
+      "driverScores": "Sürücü Skorları",
+      "tasks": "görev",
+      "hardBrake": "Ani Fren",
+      "hardTurn": "Sert Viraj",
+      "hardAccel": "Sert Hızlanma",
+      "overspeed": "Hız Aşımı",
+      "impact": "Çarpma",
+      "noData": "Veri Yok",
+      "noDataDesc": "Bu dönemde aktif sürücü bulunamadı.",
+      "limitationsTitle": "Skor Sınırlılıkları",
+      "contextClean": "0 olay · tam puan",
+      "scoreNA": "Skor hesaplanamadı",
+      "reasonInsufficient": "mesafe yetersiz",
+      "reasonNoData": "veri eksik"
+    },
+    "error": "Veri yüklenemedi",
+    "retry": "Tekrar Dene"
   },
   "geofence": {
     "title": "Geofence Bölgeleri",

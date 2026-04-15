@@ -1,4 +1,4 @@
-﻿// src/screens/driver/DriverRouteMapScreen.js
+// src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
 // Updated: 19 Åubat 2026 - UTF-8 cleanup, smart down sample, route fixes
 // Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
@@ -11,9 +11,11 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Platform,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -586,6 +588,8 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   // Drive Conditions (trafik + hava banner)
   const [driveConditions, setDriveConditions] = useState(null);
+  const [odometerModal, setOdometerModal] = useState(false);
+  const [odometerInput, setOdometerInput] = useState("");
   const [conditionsLoading, setConditionsLoading] = useState(false);
 
   const routeFetchedRef = useRef(false);
@@ -1310,38 +1314,39 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const handleCompleteTask = async () => {
     if (!task) return;
+    setOdometerInput("");
+    setOdometerModal(true);
+  };
 
-    Alert.alert(t("routeMap.completeTask"), t("routeMap.completeConfirm"), [
-      { text: t("routeMap.cancel"), style: "cancel" },
-      {
-        text: t("routeMap.complete"),
-        style: "default",
-        onPress: async () => {
-          setActionLoading(true);
-          try {
-            await driverTaskAPI.completeTask(task.id);
-            stopLocationTracking();
-            setTask(null);
-            setRouteCoords([]);
-            setNavigationInfo(null);
-            routeFetchedRef.current = false;
-            Alert.alert(t("routeMap.success"), t("routeMap.taskCompleted"), [
-              {
-                text: t("routeMap.ok"),
-                onPress: () => navigation.navigate("DriverDashboard"),
-              },
-            ]);
-          } catch (e) {
-            Alert.alert(
-              t("routeMap.error"),
-              e.message || t("routeMap.taskCouldNotComplete")
-            );
-          } finally {
-            setActionLoading(false);
-          }
+  const handleCompleteConfirm = async () => {
+    setOdometerModal(false);
+    setActionLoading(true);
+    try {
+      const data = {};
+      const odomEnd = parseFloat(odometerInput);
+      if (!isNaN(odomEnd) && odomEnd > 0) {
+        data.odometer_end = odomEnd;
+      }
+      await driverTaskAPI.completeTask(task.id, data);
+      stopLocationTracking();
+      setTask(null);
+      setRouteCoords([]);
+      setNavigationInfo(null);
+      routeFetchedRef.current = false;
+      Alert.alert(t("routeMap.success"), t("routeMap.taskCompleted"), [
+        {
+          text: t("routeMap.ok"),
+          onPress: () => navigation.navigate("DriverDashboard"),
         },
-      },
-    ]);
+      ]);
+    } catch (e) {
+      Alert.alert(
+        t("routeMap.error"),
+        e.message || t("routeMap.taskCouldNotComplete")
+      );
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleAcceptTask = async () => {
@@ -1737,10 +1742,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         const isCrit = (tr?.delay_min > 10) || !!we?.alert;
         const isWarn = !isCrit && tr?.delay_min > 0;
         const bgColor = isCrit
-          ? withAlpha(COLORS.ERROR, 0.92)
+          ? withAlpha(COLORS.ERROR, 0.75)
           : isWarn
-          ? withAlpha(COLORS.WARNING, 0.92)
-          : withAlpha(COLORS.SUCCESS, 0.92);
+          ? withAlpha(COLORS.WARNING, 0.75)
+          : withAlpha(COLORS.SUCCESS, 0.75);
         const iconName = isCrit ? "warning" : isWarn ? "alert-circle" : "checkmark-circle";
         let bannerText = "";
         if (tr?.delay_min > 0) bannerText += `+${tr.delay_min} dk gecikme`;
@@ -1905,11 +1910,48 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Odometre Girişi Modal */}
+      <Modal visible={odometerModal} transparent animationType="fade" onRequestClose={() => setOdometerModal(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.lg, width: "100%" }}>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+              {t("routeMap.completeTask")}
+            </Text>
+            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_SECONDARY, marginBottom: COLORS.SPACING.md }}>
+              {t("routeMap.odometerPrompt", "Araç km sayacını girin (isteğe bağlı):")}
+            </Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: COLORS.INPUT_BORDER, borderRadius: COLORS.RADIUS.md, padding: COLORS.SPACING.sm, fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT, backgroundColor: COLORS.BACKGROUND, marginBottom: COLORS.SPACING.md }}
+              placeholder="12500"
+              placeholderTextColor={COLORS.TEXT_MUTED}
+              keyboardType="numeric"
+              value={odometerInput}
+              onChangeText={setOdometerInput}
+            />
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: COLORS.SPACING.sm, borderRadius: COLORS.RADIUS.md, backgroundColor: COLORS.BACKGROUND, alignItems: "center", marginRight: COLORS.SPACING.sm, borderWidth: 1, borderColor: COLORS.DIVIDER }}
+                onPress={() => setOdometerModal(false)}
+              >
+                <Text style={{ color: COLORS.TEXT_SECONDARY, fontWeight: COLORS.TYPOGRAPHY.weights.medium }}>{t("routeMap.cancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: COLORS.SPACING.sm, borderRadius: COLORS.RADIUS.md, backgroundColor: COLORS.SUCCESS, alignItems: "center" }}
+                onPress={handleCompleteConfirm}
+              >
+                <Text style={{ color: COLORS.WHITE, fontWeight: COLORS.TYPOGRAPHY.weights.semibold }}>{t("routeMap.complete")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 export default DriverRouteMapScreen;
+
 
 
 

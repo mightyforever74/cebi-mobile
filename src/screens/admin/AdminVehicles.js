@@ -337,6 +337,15 @@ const AdminVehicles = ({ navigation }) => {
   }, [vehicles, activeFilter]);
 
   const handleDeleteVehicle = (vehicle) => {
+    // Bağlı cihaz varsa önce uyarı göster — backend 500 vermeden önce UX koruması
+    if (vehicle.esp32_device_id) {
+      Alert.alert(
+        t("adminVehicles.deleteBlockedTitle"),
+        t("adminVehicles.deleteBlockedMsg", { plate: vehicle.plate_no }),
+        [{ text: t("common.ok"), style: "default" }]
+      );
+      return;
+    }
     Alert.alert(
       t("adminVehicles.deleteVehicle"),
       t("adminVehicles.deleteConfirm", { plate: vehicle.plate_no }),

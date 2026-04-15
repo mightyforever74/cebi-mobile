@@ -283,6 +283,11 @@ export const userAPI = {
     const response = await api.put("/api/user/change-password", data);
     return response.data;
   },
+
+  deleteAccount: async (password) => {
+    const response = await api.delete("/api/users/me", { data: { password } });
+    return response.data;
+  },
 };
 
 // ============================================
@@ -687,6 +692,15 @@ export const driverAPI = {
     const response = await api.get("/api/driver/route-weather");
     return response.data;
   },
+
+  sendSOS: async ({ latitude, longitude, accuracy } = {}) => {
+    const response = await api.post("/api/driver/sos", {
+      lat: latitude ?? null,
+      lon: longitude ?? null,
+      accuracy: accuracy ?? null,
+    });
+    return response.data;
+  },
 };
 
 // ============================================
@@ -1046,6 +1060,38 @@ export const fuelAPI = {
 
   getAlerts: async () => {
     const response = await api.get("/api/fuel/alerts");
+    return response.data;
+  },
+};
+
+
+// ============================================
+// GEOFENCE API
+// ============================================
+
+export const geofenceAPI = {
+  getAll: async () => {
+    const response = await api.get("/api/geofences");
+    return response.data;
+  },
+
+  create: async (data) => {
+    const response = await api.post("/api/geofences", data);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/api/geofences/${id}`, data);
+    return response.data;
+  },
+
+  remove: async (id) => {
+    const response = await api.delete(`/api/geofences/${id}`);
+    return response.data;
+  },
+
+  getEvents: async (id) => {
+    const response = await api.get(`/api/geofences/${id}/events`);
     return response.data;
   },
 };

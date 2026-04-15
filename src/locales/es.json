@@ -1,4 +1,40 @@
 {
+  "vehicleTrack": {
+    "title": "Ruta del vehículo",
+    "loading": "Cargando datos de ruta...",
+    "noData": "No se encontraron datos para este período",
+    "presets": {
+      "lastHour": "Última hora",
+      "last3Hours": "Últimas 3 horas",
+      "today": "Hoy"
+    },
+    "stats": {
+      "points": "Puntos",
+      "distance": "Distancia",
+      "duration": "Duración",
+      "range": "Rango de tiempo"
+    },
+    "sections": {
+      "dailySummary": "Resumen diario",
+      "timeline": "Cronología",
+      "trips": "Viajes"
+    },
+    "summary": {
+      "distance": "Distancia total",
+      "drive": "Tiempo de conducción",
+      "idle": "Tiempo en ralentí",
+      "trip": "Número de viajes"
+    },
+    "stopDetail": {
+      "title": "Detalle de parada",
+      "close": "Cerrar"
+    },
+    "tripDetail": {
+      "start": "Inicio",
+      "end": "Fin",
+      "clear": "Limpiar"
+    }
+  },
   "common": {
     "loading": "Cargando...",
     "save": "Guardar",
@@ -138,6 +174,15 @@
     "logoutConfirm": "¿Está seguro de que desea cerrar sesión?"
   },
   "settings": {
+    "deleteAccount": {
+      "title": "Eliminar cuenta",
+      "subtitle": "Eliminar tu cuenta de forma permanente",
+      "warning": "Esta acción no se puede deshacer. Todos tus datos serán eliminados.",
+      "passwordPlaceholder": "Introduce tu contraseña",
+      "passwordRequired": "La contraseña es obligatoria",
+      "confirm": "Eliminar cuenta",
+      "failed": "No se pudo eliminar la cuenta"
+    },
     "aboutDescription": "TulipFleet es una aplicación profesional diseñada para la gestión de flotas.",
     "adminRole": "ADMINISTRADOR",
     "alertNotifications": "Notificaciones de alerta",
@@ -1456,7 +1501,9 @@
     "deleteVehicle": "Eliminar vehículo",
     "deleteConfirm": "¿Está seguro de que desea eliminar este vehículo?",
     "vehicleDeleted": "Vehículo eliminado exitosamente",
-    "deleteFailed": "Error al eliminar vehículo"
+    "deleteFailed": "Error al eliminar vehículo",
+    "deleteBlockedTitle": "Dispositivo Conectado",
+    "deleteBlockedMsg": "El vehículo {{plate}} tiene un dispositivo conectado. Desconéctelo antes de eliminar."
   },
   "adminTasks": {
     "filterAll": "Todos",
@@ -1489,6 +1536,7 @@
     "deleteFailed": "Error al eliminar tarea"
   },
   "adminAlerts": {
+    "mapButton": "Mostrar en mapa",
     "filterAll": "Todos",
     "filterActive": "Activo",
     "filterResolved": "Resuelto",
@@ -1572,6 +1620,7 @@
     "requestingPermission": "Solicitando permiso de cámara..."
   },
   "routeMap": {
+    "odometerPrompt": "Ingrese el kilometraje del vehículo (opcional):",
     "loading": "Cargando ruta...",
     "vehicleNotFound": "Vehículo no encontrado",
     "locationNotAvailable": "Ubicación no disponible",
@@ -1687,64 +1736,84 @@
     }
   },
   "reports": {
-    "loading": "Cargando informes...",
-    "noData": "No se pudieron cargar los datos",
-    "totalTasks": "Total tareas",
-    "completed": "Completadas",
-    "active": "activo",
-    "tasks": "Tareas",
-    "alerts": "Alertas",
-    "success": "Éxito",
-    "last7Days": "Últimos 7 días",
-    "last30Days": "Últimos 30 días",
-    "last90Days": "Últimos 90 días",
+    "loading": "Cargando informe...",
     "tabs": {
       "operations": "Operaciones",
-      "fuel": "Combustible y Costos",
-      "driverQuality": "Calidad del Conductor",
-      "fleetEfficiency": "Eficiencia de Flota",
+      "fuel": "Combustible & Costo",
+      "driving": "Calidad de Conducción",
+      "fleet": "Eficiencia de Flota",
       "sustainability": "Sostenibilidad"
     },
-    "operations": {
-      "totalTasks": "Total de Tareas",
-      "completed": "Completadas",
-      "cancelled": "Canceladas",
-      "rejected": "Rechazadas",
-      "onTimeStart": "Inicio a Tiempo",
-      "onTimeDelivery": "Entrega a Tiempo",
-      "avgDuration": "Duración Promedio",
-      "avgWaitTime": "Espera Promedio",
-      "waypointCompletion": "Cumplimiento de Puntos",
-      "delayedTasks": "Tareas Retrasadas"
+    "filter": {
+      "7d": "7D",
+      "30d": "30D",
+      "90d": "90D"
     },
-    "fuel": {
-      "totalLiters": "Consumo Total",
-      "totalCost": "Costo Total",
-      "per100km": "Prom. L/100km",
-      "perKm": "Costo por km",
-      "byVehicle": "Por Vehículo",
-      "fullTankOnly": "Análisis Tanque Lleno",
-      "anomaly": "Anomalía",
-      "currencyBreakdown": "Desglose de Moneda"
+    "kpi": {
+      "totalTasks": "Tareas Totales",
+      "completedTasks": "Completadas",
+      "cancelledTasks": "Canceladas / Rechazadas",
+      "pending": "En Progreso",
+      "avgDuration": "Duración Prom. (min)",
+      "delayedTasks": "Tareas Retrasadas",
+      "onTimeStartRate": "Inicio Puntual %",
+      "totalAlerts": "Alertas Totales"
     },
-    "driverQuality": {
-      "tasksPerDriver": "Tareas por Conductor",
-      "safetyScore": "Puntuación de Seguridad",
-      "per100km": "Por 100 km",
-      "trainingNote": "Métrica de entrenamiento y mejora"
+    "quality": {
+      "reliable": "Confiable",
+      "partial": "Parcial",
+      "partialTolerance30m": "Parcial — ±30min tolerancia"
     },
-    "fleet": {
-      "tasksPerVehicle": "Tareas por Vehículo",
-      "kmPerVehicle": "km por Vehículo",
-      "utilization": "Tasa de Utilización",
-      "costPerTask": "Costo por Tarea"
+    "sections": {
+      "taskSummary": "Resumen de Tareas",
+      "vehiclePerformance": "Rendimiento de Vehículos",
+      "driverSummary": "Resumen de Conductores"
     },
-    "sustainability": {
-      "totalCo2": "CO₂e Total",
-      "byVehicle": "Emisiones por Vehículo",
-      "methodology": "Metodología",
-      "methodologyNote": "DEFRA 2023 — Estimación Alcance 1 basada en registros de combustible."
-    }
+    "table": {
+      "vehicle": "Vehículo",
+      "tasks": "Tareas",
+      "completed": "Listo",
+      "distance": "Distancia",
+      "driver": "Conductor",
+      "alerts": "Alertas",
+      "avgDuration": "Duración Prom."
+    },
+    "placeholder": {
+      "fuel": {
+        "title": "Combustible & Costo",
+        "desc": "El análisis aparecerá aquí pronto."
+      },
+      "driving": {
+        "title": "Calidad de Conducción",
+        "desc": "El análisis aparecerá pronto."
+      },
+      "fleet": {
+        "title": "Eficiencia de Flota",
+        "desc": "El análisis aparecerá pronto."
+      },
+      "sustainability": {
+        "title": "Sostenibilidad",
+        "desc": "El informe aparecerá pronto."
+      }
+    },
+    "driving": {
+      "driverScores": "Puntuaciones de Conductores",
+      "tasks": "tareas",
+      "hardBrake": "Frenada Brusca",
+      "hardTurn": "Giro Brusco",
+      "hardAccel": "Aceleración Brusca",
+      "overspeed": "Exceso de Velocidad",
+      "impact": "Impacto",
+      "noData": "Sin Datos",
+      "noDataDesc": "No se encontraron conductores activos.",
+      "limitationsTitle": "Limitaciones de Puntuación",
+      "contextClean": "0 eventos · puntuación perfecta",
+      "scoreNA": "Puntuación no disponible",
+      "reasonInsufficient": "distancia insuficiente",
+      "reasonNoData": "datos insuficientes"
+    },
+    "error": "No se pudieron cargar los datos",
+    "retry": "Intentar de nuevo"
   },
   "geofence": {
     "title": "Zonas Geofence",

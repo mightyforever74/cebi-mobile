@@ -20,6 +20,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,6 +28,7 @@ import LanguageSelector from "../../components/LanguageSelector";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { userAPI } from "../../services/api";
 
 // Storage keys (Dark mode hariç - o ThemeContext'te)
 const STORAGE_KEYS = {
@@ -163,6 +165,11 @@ const DriverSettings = ({ navigation }) => {
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [locationPermission, setLocationPermission] = useState(null);
   const [privacyModal, setPrivacyModal] = useState(false);
+
+  // Delete account
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // ============================================
   // Helpers
@@ -478,6 +485,24 @@ const DriverSettings = ({ navigation }) => {
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      Alert.alert(t("common.error"), t("settings.deleteAccount.passwordRequired"));
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await userAPI.deleteAccount(deletePassword);
+      setDeleteModal(false);
+      await logout();
+    } catch (e) {
+      const msg = e?.response?.data?.error || t("settings.deleteAccount.failed");
+      Alert.alert(t("common.error"), msg);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // ============================================
   // Render
   // ============================================
@@ -681,6 +706,13 @@ const DriverSettings = ({ navigation }) => {
       {/* Çıkış */}
       <View style={styles.settingGroup}>
         <SettingItem
+          icon="person-remove-outline"
+          iconColor={COLORS.ERROR}
+          title={t("settings.deleteAccount.title")}
+          subtitle={t("settings.deleteAccount.subtitle")}
+          onPress={() => { setDeletePassword(""); setDeleteModal(true); }}
+        />
+        <SettingItem
           icon="log-out-outline"
           iconColor={COLORS.ERROR}
           title={t("settings.logout")}
@@ -692,9 +724,104 @@ const DriverSettings = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>TulipFleet v2.1.0</Text>
-        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
+        <Text style={styles.footerSubtext}>© 2026 TulipFleet</Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
+
+      {/* Delete Account Modal */}
+      <Modal
+        visible={deleteModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setDeleteModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: COLORS.SPACING.lg,
+        }}>
+          <View style={{
+            backgroundColor: COLORS.SURFACE,
+            borderRadius: COLORS.RADIUS.card,
+            padding: COLORS.SPACING.lg,
+            width: "100%",
+          }}>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+              fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+              color: COLORS.ERROR,
+              marginBottom: COLORS.SPACING.sm,
+            }}>
+              {t("settings.deleteAccount.title")}
+            </Text>
+            <Text style={{
+              fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+              color: COLORS.TEXT_SECONDARY,
+              marginBottom: COLORS.SPACING.md,
+            }}>
+              {t("settings.deleteAccount.warning")}
+            </Text>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: COLORS.INPUT_BORDER,
+                borderRadius: COLORS.RADIUS.md,
+                padding: COLORS.SPACING.sm,
+                fontSize: COLORS.TYPOGRAPHY.sizes.md,
+                color: COLORS.TEXT,
+                backgroundColor: COLORS.BACKGROUND,
+                marginBottom: COLORS.SPACING.md,
+              }}
+              placeholder={t("settings.deleteAccount.passwordPlaceholder")}
+              placeholderTextColor={COLORS.TEXT_MUTED}
+              secureTextEntry
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              autoCapitalize="none"
+            />
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.BACKGROUND,
+                  alignItems: "center",
+                  marginRight: COLORS.SPACING.sm,
+                  borderWidth: 1,
+                  borderColor: COLORS.DIVIDER,
+                }}
+                onPress={() => setDeleteModal(false)}
+                disabled={deleteLoading}
+              >
+                <Text style={{ color: COLORS.TEXT_SECONDARY, fontWeight: COLORS.TYPOGRAPHY.weights.medium }}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.ERROR,
+                  alignItems: "center",
+                }}
+                onPress={handleDeleteAccount}
+                disabled={deleteLoading}
+              >
+                {deleteLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={{ color: "#fff", fontWeight: COLORS.TYPOGRAPHY.weights.semibold }}>
+                      {t("settings.deleteAccount.confirm")}
+                    </Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Privacy Policy Modal */}
       <Modal

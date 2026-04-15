@@ -64,6 +64,7 @@ import DriverDashboard from "../screens/driver/DriverDashboard";
 import DriverProfile from "../screens/driver/DriverProfile";
 import DriverRouteMapScreen from "../screens/driver/DriverRouteMapScreen";
 import DriverSettings from "../screens/driver/DriverSettings";
+import DriverSOSScreen from "../screens/driver/DriverSOSScreen";
 import DriverTaskDetail from "../screens/driver/DriverTaskDetail";
 import DriverTasks from "../screens/driver/DriverTasks";
 import DriverVehicle from "../screens/driver/DriverVehicle";
@@ -478,13 +479,6 @@ const PlatformSettingsScreen = () => (
   />
 );
 
-const DriverSOSScreen = () => (
-  <PlaceholderScreen
-    titleKey="Acil Durum"
-    icon="warning-outline"
-    descriptionKey="SOS g�nder"
-  />
-);
 
 // ============================================================================
 // NAVIGATORS

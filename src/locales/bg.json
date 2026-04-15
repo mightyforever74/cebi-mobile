@@ -1,4 +1,40 @@
 {
+  "vehicleTrack": {
+    "title": "Маршрут на превозното средство",
+    "loading": "Зареждане на маршрутни данни...",
+    "noData": "Няма намерени данни за този период",
+    "presets": {
+      "lastHour": "Последен час",
+      "last3Hours": "Последните 3 часа",
+      "today": "Днес"
+    },
+    "stats": {
+      "points": "Точки",
+      "distance": "Разстояние",
+      "duration": "Продължителност",
+      "range": "Времеви диапазон"
+    },
+    "sections": {
+      "dailySummary": "Дневно резюме",
+      "timeline": "Времева линия",
+      "trips": "Пътувания"
+    },
+    "summary": {
+      "distance": "Общо разстояние",
+      "drive": "Време за шофиране",
+      "idle": "Престой",
+      "trip": "Брой пътувания"
+    },
+    "stopDetail": {
+      "title": "Детайли за спирка",
+      "close": "Затвори"
+    },
+    "tripDetail": {
+      "start": "Начало",
+      "end": "Край",
+      "clear": "Изчисти"
+    }
+  },
   "common": {
     "loading": "Зареждане...",
     "save": "Запази",
@@ -146,6 +182,15 @@
     "geofences": "Геофенс Зони"
   },
   "settings": {
+    "deleteAccount": {
+      "title": "Изтриване на акаунт",
+      "subtitle": "Изтрийте акаунта си завинаги",
+      "warning": "Това действие не може да бъде отменено. Всички ваши данни ще бъдат изтрити.",
+      "passwordPlaceholder": "Въведете паролата си",
+      "passwordRequired": "Паролата е задължителна",
+      "confirm": "Изтрий акаунта",
+      "failed": "Неуспешно изтриване на акаунта"
+    },
     "aboutDescription": "TulipFleet е професионално приложение за управление на флота.",
     "adminRole": "АДМИНИСТРАТОР",
     "alertNotifications": "Известия за тревоги",
@@ -747,6 +792,7 @@
     }
   },
   "routeMap": {
+    "odometerPrompt": "Araç km sayacını girin (isteğe bağlı):",
     "loading": "Получаване на местоположение...",
     "vehicleNotFound": "Превозно средство не е намерено",
     "locationNotAvailable": "Местоположението не е налично",
@@ -1603,7 +1649,9 @@
     "deleteVehicle": "Изтрий превозното средство",
     "deleteConfirm": "Сигурни ли сте, че искате да изтриете това превозно средство?",
     "vehicleDeleted": "Превозното средство е изтрито успешно",
-    "deleteFailed": "Неуспешно изтриване"
+    "deleteFailed": "Неуспешно изтриване",
+    "deleteBlockedTitle": "Устройство Свързано",
+    "deleteBlockedMsg": "Превозно средство {{plate}} има свързано устройство. Моля, откачете го преди изтриване."
   },
   "adminTasks": {
     "filterAll": "Всички",
@@ -1686,7 +1734,8 @@
       "daysAgo": "преди {{count}} дни"
     },
     "filterCritical": "Критично",
-    "filterVehicle": "Превозно средство"
+    "filterVehicle": "Превозно средство",
+    "mapButton": "Карта"
   },
   "createDriver": {
     "accountInfo": "Информация за акаунт",
@@ -1719,64 +1768,84 @@
     "requestingPermission": "Искане на разрешение за камера..."
   },
   "reports": {
-    "loading": "Зареждане на отчети...",
-    "noData": "Данните не могат да бъдат заредени",
-    "totalTasks": "Общо задачи",
-    "completed": "Завършени",
-    "active": "активен",
-    "tasks": "Задачи",
-    "alerts": "Предупреждения",
-    "success": "Успех",
-    "last7Days": "Последните 7 дни",
-    "last30Days": "Последните 30 дни",
-    "last90Days": "Последните 90 дни",
+    "loading": "Зареждане на отчета...",
     "tabs": {
       "operations": "Операции",
-      "fuel": "Гориво и Разходи",
-      "driverQuality": "Качество на Шофиране",
-      "fleetEfficiency": "Ефективност на Флота",
+      "fuel": "Гориво & Разходи",
+      "driving": "Качество на Шофиране",
+      "fleet": "Ефективност на Флота",
       "sustainability": "Устойчивост"
     },
-    "operations": {
+    "filter": {
+      "7d": "7Д",
+      "30d": "30Д",
+      "90d": "90Д"
+    },
+    "kpi": {
       "totalTasks": "Общо Задачи",
-      "completed": "Завършени",
-      "cancelled": "Отменени",
-      "rejected": "Отхвърлени",
-      "onTimeStart": "Навременно Начало",
-      "onTimeDelivery": "Навременна Доставка",
-      "avgDuration": "Средна Продължителност",
-      "avgWaitTime": "Средно Чакане",
-      "waypointCompletion": "Изпълнение на Точки",
-      "delayedTasks": "Закъснели Задачи"
+      "completedTasks": "Завършени",
+      "cancelledTasks": "Отменени / Отхвърлени",
+      "pending": "В Процес",
+      "avgDuration": "Средна Продължителност (мин)",
+      "delayedTasks": "Закъснели Задачи",
+      "onTimeStartRate": "Навременно Стартиране %",
+      "totalAlerts": "Общо Предупреждения"
     },
-    "fuel": {
-      "totalLiters": "Общ Разход",
-      "totalCost": "Общи Разходи",
-      "per100km": "Средно Л/100км",
-      "perKm": "Цена на км",
-      "byVehicle": "По Превозно Средство",
-      "fullTankOnly": "Анализ Пълен Бак",
-      "anomaly": "Аномалия",
-      "currencyBreakdown": "Разбивка по Валута"
+    "quality": {
+      "reliable": "Надеждно",
+      "partial": "Частично",
+      "partialTolerance30m": "Частично — ±30мин толеранс"
     },
-    "driverQuality": {
-      "tasksPerDriver": "Задачи на Шофьор",
-      "safetyScore": "Оценка за Безопасност",
-      "per100km": "На 100 км",
-      "trainingNote": "Показател за обучение и подобрение"
+    "sections": {
+      "taskSummary": "Резюме на Задачите",
+      "vehiclePerformance": "Производителност",
+      "driverSummary": "Резюме на Шофьорите"
     },
-    "fleet": {
-      "tasksPerVehicle": "Задачи на Превозно Средство",
-      "kmPerVehicle": "км на Превозно Средство",
-      "utilization": "Степен на Използване",
-      "costPerTask": "Разход на Задача"
+    "table": {
+      "vehicle": "Превозно Средство",
+      "tasks": "Задачи",
+      "completed": "Готово",
+      "distance": "Разстояние",
+      "driver": "Шофьор",
+      "alerts": "Предупреждения",
+      "avgDuration": "Средна Продължителност"
     },
-    "sustainability": {
-      "totalCo2": "Общо CO₂e",
-      "byVehicle": "Емисии по Превозно Средство",
-      "methodology": "Методология",
-      "methodologyNote": "DEFRA 2023 — Оценка Обхват 1 на база зареждания."
-    }
+    "placeholder": {
+      "fuel": {
+        "title": "Гориво & Разходи",
+        "desc": "Ще се появи скоро."
+      },
+      "driving": {
+        "title": "Качество на Шофиране",
+        "desc": "Ще се появи скоро."
+      },
+      "fleet": {
+        "title": "Ефективност на Флота",
+        "desc": "Ще се появи скоро."
+      },
+      "sustainability": {
+        "title": "Устойчивост",
+        "desc": "Ще се появи скоро."
+      }
+    },
+    "driving": {
+      "driverScores": "Резултати на Шофьорите",
+      "tasks": "задачи",
+      "hardBrake": "Рязко Спиране",
+      "hardTurn": "Остра Завой",
+      "hardAccel": "Рязко Ускоряване",
+      "overspeed": "Превишаване на Скоростта",
+      "impact": "Удар",
+      "noData": "Няма Данни",
+      "noDataDesc": "Не са намерени активни шофьори.",
+      "limitationsTitle": "Ограничения на Резултата",
+      "contextClean": "0 събития · пълен резултат",
+      "scoreNA": "Резултатът не е наличен",
+      "reasonInsufficient": "недостатъчно разстояние",
+      "reasonNoData": "недостатъчно данни"
+    },
+    "error": "Данните не можаха да бъдат заредени",
+    "retry": "Опитай отново"
   },
   "geofence": {
     "title": "Геофенс Зони",
