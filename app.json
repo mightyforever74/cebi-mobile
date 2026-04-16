@@ -2,7 +2,7 @@
   "expo": {
     "name": "TulipFleet",
     "slug": "tulipfleet",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "updates": {
@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tulipfleet.app",
-      "buildNumber": "28",
+      "buildNumber": "29",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
         "googleMapsApiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
@@ -32,7 +32,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "package": "com.tulipfleet.app",
-      "versionCode": 27,
+      "versionCode": 28,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
