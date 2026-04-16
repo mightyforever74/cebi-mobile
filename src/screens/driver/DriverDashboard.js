@@ -1,10 +1,11 @@
 ﻿// src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
 // v2.0 - Phase 0 Regeneration: StatCard + DataState + StatusBadge + colorUtils
-// withAlpha â†’ colorUtils, ActivityIndicator â†’ DataState, statsRow â†’ StatCard, emoji â†’ Ionicons
+// withAlpha → colorUtils, ActivityIndicator → DataState, statsRow → StatCard, emoji → Ionicons
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import * as Speech from "expo-speech";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -32,29 +33,28 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
-import * as Speech from "expo-speech";
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 // FUEL TYPE LABELS (i18n fallback)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 const FUEL_TYPE_LABELS = {
   diesel: {
     tr: "Dizel",
     en: "Diesel",
-    bg: "Ğ”Ğ¸Ğ·ĞµĞ»",
-    es: "DiÃ©sel",
+    bg: "Дизел",
+    es: "	Diésel",
     it: "Diesel",
     nl: "Diesel",
-    ku: "DÃ®zel",
+    ku: "Dizel",
   },
   gasoline: {
     tr: "Benzin",
     en: "Gasoline",
-    bg: "Ğ‘ĞµĞ½Ğ·Ğ¸Ğ½",
+    bg: "Бензин",
     es: "Gasolina",
     it: "Benzina",
     nl: "Benzine",
-    ku: "BenzÃ®n",
+    ku: "Benzin",
   },
   lpg: {
     tr: "LPG",
@@ -68,17 +68,17 @@ const FUEL_TYPE_LABELS = {
   electric: {
     tr: "Elektrik",
     en: "Electric",
-    bg: "Ğ•Ğ»ĞµĞºÑ‚Ñ€Ğ¸Ñ‡ĞµÑÑ‚Ğ²Ğ¾",
-    es: "ElÃ©ctrico",
+    bg: "Електрически",
+    es: "Eléctrico",
     it: "Elettrico",
     nl: "Elektrisch",
-    ku: "ElektrÃ®k",
+    ku: "Elektrik",
   },
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// TASK STATUS â†’ StatusBadge severity map
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+// TASK STATUS → StatusBadge severity map
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 const TASK_STATUS_SEVERITY = {
   pending_review: "WARNING",
   accepted: "INFO",
@@ -87,14 +87,14 @@ const TASK_STATUS_SEVERITY = {
   cancelled: "OFFLINE",
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// makeStyles - Phase 0 temizlenmiÅŸ
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+// makeStyles - Phase 0 temizlenmiş, yeniden organize edilmiş stiller
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 const makeStyles = (COLORS) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
 
-    // â”€â”€ Header â”€â”€
+    // ── Header ──
     header: {
       backgroundColor: COLORS.PRIMARY,
       paddingTop: 60,
@@ -122,7 +122,7 @@ const makeStyles = (COLORS) =>
     },
     langFlag: { fontSize: COLORS.TYPOGRAPHY.sizes.xxl },
 
-    // â”€â”€ Error banner â”€â”€
+    // ── Error banner ──
     errorCard: {
       backgroundColor: COLORS.INPUT_ERROR,
       margin: 16,
@@ -133,7 +133,7 @@ const makeStyles = (COLORS) =>
     },
     errorText: { color: COLORS.ERROR, fontSize: COLORS.TYPOGRAPHY.sizes.md },
 
-    // â”€â”€ Task Offers banner â”€â”€
+    // ── Task Offers banner ──
     offersCard: {
       backgroundColor: COLORS.SUCCESS,
       margin: 16,
@@ -155,7 +155,7 @@ const makeStyles = (COLORS) =>
       marginTop: COLORS.SPACING.xs / 2,
     },
 
-    // â”€â”€ Card common â”€â”€
+    // ── Card common ──
     cardTitleRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -179,7 +179,7 @@ const makeStyles = (COLORS) =>
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
-    // â”€â”€ Vehicle card â”€â”€
+    // ── Vehicle card ──
     vehicleInfo: { marginBottom: COLORS.SPACING.md },
     vehiclePlate: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xxl,
@@ -228,7 +228,7 @@ const makeStyles = (COLORS) =>
       marginHorizontal: COLORS.SPACING.sm,
     },
 
-    // â”€â”€ Task card â”€â”€
+    // ── Task card ──
     taskCard: {
       backgroundColor: COLORS.BACKGROUND,
       padding: COLORS.SPACING.sm,
@@ -263,15 +263,14 @@ const makeStyles = (COLORS) =>
       marginBottom: COLORS.SPACING.xs,
     },
 
-    // â”€â”€ Stats row (StatCard grid) â”€â”€
+    // ── Stats row (StatCard grid) ──
     statsGrid: {
       flexDirection: "row",
       gap: COLORS.SPACING.sm,
       flex: 1,
     },
 
-
-    // â”€â”€ Drive Assist Card â”€â”€
+    // ── Drive Assist Card ──
     daCardRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -281,7 +280,7 @@ const makeStyles = (COLORS) =>
     daSpeakHint: {
       padding: COLORS.SPACING.xs,
     },
-    // StatCard stili  -  alt alta iki satÄ±r
+    // StatCard stili  -  alt alta iki satır
     daRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -325,7 +324,7 @@ const makeStyles = (COLORS) =>
       marginTop: COLORS.SPACING.xs,
     },
 
-    // â”€â”€ Device Status Lamps â”€â”€
+    // ── Device Status Lamps ──
 
     deviceStatusRow: {
       flexDirection: "row",
@@ -352,7 +351,7 @@ const makeStyles = (COLORS) =>
       fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
     },
 
-    // â”€â”€ Quick Access â”€â”€
+    // ── Quick Access ──
     quickAccessGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -382,7 +381,7 @@ const makeStyles = (COLORS) =>
       textAlign: "center",
     },
 
-    // â”€â”€ Language modal â”€â”€
+    // ── Language modal ──
     langModalOverlay: {
       flex: 1,
       backgroundColor: COLORS.OVERLAY,
@@ -437,7 +436,7 @@ const makeStyles = (COLORS) =>
       color: COLORS.TEXT,
     },
 
-    // â”€â”€ FAB â”€â”€
+    // ── FAB ──
     fab: {
       position: "absolute",
       bottom: COLORS.SPACING.lg,
@@ -452,7 +451,7 @@ const makeStyles = (COLORS) =>
       elevation: 0,
     },
 
-    // â”€â”€ Serial modal â”€â”€
+    // ── Serial modal ──
     modalOverlay: {
       flex: 1,
       backgroundColor: COLORS.OVERLAY,
@@ -514,18 +513,18 @@ const makeStyles = (COLORS) =>
     },
   });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 // HELPERS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 const formatKm = (km) => {
   const n = Number(km);
   if (!Number.isFinite(n) || n <= 0) return "0";
   return Math.round(n).toLocaleString();
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 // COMPONENT
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
   const { i18n, t } = useTranslation();
@@ -546,8 +545,8 @@ const DriverDashboard = () => {
   const [serialInput, setSerialInput] = useState("");
   const [validating, setValidating] = useState(false);
 
-  // â”€â”€ Drive Assist state â”€â”€
-  const [driveAssist, setDriveAssist] = useState(null);  // null=loading, obj=data
+  // ── Drive Assist state ──
+  const [driveAssist, setDriveAssist] = useState(null); // null=loading, obj=data
   const [assistLoading, setAssistLoading] = useState(false);
 
   const currentLang =
@@ -559,7 +558,6 @@ const DriverDashboard = () => {
     return labels ? labels[i18n.language] || labels.en : fuelType;
   };
 
-  // â”€â”€ Fetch â”€â”€
   const fetchDashboardData = useCallback(async () => {
     try {
       setError(null);
@@ -577,10 +575,11 @@ const DriverDashboard = () => {
       );
       setStats(statsRes.stats || {});
 
-      // Drive Assist  -  aktif gÃ¶revi ilet
-      const active = (tasksRes.tasks || []).find(t =>
-        ['in_progress', 'accepted', 'pending_review'].includes(t.status)
-      ) || null;
+      // Drive Assist  -  aktif görevi ilet
+      const active =
+        (tasksRes.tasks || []).find((t) =>
+          ["in_progress", "accepted", "pending_review"].includes(t.status)
+        ) || null;
       fetchDriveAssist(active, vehicleRes.vehicle || null);
     } catch (err) {
       console.error("[Dashboard] Fetch error:", err);
@@ -597,7 +596,7 @@ const DriverDashboard = () => {
     }, [fetchDashboardData])
   );
 
-  // â”€â”€ Drive Assist fetch â”€â”€
+  // ── Drive Assist fetch ──
   const fetchDriveAssist = useCallback(async (activeTask, vehicle) => {
     setAssistLoading(true);
     try {
@@ -609,7 +608,7 @@ const DriverDashboard = () => {
         weather: res.weather || null,
       });
     } catch (err) {
-      console.error('[DriveAssist] error:', err);
+      console.error("[DriveAssist] error:", err);
       setDriveAssist({ activeTask, vehicle, traffic: null, weather: null });
     } finally {
       setAssistLoading(false);
@@ -698,7 +697,7 @@ const DriverDashboard = () => {
     }
   };
 
-  // â”€â”€ Render â”€â”€
+  // ── Render ──
   return (
     <DataState
       loading={loading}
@@ -720,7 +719,7 @@ const DriverDashboard = () => {
           />
         }
       >
-        {/* â”€â”€ Header â”€â”€ */}
+        {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Ionicons
@@ -754,7 +753,7 @@ const DriverDashboard = () => {
           </View>
         </View>
 
-        {/* â”€â”€ Error banner â”€â”€ */}
+        {/* ── Error banner ── */}
         {error && (
           <View style={styles.errorCard}>
             <Text style={styles.errorText}>
@@ -764,7 +763,7 @@ const DriverDashboard = () => {
           </View>
         )}
 
-        {/* â”€â”€ Task Offers â”€â”€ */}
+        {/* ── Task Offers ── */}
         <TouchableOpacity
           style={styles.offersCard}
           onPress={() =>
@@ -790,13 +789,12 @@ const DriverDashboard = () => {
           </View>
         </TouchableOpacity>
 
-
-        {/* â”€â”€ Drive Assist Card â”€â”€ */}
+        {/* ── Drive Assist Card ── */}
         <Card noMarginBottom={false}>
           <TouchableOpacity
             activeOpacity={0.75}
             onPress={() => {
-              // Sesli ikaz  -  expo-speech ile tÃ¼m uyarÄ±larÄ± oku
+              // Sesli ikaz  -  expo-speech ile tüm uyarıları oku
               const alerts = [];
               if (driveAssist?.traffic?.delay_min > 0) {
                 alerts.push(
@@ -814,7 +812,9 @@ const DriverDashboard = () => {
               }
               if (driveAssist?.weather?.wind_kmh > 40) {
                 alerts.push(
-                  t("driveAssist.speechWind", { kmh: driveAssist.weather.wind_kmh })
+                  t("driveAssist.speechWind", {
+                    kmh: driveAssist.weather.wind_kmh,
+                  })
                 );
               }
               if (alerts.length === 0) {
@@ -822,10 +822,14 @@ const DriverDashboard = () => {
               }
               const fullText = alerts.join(". ");
               Speech.speak(fullText, {
-                language: i18n.language === "tr" ? "tr-TR"
-                  : i18n.language === "nl" ? "nl-NL"
-                  : i18n.language === "de" ? "de-DE"
-                  : "en-US",
+                language:
+                  i18n.language === "tr"
+                    ? "tr-TR"
+                    : i18n.language === "nl"
+                      ? "nl-NL"
+                      : i18n.language === "de"
+                        ? "de-DE"
+                        : "en-US",
                 rate: 0.9,
               });
             }}
@@ -833,56 +837,126 @@ const DriverDashboard = () => {
             <View style={styles.daCardRow}>
               <Text style={styles.cardTitle}>{t("driveAssist.title")}</Text>
               <View style={styles.daSpeakHint}>
-                <Ionicons name="volume-medium-outline" size={16} color={COLORS.MUTED} />
+                <Ionicons
+                  name="volume-medium-outline"
+                  size={16}
+                  color={COLORS.MUTED}
+                />
               </View>
             </View>
 
-            {/* â”€â”€ Ä°ki modern yatay kutu â”€â”€ */}
-            {/* Trafik SatÄ±rÄ± */}
             {(() => {
               const tr = driveAssist?.traffic;
               const isCrit = tr?.delay_min > 10;
               const isWarn = tr?.delay_min > 0 && tr?.delay_min <= 10;
               const isClear = tr?.delay_min === 0;
-              const trColor = isCrit ? COLORS.ERROR : isWarn ? COLORS.WARNING : isClear ? COLORS.SUCCESS : COLORS.MUTED;
-              const trBg    = withAlpha(trColor, 0.10);
-              const trIcon  = isCrit ? "warning-outline" : isWarn ? "alert-circle-outline" : isClear ? "checkmark-circle-outline" : "car-outline";
+              const trColor = isCrit
+                ? COLORS.ERROR
+                : isWarn
+                  ? COLORS.WARNING
+                  : isClear
+                    ? COLORS.SUCCESS
+                    : COLORS.MUTED;
+              const trBg = withAlpha(trColor, 0.1);
+              const trIcon = isCrit
+                ? "warning-outline"
+                : isWarn
+                  ? "alert-circle-outline"
+                  : isClear
+                    ? "checkmark-circle-outline"
+                    : "car-outline";
               const trValue = tr
-                ? (tr.delay_min > 0 ? `+${tr.delay_min} dk gecikme` : t("dashboard.trafficClear"))
-                : (driveAssist && !driveAssist.activeTask ? t("driveAssist.standbySub") : " - ");
+                ? tr.delay_min > 0
+                  ? t("driveAssist.delayValue", { delay: tr.delay_min })
+                  : t("dashboard.trafficClear")
+                : driveAssist && !driveAssist.activeTask
+                  ? t("driveAssist.standbySub")
+                  : " - ";
               const trSub = tr?.route_label || "";
               return (
                 <View style={[styles.daRow, { backgroundColor: trBg }]}>
-                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(trColor, 0.15) }]}>
+                  <View
+                    style={[
+                      styles.daIconWrap,
+                      { backgroundColor: withAlpha(trColor, 0.15) },
+                    ]}
+                  >
                     <Ionicons name={trIcon} size={22} color={trColor} />
                   </View>
                   <View style={styles.daTextWrap}>
-                    <Text style={[styles.daRowLabel, { color: trColor }]}>Trafik</Text>
-                    <Text style={[styles.daRowValue, { color: trColor }]} numberOfLines={1}>{trValue}</Text>
-                    {!!trSub && <Text style={[styles.daRowSub, { color: trColor }]} numberOfLines={1}>{trSub}</Text>}
+                    <Text style={[styles.daRowLabel, { color: trColor }]}>
+                      {t("driveAssist.trafficLabel")}
+                    </Text>
+                    <Text
+                      style={[styles.daRowValue, { color: trColor }]}
+                      numberOfLines={1}
+                    >
+                      {trValue}
+                    </Text>
+                    {!!trSub && (
+                      <Text
+                        style={[styles.daRowSub, { color: trColor }]}
+                        numberOfLines={1}
+                      >
+                        {trSub}
+                      </Text>
+                    )}
                   </View>
                 </View>
               );
             })()}
 
-            {/* Hava SatÄ±rÄ± */}
             {(() => {
               const we = driveAssist?.weather;
               const hasAlert = !!we?.alert;
-              const weColor  = hasAlert ? COLORS.ERROR : we ? COLORS.INFO : COLORS.MUTED;
-              const weBg     = withAlpha(weColor, 0.10);
-              const weIcon   = hasAlert ? "thunderstorm-outline" : we ? "partly-sunny-outline" : "cloud-outline";
-              const weValue  = we ? `${we.temp_c}C  -  ${we.description || ""}` : " - ";
-              const weSub    = we?.alert || "";
+              const weColor = hasAlert
+                ? COLORS.ERROR
+                : we
+                  ? COLORS.INFO
+                  : COLORS.MUTED;
+              const weBg = withAlpha(weColor, 0.1);
+              const weIcon = hasAlert
+                ? "thunderstorm-outline"
+                : we
+                  ? "partly-sunny-outline"
+                  : "cloud-outline";
+              const weValue = we
+                ? `${we.temp_c}C  -  ${we.description || ""}`
+                : " - ";
+              const weSub = we?.alert || "";
               return (
-                <View style={[styles.daRow, { backgroundColor: weBg, marginBottom: COLORS.SPACING.xs }]}>
-                  <View style={[styles.daIconWrap, { backgroundColor: withAlpha(weColor, 0.15) }]}>
+                <View
+                  style={[
+                    styles.daRow,
+                    { backgroundColor: weBg, marginBottom: COLORS.SPACING.xs },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.daIconWrap,
+                      { backgroundColor: withAlpha(weColor, 0.15) },
+                    ]}
+                  >
                     <Ionicons name={weIcon} size={22} color={weColor} />
                   </View>
                   <View style={styles.daTextWrap}>
-                    <Text style={[styles.daRowLabel, { color: weColor }]}>Hava</Text>
-                    <Text style={[styles.daRowValue, { color: weColor }]} numberOfLines={1}>{weValue}</Text>
-                    {!!weSub && <Text style={[styles.daRowSub, { color: weColor }]} numberOfLines={1}>{weSub}</Text>}
+                    <Text style={[styles.daRowLabel, { color: weColor }]}>
+                      {t("driveAssist.weatherLabel")}
+                    </Text>
+                    <Text
+                      style={[styles.daRowValue, { color: weColor }]}
+                      numberOfLines={1}
+                    >
+                      {weValue}
+                    </Text>
+                    {!!weSub && (
+                      <Text
+                        style={[styles.daRowSub, { color: weColor }]}
+                        numberOfLines={1}
+                      >
+                        {weSub}
+                      </Text>
+                    )}
                   </View>
                 </View>
               );
@@ -892,7 +966,7 @@ const DriverDashboard = () => {
           </TouchableOpacity>
         </Card>
 
-        {/* â”€â”€ Vehicle Card â”€â”€ */}
+        {/* ── Vehicle Card ── */}
         {vehicle ? (
           <TouchableOpacity onPress={handleVehiclePress} activeOpacity={0.8}>
             <Card>
@@ -905,7 +979,7 @@ const DriverDashboard = () => {
                     color={COLORS.PRIMARY}
                   />
                   <Text style={styles.fuelEntryHintText}>
-                    {t("dashboard.fuelEntry", "YakÄ±t GiriÅŸi")}
+                    {t("dashboard.fuelEntry", "Yakıt Girişi")}
                   </Text>
                   <Ionicons
                     name="chevron-forward"
@@ -950,25 +1024,48 @@ const DriverDashboard = () => {
                 </View>
               </View>
 
-              {/* â”€â”€ Device Status Lamps â”€â”€ */}
+              {/* ── Device Status Lamps ── */}
               {(() => {
                 const wifiOk = !!vehicle.esp32_connected;
-                const gpsOk = vehicle.last_gps_lat != null && vehicle.last_gps_lat !== 0;
+                const gpsOk =
+                  vehicle.last_gps_lat != null && vehicle.last_gps_lat !== 0;
                 const wifiColor = wifiOk ? COLORS.INFO : COLORS.MUTED;
                 const wifiIcon = wifiOk ? "wifi" : "wifi-outline";
-                const gpsColor = gpsOk ? COLORS.SUCCESS : wifiOk ? COLORS.ERROR : COLORS.MUTED;
+                const gpsColor = gpsOk
+                  ? COLORS.SUCCESS
+                  : wifiOk
+                    ? COLORS.ERROR
+                    : COLORS.MUTED;
                 const gpsIcon = gpsOk ? "location" : "location-outline";
                 return (
                   <View style={styles.deviceStatusRow}>
                     <View style={styles.deviceStatusLamp}>
                       <Ionicons name={wifiIcon} size={15} color={wifiColor} />
-                      <View style={[styles.deviceStatusDot, { backgroundColor: wifiColor }]} />
-                      <Text style={[styles.deviceStatusLabel, { color: wifiColor }]}>WiFi {wifiOk ? "âœ“" : " - "}</Text>
+                      <View
+                        style={[
+                          styles.deviceStatusDot,
+                          { backgroundColor: wifiColor },
+                        ]}
+                      />
+                      <Text
+                        style={[styles.deviceStatusLabel, { color: wifiColor }]}
+                      >
+                        WiFi {wifiOk ? "✓" : " - "}
+                      </Text>
                     </View>
                     <View style={styles.deviceStatusLamp}>
                       <Ionicons name={gpsIcon} size={15} color={gpsColor} />
-                      <View style={[styles.deviceStatusDot, { backgroundColor: gpsColor }]} />
-                      <Text style={[styles.deviceStatusLabel, { color: gpsColor }]}>GPS {gpsOk ? "âœ“" : wifiOk ? "âœ—" : " - "}</Text>
+                      <View
+                        style={[
+                          styles.deviceStatusDot,
+                          { backgroundColor: gpsColor },
+                        ]}
+                      />
+                      <Text
+                        style={[styles.deviceStatusLabel, { color: gpsColor }]}
+                      >
+                        GPS {gpsOk ? "✓" : wifiOk ? "	✗ " : " - "}
+                      </Text>
                     </View>
                   </View>
                 );
@@ -984,7 +1081,7 @@ const DriverDashboard = () => {
           </Card>
         )}
 
-        {/* â”€â”€ Active Tasks Card â”€â”€ */}
+        {/* ── Active Tasks Card ── */}
         <Card>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>{t("dashboard.activeTasks")}</Text>
@@ -1004,7 +1101,7 @@ const DriverDashboard = () => {
                   <Text style={styles.taskTitle} numberOfLines={1}>
                     {task.title || `${t("task.title")} #${task.id?.slice(-4)}`}
                   </Text>
-                  {/* statusBadge â†’ StatusBadge */}
+                  {/* statusBadge → StatusBadge */}
                   <StatusBadge
                     status={TASK_STATUS_SEVERITY[task.status] || "INFO"}
                     label={t(`task.statuses.${task.status}`) || task.status}
@@ -1049,7 +1146,7 @@ const DriverDashboard = () => {
           )}
         </Card>
 
-        {/* â”€â”€ Stats Card â†’ StatCard Ã— 3 â”€â”€ */}
+        {/* ── Stats Card → StatCard Ã— 3 ── */}
         <Card>
           <Text style={styles.cardTitle}>{t("dashboard.myStats")}</Text>
           <View style={styles.statsGrid}>
@@ -1077,7 +1174,7 @@ const DriverDashboard = () => {
           </View>
         </Card>
 
-        {/* â”€â”€ Language Modal â”€â”€ */}
+        {/* ── Language Modal ── */}
         <Modal
           visible={langModalVisible}
           transparent
@@ -1130,7 +1227,7 @@ const DriverDashboard = () => {
           </View>
         </Modal>
 
-        {/* â”€â”€ Serial Modal â”€â”€ */}
+        {/* ── Serial Modal ── */}
         <Modal
           visible={showSerialModal}
           transparent={true}
@@ -1183,7 +1280,7 @@ const DriverDashboard = () => {
           </View>
         </Modal>
 
-        {/* â”€â”€ FAB â”€â”€ */}
+        {/* ── FAB ── */}
         <TouchableOpacity
           style={styles.fab}
           onPress={handleAddDevice}
@@ -1197,5 +1294,3 @@ const DriverDashboard = () => {
 };
 
 export default DriverDashboard;
-
-
