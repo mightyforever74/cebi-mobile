@@ -6,6 +6,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
+import * as Speech from "expo-speech";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,14 +25,15 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
-import { withAlpha } from "../../utils/colorUtils";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
-import * as Speech from "expo-speech";
+import { withAlpha } from "../../utils/colorUtils";
 
 // Google Maps API Key â€” .env veya app.config.js Ã¼zerinden alÄ±nmalÄ±
 // EXPO_PUBLIC_ prefix'i ile Expo'da eriÅŸilebilir
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taÅŸÄ±, fallback kaldÄ±r
+const GOOGLE_MAPS_API_KEY =
+  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
+  "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taÅŸÄ±, fallback kaldÄ±r
 
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
@@ -480,26 +482,88 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const { COLORS, isDark } = useTheme();
 
   // Google Maps dark mode style
-  const darkMapStyle = isDark ? [
-    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
-    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
-    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
-    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
-    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
-    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
-    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
-    { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
-    { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
-    { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
-  ] : [];
+  const darkMapStyle = isDark
+    ? [
+        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+        {
+          featureType: "administrative.locality",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "geometry",
+          stylers: [{ color: "#263c3f" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#6b9a76" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#38414e" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#212a37" }],
+        },
+        {
+          featureType: "road",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9ca5b3" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry",
+          stylers: [{ color: "#746855" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#1f2835" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#f3d19c" }],
+        },
+        {
+          featureType: "transit",
+          elementType: "geometry",
+          stylers: [{ color: "#2f3948" }],
+        },
+        {
+          featureType: "transit.station",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#17263c" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#515c6d" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.stroke",
+          stylers: [{ color: "#17263c" }],
+        },
+      ]
+    : [];
 
   // 1) normalizeCoords
   const normalizeCoords = useCallback((c) => {
@@ -624,7 +688,12 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     if (!location) return;
     if (!geocodedDestination) return;
 
-    const routeKey = task.id + ":" + geocodedDestination.latitude + ":" + geocodedDestination.longitude;
+    const routeKey =
+      task.id +
+      ":" +
+      geocodedDestination.latitude +
+      ":" +
+      geocodedDestination.longitude;
     if (lastRouteTaskIdRef.current === routeKey) return;
 
     lastRouteTaskIdRef.current = routeKey;
@@ -788,8 +857,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         driverAPI.getRouteWeather(),
       ]);
       setDriveConditions({
-        traffic: trafficRes.status === "fulfilled" ? trafficRes.value?.traffic : null,
-        weather: weatherRes.status === "fulfilled" ? weatherRes.value?.weather : null,
+        traffic:
+          trafficRes.status === "fulfilled" ? trafficRes.value?.traffic : null,
+        weather:
+          weatherRes.status === "fulfilled" ? weatherRes.value?.weather : null,
       });
     } catch (err) {
       console.log("[RouteMap] DriveConditions error:", err);
@@ -1736,45 +1807,68 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* Drive Conditions Banner */}
-      {driveConditions && !conditionsLoading && (() => {
-        const tr = driveConditions?.traffic;
-        const we = driveConditions?.weather;
-        const isCrit = (tr?.delay_min > 10) || !!we?.alert;
-        const isWarn = !isCrit && tr?.delay_min > 0;
-        const bgColor = isCrit
-          ? withAlpha(COLORS.ERROR, 0.75)
-          : isWarn
-          ? withAlpha(COLORS.WARNING, 0.75)
-          : withAlpha(COLORS.SUCCESS, 0.75);
-        const iconName = isCrit ? "warning" : isWarn ? "alert-circle" : "checkmark-circle";
-        let bannerText = "";
-        if (tr?.delay_min > 0) bannerText += `+${tr.delay_min} dk gecikme`;
-        if (we?.alert) bannerText += (bannerText ? " - " : "") + we.alert;
-        if (!bannerText && we?.temp_c !== undefined)
-          bannerText = `${we.temp_c}C - ${we.description || ""}`;
-        if (!bannerText) return null;
-        const speechText = [
-          tr?.delay_min > 0 ? `Guzergahta ${tr.delay_min} dakika gecikme var.` : "",
-          we?.alert ? we.alert + "." : "",
-          !we?.alert && we?.temp_c !== undefined ? `Hava ${we.temp_c} derece.` : "",
-        ].filter(Boolean).join(" ");
-        return (
-          <TouchableOpacity
-            key="condBanner"
-            style={[styles.condBanner, { backgroundColor: bgColor }]}
-            onPress={() => speechText && Speech.speak(speechText, { language: "tr-TR", rate: 0.9 })}
-            activeOpacity={0.85}
-          >
-            <Ionicons name={iconName} size={16} color={COLORS.WHITE} />
-            <Text style={[styles.condBannerText, { color: COLORS.WHITE }]} numberOfLines={1}>
-              {bannerText}
-            </Text>
-            <View style={styles.condSpeakBtn}>
-              <Ionicons name="volume-medium-outline" size={14} color={COLORS.WHITE} />
-            </View>
-          </TouchableOpacity>
-        );
-      })()}
+      {driveConditions &&
+        !conditionsLoading &&
+        (() => {
+          const tr = driveConditions?.traffic;
+          const we = driveConditions?.weather;
+          const isCrit = tr?.delay_min > 10 || !!we?.alert;
+          const isWarn = !isCrit && tr?.delay_min > 0;
+          const bgColor = isCrit
+            ? withAlpha(COLORS.ERROR, 0.75)
+            : isWarn
+              ? withAlpha(COLORS.WARNING, 0.75)
+              : withAlpha(COLORS.SUCCESS, 0.75);
+          const iconName = isCrit
+            ? "warning"
+            : isWarn
+              ? "alert-circle"
+              : "checkmark-circle";
+          let bannerText = "";
+          if (tr?.delay_min > 0)
+            bannerText += t("routeMap.delayMin", { delay: tr.delay_min });
+          if (we?.alert) bannerText += (bannerText ? " - " : "") + we.alert;
+          if (!bannerText && we?.temp_c !== undefined)
+            bannerText = `${we.temp_c}C - ${we.description || ""}`;
+          if (!bannerText) return null;
+          const speechText = [
+            tr?.delay_min > 0
+              ? `Guzergahta ${tr.delay_min} dakika gecikme var.`
+              : "",
+            we?.alert ? we.alert + "." : "",
+            !we?.alert && we?.temp_c !== undefined
+              ? t("routeMap.weatherTemp", { temp: we.temp_c })
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <TouchableOpacity
+              key="condBanner"
+              style={[styles.condBanner, { backgroundColor: bgColor }]}
+              onPress={() =>
+                speechText &&
+                Speech.speak(speechText, { language: "tr-TR", rate: 0.9 })
+              }
+              activeOpacity={0.85}
+            >
+              <Ionicons name={iconName} size={16} color={COLORS.WHITE} />
+              <Text
+                style={[styles.condBannerText, { color: COLORS.WHITE }]}
+                numberOfLines={1}
+              >
+                {bannerText}
+              </Text>
+              <View style={styles.condSpeakBtn}>
+                <Ionicons
+                  name="volume-medium-outline"
+                  size={14}
+                  color={COLORS.WHITE}
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })()}
 
       {/* Route Loading Indicator */}
       {routeLoading && (
@@ -1912,17 +2006,62 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       )}
 
       {/* Odometre Girişi Modal */}
-      <Modal visible={odometerModal} transparent animationType="fade" onRequestClose={() => setOdometerModal(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 24 }}>
-          <View style={{ backgroundColor: COLORS.SURFACE, borderRadius: COLORS.RADIUS.card, padding: COLORS.SPACING.lg, width: "100%" }}>
-            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.lg, fontWeight: COLORS.TYPOGRAPHY.weights.bold, color: COLORS.TEXT, marginBottom: COLORS.SPACING.sm }}>
+      <Modal
+        visible={odometerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOdometerModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: COLORS.SURFACE,
+              borderRadius: COLORS.RADIUS.card,
+              padding: COLORS.SPACING.lg,
+              width: "100%",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: COLORS.TYPOGRAPHY.sizes.lg,
+                fontWeight: COLORS.TYPOGRAPHY.weights.bold,
+                color: COLORS.TEXT,
+                marginBottom: COLORS.SPACING.sm,
+              }}
+            >
               {t("routeMap.completeTask")}
             </Text>
-            <Text style={{ fontSize: COLORS.TYPOGRAPHY.sizes.sm, color: COLORS.TEXT_SECONDARY, marginBottom: COLORS.SPACING.md }}>
-              {t("routeMap.odometerPrompt", "Araç km sayacını girin (isteğe bağlı):")}
+            <Text
+              style={{
+                fontSize: COLORS.TYPOGRAPHY.sizes.sm,
+                color: COLORS.TEXT_SECONDARY,
+                marginBottom: COLORS.SPACING.md,
+              }}
+            >
+              {t(
+                "routeMap.odometerPrompt",
+                "Araç km sayacını girin (isteğe bağlı):"
+              )}
             </Text>
             <TextInput
-              style={{ borderWidth: 1, borderColor: COLORS.INPUT_BORDER, borderRadius: COLORS.RADIUS.md, padding: COLORS.SPACING.sm, fontSize: COLORS.TYPOGRAPHY.sizes.md, color: COLORS.TEXT, backgroundColor: COLORS.BACKGROUND, marginBottom: COLORS.SPACING.md }}
+              style={{
+                borderWidth: 1,
+                borderColor: COLORS.INPUT_BORDER,
+                borderRadius: COLORS.RADIUS.md,
+                padding: COLORS.SPACING.sm,
+                fontSize: COLORS.TYPOGRAPHY.sizes.md,
+                color: COLORS.TEXT,
+                backgroundColor: COLORS.BACKGROUND,
+                marginBottom: COLORS.SPACING.md,
+              }}
               placeholder="12500"
               placeholderTextColor={COLORS.TEXT_MUTED}
               keyboardType="numeric"
@@ -1931,16 +2070,45 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             />
             <View style={{ flexDirection: "row" }}>
               <TouchableOpacity
-                style={{ flex: 1, paddingVertical: COLORS.SPACING.sm, borderRadius: COLORS.RADIUS.md, backgroundColor: COLORS.BACKGROUND, alignItems: "center", marginRight: COLORS.SPACING.sm, borderWidth: 1, borderColor: COLORS.DIVIDER }}
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.BACKGROUND,
+                  alignItems: "center",
+                  marginRight: COLORS.SPACING.sm,
+                  borderWidth: 1,
+                  borderColor: COLORS.DIVIDER,
+                }}
                 onPress={() => setOdometerModal(false)}
               >
-                <Text style={{ color: COLORS.TEXT_SECONDARY, fontWeight: COLORS.TYPOGRAPHY.weights.medium }}>{t("routeMap.cancel")}</Text>
+                <Text
+                  style={{
+                    color: COLORS.TEXT_SECONDARY,
+                    fontWeight: COLORS.TYPOGRAPHY.weights.medium,
+                  }}
+                >
+                  {t("routeMap.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={{ flex: 1, paddingVertical: COLORS.SPACING.sm, borderRadius: COLORS.RADIUS.md, backgroundColor: COLORS.SUCCESS, alignItems: "center" }}
+                style={{
+                  flex: 1,
+                  paddingVertical: COLORS.SPACING.sm,
+                  borderRadius: COLORS.RADIUS.md,
+                  backgroundColor: COLORS.SUCCESS,
+                  alignItems: "center",
+                }}
                 onPress={handleCompleteConfirm}
               >
-                <Text style={{ color: COLORS.WHITE, fontWeight: COLORS.TYPOGRAPHY.weights.semibold }}>{t("routeMap.complete")}</Text>
+                <Text
+                  style={{
+                    color: COLORS.WHITE,
+                    fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+                  }}
+                >
+                  {t("routeMap.complete")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1951,7 +2119,3 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 };
 
 export default DriverRouteMapScreen;
-
-
-
-

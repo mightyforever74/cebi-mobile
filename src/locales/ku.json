@@ -604,7 +604,10 @@
     "total": "Tevahî",
     "startTask": "Peywirê Dest Pê Bike",
     "target": "Armanc",
-    "min": "deq"
+    "min": "deq",
+    "delayMin": "+{{delay}} deq dereng",
+    "delayOnRoute": "{{delay}} deqîqe derengmayî li ser rê.",
+    "weatherTemp": "Germahî {{temp}}°C."
   },
   "navigator": {
     "fuelManagement": "Rêveberiya Sotemeniyê",

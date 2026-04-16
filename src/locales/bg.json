@@ -827,7 +827,10 @@
     "total": "Общо",
     "startTask": "Стартирай Задача",
     "target": "Цел",
-    "min": "мин"
+    "min": "мин",
+    "delayMin": "+{{delay}} мин закъснение",
+    "delayOnRoute": "{{delay}} минути закъснение по маршрута.",
+    "weatherTemp": "Температура {{temp}}°C."
   },
   "navigator": {
     "fuelManagement": "Управление на горивото",

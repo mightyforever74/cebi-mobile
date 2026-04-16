@@ -266,7 +266,10 @@ const DriverSOSScreen = () => {
       } else {
         Alert.alert(
           t("sos.errorTitle", "SOS Gönderilemedi"),
-          t("sos.errorDesc", "Lütfen 112'yi arayın veya internet bağlantınızı kontrol edin.")
+          t(
+            "sos.errorDesc",
+            "Lütfen 112'yi arayın veya internet bağlantınızı kontrol edin."
+          )
         );
       }
     } finally {
@@ -310,10 +313,7 @@ const DriverSOSScreen = () => {
           style={styles.warningIcon}
         />
         <Text style={styles.warningText}>
-          {t(
-            "sos.warningText",
-            "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır."
-          )}
+          {t("sos.warningText", t("sos.warning"))}
         </Text>
       </View>
 
@@ -364,10 +364,7 @@ const DriverSOSScreen = () => {
             )}
           </View>
 
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={handleCancel}
-          >
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
             <Text style={styles.cancelButtonText}>
               {t("sos.cancelButton", "SOS Sinyalini Geri Al")}
             </Text>
@@ -379,18 +376,12 @@ const DriverSOSScreen = () => {
             <View style={styles.loadingContainer}>
               <ActivityIndicator color={COLORS.WARNING} />
               <Text style={styles.loadingText}>
-                {t(
-                  "sos.sending",
-                  "Konum alınıyor ve SOS gönderiliyor..."
-                )}
+                {t("sos.sending", "Konum alınıyor ve SOS gönderiliyor...")}
               </Text>
             </View>
           ) : (
             <TouchableOpacity
-              style={[
-                styles.sosButton,
-                sosSent && styles.sosButtonDisabled,
-              ]}
+              style={[styles.sosButton, sosSent && styles.sosButtonDisabled]}
               onPress={handleSendSOS}
               activeOpacity={0.85}
               disabled={sosSent || sending}
@@ -417,9 +408,7 @@ const DriverSOSScreen = () => {
         <View style={styles.infoCard}>
           {(user?.first_name || user?.last_name) && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
-                {t("sos.name", "Ad Soyad")}
-              </Text>
+              <Text style={styles.infoLabel}>{t("sos.name", "Ad Soyad")}</Text>
               <Text style={styles.infoValue}>
                 {[user.first_name, user.last_name].filter(Boolean).join(" ")}
               </Text>
@@ -427,9 +416,7 @@ const DriverSOSScreen = () => {
           )}
           {user?.email && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
-                {t("sos.email", "E-posta")}
-              </Text>
+              <Text style={styles.infoLabel}>{t("sos.email", "E-posta")}</Text>
               <Text style={styles.infoValue}>{user.email}</Text>
             </View>
           )}

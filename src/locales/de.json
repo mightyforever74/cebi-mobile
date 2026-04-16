@@ -206,7 +206,10 @@
     "startTask": "Aufgabe starten",
     "target": "Ziel",
     "min": "Min",
-    "odometerPrompt": "Tachometerstand eingeben (optional):"
+    "odometerPrompt": "Tachometerstand eingeben (optional):",
+    "delayMin": "+{{delay}} Min Verzögerung",
+    "delayOnRoute": "{{delay}} Minuten Verzögerung auf Route.",
+    "weatherTemp": "Temperatur {{temp}}°C."
   },
   "sos": {
     "warning": "Verwenden Sie diesen Bildschirm nur bei echten Notfällen. Fehlalarme sind verboten.",

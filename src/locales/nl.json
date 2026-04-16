@@ -1797,7 +1797,10 @@
     "total": "Totaal",
     "startTask": "Taak starten",
     "target": "Doel",
-    "min": "min"
+    "min": "min",
+    "delayMin": "+{{delay}} min vertraging",
+    "delayOnRoute": "{{delay}} minuten vertraging op route.",
+    "weatherTemp": "Temperatuur {{temp}}°C."
   },
   "taskDetail": {
     "title": "Taakdetails",

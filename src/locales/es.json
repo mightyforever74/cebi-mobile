@@ -1663,7 +1663,10 @@
     "total": "Total",
     "startTask": "Iniciar tarea",
     "target": "Destino",
-    "min": "min"
+    "min": "min",
+    "delayMin": "+{{delay}} min de retraso",
+    "delayOnRoute": "{{delay}} minutos de retraso en ruta.",
+    "weatherTemp": "Temperatura {{temp}}°C."
   },
   "taskDetail": {
     "title": "Detalles de tarea",

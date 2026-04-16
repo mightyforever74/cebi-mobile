@@ -1504,7 +1504,10 @@
     "total": "Totale",
     "startTask": "Avvia compito",
     "target": "Destinazione",
-    "min": "min"
+    "min": "min",
+    "delayMin": "+{{delay}} min di ritardo",
+    "delayOnRoute": "{{delay}} minuti di ritardo sul percorso.",
+    "weatherTemp": "Temperatura {{temp}}°C."
   },
   "taskDetail": {
     "title": "Dettagli compito",

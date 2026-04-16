@@ -206,7 +206,10 @@
     "startTask": "Démarrer la tâche",
     "target": "Cible",
     "min": "min",
-    "odometerPrompt": "Entrez le kilométrage du véhicule (facultatif):"
+    "odometerPrompt": "Entrez le kilométrage du véhicule (facultatif):",
+    "delayMin": "+{{delay}} min de retard",
+    "delayOnRoute": "{{delay}} minute(s) de retard sur la route.",
+    "weatherTemp": "Température {{temp}}°C."
   },
   "sos": {
     "warning": "Utilisez cet écran uniquement pour de vraies urgences. Les fausses alarmes sont interdites.",

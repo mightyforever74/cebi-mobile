@@ -884,7 +884,10 @@
     "total": "Total",
     "startTask": "Start Task",
     "target": "Target",
-    "min": "min"
+    "min": "min",
+    "delayMin": "+{{delay}} min delay",
+    "delayOnRoute": "{{delay}} minute delay on route.",
+    "weatherTemp": "Temperature {{temp}}°C."
   },
   "navigator": {
     "fuelManagement": "Fuel Management",

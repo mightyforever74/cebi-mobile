@@ -892,7 +892,10 @@
     "total": "Toplam",
     "startTask": "Görevi Başlat",
     "target": "Hedef",
-    "min": "dk"
+    "min": "dk",
+    "delayMin": "+{{delay}} dk gecikme",
+    "delayOnRoute": "Güzergahta {{delay}} dakika gecikme var.",
+    "weatherTemp": "Hava {{temp}} derece."
   },
   "navigator": {
     "fuelManagement": "Yakıt Yönetimi",
