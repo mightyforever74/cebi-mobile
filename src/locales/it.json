@@ -1999,7 +1999,11 @@
       "congestion": "Congestione",
       "disabled_vehicle": "Veicolo in avaria",
       "incident": "Incidente stradale"
-    }
+    },
+    "trafficLabel": "Traffico",
+    "weatherLabel": "Meteo",
+    "delayValue": "+{{delay}} min di ritardo",
+    "speechWeather": "Temperatura {{temp}} gradi, {{desc}}."
   },
   "vehicleTrack": {
     "title": "Percorso del Veicolo",

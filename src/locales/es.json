@@ -2055,7 +2055,11 @@
       "congestion": "Congestión",
       "disabled_vehicle": "Vehículo averiado",
       "incident": "Incidente de tráfico"
-    }
+    },
+    "trafficLabel": "Tráfico",
+    "weatherLabel": "Clima",
+    "delayValue": "+{{delay}} min de retraso",
+    "speechWeather": "Temperatura {{temp}} grados, {{desc}}."
   },
   "sos": {
     "warning": "Use esta pantalla solo para emergencias reales. Las falsas alarmas están prohibidas.",

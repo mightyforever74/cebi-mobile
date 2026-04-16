@@ -466,7 +466,11 @@
       "congestion": "Embouteillage",
       "disabled_vehicle": "Véhicule en panne",
       "incident": "Incident de circulation"
-    }
+    },
+    "trafficLabel": "Trafic",
+    "weatherLabel": "Météo",
+    "delayValue": "+{{delay}} min de retard",
+    "speechWeather": "Température {{temp}} degrés, {{desc}}."
   },
   "navigator": {
     "fuelManagement": "Gestion du carburant",

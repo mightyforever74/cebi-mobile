@@ -1961,7 +1961,11 @@
       "congestion": "Congestion",
       "disabled_vehicle": "Disabled vehicle",
       "incident": "Traffic incident"
-    }
+    },
+    "trafficLabel": "Traffic",
+    "weatherLabel": "Weather",
+    "delayValue": "+{{delay}} min delay",
+    "speechWeather": "Temperature {{temp}} degrees, {{desc}}."
   },
   "sos": {
     "warning": "Use this screen only for real emergencies. False alarms are prohibited.",

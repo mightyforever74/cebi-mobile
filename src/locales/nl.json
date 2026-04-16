@@ -2120,7 +2120,11 @@
       "congestion": "File",
       "disabled_vehicle": "Pech op de weg",
       "incident": "Verkeersincident"
-    }
+    },
+    "trafficLabel": "Verkeer",
+    "weatherLabel": "Weer",
+    "delayValue": "+{{delay}} min vertraging",
+    "speechWeather": "Temperatuur {{temp}} graden, {{desc}}."
   },
   "sos": {
     "warning": "Gebruik dit scherm alleen voor echte noodgevallen. Valse alarmen zijn verboden.",

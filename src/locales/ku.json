@@ -2118,7 +2118,11 @@
       "congestion": "Girtîbûn",
       "disabled_vehicle": "Wesayita xera",
       "incident": "Bûyera trafîkê"
-    }
+    },
+    "trafficLabel": "Trafîk",
+    "weatherLabel": "Hewa",
+    "delayValue": "+{{delay}} deq dereng",
+    "speechWeather": "Germahî {{temp}} derece, {{desc}}."
   },
   "sos": {
     "warning": "Ev ekran tenê ji bo rewşên acil ên rastîn bikar bîne. Alarma derew qedexe ye.",

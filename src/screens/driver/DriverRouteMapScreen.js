@@ -26,6 +26,7 @@ import WaypointsPanel from "../../components/driver/WaypointsPanel";
 import { DestinationMarker, NavMarker } from "../../components/map/MapMarkers";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import i18n from "../../locales/i18n";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
 
@@ -772,7 +773,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         console.log("[Nav] Geocoding destination:", textAddress);
         const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
           textAddress
-        )}&key=${GOOGLE_MAPS_API_KEY}&language=tr&region=tr`;
+        )}&key=${GOOGLE_MAPS_API_KEY}&language=${i18n.language === "ku" ? "en" : i18n.language}&region=${i18n.language === "ku" ? "en" : i18n.language}`;
 
         const response = await fetch(url, { signal: controller.signal });
         const data = await response.json();
@@ -854,7 +855,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       const [trafficRes, weatherRes] = await Promise.allSettled([
         driverAPI.getRouteTraffic(),
-        driverAPI.getRouteWeather(),
+        driverAPI.getRouteWeather(i18n.language || "en"),
       ]);
       setDriveConditions({
         traffic:
@@ -1833,7 +1834,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           if (!bannerText) return null;
           const speechText = [
             tr?.delay_min > 0
-              ? `Guzergahta ${tr.delay_min} dakika gecikme var.`
+              ? t("routeMap.delayOnRoute", { delay: tr.delay_min })
               : "",
             we?.alert ? we.alert + "." : "",
             !we?.alert && we?.temp_c !== undefined
@@ -1848,7 +1849,25 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               style={[styles.condBanner, { backgroundColor: bgColor }]}
               onPress={() =>
                 speechText &&
-                Speech.speak(speechText, { language: "tr-TR", rate: 0.9 })
+                Speech.speak(speechText, {
+                  language:
+                    i18n.language === "tr"
+                      ? "tr-TR"
+                      : i18n.language === "nl"
+                        ? "nl-NL"
+                        : i18n.language === "de"
+                          ? "de-DE"
+                          : i18n.language === "fr"
+                            ? "fr-FR"
+                            : i18n.language === "es"
+                              ? "es-ES"
+                              : i18n.language === "it"
+                                ? "it-IT"
+                                : i18n.language === "bg"
+                                  ? "bg-BG"
+                                  : "en-US",
+                  rate: 0.9,
+                })
               }
               activeOpacity={0.85}
             >

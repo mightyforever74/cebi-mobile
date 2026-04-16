@@ -678,8 +678,8 @@ export const driverAPI = {
     return response.data;
   },
   // Drive Conditions - aggregation endpoint
-  getDriveConditions: async () => {
-    const response = await api.get("/api/driver/drive-conditions");
+  getDriveConditions: async (lang = "en") => {
+    const response = await api.get(`/api/driver/drive-conditions?lang=${lang}`);
     return response.data;
   },
 
@@ -688,8 +688,8 @@ export const driverAPI = {
     return response.data;
   },
 
-  getRouteWeather: async () => {
-    const response = await api.get("/api/driver/route-weather");
+  getRouteWeather: async (lang = "en") => {
+    const response = await api.get(`/api/driver/route-weather?lang=${lang}`);
     return response.data;
   },
 

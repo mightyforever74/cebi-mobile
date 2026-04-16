@@ -466,7 +466,11 @@
       "congestion": "Stau",
       "disabled_vehicle": "Liegengebliebenes Fahrzeug",
       "incident": "Verkehrsvorfall"
-    }
+    },
+    "trafficLabel": "Verkehr",
+    "weatherLabel": "Wetter",
+    "delayValue": "+{{delay}} Min Verzögerung",
+    "speechWeather": "Temperatur {{temp}} Grad, {{desc}}."
   },
   "navigator": {
     "fuelManagement": "Kraftstoffverwaltung",

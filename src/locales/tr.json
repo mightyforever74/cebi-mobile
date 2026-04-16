@@ -1974,7 +1974,11 @@
       "congestion": "Tıkanıklık",
       "disabled_vehicle": "Arıza aracı",
       "incident": "Trafik olayı"
-    }
+    },
+    "trafficLabel": "Trafik",
+    "weatherLabel": "Hava",
+    "delayValue": "+{{delay}} dk gecikme",
+    "speechWeather": "Hava {{temp}} derece, {{desc}}."
   },
   "sos": {
     "warning": "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır.",

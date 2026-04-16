@@ -600,7 +600,7 @@ const DriverDashboard = () => {
   const fetchDriveAssist = useCallback(async (activeTask, vehicle) => {
     setAssistLoading(true);
     try {
-      const res = await driverAPI.getDriveConditions();
+      const res = await driverAPI.getDriveConditions(i18n.language || "en");
       setDriveAssist({
         activeTask,
         vehicle,
@@ -870,7 +870,7 @@ const DriverDashboard = () => {
                     : "car-outline";
               const trValue = tr
                 ? tr.delay_min > 0
-                  ? `+${tr.delay_min} dk gecikme`
+                  ? t("driveAssist.delayValue", { delay: tr.delay_min })
                   : t("dashboard.trafficClear")
                 : driveAssist && !driveAssist.activeTask
                   ? t("driveAssist.standbySub")
@@ -888,7 +888,7 @@ const DriverDashboard = () => {
                   </View>
                   <View style={styles.daTextWrap}>
                     <Text style={[styles.daRowLabel, { color: trColor }]}>
-                      Trafik
+                      {t("driveAssist.trafficLabel")}
                     </Text>
                     <Text
                       style={[styles.daRowValue, { color: trColor }]}
@@ -944,7 +944,7 @@ const DriverDashboard = () => {
                   </View>
                   <View style={styles.daTextWrap}>
                     <Text style={[styles.daRowLabel, { color: weColor }]}>
-                      Hava
+                      {t("driveAssist.weatherLabel")}
                     </Text>
                     <Text
                       style={[styles.daRowValue, { color: weColor }]}
