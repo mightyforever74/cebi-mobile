@@ -1827,7 +1827,9 @@
   },
   "adminAlerts": {
     "mapButton": "Li nexşeyê nîşan bide",
-    "adminAlerts": { "mapButton": "Li nexşeyê nîşan bide" },
+    "adminAlerts": {
+      "mapButton": "Li nexşeyê nîşan bide"
+    },
     "filterAll": "Hemû",
     "filterActive": "Çalak",
     "filterResolved": "Çareser bû",
@@ -1987,6 +1989,14 @@
       "reasonInsufficient": "dûrî têrnakin",
       "reasonNoData": "dane têrnakin"
     },
+    "distSource": {
+      "title": "Çavkaniya Dûrahiyê",
+      "gps": "GPS (Haversine)",
+      "route": "Rêça Texmînî",
+      "manual": "Destî",
+      "unknown": "Nenas",
+      "tasks": "kar"
+    },
     "error": "Dane nekarîn werin barkirin",
     "retry": "Dîsa biceribîne"
   },
@@ -2093,5 +2103,25 @@
     "speechAllClear": "Li ser rêça we pirsgirêkek tune",
     "speechTraffic": "{{delay}} deqe dereng li {{route}}",
     "speechWind": "Bayê bihêz: {{kmh}} km/s"
+  },
+  "sos": {
+    "warning": "Ev ekran tenê ji bo rewşên acil ên rastîn bikar bîne. Alarma derew qedexe ye.",
+    "callButton": "Acîl Bixin — 112",
+    "sendButton": "SOS Bişîne — Rêveber Agah Bike",
+    "sentTitle": "SOS Hat Şandin",
+    "sentDesc": "Rêveberê te agahdar bû. Alîkarî di rê de ye.",
+    "cancelButton": "Nîşana SOS Betal Bike",
+    "infoTitle": "Agahiyên Ajovan",
+    "name": "Nav û Paşnav",
+    "email": "E-mail",
+    "callError": "Têketin Nebû",
+    "callErrorDesc": "Ji kerema xwe ji telefonê rasterast 112 bixin.",
+    "rateLimitTitle": "Pir Zû",
+    "rateLimitDesc": "Ji kerema xwe 60 saniye bisekinin û dîsa biceribînin.",
+    "errorTitle": "SOS Nehat Şandin",
+    "errorDesc": "Ji kerema xwe 112 bixin an girêdana înternetê kontrol bikin.",
+    "cancelTitle": "SOS Betal Bike",
+    "cancelDesc": "Nîşana SOS dê were betalkirin. Piştrast î?",
+    "cancelConfirm": "Erê, Betal Bike"
   }
 }

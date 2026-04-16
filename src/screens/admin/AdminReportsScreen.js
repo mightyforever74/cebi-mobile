@@ -732,6 +732,76 @@ const OperationsTab = ({ data, styles, COLORS, t }) => {
         />
       </View>
 
+      {s?.completed > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <View
+              style={[styles.sectionDot, { backgroundColor: COLORS.INFO }]}
+            />
+            <Text style={styles.sectionTitle}>
+              {t("reports.distSource.title")}
+            </Text>
+          </View>
+          <Card noMarginBottom>
+            {[
+              {
+                key: "gps",
+                label: t("reports.distSource.gps"),
+                count: s.dist_gps ?? 0,
+                color: COLORS.SUCCESS,
+              },
+              {
+                key: "route",
+                label: t("reports.distSource.route"),
+                count: s.dist_route ?? 0,
+                color: COLORS.INFO,
+              },
+              {
+                key: "manual",
+                label: t("reports.distSource.manual"),
+                count: s.dist_manual ?? 0,
+                color: COLORS.WARNING,
+              },
+              {
+                key: "unknown",
+                label: t("reports.distSource.unknown"),
+                count: s.dist_unknown ?? 0,
+                color: COLORS.TEXT_MUTED,
+              },
+            ].map((item) => (
+              <View key={item.key} style={styles.tableRow}>
+                <View
+                  style={[
+                    styles.sectionDot,
+                    {
+                      backgroundColor: item.color,
+                      marginRight: COLORS.SPACING.sm,
+                    },
+                  ]}
+                />
+                <Text style={[styles.tableCell, { flex: 1 }]}>
+                  {item.label}
+                </Text>
+                <Text
+                  style={[
+                    styles.tableCell,
+                    {
+                      color: item.count > 0 ? item.color : COLORS.TEXT_MUTED,
+                      fontWeight:
+                        item.count > 0
+                          ? COLORS.TYPOGRAPHY.weights.semibold
+                          : COLORS.TYPOGRAPHY.weights.regular,
+                    },
+                  ]}
+                >
+                  {item.count} {t("reports.distSource.tasks")}
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </>
+      )}
+
       {data.vehicles?.filter((v) => v.task_count > 0).length > 0 && (
         <>
           <View style={styles.sectionHeader}>

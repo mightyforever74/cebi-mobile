@@ -623,7 +623,7 @@
       "invalidCode": "Invalid QR Code",
       "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
       "scanHint": "ğŸ“± Scan the QR code on the device",
-      "manualEntry": "âŒ¨ï¸ Manual Serial Entry"
+      "manualEntry": "⌨️ Manual Serial Entry"
     },
     "serial": {
       "validating": "Validating serial...",
@@ -1127,6 +1127,14 @@
       "submitFailed": "Failed to save record"
     },
     "error": {
+      "distSource": {
+        "title": "Distance Source",
+        "gps": "GPS (Haversine)",
+        "route": "Route Fallback",
+        "manual": "Manual",
+        "unknown": "Unknown",
+        "tasks": "tasks"
+      },
       "title": "Error",
       "loadFailed": "Failed to load vehicle info",
       "saveFailed": "Failed to save record",
@@ -1664,7 +1672,7 @@
     "deleteFailed": "Failed to delete task"
   },
   "adminAlerts": {
-    "mapButton": "Show on Map",
+    "mapButton": "Map",
     "filterAll": "All",
     "filterActive": "Active",
     "filterResolved": "Resolved",
@@ -1715,8 +1723,7 @@
       "daysAgo": "{{count}} day ago"
     },
     "filterCritical": "Critical",
-    "filterVehicle": "Vehicle",
-    "mapButton": "Map"
+    "filterVehicle": "Vehicle"
   },
   "createDriver": {
     "accountInfo": "Account Info",
@@ -1825,6 +1832,14 @@
       "reasonInsufficient": "insufficient distance",
       "reasonNoData": "insufficient data"
     },
+    "distSource": {
+      "title": "Distance Source",
+      "gps": "GPS (Haversine)",
+      "route": "Route Fallback",
+      "manual": "Manual",
+      "unknown": "Unknown",
+      "tasks": "tasks"
+    },
     "error": "Could not load data",
     "retry": "Try Again"
   },
@@ -1931,5 +1946,25 @@
     "speechAllClear": "No traffic or weather issues on your route",
     "speechTraffic": "{{delay}} minute delay on {{route}}",
     "speechWind": "Strong wind: {{kmh}} km/h"
+  },
+  "sos": {
+    "warning": "Use this screen only for real emergencies. False alarms are prohibited.",
+    "callButton": "Call Emergency — 112",
+    "sendButton": "Send SOS — Notify Manager",
+    "sentTitle": "SOS Sent",
+    "sentDesc": "Your manager has been notified. Help is on the way.",
+    "cancelButton": "Cancel SOS Signal",
+    "infoTitle": "Driver Information",
+    "name": "Full Name",
+    "email": "Email",
+    "callError": "Call Failed",
+    "callErrorDesc": "Please call 112 directly from your phone.",
+    "rateLimitTitle": "Too Fast",
+    "rateLimitDesc": "Please wait 60 seconds and try again.",
+    "errorTitle": "SOS Could Not Be Sent",
+    "errorDesc": "Please call 112 or check your internet connection.",
+    "cancelTitle": "Cancel SOS",
+    "cancelDesc": "The SOS signal will be recalled. Are you sure?",
+    "cancelConfirm": "Yes, Cancel"
   }
 }

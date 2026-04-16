@@ -632,7 +632,7 @@
       "invalidCode": "Geçersiz QR Kod",
       "invalidCodeMessage": "QR kod formatı tanınmadı. Lütfen cihaz üzerindeki QR kodu okutun.",
       "scanHint": "📱 Cihaz üzerindeki QR kodu okutun",
-      "manualEntry": " Manuel Serial Girişi"
+      "manualEntry": "⌨️ Manuel Seri No Girişi"
     },
     "serial": {
       "validating": "Serial doğrulanıyor...",
@@ -1736,8 +1736,7 @@
       "daysAgo": "{{count}} gün önce"
     },
     "filterCritical": "Kritik",
-    "filterVehicle": "Araç",
-    "mapButton": "Harita"
+    "filterVehicle": "Araç"
   },
   "createDriver": {
     "accountInfo": "Hesap Bilgileri",
@@ -1789,7 +1788,7 @@
       "cancelledTasks": "İptal / Reddedilen",
       "pending": "Devam Eden",
       "avgDuration": "Ort. Süre (dk)",
-      "delayedTasks": "Geciken Görev",
+      "delayedTasks": "Gecikmeli Görevler",
       "onTimeStartRate": "Zamanında Başlama %",
       "totalAlerts": "Toplam Uyarı"
     },
@@ -1806,48 +1805,56 @@
     "table": {
       "vehicle": "Araç",
       "tasks": "Görev",
-      "completed": "Tamam",
+      "completed": "Tamamlanan",
       "distance": "Mesafe",
       "driver": "Sürücü",
-      "alerts": "Uyarı",
+      "alerts": "Uyarılar",
       "avgDuration": "Ort. Süre"
     },
     "placeholder": {
       "fuel": {
         "title": "Yakıt & Maliyet",
-        "desc": "Yakıt tüketimi ve maliyet analizi yakında bu sekmede görünecek."
+        "desc": "Yakıt tüketimi ve maliyet analizi yakında burada olacak."
       },
       "driving": {
         "title": "Sürüş Kalitesi",
-        "desc": "Sert fren, sert viraj ve hız aşımı analizi yakında bu sekmede görünecek."
+        "desc": "Sert fren, keskin viraj ve hız uyarı analizi yakında."
       },
       "fleet": {
         "title": "Filo Verimliliği",
-        "desc": "Araç kullanım oranları ve verimlilik analizi yakında bu sekmede görünecek."
+        "desc": "Araç kullanım ve verimlilik analizi yakında."
       },
       "sustainability": {
         "title": "Sürdürülebilirlik",
-        "desc": "Karbon ayak izi ve CSRD uyumluluk raporu yakında bu sekmede görünecek."
+        "desc": "Karbon ayak izi ve CSRD uyumluluk raporu yakında."
       }
     },
     "driving": {
       "driverScores": "Sürücü Skorları",
       "tasks": "görev",
-      "hardBrake": "Ani Fren",
+      "hardBrake": "Sert Fren",
       "hardTurn": "Sert Viraj",
       "hardAccel": "Sert Hızlanma",
       "overspeed": "Hız Aşımı",
       "impact": "Çarpma",
       "noData": "Veri Yok",
-      "noDataDesc": "Bu dönemde aktif sürücü bulunamadı.",
+      "noDataDesc": "Bu dönem için aktif sürücü bulunamadı.",
       "limitationsTitle": "Skor Sınırlılıkları",
       "contextClean": "0 olay · tam puan",
       "scoreNA": "Skor hesaplanamadı",
       "reasonInsufficient": "mesafe yetersiz",
-      "reasonNoData": "veri eksik"
+      "reasonNoData": "yetersiz veri"
     },
-    "error": "Veri yüklenemedi",
-    "retry": "Tekrar Dene"
+    "distSource": {
+      "title": "Mesafe Kaynağı",
+      "gps": "GPS (Haversine)",
+      "route": "Rota Tahmini",
+      "manual": "Manuel",
+      "unknown": "Bilinmiyor",
+      "tasks": "görev"
+    },
+    "error": "Veriler yüklenemedi",
+    "retry": "Tekrar dene"
   },
   "geofence": {
     "title": "Geofence Bölgeleri",
@@ -1952,5 +1959,25 @@
     "speechAllClear": "Güzergahta trafik ve hava sorunu yok",
     "speechTraffic": "{{route}}güzergahında {{delay}} dakika gecikme var",
     "speechWind": "Kuvvetli rüzgar: {{kmh}} kilometre hız"
+  },
+  "sos": {
+    "warning": "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır.",
+    "callButton": "Acil Ara — 112",
+    "sendButton": "SOS Gönder — Yöneticiye Bildir",
+    "sentTitle": "SOS Gönderildi",
+    "sentDesc": "Yöneticiniz bilgilendirildi. Yardım yolda.",
+    "cancelButton": "SOS Sinyalini Geri Al",
+    "infoTitle": "Sürücü Bilgileri",
+    "name": "Ad Soyad",
+    "email": "E-posta",
+    "callError": "Arama Başlatılamadı",
+    "callErrorDesc": "Lütfen telefonunuzdan 112'yi arayın.",
+    "rateLimitTitle": "Çok Hızlı",
+    "rateLimitDesc": "Lütfen 60 saniye bekleyip tekrar deneyin.",
+    "errorTitle": "SOS Gönderilemedi",
+    "errorDesc": "Lütfen 112'yi arayın veya internet bağlantınızı kontrol edin.",
+    "cancelTitle": "SOS İptal",
+    "cancelDesc": "SOS sinyali geri alınacak. Emin misiniz?",
+    "cancelConfirm": "Evet, İptal Et"
   }
 }

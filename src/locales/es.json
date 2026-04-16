@@ -501,6 +501,14 @@
     "changePassword": "Cambiar Contraseña",
     "changePasswordSubtitle": "Seguridad de la cuenta",
     "error": {
+      "distSource": {
+        "title": "Fuente de Distancia",
+        "gps": "GPS (Haversine)",
+        "route": "Ruta Estimada",
+        "manual": "Manual",
+        "unknown": "Desconocido",
+        "tasks": "tareas"
+      },
       "title": "Error",
       "loadFailed": "Error al cargar info del vehículo",
       "saveFailed": "Error al guardar el registro",
@@ -1812,6 +1820,14 @@
       "reasonInsufficient": "distancia insuficiente",
       "reasonNoData": "datos insuficientes"
     },
+    "distSource": {
+      "title": "Fuente de Distancia",
+      "gps": "GPS (Haversine)",
+      "route": "Ruta Estimada",
+      "manual": "Manual",
+      "unknown": "Desconocido",
+      "tasks": "tareas"
+    },
     "error": "No se pudieron cargar los datos",
     "retry": "Intentar de nuevo"
   },
@@ -2024,5 +2040,25 @@
     "speechAllClear": "Sin problemas de tráfico ni clima en su ruta",
     "speechTraffic": "Retraso de {{delay}} minutos en {{route}}",
     "speechWind": "Viento fuerte: {{kmh}} km/h"
+  },
+  "sos": {
+    "warning": "Use esta pantalla solo para emergencias reales. Las falsas alarmas están prohibidas.",
+    "callButton": "Llamar Emergencia — 112",
+    "sendButton": "Enviar SOS — Notificar al Manager",
+    "sentTitle": "SOS Enviado",
+    "sentDesc": "Su manager ha sido notificado. La ayuda está en camino.",
+    "cancelButton": "Cancelar Señal SOS",
+    "infoTitle": "Información del Conductor",
+    "name": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "callError": "Llamada Fallida",
+    "callErrorDesc": "Por favor llame al 112 directamente desde su teléfono.",
+    "rateLimitTitle": "Demasiado Rápido",
+    "rateLimitDesc": "Por favor espere 60 segundos e intente de nuevo.",
+    "errorTitle": "SOS No Pudo Enviarse",
+    "errorDesc": "Por favor llame al 112 o compruebe su conexión a internet.",
+    "cancelTitle": "Cancelar SOS",
+    "cancelDesc": "La señal SOS será retirada. ¿Está seguro?",
+    "cancelConfirm": "Sí, Cancelar"
   }
 }

@@ -209,26 +209,24 @@
     "odometerPrompt": "Tachometerstand eingeben (optional):"
   },
   "sos": {
+    "warning": "Verwenden Sie diesen Bildschirm nur bei echten Notfällen. Fehlalarme sind verboten.",
     "callButton": "Notruf — 112",
-    "callSubText": "Telefon-App öffnet sich, Sie starten den Anruf",
-    "callError": "Anruf konnte nicht gestartet werden",
-    "callErrorDesc": "Bitte rufen Sie 112 von Ihrem Telefon an.",
-    "sendButton": "SOS senden — Manager informieren",
-    "sending": "Standort wird ermittelt und SOS gesendet...",
-    "sentTitle": "SOS gesendet",
-    "sentDesc": "Ihr Manager wurde informiert. Hilfe ist unterwegs.",
-    "cancelButton": "SOS-Signal zurückziehen",
-    "cancelTitle": "SOS abbrechen",
-    "cancelDesc": "SOS-Signal wird zurückgezogen. Sind Sie sicher?",
-    "cancelConfirm": "Ja, abbrechen",
-    "rateLimitTitle": "Zu schnell",
-    "rateLimitDesc": "Bitte warten Sie 60 Sekunden und versuchen Sie es erneut.",
-    "errorTitle": "SOS konnte nicht gesendet werden",
-    "errorDesc": "Bitte rufen Sie 112 an oder überprüfen Sie Ihre Internetverbindung.",
-    "warningText": "Diesen Bildschirm nur in echten Notfällen verwenden. Fehlalarme sind strafbar.",
+    "sendButton": "SOS Senden — Manager Benachrichtigen",
+    "sentTitle": "SOS Gesendet",
+    "sentDesc": "Ihr Manager wurde benachrichtigt. Hilfe ist unterwegs.",
+    "cancelButton": "SOS Signal Zurückrufen",
     "infoTitle": "Fahrerinformationen",
-    "name": "Name",
-    "email": "E-Mail"
+    "name": "Vollständiger Name",
+    "email": "E-Mail",
+    "callError": "Anruf Fehlgeschlagen",
+    "callErrorDesc": "Bitte rufen Sie 112 direkt von Ihrem Telefon an.",
+    "rateLimitTitle": "Zu Schnell",
+    "rateLimitDesc": "Bitte 60 Sekunden warten und erneut versuchen.",
+    "errorTitle": "SOS Konnte Nicht Gesendet Werden",
+    "errorDesc": "Bitte rufen Sie 112 an oder überprüfen Sie Ihre Internetverbindung.",
+    "cancelTitle": "SOS Abbrechen",
+    "cancelDesc": "Das SOS-Signal wird zurückgerufen. Sind Sie sicher?",
+    "cancelConfirm": "Ja, Abbrechen"
   },
   "dashboard": {
     "todayKm": "Heute km",
@@ -534,19 +532,17 @@
   },
   "reports": {
     "loading": "Wird geladen...",
-    "error": "Daten konnten nicht geladen werden",
-    "retry": "Erneut versuchen",
-    "filter": {
-      "7d": "7 Tage",
-      "30d": "30 Tage",
-      "90d": "90 Tage"
-    },
     "tabs": {
       "operations": "Betrieb",
       "fuel": "Kraftstoff",
       "driving": "Fahren",
       "fleet": "Flotte",
       "sustainability": "Nachhaltigkeit"
+    },
+    "filter": {
+      "7d": "7 Tage",
+      "30d": "30 Tage",
+      "90d": "90 Tage"
     },
     "kpi": {
       "totalTasks": "Aufgaben gesamt",
@@ -557,6 +553,11 @@
       "delayedTasks": "Verspätet",
       "onTimeStartRate": "Pünktlichkeit %",
       "totalAlerts": "Warnungen gesamt"
+    },
+    "quality": {
+      "reliable": "Zuverlässig",
+      "partial": "Teilweise",
+      "partialTolerance30m": "Teilweise — ±30 Min. Toleranz"
     },
     "sections": {
       "taskSummary": "Aufgabenübersicht",
@@ -571,6 +572,24 @@
       "driver": "Fahrer",
       "alerts": "Warnungen",
       "avgDuration": "Ø Dauer"
+    },
+    "placeholder": {
+      "fuel": {
+        "title": "Kraftstoff & Kosten",
+        "desc": "Kraftstoffverbrauch und Kostenanalyse folgt bald."
+      },
+      "driving": {
+        "title": "Fahrqualität",
+        "desc": "Analyse von hartem Bremsen, scharfen Kurven und Geschwindigkeitswarnungen folgt bald."
+      },
+      "fleet": {
+        "title": "Flotteneffizienz",
+        "desc": "Fahrzeugauslastungsanalyse folgt bald."
+      },
+      "sustainability": {
+        "title": "Nachhaltigkeit",
+        "desc": "CO₂-Fußabdruck und CSRD-Bericht folgt bald."
+      }
     },
     "driving": {
       "driverScores": "Fahrerpunkte",
@@ -588,17 +607,16 @@
       "reasonInsufficient": "unzureichende Distanz",
       "reasonNoData": "unzureichende Daten"
     },
-    "quality": {
-      "reliable": "Zuverlässig",
-      "partial": "Teilweise",
-      "partialTolerance30m": "Teilweise — ±30 Min. Toleranz"
+    "distSource": {
+      "title": "Entfernungsquelle",
+      "gps": "GPS (Haversine)",
+      "route": "Routen-Fallback",
+      "manual": "Manuell",
+      "unknown": "Unbekannt",
+      "tasks": "Aufgaben"
     },
-    "placeholder": {
-      "fuel": { "title": "Kraftstoff & Kosten", "desc": "Kraftstoffverbrauch und Kostenanalyse folgt bald." },
-      "driving": { "title": "Fahrqualität", "desc": "Analyse von hartem Bremsen, scharfen Kurven und Geschwindigkeitswarnungen folgt bald." },
-      "fleet": { "title": "Flotteneffizienz", "desc": "Fahrzeugauslastungsanalyse folgt bald." },
-      "sustainability": { "title": "Nachhaltigkeit", "desc": "CO₂-Fußabdruck und CSRD-Bericht folgt bald." }
-    }
+    "error": "Daten konnten nicht geladen werden",
+    "retry": "Erneut versuchen"
   },
   "nav": {
     "route_waypoints": "Wegpunkte",
@@ -676,6 +694,11 @@
       "high": "Hoch",
       "medium": "Mittel",
       "low": "Niedrig"
+    }
+  },
+  "deviceSetup": {
+    "qr": {
+      "manualEntry": "⌨️ Seriennummer manuell eingeben"
     }
   }
 }

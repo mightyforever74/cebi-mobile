@@ -98,6 +98,14 @@
     "changePassword": "Wachtwoord Wijzigen",
     "changePasswordSubtitle": "Accountbeveiliging",
     "error": {
+      "distSource": {
+        "title": "Afstandsbron",
+        "gps": "GPS (Haversine)",
+        "route": "Route Schatting",
+        "manual": "Handmatig",
+        "unknown": "Onbekend",
+        "tasks": "taken"
+      },
       "title": "Fout",
       "loadFailed": "Laden van voertuiginfo mislukt",
       "saveFailed": "Opslaan van registratie mislukt",
@@ -1946,6 +1954,14 @@
       "reasonInsufficient": "onvoldoende afstand",
       "reasonNoData": "onvoldoende gegevens"
     },
+    "distSource": {
+      "title": "Afstandsbron",
+      "gps": "GPS (Haversine)",
+      "route": "Route Schatting",
+      "manual": "Handmatig",
+      "unknown": "Onbekend",
+      "tasks": "taken"
+    },
     "error": "Gegevens konden niet worden geladen",
     "retry": "Opnieuw proberen"
   },
@@ -2089,5 +2105,25 @@
     "speechAllClear": "Geen verkeers- of weersproblemen op uw route",
     "speechTraffic": "{{delay}} minuten vertraging op {{route}}",
     "speechWind": "Harde wind: {{kmh}} km/u"
+  },
+  "sos": {
+    "warning": "Gebruik dit scherm alleen voor echte noodgevallen. Valse alarmen zijn verboden.",
+    "callButton": "Bel Noodnummer — 112",
+    "sendButton": "SOS Versturen — Manager Informeren",
+    "sentTitle": "SOS Verstuurd",
+    "sentDesc": "Uw manager is geïnformeerd. Hulp is onderweg.",
+    "cancelButton": "SOS Signaal Annuleren",
+    "infoTitle": "Chauffeursinformatie",
+    "name": "Volledige Naam",
+    "email": "E-mail",
+    "callError": "Bellen Mislukt",
+    "callErrorDesc": "Bel 112 rechtstreeks vanaf uw telefoon.",
+    "rateLimitTitle": "Te Snel",
+    "rateLimitDesc": "Wacht 60 seconden en probeer opnieuw.",
+    "errorTitle": "SOS Kon Niet Worden Verstuurd",
+    "errorDesc": "Bel 112 of controleer uw internetverbinding.",
+    "cancelTitle": "SOS Annuleren",
+    "cancelDesc": "Het SOS-signaal wordt ingetrokken. Weet u het zeker?",
+    "cancelConfirm": "Ja, Annuleren"
   }
 }

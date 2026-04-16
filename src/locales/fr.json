@@ -209,26 +209,24 @@
     "odometerPrompt": "Entrez le kilométrage du véhicule (facultatif):"
   },
   "sos": {
-    "callButton": "Appel d'urgence — 112",
-    "callSubText": "L'application téléphone s'ouvre, vous lancez l'appel",
-    "callError": "Impossible de lancer l'appel",
-    "callErrorDesc": "Veuillez appeler le 112 depuis votre téléphone.",
-    "sendButton": "Envoyer SOS — Informer le responsable",
-    "sending": "Localisation en cours et envoi SOS...",
-    "sentTitle": "SOS envoyé",
-    "sentDesc": "Votre responsable a été informé. De l'aide est en route.",
-    "cancelButton": "Retirer le signal SOS",
-    "cancelTitle": "Annuler SOS",
-    "cancelDesc": "Le signal SOS sera retiré. Êtes-vous sûr?",
-    "cancelConfirm": "Oui, annuler",
-    "rateLimitTitle": "Trop rapide",
+    "warning": "Utilisez cet écran uniquement pour de vraies urgences. Les fausses alarmes sont interdites.",
+    "callButton": "Appel d'Urgence — 112",
+    "sendButton": "Envoyer SOS — Notifier le Manager",
+    "sentTitle": "SOS Envoyé",
+    "sentDesc": "Votre manager a été notifié. L'aide est en route.",
+    "cancelButton": "Annuler le Signal SOS",
+    "infoTitle": "Informations Chauffeur",
+    "name": "Nom Complet",
+    "email": "E-mail",
+    "callError": "Appel Échoué",
+    "callErrorDesc": "Veuillez appeler le 112 directement depuis votre téléphone.",
+    "rateLimitTitle": "Trop Rapide",
     "rateLimitDesc": "Veuillez attendre 60 secondes et réessayer.",
-    "errorTitle": "SOS non envoyé",
+    "errorTitle": "SOS N'a Pas Pu Être Envoyé",
     "errorDesc": "Veuillez appeler le 112 ou vérifier votre connexion internet.",
-    "warningText": "Utilisez cet écran uniquement en cas de véritable urgence. Les fausses alertes sont punissables par la loi.",
-    "infoTitle": "Informations chauffeur",
-    "name": "Nom",
-    "email": "E-mail"
+    "cancelTitle": "Annuler le SOS",
+    "cancelDesc": "Le signal SOS sera rappelé. Êtes-vous sûr ?",
+    "cancelConfirm": "Oui, Annuler"
   },
   "dashboard": {
     "todayKm": "Km aujourd'hui",
@@ -534,19 +532,17 @@
   },
   "reports": {
     "loading": "Chargement...",
-    "error": "Impossible de charger les données",
-    "retry": "Réessayer",
-    "filter": {
-      "7d": "7 jours",
-      "30d": "30 jours",
-      "90d": "90 jours"
-    },
     "tabs": {
       "operations": "Opérations",
       "fuel": "Carburant",
       "driving": "Conduite",
       "fleet": "Flotte",
       "sustainability": "Durabilité"
+    },
+    "filter": {
+      "7d": "7 jours",
+      "30d": "30 jours",
+      "90d": "90 jours"
     },
     "kpi": {
       "totalTasks": "Total tâches",
@@ -557,6 +553,11 @@
       "delayedTasks": "En retard",
       "onTimeStartRate": "% ponctualité",
       "totalAlerts": "Total alertes"
+    },
+    "quality": {
+      "reliable": "Fiable",
+      "partial": "Partiel",
+      "partialTolerance30m": "Partiel — tolérance ±30 min"
     },
     "sections": {
       "taskSummary": "Résumé des tâches",
@@ -571,6 +572,24 @@
       "driver": "Chauffeur",
       "alerts": "Alertes",
       "avgDuration": "Durée moy."
+    },
+    "placeholder": {
+      "fuel": {
+        "title": "Carburant & Coûts",
+        "desc": "L'analyse de consommation et de coût sera bientôt disponible."
+      },
+      "driving": {
+        "title": "Qualité de conduite",
+        "desc": "Analyse des freinages, virages et alertes de vitesse bientôt disponible."
+      },
+      "fleet": {
+        "title": "Efficacité de la flotte",
+        "desc": "Analyse d'utilisation des véhicules bientôt disponible."
+      },
+      "sustainability": {
+        "title": "Durabilité",
+        "desc": "Rapport empreinte carbone et conformité CSRD bientôt disponible."
+      }
     },
     "driving": {
       "driverScores": "Scores des chauffeurs",
@@ -588,17 +607,16 @@
       "reasonInsufficient": "distance insuffisante",
       "reasonNoData": "données insuffisantes"
     },
-    "quality": {
-      "reliable": "Fiable",
-      "partial": "Partiel",
-      "partialTolerance30m": "Partiel — tolérance ±30 min"
+    "distSource": {
+      "title": "Source de distance",
+      "gps": "GPS (Haversine)",
+      "route": "Itinéraire estimé",
+      "manual": "Manuel",
+      "unknown": "Inconnu",
+      "tasks": "tâches"
     },
-    "placeholder": {
-      "fuel": { "title": "Carburant & Coûts", "desc": "L'analyse de consommation et de coût sera bientôt disponible." },
-      "driving": { "title": "Qualité de conduite", "desc": "Analyse des freinages, virages et alertes de vitesse bientôt disponible." },
-      "fleet": { "title": "Efficacité de la flotte", "desc": "Analyse d'utilisation des véhicules bientôt disponible." },
-      "sustainability": { "title": "Durabilité", "desc": "Rapport empreinte carbone et conformité CSRD bientôt disponible." }
-    }
+    "error": "Impossible de charger les données",
+    "retry": "Réessayer"
   },
   "nav": {
     "route_waypoints": "Points de passage",
@@ -676,6 +694,11 @@
       "high": "Élevé",
       "medium": "Moyen",
       "low": "Faible"
+    }
+  },
+  "deviceSetup": {
+    "qr": {
+      "manualEntry": "⌨️ Saisie manuelle du numéro de série"
     }
   }
 }

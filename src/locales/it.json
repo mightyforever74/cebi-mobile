@@ -1,40 +1,4 @@
 {
-  "vehicleTrack": {
-    "title": "Percorso veicolo",
-    "loading": "Caricamento dati percorso...",
-    "noData": "Nessun dato trovato per questo periodo",
-    "presets": {
-      "lastHour": "Ultima ora",
-      "last3Hours": "Ultime 3 ore",
-      "today": "Oggi"
-    },
-    "stats": {
-      "points": "Punti",
-      "distance": "Distanza",
-      "duration": "Durata",
-      "range": "Intervallo di tempo"
-    },
-    "sections": {
-      "dailySummary": "Riepilogo giornaliero",
-      "timeline": "Cronologia",
-      "trips": "Viaggi"
-    },
-    "summary": {
-      "distance": "Distanza totale",
-      "drive": "Tempo di guida",
-      "idle": "Tempo di sosta",
-      "trip": "Numero di viaggi"
-    },
-    "stopDetail": {
-      "title": "Dettaglio fermata",
-      "close": "Chiudi"
-    },
-    "tripDetail": {
-      "start": "Inizio",
-      "end": "Fine",
-      "clear": "Cancella"
-    }
-  },
   "common": {
     "loading": "Caricamento...",
     "save": "Salva",
@@ -69,13 +33,13 @@
       "gpsSearchingMeaning": "Searching GPS signal; indoor or antenna issue",
       "infoNote": "LEDs are on the device front panel. Continuous blinking indicates a problem.",
       "quickStatus": "QUICK STATUS TABLE",
-      "statusAllOk": "All Good",
+      "statusAllOk": "Tutto OK",
       "statusAllOkMeaning": "WiFi and GPS connected; system normal",
-      "statusBothIssue": "Connection Problem",
+      "statusBothIssue": "Problema di connessione",
       "statusBothIssueMeaning": "Both WiFi and GPS failing; inspect device",
-      "statusNoGps": "GPS Issue",
+      "statusNoGps": "Problema GPS",
       "statusNoGpsMeaning": "No location; check indoor/antenna",
-      "statusNoWifi": "WiFi Issue",
+      "statusNoWifi": "Problema WiFi",
       "statusNoWifiMeaning": "Data cannot reach server",
       "title": "LED Indicators",
       "wifiConnected": "Solid On",
@@ -147,13 +111,13 @@
     "contactEmailBody": "Salve,\n\nDesidero creare un account per TulipFleet.\n\nNome Azienda:\nPersona di Contatto:\nTelefono:\nNumero di Veicoli:\n\nGrazie.",
     "callNotAvailable": "Impossibile effettuare la chiamata",
     "whatsappMessage": "Salve, vorrei saperne di più su TulipFleet.",
-    "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+    "logoutConfirm": "Sei sicuro di voler uscire?"
   },
   "roles": {
     "driver": "Autista",
     "admin": "Gestore",
     "superAdmin": "Super Admin",
-    "companyAdmin": "Yönetici"
+    "companyAdmin": "Amministratore"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -172,26 +136,17 @@
     "logout": "Esci",
     "logoutConfirm": "Sei sicuro di voler uscire?",
     "geofences": "Zone Geofence",
-    "alerts": "Alerts",
-    "companies": "Companies",
-    "devices": "Devices",
+    "alerts": "Avvisi",
+    "companies": "Aziende",
+    "devices": "Dispositivi",
     "navigation": "Navigation",
-    "profile": "Profile",
-    "reports": "Reports",
-    "settings": "Settings",
-    "sos": "Emergency",
-    "taskHistory": "Task History"
+    "profile": "Profilo",
+    "reports": "Report",
+    "settings": "Impostazioni",
+    "sos": "Emergenza",
+    "taskHistory": "Storico attività"
   },
   "settings": {
-    "deleteAccount": {
-      "title": "Elimina account",
-      "subtitle": "Elimina definitivamente il tuo account",
-      "warning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati.",
-      "passwordPlaceholder": "Inserisci la tua password",
-      "passwordRequired": "La password è obbligatoria",
-      "confirm": "Elimina account",
-      "failed": "Impossibile eliminare l'account"
-    },
     "aboutDescription": "TulipFleet è un'applicazione professionale progettata per la gestione della flotta.",
     "adminRole": "AMMINISTRATORE",
     "alertNotifications": "Notifiche di avviso",
@@ -283,11 +238,20 @@
     "locationPermissionDenied": "Permesso posizione negato. Puoi attivarlo dalle impostazioni.",
     "openSettings": "Apri Impostazioni",
     "gpsAccuracyMessage": "La precisione GPS è gestita dalle impostazioni del dispositivo.",
-    "locationGranted": "Permesso concesso âœ“",
+    "locationGranted": "Permesso concesso ✓",
     "itemsCleared": "elementi",
     "cacheClearFailed": "Impossibile svuotare la cache",
     "privacyPolicyText": "La nostra politica sulla privacy è disponibile su: tulipfleet.com/privacy",
-    "wrongCurrentPassword": "La password attuale non è corretta"
+    "wrongCurrentPassword": "La password attuale non è corretta",
+    "deleteAccount": {
+      "title": "Elimina account",
+      "subtitle": "Elimina definitivamente il tuo account",
+      "warning": "Questa operazione non può essere annullata. Tutti i tuoi dati saranno eliminati.",
+      "passwordPlaceholder": "Inserisci la tua password",
+      "passwordRequired": "Password obbligatoria",
+      "confirm": "Elimina account",
+      "failed": "Impossibile eliminare l’account"
+    }
   },
   "dashboard": {
     "safetyScore": "Punteggio Sicurezza",
@@ -603,22 +567,22 @@
       "deviceHint": "Make sure the ESP32 device is on and nearby",
       "deviceNotFound": "Device not found.\n\nMake sure the device is on and nearby.",
       "devicesFound": "{{count}} device(s) found",
-      "medium": "ğŸŸ¡ Medium",
-      "rescan": "ğŸ”„ Scan Again",
+      "medium": "🟡 Medio",
+      "rescan": "🔄 Scansiona di nuovo",
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
-      "strong": "ğŸŸ¢ Strong",
-      "weak": "ğŸ”´ Weak"
+      "strong": "🟢 Forte",
+      "weak": "🔴 Debole"
     },
     "wifi": {
       "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz.",
       "connect": "Connect",
-      "connecting": "ğŸ“¶ WiFi Connection",
+      "connecting": "📶 Connessione WiFi",
       "connectionFailed": "WiFi connection failed",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
       "emptySSID": "WiFi network name (SSID) cannot be empty",
       "enterCredentials": "Enter WiFi credentials",
-      "hint": "ğŸ’¡ The device will connect to this WiFi network to send data. Make sure the network is 2.4GHz (5GHz not supported).",
+      "hint": "💡 Il dispositivo si collegherà a questa rete WiFi per inviare i dati. Assicurati che la rete sia a 2.4GHz (5GHz non supportato).",
       "lastUsed": "Last used: {{ssid}}",
       "network": "Network: {{ssid}}",
       "passwordLabel": "WiFi Password",
@@ -649,7 +613,7 @@
       "cancel": "Cancel",
       "continue": "Continue",
       "ok": "OK",
-      "settings": "Settings"
+      "settings": "Impostazioni"
     },
     "camera": {
       "grantPermission": "Grant Permission",
@@ -670,8 +634,8 @@
     "qr": {
       "invalidCode": "Invalid QR Code",
       "invalidCodeMessage": "QR code format not recognized. Please scan the QR code on the device.",
-      "manualEntry": "âŒ¨ï¸ Manual Serial Entry",
-      "scanHint": "ğŸ“± Scan the QR code on the device"
+      "manualEntry": "⌨️ Inserimento manuale del seriale",
+      "scanHint": "📱 Scansiona il codice QR sul dispositivo"
     },
     "result": {
       "cancel": "Cancel",
@@ -689,7 +653,7 @@
       "notRegistered": "This serial is not registered in the system",
       "validating": "Validating serial..."
     },
-    "setupNotRequired": "Setup Not Required âœ…",
+    "setupNotRequired": "Configurazione non necessaria ✅",
     "status": {
       "activating": "Activation starting...",
       "apiFailed": "Server error",
@@ -712,7 +676,7 @@
       "error": "Error",
       "qrScan": "Scan QR Code",
       "success": "Completed",
-      "wifiForm": "WiFi Settings",
+      "wifiForm": "Impostazioni WiFi",
       "wifiProvisioning": "WiFi Connection"
     },
     "activeDevice": {
@@ -796,7 +760,7 @@
     "acceptConfirm": "Sei sicuro di voler accettare questa offerta di attività?",
     "cancel": "Annulla",
     "accept": "Accetta",
-    "success": "âœ… Successo",
+    "success": "✅ Successo",
     "acceptSuccess": "Attività accettata! Puoi avviare l'attività dalla pagina Le Mie Attività.",
     "ok": "OK",
     "acceptFailed": "Impossibile accettare l'attività",
@@ -904,8 +868,8 @@
     "noSpeed": "In attesa di movimento",
     "delayRisk": "RISCHIO RITARDO",
     "noEta": "ETA non disponibile",
-    "final_destination": "Son Hedef",
-    "nextStop": "Sonraki Durak"
+    "final_destination": "Destinazione finale",
+    "nextStop": "Prossima fermata"
   },
   "units": {
     "km": "km",
@@ -931,7 +895,7 @@
     "hints": {
       "lastRecordTitle": "Ultimo registro",
       "lastRecordPrefix": "💡 Ultimo",
-      "warningFull": "âš ï¸ Riempire fino al PIENO"
+      "warningFull": "⚠️ Riempi fino al PIENO"
     },
     "errors": {
       "vehicleLoadFailed": "Impossibile caricare info veicolo",
@@ -969,7 +933,15 @@
       "noVehicle": "No vehicle assigned",
       "saveFailed": "Failed to save record",
       "title": "Error",
-      "vehicleUpdateFailed": "Failed to update vehicle info"
+      "vehicleUpdateFailed": "Failed to update vehicle info",
+      "distSource": {
+        "title": "Fonte Distanza",
+        "gps": "GPS (Haversine)",
+        "route": "Percorso Stimato",
+        "manual": "Manuale",
+        "unknown": "Sconosciuto",
+        "tasks": "attività"
+      }
     },
     "firstRecordNote": "This is the first record, consumption will be calculated on the next entry.",
     "fuelType": "Fuel Type",
@@ -1380,8 +1352,8 @@
     "deleteConfirm": "Sei sicuro di voler eliminare questo veicolo?",
     "vehicleDeleted": "Veicolo eliminato con successo",
     "deleteFailed": "Eliminazione fallita",
-    "deleteBlockedTitle": "Dispositivo Collegato",
-    "deleteBlockedMsg": "Il veicolo {{plate}} ha un dispositivo collegato. Scollegarlo prima di eliminare."
+    "deleteBlockedTitle": "Dispositivo collegato",
+    "deleteBlockedMsg": "Al veicolo con targa {{plate}} è collegato un dispositivo. Scollega prima il dispositivo dal veicolo."
   },
   "adminTasks": {
     "filterAll": "Tutti",
@@ -1414,7 +1386,6 @@
     "deleteFailed": "Eliminazione fallita"
   },
   "adminAlerts": {
-    "mapButton": "Mostra sulla mappa",
     "filterAll": "Tutti",
     "filterActive": "Attivo",
     "filterResolved": "Risolto",
@@ -1465,7 +1436,8 @@
       "daysAgo": "{{count}} giorni fa"
     },
     "filterCritical": "Critico",
-    "filterVehicle": "Veicolo"
+    "filterVehicle": "Veicolo",
+    "mapButton": "Mappa"
   },
   "createDriver": {
     "accountInfo": "Informazioni account",
@@ -1498,7 +1470,6 @@
     "requestingPermission": "Richiesta autorizzazione fotocamera..."
   },
   "routeMap": {
-    "odometerPrompt": "Inserire il chilometraggio del veicolo (opzionale):",
     "loading": "Caricamento percorso...",
     "vehicleNotFound": "Veicolo non trovato",
     "locationNotAvailable": "Posizione non disponibile",
@@ -1606,7 +1577,7 @@
       "title": "Eventi del compito"
     },
     "waypoints": {
-      "mapButton": "Mostra sulla mappa",
+      "title": "Fermate",
       "stop": "Fermata",
       "arrived": "Arrivato",
       "departed": "Partito",
@@ -1616,10 +1587,15 @@
   "reports": {
     "loading": "Caricamento report...",
     "tabs": {
+      "summary": "Riepilogo",
+      "vehicles": "Veicoli",
+      "drivers": "Autisti",
+      "alerts": "Avvisi",
+      "tasks": "Compiti",
       "operations": "Operazioni",
       "fuel": "Carburante & Costi",
-      "driving": "Qualità di Guida",
-      "fleet": "Efficienza Flotta",
+      "driving": "Qualità di guida",
+      "fleet": "Efficienza flotta",
       "sustainability": "Sostenibilità"
     },
     "filter": {
@@ -1628,67 +1604,75 @@
       "90d": "90G"
     },
     "kpi": {
-      "totalTasks": "Totale Attività",
+      "totalTasks": "Attività totali",
       "completedTasks": "Completate",
       "cancelledTasks": "Annullate / Rifiutate",
-      "pending": "In Corso",
-      "avgDuration": "Durata Media (min)",
-      "delayedTasks": "Attività Ritardate",
-      "onTimeStartRate": "Avvio Puntuale %",
-      "totalAlerts": "Totale Avvisi"
+      "pending": "In corso",
+      "avgDuration": "Durata media (min)",
+      "delayedTasks": "Attività in ritardo",
+      "onTimeStartRate": "Avvio puntuale %",
+      "totalAlerts": "Totale avvisi"
     },
     "quality": {
       "reliable": "Affidabile",
       "partial": "Parziale",
-      "partialTolerance30m": "Parziale — ±30min tolleranza"
+      "partialTolerance30m": "Parziale — tolleranza ±30 min"
     },
     "sections": {
-      "taskSummary": "Riepilogo Attività",
-      "vehiclePerformance": "Prestazioni Veicoli",
-      "driverSummary": "Riepilogo Conducenti"
+      "taskSummary": "Riepilogo attività",
+      "vehiclePerformance": "Prestazioni veicoli",
+      "driverSummary": "Riepilogo autisti"
     },
     "table": {
       "vehicle": "Veicolo",
       "tasks": "Attività",
-      "completed": "Fatto",
+      "completed": "Completate",
       "distance": "Distanza",
-      "driver": "Conducente",
+      "driver": "Autista",
       "alerts": "Avvisi",
-      "avgDuration": "Durata Media"
+      "avgDuration": "Durata media"
     },
     "placeholder": {
       "fuel": {
         "title": "Carburante & Costi",
-        "desc": "L'analisi apparirà qui a breve."
+        "desc": "L’analisi dei consumi di carburante e dei costi sarà presto disponibile in questa sezione."
       },
       "driving": {
-        "title": "Qualità di Guida",
-        "desc": "L'analisi arriverà presto."
+        "title": "Qualità di guida",
+        "desc": "L’analisi di frenate brusche, curve brusche e eccessi di velocità sarà presto disponibile in questa sezione."
       },
       "fleet": {
-        "title": "Efficienza Flotta",
-        "desc": "L'analisi arriverà presto."
+        "title": "Efficienza flotta",
+        "desc": "L’analisi dei tassi di utilizzo e dell’efficienza dei veicoli sarà presto disponibile in questa sezione."
       },
       "sustainability": {
         "title": "Sostenibilità",
-        "desc": "Il report arriverà presto."
+        "desc": "Il report su impronta di carbonio e conformità CSRD sarà presto disponibile in questa sezione."
       }
     },
     "driving": {
-      "driverScores": "Punteggi Conducenti",
+      "driverScores": "Punteggi degli autisti",
       "tasks": "attività",
-      "hardBrake": "Frenata Brusca",
-      "hardTurn": "Curva Brusca",
-      "hardAccel": "Accelerazione Brusca",
-      "overspeed": "Eccesso di Velocità",
+      "hardBrake": "Frenata brusca",
+      "hardTurn": "Curva brusca",
+      "hardAccel": "Accelerazione brusca",
+      "overspeed": "Eccesso di velocità",
       "impact": "Impatto",
-      "noData": "Nessun Dato",
-      "noDataDesc": "Nessun conducente attivo trovato.",
-      "limitationsTitle": "Limitazioni Punteggio",
-      "contextClean": "0 eventi · punteggio perfetto",
-      "scoreNA": "Punteggio non disponibile",
+      "noData": "Nessun dato",
+      "noDataDesc": "Nessun autista attivo in questo periodo.",
+      "limitationsTitle": "Limiti del punteggio",
+      "contextClean": "0 eventi · punteggio pieno",
+      "scoreNA": "Punteggio non calcolabile",
       "reasonInsufficient": "distanza insufficiente",
       "reasonNoData": "dati insufficienti"
+    },
+    "distSource": {
+      "title": "Fonte Distanza",
+      "gps": "GPS (Haversine)",
+      "route": "Percorso Stimato",
+      "manual": "Manuale",
+      "unknown": "Sconosciuto",
+      "tasks": "attività"
     },
     "error": "Impossibile caricare i dati",
     "retry": "Riprova"
@@ -1762,7 +1746,7 @@
     "noAlerts": "No alerts found",
     "resolve": "Resolve",
     "resolved": "Resolved",
-    "title": "Alerts",
+    "title": "Avvisi",
     "types": {
       "HARD_ACCEL": "Hard Acceleration",
       "HARD_BRAKE": "Hard Brake",
@@ -1816,56 +1800,56 @@
   },
   "help": {
     "account": {
-      "a1": "Go to Settings > Change Password, enter your current password and set a new one.",
-      "a2": "Check your email address. If you forgot your password, use the 'Forgot Password' option or contact support.",
-      "a3": "Go to Settings > Edit Profile to update your name, surname and phone number.",
-      "q1": "How can I change my password?",
-      "q2": "I can't log in to my account, what should I do?",
-      "q3": "How do I update my profile information?",
-      "title": "Account & Login"
+      "a1": "Vai su Impostazioni > Cambia Password, inserisci la password attuale e imposta una nuova password.",
+      "a2": "Controlla il tuo indirizzo email. Se hai dimenticato la password, usa l’opzione \"Password dimenticata\" oppure contatta il supporto.",
+      "a3": "Vai su Impostazioni > Modifica Profilo per aggiornare nome, cognome e numero di telefono.",
+      "q1": "Come posso cambiare la password?",
+      "q2": "Non riesco ad accedere al mio account, cosa devo fare?",
+      "q3": "Come posso aggiornare i dati del mio profilo?",
+      "title": "Account e Accesso"
     },
     "contact": {
-      "button": "Contact Support Team",
-      "subtitle": "If your question is not listed here, contact our support team",
-      "title": "Still need help?"
+      "button": "Contatta il team di supporto",
+      "subtitle": "Se la tua domanda non è qui, contatta il nostro team di supporto",
+      "title": "Hai ancora bisogno di aiuto?"
     },
-    "faqTitle": "Frequently Asked Questions",
-    "footer": "© 2025 TulipFleet - All rights reserved",
-    "heroHint": "Tap a category to see questions",
-    "heroSubtitle": "Browse frequently asked questions",
-    "heroTitle": "How can we help you?",
-    "ledIndicators": "LED Indicators",
-    "questionCount": "questions",
-    "quickHelp": "Quick Help",
-    "subtitle": "Frequently asked questions and guide",
+    "faqTitle": "Domande frequenti",
+    "footer": "© 2025 TulipFleet - Tutti i diritti riservati",
+    "heroHint": "Tocca una categoria per vedere le domande",
+    "heroSubtitle": "Consulta le domande frequenti",
+    "heroTitle": "Come possiamo aiutarti?",
+    "ledIndicators": "Indicatori LED",
+    "questionCount": "domande",
+    "quickHelp": "Aiuto rapido",
+    "subtitle": "Domande frequenti e guida",
     "tasks": {
-      "a1": "View the incoming task on Dashboard and press 'Accept'. Use 'Start Task' to begin the task.",
-      "a2": "Go to task details and press 'Complete Task'. Fill in the required information and confirm.",
-      "a3": "Yes, view the incoming task and use the 'Reject' option. You will be asked to provide a reason.",
-      "q1": "How do I accept a task assigned to me?",
-      "q2": "How do I mark a task as completed?",
-      "q3": "Can I reject an assigned task?",
-      "title": "Tasks"
+      "a1": "Visualizza l’attività nella Dashboard e tocca il pulsante \"Accetta\". Per iniziarla usa l’opzione \"Avvia attività\".",
+      "a2": "Apri i dettagli dell’attività e tocca \"Completa attività\". Inserisci le informazioni richieste e conferma.",
+      "a3": "Sì, puoi aprire l’attività e usare l’opzione \"Rifiuta\". Ti verrà chiesto di indicare il motivo del rifiuto.",
+      "q1": "Come posso accettare un’attività assegnata?",
+      "q2": "Come posso segnare un’attività come completata?",
+      "q3": "Posso rifiutare un’attività assegnata?",
+      "title": "Attività"
     },
     "technical": {
-      "a1": "Connect the device to the vehicle USB port. Scan the QR code in the mobile app and complete WiFi configuration via BLE.",
-      "a2": "Make sure you're using a 2.4GHz WiFi network (5GHz not supported). Check the password. Restart the device and connect within 60 seconds.",
-      "a3": "Solid green: System running. Blinking blue: BLE mode. Yellow: Searching GPS. Red: Error. See LED Indicators page for details.",
-      "q1": "How do I set up the GPS device?",
-      "q2": "The device can't connect to WiFi, what should I do?",
-      "q3": "What do the LED lights mean?",
-      "title": "Technical Support"
+      "a1": "Collega il dispositivo alla porta USB del veicolo. Scansiona il codice QR nell’app mobile e completa la configurazione WiFi tramite BLE.",
+      "a2": "Assicurati di usare una rete WiFi a 2.4GHz (5GHz non supportata). Controlla la password. Riavvia il dispositivo e connettiti entro 60 secondi.",
+      "a3": "Verde fisso: sistema operativo. Blu lampeggiante: modalità BLE. Giallo: ricerca GPS. Rosso: errore. Per i dettagli consulta la pagina Indicatori LED.",
+      "q1": "Come installo il dispositivo GPS?",
+      "q2": "Il dispositivo non si connette al WiFi, cosa devo fare?",
+      "q3": "Cosa significano le luci LED?",
+      "title": "Supporto tecnico"
     },
-    "title": "Help Center",
-    "troubleshooting": "Troubleshooting",
+    "title": "Centro Assistenza",
+    "troubleshooting": "Risoluzione problemi",
     "vehicles": {
-      "a1": "You can see your vehicle's real-time location on the Dashboard map. Location updates every 5 seconds.",
-      "a2": "Check the GPS device power connection. Inspect the LED indicators on the device. Verify the internet connection.",
-      "a3": "Yes, you can see all your vehicles on the Live Map screen in the Admin panel.",
-      "q1": "How can I see my vehicle's location?",
-      "q2": "My vehicle appears offline, what should I do?",
-      "q3": "Can I track multiple vehicles at once?",
-      "title": "Vehicles & Tracking"
+      "a1": "Puoi vedere la posizione in tempo reale del tuo veicolo sulla mappa nella Dashboard. La posizione viene aggiornata ogni 5 secondi.",
+      "a2": "Controlla l’alimentazione del dispositivo GPS. Verifica gli indicatori LED sul dispositivo. Controlla anche la connessione internet.",
+      "a3": "Sì, dalla schermata Mappa Live nel pannello Admin puoi vedere contemporaneamente tutti i tuoi veicoli.",
+      "q1": "Come posso vedere la posizione del mio veicolo?",
+      "q2": "Il mio veicolo risulta offline, cosa devo fare?",
+      "q3": "Posso monitorare più veicoli contemporaneamente?",
+      "title": "Veicoli e Tracciamento"
     }
   },
   "taskOffers": {
@@ -1873,9 +1857,9 @@
     "connectionIssue": "Connection issue, retrying... ({{current}}/{{max}})",
     "empty": {
       "couldNotLoad": "Offers could not be loaded",
-      "error": "ğŸ˜”",
+      "error": "😔",
       "noPending": "No pending offers",
-      "normal": "ğŸ“­",
+      "normal": "📭",
       "notFound": "No task offers found"
     },
     "filters": {
@@ -1897,7 +1881,7 @@
       "pending": "Pending",
       "rejected": "Rejected"
     },
-    "tapForDetails": "Tap for details â†’",
+    "tapForDetails": "Tocca per i dettagli →",
     "timeRemaining": {
       "expired": "Expired",
       "hours": "{{hours}} hour(s) left",
@@ -2000,5 +1984,61 @@
     "speechAllClear": "Nessun problema di traffico o meteo sul percorso",
     "speechTraffic": "Ritardo di {{delay}} minuti su {{route}}",
     "speechWind": "Vento forte: {{kmh}} km/h"
+  },
+  "vehicleTrack": {
+    "title": "Percorso del Veicolo",
+    "loading": "Caricamento dati del percorso...",
+    "noData": "Nessun dato trovato in questo intervallo di tempo",
+    "presets": {
+      "lastHour": "Ultima 1 Ora",
+      "last3Hours": "Ultime 3 Ore",
+      "today": "Oggi"
+    },
+    "stats": {
+      "points": "Punti Posizione",
+      "distance": "Distanza",
+      "duration": "Durata",
+      "range": "Intervallo di Tempo"
+    },
+    "sections": {
+      "dailySummary": "Riepilogo giornaliero",
+      "timeline": "Sequenza temporale",
+      "trips": "Viaggi"
+    },
+    "summary": {
+      "distance": "Distanza Totale",
+      "drive": "Tempo di guida",
+      "idle": "Tempo di sosta",
+      "trip": "Numero di viaggi"
+    },
+    "stopDetail": {
+      "title": "Dettaglio sosta",
+      "close": "Chiudi"
+    },
+    "tripDetail": {
+      "start": "Inizio",
+      "end": "Fine",
+      "clear": "Pulisci"
+    }
+  },
+  "sos": {
+    "warning": "Usa questa schermata solo per emergenze reali. I falsi allarmi sono vietati.",
+    "callButton": "Chiama Emergenza — 112",
+    "sendButton": "Invia SOS — Notifica al Manager",
+    "sentTitle": "SOS Inviato",
+    "sentDesc": "Il tuo manager è stato notificato. L'aiuto è in arrivo.",
+    "cancelButton": "Annulla Segnale SOS",
+    "infoTitle": "Informazioni Conducente",
+    "name": "Nome Completo",
+    "email": "Email",
+    "callError": "Chiamata Fallita",
+    "callErrorDesc": "Si prega di chiamare il 112 direttamente dal telefono.",
+    "rateLimitTitle": "Troppo Veloce",
+    "rateLimitDesc": "Attendere 60 secondi e riprovare.",
+    "errorTitle": "SOS Non Poteva Essere Inviato",
+    "errorDesc": "Chiamare il 112 o controllare la connessione internet.",
+    "cancelTitle": "Annulla SOS",
+    "cancelDesc": "Il segnale SOS verrà richiamato. Sei sicuro?",
+    "cancelConfirm": "Sì, Annulla"
   }
 }
