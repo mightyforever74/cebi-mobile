@@ -1986,7 +1986,20 @@
     "noActiveRoute": "Avvia un'attività per vedere le info sul percorso",
     "speechAllClear": "Nessun problema di traffico o meteo sul percorso",
     "speechTraffic": "Ritardo di {{delay}} minuti su {{route}}",
-    "speechWind": "Vento forte: {{kmh}} km/h"
+    "speechWind": "Vento forte: {{kmh}} km/h",
+    "status": {
+      "clear": "Traffico scorrevole",
+      "moderate": "Traffico moderato",
+      "heavy": "Traffico intenso"
+    },
+    "incident": {
+      "accident": "Incidente",
+      "road_closed": "Strada chiusa",
+      "construction": "Lavori in corso",
+      "congestion": "Congestione",
+      "disabled_vehicle": "Veicolo in avaria",
+      "incident": "Incidente stradale"
+    }
   },
   "vehicleTrack": {
     "title": "Percorso del Veicolo",

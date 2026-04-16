@@ -804,7 +804,10 @@ const DriverDashboard = () => {
                   })
                 );
                 if (driveAssist.traffic.incidents?.length > 0) {
-                  alerts.push(driveAssist.traffic.incidents[0]);
+                  const inc = driveAssist.traffic.incidents[0];
+                  alerts.push(
+                    inc.text || t(`driveAssist.incident.${inc.type}`)
+                  );
                 }
               }
               if (driveAssist?.weather?.alert) {
@@ -867,7 +870,7 @@ const DriverDashboard = () => {
                     : "car-outline";
               const trValue = tr
                 ? tr.delay_min > 0
-                  ? t("driveAssist.delayValue", { delay: tr.delay_min })
+                  ? `+${tr.delay_min} dk gecikme`
                   : t("dashboard.trafficClear")
                 : driveAssist && !driveAssist.activeTask
                   ? t("driveAssist.standbySub")
@@ -885,7 +888,7 @@ const DriverDashboard = () => {
                   </View>
                   <View style={styles.daTextWrap}>
                     <Text style={[styles.daRowLabel, { color: trColor }]}>
-                      {t("driveAssist.trafficLabel")}
+                      Trafik
                     </Text>
                     <Text
                       style={[styles.daRowValue, { color: trColor }]}
@@ -941,7 +944,7 @@ const DriverDashboard = () => {
                   </View>
                   <View style={styles.daTextWrap}>
                     <Text style={[styles.daRowLabel, { color: weColor }]}>
-                      {t("driveAssist.weatherLabel")}
+                      Hava
                     </Text>
                     <Text
                       style={[styles.daRowValue, { color: weColor }]}

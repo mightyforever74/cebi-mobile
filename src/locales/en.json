@@ -1948,7 +1948,20 @@
     "noActiveRoute": "Start a task to see route info",
     "speechAllClear": "No traffic or weather issues on your route",
     "speechTraffic": "{{delay}} minute delay on {{route}}",
-    "speechWind": "Strong wind: {{kmh}} km/h"
+    "speechWind": "Strong wind: {{kmh}} km/h",
+    "status": {
+      "clear": "Clear",
+      "moderate": "Moderate traffic",
+      "heavy": "Heavy traffic"
+    },
+    "incident": {
+      "accident": "Accident",
+      "road_closed": "Road closure",
+      "construction": "Roadworks",
+      "congestion": "Congestion",
+      "disabled_vehicle": "Disabled vehicle",
+      "incident": "Traffic incident"
+    }
   },
   "sos": {
     "warning": "Use this screen only for real emergencies. False alarms are prohibited.",

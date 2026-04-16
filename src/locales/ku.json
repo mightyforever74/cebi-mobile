@@ -2105,7 +2105,20 @@
     "noActiveRoute": "Ji bo agahdariya rê erêyek dest pê bike",
     "speechAllClear": "Li ser rêça we pirsgirêkek tune",
     "speechTraffic": "{{delay}} deqe dereng li {{route}}",
-    "speechWind": "Bayê bihêz: {{kmh}} km/s"
+    "speechWind": "Bayê bihêz: {{kmh}} km/s",
+    "status": {
+      "clear": "Rê azad e",
+      "moderate": "Trafîka navîn",
+      "heavy": "Trafîka giran"
+    },
+    "incident": {
+      "accident": "Qeza",
+      "road_closed": "Rê girtî ye",
+      "construction": "Karê rê",
+      "congestion": "Girtîbûn",
+      "disabled_vehicle": "Wesayita xera",
+      "incident": "Bûyera trafîkê"
+    }
   },
   "sos": {
     "warning": "Ev ekran tenê ji bo rewşên acil ên rastîn bikar bîne. Alarma derew qedexe ye.",

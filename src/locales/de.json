@@ -453,7 +453,20 @@
     "noActiveRoute": "Aufgabe starten, um Routeninfos zu sehen",
     "speechAllClear": "Keine Verkehrs- oder Wetterprobleme auf Ihrer Route",
     "speechTraffic": "{{delay}} Minuten Verzögerung auf {{route}}",
-    "speechWind": "Starker Wind: {{kmh}} km/h"
+    "speechWind": "Starker Wind: {{kmh}} km/h",
+    "status": {
+      "clear": "Freie Fahrt",
+      "moderate": "Mäßiger Verkehr",
+      "heavy": "Dichter Verkehr"
+    },
+    "incident": {
+      "accident": "Unfall",
+      "road_closed": "Straße gesperrt",
+      "construction": "Baustelle",
+      "congestion": "Stau",
+      "disabled_vehicle": "Liegengebliebenes Fahrzeug",
+      "incident": "Verkehrsvorfall"
+    }
   },
   "navigator": {
     "fuelManagement": "Kraftstoffverwaltung",

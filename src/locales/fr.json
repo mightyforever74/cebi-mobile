@@ -453,7 +453,20 @@
     "noActiveRoute": "Démarrez une tâche pour voir les infos d'itinéraire",
     "speechAllClear": "Aucun problème de trafic ou météo sur votre itinéraire",
     "speechTraffic": "Retard de {{delay}} minutes sur {{route}}",
-    "speechWind": "Vent fort: {{kmh}} km/h"
+    "speechWind": "Vent fort: {{kmh}} km/h",
+    "status": {
+      "clear": "Circulation fluide",
+      "moderate": "Trafic modéré",
+      "heavy": "Trafic dense"
+    },
+    "incident": {
+      "accident": "Accident",
+      "road_closed": "Route fermée",
+      "construction": "Travaux",
+      "congestion": "Embouteillage",
+      "disabled_vehicle": "Véhicule en panne",
+      "incident": "Incident de circulation"
+    }
   },
   "navigator": {
     "fuelManagement": "Gestion du carburant",

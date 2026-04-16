@@ -1961,7 +1961,20 @@
     "noActiveRoute": "Güzergah bilgisi için görev başlatın",
     "speechAllClear": "Güzergahta trafik ve hava sorunu yok",
     "speechTraffic": "{{route}}güzergahında {{delay}} dakika gecikme var",
-    "speechWind": "Kuvvetli rüzgar: {{kmh}} kilometre hız"
+    "speechWind": "Kuvvetli rüzgar: {{kmh}} kilometre hız",
+    "status": {
+      "clear": "Akıcı",
+      "moderate": "Orta yoğun",
+      "heavy": "Yoğun"
+    },
+    "incident": {
+      "accident": "Kaza",
+      "road_closed": "Yol kapalı",
+      "construction": "Yol çalışması",
+      "congestion": "Tıkanıklık",
+      "disabled_vehicle": "Arıza aracı",
+      "incident": "Trafik olayı"
+    }
   },
   "sos": {
     "warning": "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır.",

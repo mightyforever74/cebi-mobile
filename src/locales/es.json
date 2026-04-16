@@ -2042,7 +2042,20 @@
     "noActiveRoute": "Inicia una tarea para ver info de ruta",
     "speechAllClear": "Sin problemas de tráfico ni clima en su ruta",
     "speechTraffic": "Retraso de {{delay}} minutos en {{route}}",
-    "speechWind": "Viento fuerte: {{kmh}} km/h"
+    "speechWind": "Viento fuerte: {{kmh}} km/h",
+    "status": {
+      "clear": "Tráfico fluido",
+      "moderate": "Tráfico moderado",
+      "heavy": "Tráfico intenso"
+    },
+    "incident": {
+      "accident": "Accidente",
+      "road_closed": "Vía cerrada",
+      "construction": "Obras",
+      "congestion": "Congestión",
+      "disabled_vehicle": "Vehículo averiado",
+      "incident": "Incidente de tráfico"
+    }
   },
   "sos": {
     "warning": "Use esta pantalla solo para emergencias reales. Las falsas alarmas están prohibidas.",

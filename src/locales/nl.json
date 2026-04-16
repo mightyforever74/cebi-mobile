@@ -2107,7 +2107,20 @@
     "noActiveRoute": "Start een taak voor route-informatie",
     "speechAllClear": "Geen verkeers- of weersproblemen op uw route",
     "speechTraffic": "{{delay}} minuten vertraging op {{route}}",
-    "speechWind": "Harde wind: {{kmh}} km/u"
+    "speechWind": "Harde wind: {{kmh}} km/u",
+    "status": {
+      "clear": "Vrij verkeer",
+      "moderate": "Matig verkeer",
+      "heavy": "Zwaar verkeer"
+    },
+    "incident": {
+      "accident": "Ongeluk",
+      "road_closed": "Weg afgesloten",
+      "construction": "Wegwerkzaamheden",
+      "congestion": "File",
+      "disabled_vehicle": "Pech op de weg",
+      "incident": "Verkeersincident"
+    }
   },
   "sos": {
     "warning": "Gebruik dit scherm alleen voor echte noodgevallen. Valse alarmen zijn verboden.",
