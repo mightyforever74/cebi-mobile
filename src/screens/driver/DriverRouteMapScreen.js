@@ -1847,28 +1847,23 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             <TouchableOpacity
               key="condBanner"
               style={[styles.condBanner, { backgroundColor: bgColor }]}
-              onPress={() =>
-                speechText &&
+              onPress={() => {
+                if (!speechText) return;
+                Speech.stop();
                 Speech.speak(speechText, {
                   language:
-                    i18n.language === "tr"
-                      ? "tr-TR"
-                      : i18n.language === "nl"
-                        ? "nl-NL"
-                        : i18n.language === "de"
-                          ? "de-DE"
-                          : i18n.language === "fr"
-                            ? "fr-FR"
-                            : i18n.language === "es"
-                              ? "es-ES"
-                              : i18n.language === "it"
-                                ? "it-IT"
-                                : i18n.language === "bg"
-                                  ? "bg-BG"
-                                  : "en-US",
+                    i18n.language === "tr" ? "tr-TR"
+                      : i18n.language === "nl" ? "nl-NL"
+                      : i18n.language === "de" ? "de-DE"
+                      : i18n.language === "fr" ? "fr-FR"
+                      : i18n.language === "es" ? "es-ES"
+                      : i18n.language === "it" ? "it-IT"
+                      : i18n.language === "bg" ? "bg-BG"
+                      : i18n.language === "ku" ? "tr-TR"
+                      : "en-US",
                   rate: 0.9,
-                })
-              }
+                });
+              }}
               activeOpacity={0.85}
             >
               <Ionicons name={iconName} size={16} color={COLORS.WHITE} />

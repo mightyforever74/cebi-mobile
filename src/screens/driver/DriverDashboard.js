@@ -1,4 +1,4 @@
-﻿// src/screens/driver/DriverDashboard.js
+// src/screens/driver/DriverDashboard.js
 // TulipFleet - Driver Dashboard with REAL DATA
 // v2.0 - Phase 0 Regeneration: StatCard + DataState + StatusBadge + colorUtils
 // withAlpha → colorUtils, ActivityIndicator → DataState, statsRow → StatCard, emoji → Ionicons
@@ -824,15 +824,18 @@ const DriverDashboard = () => {
                 alerts.push(t("driveAssist.speechAllClear"));
               }
               const fullText = alerts.join(". ");
+              Speech.stop();
               Speech.speak(fullText, {
                 language:
-                  i18n.language === "tr"
-                    ? "tr-TR"
-                    : i18n.language === "nl"
-                      ? "nl-NL"
-                      : i18n.language === "de"
-                        ? "de-DE"
-                        : "en-US",
+                  i18n.language === "tr" ? "tr-TR"
+                    : i18n.language === "nl" ? "nl-NL"
+                    : i18n.language === "de" ? "de-DE"
+                    : i18n.language === "fr" ? "fr-FR"
+                    : i18n.language === "es" ? "es-ES"
+                    : i18n.language === "it" ? "it-IT"
+                    : i18n.language === "bg" ? "bg-BG"
+                    : i18n.language === "ku" ? "tr-TR"
+                    : "en-US",
                 rate: 0.9,
               });
             }}

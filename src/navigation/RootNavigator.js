@@ -5,7 +5,8 @@
 // Updated: 22 Ocak 2026 - Lale görseli eklendi (korundu)
 
 import { NavigationContainer } from "@react-navigation/native";
-import React from "react";
+import React, { useEffect } from "react";
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 
@@ -63,6 +64,27 @@ const RootNavigator = () => {
 
   // Navigation theme (zaten doğru yaklaşım, korundu)
   const navigationTheme = useNavigationTheme();
+
+  // iOS Silent Mode Fix: TTS (Speech.speak) icin audio mode'u playback'e al
+  // Ring/Silent switch sessizdeyken bile ses cikarmali
+  useEffect(() => {
+    (async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+        });
+        console.log("[Audio Mode] configured for TTS playback");
+      } catch (err) {
+        console.warn("[Audio Mode] setup failed:", err);
+      }
+    })();
+  }, []);
 
   // Loading state - Auth durumu kontrol edilirken
   if (loading) {
