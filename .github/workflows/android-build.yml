@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version_code:
-        description: "Version Code (örn: 20)"
+        description: "Version Code"
         required: true
-        default: "20"
+        default: "29"
+      version_name:
+        description: "Version Name"
+        required: true
+        default: "2.0.7"
 
 jobs:
   build:
@@ -52,9 +56,10 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/tulipfleet-upload-new.keystore
 
-      - name: Update versionCode
+      - name: Update Android version
         run: |
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
+          sed -i 's/versionName "[^"]*"/versionName "${{ github.event.inputs.version_name }}"/' android/app/build.gradle
 
       - name: Verify resolved Android dependencies
         run: |
@@ -79,4 +84,6 @@ jobs:
           name: tulipfleet-release-v${{ github.event.inputs.version_code }}.aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+
 
