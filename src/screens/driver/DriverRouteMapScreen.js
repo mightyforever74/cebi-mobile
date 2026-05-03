@@ -1,6 +1,6 @@
 // src/screens/driver/DriverRouteMapScreen.js
 // TulipFleet - Driver Navigation Map Screen
-// Updated: 19 Åubat 2026 - UTF-8 cleanup, smart down sample, route fixes
+// Updated: 19 Feb 2026 - UTF-8 cleanup, smart down sample, route fixes
 // Fixes: navInfoBar moved to bottom, complete button as icon, marker slide animation
 
 import { Ionicons } from "@expo/vector-icons";
@@ -30,11 +30,13 @@ import i18n from "../../locales/i18n";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
 
-// Google Maps API Key â€” .env veya app.config.js Ã¼zerinden alÄ±nmalÄ±
-// EXPO_PUBLIC_ prefix'i ile Expo'da eriÅŸilebilir
-const GOOGLE_MAPS_API_KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
-  "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"; // TODO: .env'e taÅŸÄ±, fallback kaldÄ±r
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+if (!GOOGLE_MAPS_API_KEY) {
+  console.error(
+    "[Nav] EXPO_PUBLIC_GOOGLE_MAPS_API_KEY missing - polyline will fail"
+  );
+}
 
 // Waypoint limiti (Google Directions API limiti 25)
 const MAX_WAYPOINTS = 10;
@@ -1852,15 +1854,23 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 Speech.stop();
                 Speech.speak(speechText, {
                   language:
-                    i18n.language === "tr" ? "tr-TR"
-                      : i18n.language === "nl" ? "nl-NL"
-                      : i18n.language === "de" ? "de-DE"
-                      : i18n.language === "fr" ? "fr-FR"
-                      : i18n.language === "es" ? "es-ES"
-                      : i18n.language === "it" ? "it-IT"
-                      : i18n.language === "bg" ? "bg-BG"
-                      : i18n.language === "ku" ? "tr-TR"
-                      : "en-US",
+                    i18n.language === "tr"
+                      ? "tr-TR"
+                      : i18n.language === "nl"
+                        ? "nl-NL"
+                        : i18n.language === "de"
+                          ? "de-DE"
+                          : i18n.language === "fr"
+                            ? "fr-FR"
+                            : i18n.language === "es"
+                              ? "es-ES"
+                              : i18n.language === "it"
+                                ? "it-IT"
+                                : i18n.language === "bg"
+                                  ? "bg-BG"
+                                  : i18n.language === "ku"
+                                    ? "tr-TR"
+                                    : "en-US",
                   rate: 0.9,
                 });
               }}

@@ -3,3 +3,12 @@ android/.gradle/
 .gradle/
 build/
 *.log
+firmware/
+releases/
+android/allDeps.txt
+android/mergeReleaseResources.log
+android/releaseCompile.txt
+android/releaseRuntime.txt
+appcompat_deps.txt
+.git/
+node_modules/.cache/

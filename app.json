@@ -18,7 +18,7 @@
       "buildNumber": "30",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
-        "googleMapsApiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
+        "googleMapsApiKey": "AIzaSyCiMevsW6CTrW6gNT284njKrJt6RzTLQTY"
       },
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "Cihaz kurulumu için Bluetooth gereklidir",
@@ -35,7 +35,7 @@
       "versionCode": 28,
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCAenCjwzpOicARpk3TQmV49t7-gAp1eIk"
+          "apiKey": "AIzaSyCiMevsW6CTrW6gNT284njKrJt6RzTLQTY"
         }
       },
       "permissions": [
