@@ -1,10 +1,6 @@
 /*
- * Fleet Tracker ESP32-S3 v5.0.3
+ * Fleet Tracker ESP32-S3 v5.0.0
  *
- * * v5.0.3 CHANGES (31 Mar 2026):
- *  - FIX: IMPACT alarm suppressed when GPS fix not valid (gpsValid=false)
- *  - FIX: THRESHOLD_IMPACT raised 2.00 → 2.50 (reduce false positives)
- * 
  * v5.0.0 CHANGES (20 Mar 2026):
  *  - NEW: Multi-WiFi support — 3 SSID slot in NVS
  *    Boot: scan → score (RSSI + success history) → best candidate → verify
@@ -86,8 +82,8 @@ uint16_t gfConfigVersion = 0;
 // CONFIGURATION
 // ============================================
 
-const char* FIRMWARE_VERSION = "5.0.3";
-const char* DEVICE_SERIAL = "TF-2026-0002-A";
+const char* FIRMWARE_VERSION = "5.0.0";
+const char* DEVICE_SERIAL = "TF-2026-00002-A";
 
 
 // Backend
@@ -100,7 +96,7 @@ const char* DEVICE_ACTIVATION_KEY = "TulipFleet2025SecureActivationKeyESP32";
 const char* mqtt_server = "mqtt.tulipfleet.com";
 const int mqtt_port = 8883;
 const char* mqtt_username = "fleet_esp32";
-const char* mqtt_password = "FleetESP32Secure2026!";
+const char* mqtt_password = "ESP32Fleet2026SecureKey!";
 
 // NTP
 const char* ntpServer = "pool.ntp.org";
@@ -331,7 +327,7 @@ const float HIGHWAY_SPEED = 90.0;
 #define THRESHOLD_BRAKE   0.40
 #define THRESHOLD_ACCEL   0.30
 #define THRESHOLD_TURN    0.35
-#define THRESHOLD_IMPACT  2.50
+#define THRESHOLD_IMPACT  2.00
 
 // Alert timing
 #define ALERT_COOLDOWN    5000   // ms between alerts (prevent spam)
@@ -1247,14 +1243,8 @@ bool activateDevice(String& outDeviceToken) {
   }
   
   if (receivedSerial.length() == 0) {
-    if (activatedSerial.length() > 0) {
-      receivedSerial = activatedSerial;
-      Serial.println("[ACT] Using stored serial: " + receivedSerial);
-    } else {
-      // Last resort: use hardcoded DEVICE_SERIAL
-      receivedSerial = String(DEVICE_SERIAL);
-      Serial.println("[ACT] Using default serial: " + receivedSerial);
-    }
+    Serial.println("[ACT] No serial");
+    return false;
   }
   
   // Token check removed for now - can be re-enabled later
@@ -1503,15 +1493,6 @@ void processProvisionStateMachine() {
       wifiLedMode = WIFI_LED_OFF;
       gpsLedMode = GPS_LED_OFF;
       
-      // CRITICAL: Disconnect WiFi before restarting BLE (v5.0.0)
-      // WiFi + BLE coexistence without modem sleep causes abort()
-      if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("[PROV] Disconnecting WiFi before BLE restart...");
-        WiFi.disconnect(true, true);
-        wifiConnected = false;
-        delay(500);
-      }
-      
       // Reset state
       wifiCredReceived = false;
       serialReceived = false;
@@ -1605,7 +1586,7 @@ void connectMQTT() {
     return;
   }
 
-  if (mqtt_client.connect(clientId.c_str(), mqtt_username, mqtt_password)) {
+  if (mqtt_client.connect(clientId.c_str(), "fleet_esp32", "ESP32Fleet2026SecureKey!")) {
     Serial.println(" OK");
     
     mqtt_client.setCallback(mqttCallback);
@@ -1680,10 +1661,6 @@ void checkForEvents() {
   
   // IMPACT — highest priority (check even when stationary)
   if (impactG > THRESHOLD_IMPACT) {
-    if (!gpsValid) {
-        Serial.println("[ALERT] IMPACT suppressed — no GPS fix");
-        return;  // GPS fix yoksa bastır
-    }
     sendAlert("IMPACT", "Carpma tespit edildi!", impactG, "critical");
     return;
   }
@@ -2056,7 +2033,6 @@ void setup() {
   preferences.begin("fleet", true);
   isActivated = preferences.getBool("ACTIVATED", false);
   activatedSerial = preferences.getString("SERIAL", "");
-  Serial.println("[NVS] Serial: '" + activatedSerial + "'");
   storedToken = preferences.getString("DEVICE_TOKEN", "");
 
   // Load multi-WiFi slots

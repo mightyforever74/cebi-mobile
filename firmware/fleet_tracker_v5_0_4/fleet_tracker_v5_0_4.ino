@@ -1,28 +1,15 @@
 /*
- * Fleet Tracker ESP32-S3 v5.0.2
+ * Fleet Tracker ESP32-S3 v5.0.4
  *
- * v5.0.0 CHANGES (20 Mar 2026):
- *  - NEW: Multi-WiFi support — 3 SSID slot in NVS
- *    Boot: scan → score (RSSI + success history) → best candidate → verify
- *  - NEW: Legacy single-SSID auto-migration to slot 0
- *  - NEW: Smart slot management (same SSID update / empty slot / LRU eviction)
- *  - NEW: Internet verification after WiFi connect (MQTT reachability check)
- *  - NEW: Loop reconnect — last SSID first, then full scan (30s interval)
- *  - BREAKING: NVS keys changed (WIFI0_SSID, WIFI0_PASS, WIFI0_LASTOK, WIFI0_SUCC)
- *    Legacy SSID/PASSWORD keys preserved for backward compatibility
+ * v5.0.4 CHANGES (02 May 2026):
+ *  - FIX: Stack overflow in geofence config parse (loopTask 8KB → dedicated 16KB task)
+ *  - StaticJsonDocument<4096> → DynamicJsonDocument(8192) (heap allocation)
+ *  - String() wrapper removed: loadZonesFromConfig now const char*
+ *  - volatile flags for callback ↔ task synchronization
  *
- * v4.9.0 CHANGES (10 Mar 2026):
- *  - BLE_GATE — activated cihazda 90s reprovision window
- *  - BLE FACTORY_RESET characteristic (UUID: ...26af)
- *  - MQTT RESET_PROVISION command
- *
- * PIN MAP (ESP32-S3 N16R8):
- *  - GPS  : RX=GPIO16, TX=GPIO17, UART2, 9600 baud
- *  - ADXL : SDA=GPIO8, SCL=GPIO9, I2C
- *  - LED  : GPS=GPIO4, WiFi=GPIO5
- *  NOTE   : GPIO38/39 reserved for PSRAM — do NOT use
- *
- * 20 March 2026
+ * v5.0.3 CHANGES (31 Mar 2026):
+ *  - FIX: IMPACT alarm suppressed when GPS fix not valid
+ *  ...
  */
 
 #include <WiFi.h>
@@ -69,9 +56,10 @@ struct GeoZone {
 
 // Pending config (v4.6.1) — callback stores raw JSON, loop parses it
 #define GF_CONFIG_BUF_SIZE 4096
-char     gfPendingConfig[GF_CONFIG_BUF_SIZE];
-bool     gfPendingConfigReady = false;
-uint16_t gfPendingConfigLen   = 0;
+char              gfPendingConfig[GF_CONFIG_BUF_SIZE];
+volatile bool     gfPendingConfigReady = false;
+volatile uint16_t gfPendingConfigLen   = 0;
+TaskHandle_t      gfParseTaskHandle    = NULL;
 GeoZone  gfZones[GF_MAX_ZONES];
 uint8_t  gfZoneCount = 0;
 uint16_t gfConfigVersion = 0;
@@ -82,8 +70,8 @@ uint16_t gfConfigVersion = 0;
 // CONFIGURATION
 // ============================================
 
-const char* FIRMWARE_VERSION = "5.0.2";
-const char* DEVICE_SERIAL = "TF-2026-00003-A";
+const char* FIRMWARE_VERSION = "5.0.4";
+const char* DEVICE_SERIAL = "TF-2026-00002-A";
 
 
 // Backend
@@ -96,7 +84,7 @@ const char* DEVICE_ACTIVATION_KEY = "TulipFleet2025SecureActivationKeyESP32";
 const char* mqtt_server = "mqtt.tulipfleet.com";
 const int mqtt_port = 8883;
 const char* mqtt_username = "fleet_esp32";
-const char* mqtt_password = "ESP32Fleet2026SecureKey!";
+const char* mqtt_password = "FleetESP32Secure2026!";
 
 // NTP
 const char* ntpServer = "pool.ntp.org";
@@ -327,7 +315,7 @@ const float HIGHWAY_SPEED = 90.0;
 #define THRESHOLD_BRAKE   0.40
 #define THRESHOLD_ACCEL   0.30
 #define THRESHOLD_TURN    0.35
-#define THRESHOLD_IMPACT  2.00
+#define THRESHOLD_IMPACT  2.50
 
 // Alert timing
 #define ALERT_COOLDOWN    5000   // ms between alerts (prevent spam)
@@ -1601,7 +1589,7 @@ void connectMQTT() {
     return;
   }
 
-  if (mqtt_client.connect(clientId.c_str(), "fleet_esp32", "ESP32Fleet2026SecureKey!")) {
+  if (mqtt_client.connect(clientId.c_str(), mqtt_username, mqtt_password)) {
     Serial.println(" OK");
     
     mqtt_client.setCallback(mqttCallback);
@@ -1676,6 +1664,10 @@ void checkForEvents() {
   
   // IMPACT — highest priority (check even when stationary)
   if (impactG > THRESHOLD_IMPACT) {
+    if (!gpsValid) {
+        Serial.println("[ALERT] IMPACT suppressed — no GPS fix");
+        return;  // GPS fix yoksa bastır
+    }
     sendAlert("IMPACT", "Carpma tespit edildi!", impactG, "critical");
     return;
   }
@@ -1753,24 +1745,43 @@ uint32_t gfLastTransitionMs[GF_MAX_ZONES];  // millis() at last transition
 char     gfLastTransitionType[GF_MAX_ZONES]; // 'E'=entry 'X'=exit '\0'=none
 #define  GF_DEDUP_MS  30000   // suppress same event within 30s
 
+
+
+// ============================================
+// GEOFENCE PARSE TASK (Fix 8 — v5.0.3)
+// 16KB stack ile parse — ArduinoJson recursive call'lar 8KB loop stack'i aşıyor
+// ============================================
+void gfParseTask(void* param) {
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);  // notification bekle
+    
+    if (gfPendingConfigReady) {
+      gfPendingConfigReady = false;
+      Serial.printf("[GF] Parsing queued config (%d bytes) in dedicated task...\n", gfPendingConfigLen);
+      loadZonesFromConfig(gfPendingConfig);
+    }
+  }
+}
+
 // ============================================
 // GEOFENCE — LOAD CONFIG FROM JSON
 // ============================================
 
-void loadZonesFromConfig(const String& json) {
+void loadZonesFromConfig(const char* json) {
   // ── Payload size guard ──────────────────────────────────────────
-  if (json.length() == 0) {
+  if (json == nullptr || json[0] == '\0') {
     Serial.println("[GF] Config empty, skip");
     return;
   }
-  if ((uint16_t)json.length() >= GF_CONFIG_BUF_SIZE) {
-    Serial.printf("[GF] Config too large (%d >= %d), keeping old config\n",
-                  json.length(), GF_CONFIG_BUF_SIZE);
+  size_t jsonLen = strlen(json);
+  if (jsonLen >= GF_CONFIG_BUF_SIZE) {
+    Serial.printf("[GF] Config too large (%u >= %d), keeping old config\n",
+                  (unsigned)jsonLen, GF_CONFIG_BUF_SIZE);
     return;
   }
 
   // ── Parse ────────────────────────────────────────────────────────
-  StaticJsonDocument<4096> doc;
+  DynamicJsonDocument doc(8192);
   DeserializationError err = deserializeJson(doc, json);
   if (err) {
     Serial.print("[GF] Config parse error: ");
@@ -2190,6 +2201,18 @@ void setup() {
       Serial.printf("[GPS] Warmup done, drained %d chars\n", drained);
     }
 
+    // ── Geofence parse task — 16KB stack (Fix 8) ──────────────────────
+    xTaskCreatePinnedToCore(
+      gfParseTask,
+      "gfParse",
+      16384,    // 16 KB stack — ArduinoJson recursive parse için
+      NULL,
+      1,        // priority
+      &gfParseTaskHandle,
+      1         // core 1 (loop task ile aynı core'da)
+    );
+    Serial.println("[BOOT] Geofence parser task started (16KB stack)");
+
     Serial.println("\n[BOOT] Setup complete (ACTIVATED mode)\n");
   }
 }
@@ -2305,11 +2328,10 @@ void loop() {
     // Geofence edge check (v4.6.0)
     checkGeofences();
 
-    // Pending geofence config parse — done in loop, not in callback (Fix 7)
-    if (gfPendingConfigReady) {
-      gfPendingConfigReady = false;
-      Serial.printf("[GF] Parsing queued config (%d bytes)...\n", gfPendingConfigLen);
-      loadZonesFromConfig(String(gfPendingConfig));
+    // Pending geofence config — notify dedicated task with 16KB stack (Fix 8)
+    if (gfPendingConfigReady && gfParseTaskHandle != NULL) {
+      xTaskNotifyGive(gfParseTaskHandle);
+      // task notification aldıktan sonra kendi içinde gfPendingConfigReady'i temizler
     }
     
     // MQTT
