@@ -1347,7 +1347,8 @@
       "orange": "Orange",
       "brown": "Braun",
       "beige": "Beige"
-    }
+    },
+    "noRefuelRecord": "Keine Tankaufzeichnung"
   },
   "task": {
     "title": "Auftragsverwaltung",

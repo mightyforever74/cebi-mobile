@@ -325,7 +325,8 @@
       "orange": "Oranje",
       "brown": "Bruin",
       "beige": "Beige"
-    }
+    },
+    "noRefuelRecord": "Geen tankregistratie"
   },
   "task": {
     "title": "Taakbeheer",
@@ -542,7 +543,9 @@
     "enterSerialMessage": "Voer het serienummer van de QR-code in (bijv. TF-2025-00008-5)",
     "serialEmpty": "Serienummer mag niet leeg zijn",
     "deviceNotFound": "Apparaat niet gevonden",
-    "deviceCheckFailed": "Apparaatcontrole mislukt"
+    "deviceCheckFailed": "Apparaatcontrole mislukt",
+    "todayKm": "Vandaag KM",
+    "monthKm": "Maand KM"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",

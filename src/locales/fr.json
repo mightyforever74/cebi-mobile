@@ -1347,7 +1347,8 @@
       "orange": "Orange",
       "brown": "Marron",
       "beige": "Beige"
-    }
+    },
+    "noRefuelRecord": "Aucun ravitaillement enregistré"
   },
   "task": {
     "title": "Gestion des missions",

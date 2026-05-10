@@ -134,7 +134,9 @@
     "totalDistance": "Dûrahiya Giştî",
     "avgScore": "Puanta Navîn",
     "activeTasksCount": "Peywirên Çalak",
-    "fuelEntry": "Têkeve Sotemenî"
+    "fuelEntry": "Têkeve Sotemenî",
+    "todayKm": "Îro KM",
+    "monthKm": "Meh KM"
   },
   "profile": {
     "title": "Profîl",
@@ -370,7 +372,8 @@
       "orange": "Porteqalî",
       "brown": "Qehweyî",
       "beige": "Bêj"
-    }
+    },
+    "noRefuelRecord": "Tu tomarkirina sotemeniyê tune"
   },
   "task": {
     "title": "Rêveberiya Peywiran",

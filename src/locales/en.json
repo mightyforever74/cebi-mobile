@@ -252,7 +252,8 @@
       "orange": "Orange",
       "brown": "Brown",
       "beige": "Beige"
-    }
+    },
+    "noRefuelRecord": "No refuel record"
   },
   "task": {
     "title": "Task Management",
@@ -469,7 +470,9 @@
     "totalDistance": "Total Distance",
     "avgScore": "Avg Score",
     "activeTasksCount": "Active",
-    "fuelEntry": "Fuel Entry"
+    "fuelEntry": "Fuel Entry",
+    "todayKm": "Today KM",
+    "monthKm": "Month KM"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
