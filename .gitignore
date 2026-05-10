@@ -63,3 +63,8 @@ multi_wifi_patch.ino
 dist/
 appcompat_deps.txt
 assets/bootsplash/ios/
+
+# Local audio recordings
+*.mp3
+*.wav
+*.m4a
