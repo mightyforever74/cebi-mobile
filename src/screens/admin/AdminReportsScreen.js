@@ -42,19 +42,49 @@ const TAB_ICONS = {
 
 // ─── PDF HTML GENERATOR ───────────────────────────────────────────────────────
 
-const buildOpsHtml = (data, days) => {
+const trimName = (first, last) =>
+  `${(first || "").trim()} ${(last || "").trim()}`.trim() || "—";
+
+const formatDate = (isoString, language) => {
+  try {
+    const localeMap = {
+      tr: "tr-TR",
+      en: "en-GB",
+      nl: "nl-NL",
+      de: "de-DE",
+      fr: "fr-FR",
+      es: "es-ES",
+      it: "it-IT",
+      bg: "bg-BG",
+      ku: "tr-TR",
+    };
+    return new Date(isoString).toLocaleDateString(
+      localeMap[language] || "en-GB",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }
+    );
+  } catch {
+    return isoString;
+  }
+};
+
+const buildOpsHtml = (data, days, t, language) => {
   if (!data) return "";
   const s = data.summary || {};
+  const companyName = data.company_name || "";
+  const periodFrom = data.period?.from;
   const vehicles = (data.vehicles || []).filter((v) => v.task_count > 0);
   const drivers = (data.drivers || []).filter((d) => d.task_count > 0);
-  const now = new Date().toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const now = formatDate(new Date().toISOString(), language);
+  const dateFrom = periodFrom ? formatDate(periodFrom, language) : "";
   const completionRate =
     s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
   const totalAlerts = drivers.reduce((sum, d) => sum + (d.alert_count || 0), 0);
+  const currentYear = new Date().getFullYear();
+  const minLabel = t("reports.minAbbr");
 
   const vehicleRows = vehicles
     .map(
@@ -73,17 +103,17 @@ const buildOpsHtml = (data, days) => {
     .map(
       (d) => `
     <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:500">${d.first_name || ""} ${d.last_name || ""}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:500">${trimName(d.first_name, d.last_name)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${d.task_count}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:#10B981;font-weight:600">${d.completed}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:${d.alert_count > 0 ? "#F59E0B" : "#9CA3AF"};font-weight:${d.alert_count > 0 ? "700" : "400"}">${d.alert_count ?? 0}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${d.avg_duration_min ? d.avg_duration_min + " dk" : "—"}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${d.avg_duration_min ? d.avg_duration_min + " " + minLabel : "—"}</td>
     </tr>`
     )
     .join("");
 
   return `<!DOCTYPE html>
-<html lang="nl">
+<html lang="${language || "en"}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -91,6 +121,7 @@ const buildOpsHtml = (data, days) => {
     body { font-family: -apple-system, Arial, sans-serif; margin: 0; padding: 24px; color: #1F2937; background: #fff; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F45B35; padding-bottom: 16px; margin-bottom: 24px; }
     .logo { font-size: 24px; font-weight: 700; color: #F45B35; }
+    .company { font-size: 16px; font-weight: 600; color: #1F2937; margin-top: 2px; }
     .subtitle { font-size: 13px; color: #6B7280; margin-top: 4px; }
     .meta { text-align: right; font-size: 12px; color: #6B7280; }
     .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
@@ -116,23 +147,28 @@ const buildOpsHtml = (data, days) => {
   <div class="header">
     <div>
       <div class="logo">🌷 TulipFleet</div>
-      <div class="subtitle">Operations Summary — Son ${days} Gün</div>
+      ${companyName ? `<div class="company">${companyName}</div>` : ""}
+      <div class="subtitle">${t("reports.opsTitle")} — ${t("reports.lastNDays", { days })}</div>
+      ${dateFrom ? `<div class="subtitle">${dateFrom} – ${now}</div>` : ""}
     </div>
     <div class="meta">
       <div>${now}</div>
-      <div style="margin-top:4px">Rapport gegenereerd door TulipFleet</div>
+      <div style="margin-top:4px">${t("reports.generatedBy")}</div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title"><span class="section-dot" style="background:#F45B35"></span>Görev Özeti</div>
+    <div class="section-title"><span class="section-dot" style="background:#F45B35"></span>${t("reports.taskSummary")}</div>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-value">${s.total ?? "—"}</div><div class="kpi-label">Toplam Görev</div></div>
-      <div class="kpi success"><div class="kpi-value">${s.completed ?? "—"}</div><div class="kpi-label">Tamamlanan (%${completionRate})</div></div>
-      <div class="kpi error"><div class="kpi-value">${s.cancelled ?? "—"}</div><div class="kpi-label">İptal</div></div>
-      <div class="kpi warning"><div class="kpi-value">${s.pending ?? "—"}</div><div class="kpi-label">Bekleyen</div></div>
-      <div class="kpi info"><div class="kpi-value">${s.avg_duration_min ?? "—"}</div><div class="kpi-label">Ort. Süre (dk)</div></div>
-      <div class="kpi warning"><div class="kpi-value">${totalAlerts}</div><div class="kpi-label">Toplam Uyarı</div></div>
+      <div class="kpi"><div class="kpi-value">${s.total ?? "—"}</div><div class="kpi-label">${t("reports.totalTasks")}</div></div>
+      <div class="kpi success"><div class="kpi-value">${s.completed ?? "—"}</div><div class="kpi-label">${t("reports.completed")} (${completionRate}%)</div></div>
+      <div class="kpi error"><div class="kpi-value">${s.cancelled ?? "—"}</div><div class="kpi-label">${t("reports.cancelled")}</div></div>
+      <div class="kpi warning"><div class="kpi-value">${s.pending ?? "—"}</div><div class="kpi-label">${t("reports.pending")}</div></div>
+      <div class="kpi info"><div class="kpi-value">${s.avg_duration_min ?? "—"}</div><div class="kpi-label">${t("reports.avgDuration")} (${minLabel})</div></div>
+      <div class="kpi warning"><div class="kpi-value">${totalAlerts}</div><div class="kpi-label">${t("reports.totalAlerts")}</div></div>
+      ${s.total_km !== undefined ? `<div class="kpi info"><div class="kpi-value">${s.total_km}</div><div class="kpi-label">${t("reports.totalKm")} (km)</div></div>` : ""}
+      ${s.on_time_start_rate !== undefined && s.on_time_start_rate !== null ? `<div class="kpi success"><div class="kpi-value">${s.on_time_start_rate}%</div><div class="kpi-label">${t("reports.onTimeRate")}</div></div>` : ""}
+      ${s.delayed !== undefined ? `<div class="kpi error"><div class="kpi-value">${s.delayed}</div><div class="kpi-label">${t("reports.delayed")}</div></div>` : ""}
     </div>
   </div>
 
@@ -140,10 +176,10 @@ const buildOpsHtml = (data, days) => {
     vehicles.length > 0
       ? `
   <div class="section">
-    <div class="section-title"><span class="section-dot" style="background:#3B82F6"></span>Araç Performansı</div>
+    <div class="section-title"><span class="section-dot" style="background:#3B82F6"></span>${t("reports.vehiclePerformance")}</div>
     <table>
       <thead><tr>
-        <th>Plaka</th><th>Araç</th><th style="text-align:center">Görev</th><th style="text-align:center">Tamamlanan</th><th style="text-align:right">Mesafe</th>
+        <th>${t("reports.plate")}</th><th>${t("reports.vehicle")}</th><th style="text-align:center">${t("reports.tasks")}</th><th style="text-align:center">${t("reports.completed")}</th><th style="text-align:right">${t("reports.distance")}</th>
       </tr></thead>
       <tbody>${vehicleRows}</tbody>
     </table>
@@ -155,10 +191,10 @@ const buildOpsHtml = (data, days) => {
     drivers.length > 0
       ? `
   <div class="section">
-    <div class="section-title"><span class="section-dot" style="background:#10B981"></span>Sürücü Özeti</div>
+    <div class="section-title"><span class="section-dot" style="background:#10B981"></span>${t("reports.driverSummary")}</div>
     <table>
       <thead><tr>
-        <th>Sürücü</th><th style="text-align:center">Görev</th><th style="text-align:center">Tamamlanan</th><th style="text-align:center">Uyarı</th><th style="text-align:right">Ort. Süre</th>
+        <th>${t("reports.driver")}</th><th style="text-align:center">${t("reports.tasks")}</th><th style="text-align:center">${t("reports.completed")}</th><th style="text-align:center">${t("reports.alerts")}</th><th style="text-align:right">${t("reports.avgDuration")}</th>
       </tr></thead>
       <tbody>${driverRows}</tbody>
     </table>
@@ -166,36 +202,41 @@ const buildOpsHtml = (data, days) => {
       : ""
   }
 
-  <div class="footer">TulipFleet Fleet Management · tulipfleet.com · © 2026</div>
+  <div class="footer">TulipFleet Fleet Management · tulipfleet.com · © ${currentYear}</div>
 </body>
 </html>`;
 };
 
 // ─── DRIVING QUALITY HTML GENERATOR ─────────────────────────────────────────
 
-const buildDrivingHtml = (data, days) => {
+const buildDrivingHtml = (data, days, t, language) => {
   if (!data) return "";
   const drivers = (data.drivers || []).filter((d) => d.total_tasks > 0);
-  const now = new Date().toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const companyName = data.company_name || "";
+  const periodFrom = data.period?.from;
+  const now = formatDate(new Date().toISOString(), language);
+  const dateFrom = periodFrom ? formatDate(periodFrom, language) : "";
+  const currentYear = new Date().getFullYear();
+  const minLabel = t("reports.minAbbr");
 
   const getScoreColor = (score) => {
-    if (score === null) return "#9CA3AF";
+    if (score === null || score === undefined) return "#9CA3AF";
     if (score >= 90) return "#10B981";
     if (score >= 75) return "#3B82F6";
     if (score >= 60) return "#F59E0B";
     return "#EF4444";
   };
 
-  const getScoreLabel = (score) => {
-    if (score === null) return "N/A";
-    if (score >= 90) return "Excellent";
-    if (score >= 75) return "Good";
-    if (score >= 60) return "Needs Review";
-    return "Risk";
+  const getScoreLabel = (score, scoreNote) => {
+    if (score === null || score === undefined) {
+      if (scoreNote === "insufficient_distance")
+        return t("reports.scoreInsufficientDist");
+      return t("reports.scoreNA");
+    }
+    if (score >= 90) return t("reports.scoreExcellent");
+    if (score >= 75) return t("reports.scoreGood");
+    if (score >= 60) return t("reports.scoreNeedsReview");
+    return t("reports.scoreRisk");
   };
 
   const driverRows = drivers
@@ -206,13 +247,21 @@ const buildDrivingHtml = (data, days) => {
         "?";
       const events = [];
       if (d.hard_brake_count > 0)
-        events.push(`${d.hard_brake_count} hard brake`);
-      if (d.hard_turn_count > 0) events.push(`${d.hard_turn_count} hard turn`);
+        events.push(`${d.hard_brake_count} ${t("reports.hardBrake")}`);
+      if (d.hard_turn_count > 0)
+        events.push(`${d.hard_turn_count} ${t("reports.hardTurn")}`);
       if (d.hard_accel_count > 0)
-        events.push(`${d.hard_accel_count} hard accel`);
-      if (d.overspeed_count > 0) events.push(`${d.overspeed_count} overspeed`);
+        events.push(`${d.hard_accel_count} ${t("reports.hardAccel")}`);
+      if (d.overspeed_count > 0)
+        events.push(`${d.overspeed_count} ${t("reports.overspeed")}`);
+      if (d.impact_count > 0)
+        events.push(`${d.impact_count} ${t("reports.impact")}`);
       const eventsText =
-        events.length > 0 ? events.join(" · ") : "No incidents";
+        events.length > 0 ? events.join(" · ") : t("reports.noIncidents");
+      const scoreDisplay =
+        d.driving_score !== null && d.driving_score !== undefined
+          ? d.driving_score
+          : t("reports.scoreNA");
 
       return `
     <tr>
@@ -222,30 +271,32 @@ const buildDrivingHtml = (data, days) => {
             <span style="font-size:13px;font-weight:700;color:${color}">${initials}</span>
           </div>
           <div>
-            <div style="font-weight:600;color:#1F2937">${d.first_name || ""} ${d.last_name || ""}</div>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:2px">${d.total_km ? d.total_km + " km" : "—"} · ${d.completed_tasks}/${d.total_tasks} tasks</div>
+            <div style="font-weight:600;color:#1F2937">${trimName(d.first_name, d.last_name)}</div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px">${d.total_km ? d.total_km + " km" : "—"} · ${d.completed_tasks}/${d.total_tasks} ${t("reports.tasks").toLowerCase()}</div>
           </div>
         </div>
       </td>
       <td style="padding:12px;border-bottom:1px solid #eee;text-align:center">
         <div style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:22px;border:3px solid ${color}">
-          <span style="font-size:15px;font-weight:700;color:${color}">${d.driving_score !== null ? d.driving_score : "N/A"}</span>
+          <span style="font-size:15px;font-weight:700;color:${color}">${scoreDisplay}</span>
         </div>
-        <div style="font-size:10px;color:${color};margin-top:4px;font-weight:600">${getScoreLabel(d.driving_score)}</div>
+        <div style="font-size:10px;color:${color};margin-top:4px;font-weight:600">${getScoreLabel(d.driving_score, d.score_note)}</div>
       </td>
       <td style="padding:12px;border-bottom:1px solid #eee;font-size:12px;color:#6B7280">${eventsText}</td>
       <td style="padding:12px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:${d.total_alerts > 0 ? "#F59E0B" : "#9CA3AF"};font-weight:${d.total_alerts > 0 ? "700" : "400"}">${d.total_alerts}</td>
-      <td style="padding:12px;border-bottom:1px solid #eee;text-align:right;font-size:13px;color:#374151">${d.avg_duration_min ? d.avg_duration_min + " min" : "—"}</td>
+      <td style="padding:12px;border-bottom:1px solid #eee;text-align:right;font-size:13px;color:#374151">${d.avg_duration_min ? d.avg_duration_min + " " + minLabel : "—"}</td>
     </tr>`;
     })
     .join("");
 
+  // Backend hala TR string olarak gönderiyor (bu sprint scope dışı).
+  // Sprint 2'de backend key'e çevrilecek, frontend t() ile çevirecek.
   const limitations = (data.limitations || [])
     .map((l) => `<li style="margin:4px 0">${l}</li>`)
     .join("");
 
   return `<!DOCTYPE html>
-<html lang="nl">
+<html lang="${language || "en"}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -253,6 +304,7 @@ const buildDrivingHtml = (data, days) => {
     body { font-family: -apple-system, Arial, sans-serif; margin: 0; padding: 24px; color: #1F2937; background: #fff; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F45B35; padding-bottom: 16px; margin-bottom: 24px; }
     .logo { font-size: 24px; font-weight: 700; color: #F45B35; }
+    .company { font-size: 16px; font-weight: 600; color: #1F2937; margin-top: 2px; }
     .subtitle { font-size: 13px; color: #6B7280; margin-top: 4px; }
     .meta { text-align: right; font-size: 12px; color: #6B7280; }
     .section-title { font-size: 15px; font-weight: 700; color: #1F2937; margin-bottom: 12px; }
@@ -268,37 +320,39 @@ const buildDrivingHtml = (data, days) => {
   <div class="header">
     <div>
       <div class="logo">🌷 TulipFleet</div>
-      <div class="subtitle">Driver Performance Report — Son ${days} Gün</div>
+      ${companyName ? `<div class="company">${companyName}</div>` : ""}
+      <div class="subtitle">${t("reports.driverPerfTitle")} — ${t("reports.lastNDays", { days })}</div>
+      ${dateFrom ? `<div class="subtitle">${dateFrom} – ${now}</div>` : ""}
     </div>
     <div class="meta">
       <div>${now}</div>
-      <div style="margin-top:4px">${drivers.length} sürücü</div>
+      <div style="margin-top:4px">${t("reports.driverCount", { count: drivers.length })}</div>
     </div>
   </div>
 
-  <div class="section-title">Sürücü Performansı</div>
+  <div class="section-title">${t("reports.driverPerformance")}</div>
   <table>
     <thead><tr>
-      <th>Sürücü</th>
-      <th style="text-align:center">Skor</th>
-      <th>Olaylar</th>
-      <th style="text-align:center">Uyarı</th>
-      <th style="text-align:right">Ort. Süre</th>
+      <th>${t("reports.driver")}</th>
+      <th style="text-align:center">${t("reports.score")}</th>
+      <th>${t("reports.events")}</th>
+      <th style="text-align:center">${t("reports.alerts")}</th>
+      <th style="text-align:right">${t("reports.avgDuration")}</th>
     </tr></thead>
-    <tbody>${driverRows || "<tr><td colspan='5' style='padding:24px;text-align:center;color:#9CA3AF'>Veri yok</td></tr>"}</tbody>
+    <tbody>${driverRows || `<tr><td colspan='5' style='padding:24px;text-align:center;color:#9CA3AF'>${t("reports.noData")}</td></tr>`}</tbody>
   </table>
 
   ${
     limitations
       ? `
   <div class="warning">
-    ⚠️ <strong>Sınırlılıklar</strong>
+    ⚠️ <strong>${t("reports.limitationsTitle")}</strong>
     <ul>${limitations}</ul>
   </div>`
       : ""
   }
 
-  <div class="footer">TulipFleet Fleet Management · tulipfleet.com · © 2026</div>
+  <div class="footer">TulipFleet Fleet Management · tulipfleet.com · © ${currentYear}</div>
 </body>
 </html>`;
 };
@@ -1273,7 +1327,7 @@ const PlaceholderTab = ({ tabKey, styles, COLORS, t }) => (
 const AdminReportsScreen = () => {
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [selectedDays, setSelectedDays] = useState(30);
   const [activeTab, setActiveTab] = useState("operations");
@@ -1322,7 +1376,7 @@ const AdminReportsScreen = () => {
     if (!opsData || pdfLoading) return;
     setPdfLoading(true);
     try {
-      const html = buildOpsHtml(opsData, selectedDays);
+      const html = buildOpsHtml(opsData, selectedDays, t, i18n.language);
       const filename = `tulipfleet_operations_${new Date().toISOString().slice(0, 10)}.html`;
       const fileUri = FileSystem.cacheDirectory + filename;
       await FileSystem.writeAsStringAsync(fileUri, html, {
@@ -1347,7 +1401,7 @@ const AdminReportsScreen = () => {
     if (!drvData || pdfLoading) return;
     setPdfLoading(true);
     try {
-      const html = buildDrivingHtml(drvData, selectedDays);
+      const html = buildDrivingHtml(drvData, selectedDays, t, i18n.language);
       const filename = `tulipfleet_driver_performance_${new Date().toISOString().slice(0, 10)}.html`;
       const fileUri = FileSystem.cacheDirectory + filename;
       await FileSystem.writeAsStringAsync(fileUri, html, {
