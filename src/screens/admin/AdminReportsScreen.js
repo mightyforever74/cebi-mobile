@@ -261,7 +261,7 @@ const buildDrivingHtml = (data, days, t, language) => {
       const scoreDisplay =
         d.driving_score !== null && d.driving_score !== undefined
           ? d.driving_score
-          : t("reports.scoreNA");
+          : "—";
 
       return `
     <tr>
