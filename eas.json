@@ -43,7 +43,7 @@
         "buildType": "apk"
       },
       "channel": "preview",
-      "autoIncrement": "buildNumber"
+      "autoIncrement": true
     },
     "production": {
       "distribution": "store",
