@@ -337,10 +337,15 @@ const AdminVehicles = ({ navigation }) => {
   }, [vehicles, activeFilter]);
 
   const handleDeleteVehicle = (vehicle) => {
-    // Not: Önceki client-side esp32_device_id check kaldırıldı çünkü LEGACY-*
-    // placeholder araçlarda da bu kolon NOT NULL dolu, false-positive üretiyordu.
-    // Backend artık devices.vehicle_id + status IN ('ASSIGNED','ACTIVATED')
-    // filter ile 409 DEVICE_ATTACHED dönüyor; catch bloğunda yakalanıyor.
+    // Bağlı cihaz varsa önce uyarı göster — backend 500 vermeden önce UX koruması
+    if (vehicle.esp32_device_id) {
+      Alert.alert(
+        t("adminVehicles.deleteBlockedTitle"),
+        t("adminVehicles.deleteBlockedMsg", { plate: vehicle.plate_no }),
+        [{ text: t("common.ok"), style: "default" }]
+      );
+      return;
+    }
     Alert.alert(
       t("adminVehicles.deleteVehicle"),
       t("adminVehicles.deleteConfirm", { plate: vehicle.plate_no }),
@@ -358,25 +363,9 @@ const AdminVehicles = ({ navigation }) => {
               );
               fetchVehicles();
             } catch (e) {
-              // Backend 409 DEVICE_ATTACHED: bağlı cihaz var → lokalize uyarı
-              const errData = e?.response?.data || e?.data;
-              if (errData?.code === "DEVICE_ATTACHED") {
-                const serial = errData.deviceSerial || "";
-                const baseMsg = t("adminVehicles.deleteBlockedMsg", {
-                  plate: vehicle.plate_no,
-                });
-                // Serial bilgisini mesaja ekle (i18n key sadece plate alıyor)
-                Alert.alert(
-                  t("adminVehicles.deleteBlockedTitle"),
-                  serial ? `${baseMsg}\n\n${serial}` : baseMsg,
-                  [{ text: t("common.ok"), style: "default" }]
-                );
-                return;
-              }
-              // Diğer hatalar (400 active tasks, 404, 500 vs.)
               Alert.alert(
                 t("common.error"),
-                errData?.error || t("adminVehicles.deleteFailed")
+                e?.response?.data?.error || t("adminVehicles.deleteFailed")
               );
             }
           },
@@ -394,6 +383,18 @@ const AdminVehicles = ({ navigation }) => {
       ? new Date(vehicle.last_location_time).getTime()
       : 0;
     const isOnline = vehicle.is_online === true;
+
+    // Sanal şamandıra: current_fuel_level (litre) / fuel_capacity → yüzde
+    const fuelLiters = parseFloat(vehicle.current_fuel_level) || 0;
+    const fuelCap = parseFloat(vehicle.fuel_capacity) || 0;
+    const fuelPercent =
+      fuelCap > 0 ? Math.max(0, Math.min(100, (fuelLiters / fuelCap) * 100)) : 0;
+    const fuelColor =
+      fuelPercent <= 15
+        ? COLORS.ERROR
+        : fuelPercent <= 40
+          ? COLORS.WARNING
+          : COLORS.SUCCESS;
 
     return (
       <TouchableOpacity
@@ -445,8 +446,8 @@ const AdminVehicles = ({ navigation }) => {
           </View>
           <View style={styles.metricDivider} />
           <View style={styles.metric}>
-            <Text style={styles.metricValue}>
-              {vehicle.current_fuel_level || "0"}%
+            <Text style={[styles.metricValue, { color: fuelColor }]}>
+              %{Math.round(fuelPercent)}
             </Text>
             <Text style={styles.metricLabel}>{t("adminVehicles.fuel")}</Text>
           </View>
