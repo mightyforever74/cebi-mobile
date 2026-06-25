@@ -17,6 +17,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, fuelAPI } from "../../services/api";
+import FuelGauge from "../../components/FuelGauge";
 
 // ❌ KALDIRILDI: Local COLORS objesi
 
@@ -168,6 +169,13 @@ const makeStyles = (COLORS) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginTop: 12,
+    },
+    fuelGaugeRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      marginTop: 12,
+      marginBottom: 8,
     },
     fuelPercentage: {
       fontSize: 20,
@@ -500,9 +508,22 @@ const DriverVehicle = ({ navigation }) => {
             {getFuelTypeLabel(vehicle.fuel_type)}
           </Text>
         </View>
+
+        {/* Sanal Şamandıra: dairesel yakıt göstergesi (yuvarlak halka) */}
+        <View style={{ alignItems: "center", marginVertical: 12 }}>
+          <FuelGauge
+            percent={fuelPercent}
+            liters={fuelLevel}
+            capacity={fuelCapacity}
+            color={fuelColor}
+            COLORS={COLORS}
+            size={170}
+          />
+        </View>
+
         <View style={styles.fuelValues}>
           <View>
-            <Text style={[styles.fuelPercentage, { color: COLORS.TEXT }]}>
+            <Text style={[styles.fuelSubtext, { color: COLORS.TEXT_SECONDARY }]}>
               {t("vehicle.tankCapacity")}: {Math.round(fuelCapacity)} L
             </Text>
             {lastFuelRecord ? (

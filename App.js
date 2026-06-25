@@ -5,7 +5,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { GalioProvider } from "galio-framework";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import RNBootSplash from "react-native-bootsplash";
+let RNBootSplash = null;
+try {
+  RNBootSplash = require("react-native-bootsplash").default;
+} catch (e) {}
+
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -82,7 +86,7 @@ export default function App() {
         setAppIsReady(true);
         // Native splash'ları gizle
         SplashScreen.hideAsync();
-        RNBootSplash.hide({ fade: true, duration: 200 });
+        if (RNBootSplash) RNBootSplash.hide({ fade: true, duration: 200 });
       }
     }
     prepare();
