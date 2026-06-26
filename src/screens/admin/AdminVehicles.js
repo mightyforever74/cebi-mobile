@@ -31,6 +31,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
+import FuelGauge from "../../components/FuelGauge";
 
 const withAlpha = (hex, a) => {
   if (
@@ -446,9 +447,13 @@ const AdminVehicles = ({ navigation }) => {
           </View>
           <View style={styles.metricDivider} />
           <View style={styles.metric}>
-            <Text style={[styles.metricValue, { color: fuelColor }]}>
-              %{Math.round(fuelPercent)}
-            </Text>
+            <FuelGauge
+              percent={fuelPercent}
+              color={fuelColor}
+              COLORS={COLORS}
+              size={48}
+              showIcon={false}
+            />
             <Text style={styles.metricLabel}>{t("adminVehicles.fuel")}</Text>
           </View>
           <View style={styles.metricDivider} />

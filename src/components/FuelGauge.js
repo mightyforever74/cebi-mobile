@@ -14,6 +14,7 @@ import Svg, { Circle, G } from "react-native-svg";
  * @param {string} color - dolu yayın rengi (fuelColor)
  * @param {object} COLORS - tema renkleri
  * @param {number} size - gösterge çapı px (default 170)
+ * @param {boolean} showIcon - ortadaki su ikonu (default true; küçük boyutlarda false önerilir)
  */
 export default function FuelGauge({
   percent = 0,
@@ -22,6 +23,7 @@ export default function FuelGauge({
   color = "#22C55E",
   COLORS = {},
   size = 170,
+  showIcon = true,
 }) {
   const clamped = Math.max(0, Math.min(100, percent));
   const strokeWidth = size * 0.09;
@@ -62,7 +64,7 @@ export default function FuelGauge({
       </Svg>
 
       <View style={{ position: "absolute", alignItems: "center", justifyContent: "center" }}>
-        <Ionicons name="water" size={size * 0.18} color={color} />
+        {showIcon && <Ionicons name="water" size={size * 0.18} color={color} />}
         <Text style={{ fontSize: size * 0.22, fontWeight: "800", color: textColor, marginTop: size * 0.01 }}>
           %{Math.round(clamped)}
         </Text>
