@@ -21,6 +21,7 @@
     },
     "staging": {
       "distribution": "internal",
+      "environment": "preview",
       "env": {
         "API_URL": "https://staging-api.tulipfleet.com",
         "MQTT_HOST": "staging-mqtt.tulipfleet.com"
@@ -31,7 +32,8 @@
       "ios": {
         "resourceClass": "m-medium"
       },
-      "channel": "staging"
+      "channel": "staging",
+      "autoIncrement": true
     },
     "preview": {
       "distribution": "internal",
