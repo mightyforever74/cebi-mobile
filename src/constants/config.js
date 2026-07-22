@@ -11,9 +11,18 @@ const STAGING_API_URL = "https://staging-api.tulipfleet.com";
 const DEV_API_URL = "http://46.224.1.192:3000";
 
 // Determine API URL based on environment
+// Build profile'ın eas.json env bloğundan gelir (EXPO_PUBLIC_ öneki şart:
+// yalnızca bu önekli env'ler JS bundle'a gömülür). Eksikse sessizce
+// production'a düşmek yerine önce log basar (BUILD.md §14.2).
 const getApiUrl = () => {
-  // TEMPORARY FIX: Hardcoded production URL
-  return "https://api.tulipfleet.com";
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (!envUrl) {
+    console.error(
+      "[Config] EXPO_PUBLIC_API_URL missing — falling back to production!"
+    );
+    return PRODUCTION_API_URL;
+  }
+  return envUrl;
 };
 
 export const API_URL = getApiUrl();

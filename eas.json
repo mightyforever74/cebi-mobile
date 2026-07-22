@@ -23,7 +23,7 @@
       "distribution": "internal",
       "environment": "preview",
       "env": {
-        "API_URL": "https://staging-api.tulipfleet.com",
+        "EXPO_PUBLIC_API_URL": "https://staging-api.tulipfleet.com",
         "MQTT_HOST": "staging-mqtt.tulipfleet.com"
       },
       "android": {
@@ -38,7 +38,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "API_URL": "https://api.tulipfleet.com",
+        "EXPO_PUBLIC_API_URL": "https://api.tulipfleet.com",
         "MQTT_HOST": "mqtt.tulipfleet.com"
       },
       "android": {
@@ -52,7 +52,7 @@
       "node": "20.19.4",
       "credentialsSource": "remote",
       "env": {
-        "API_URL": "https://api.tulipfleet.com",
+        "EXPO_PUBLIC_API_URL": "https://api.tulipfleet.com",
         "MQTT_HOST": "46.224.1.192",
         "MQTT_PORT": "8883",
         "MQTT_USERNAME": "fleet-backend",
