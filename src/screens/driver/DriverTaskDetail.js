@@ -565,7 +565,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
             } catch (error) {
               Alert.alert(
                 t("taskDetail.actions.error"),
-                error.response?.data?.error ||
+                error.response?.data?.message || error.response?.data?.error ||
                   t("taskDetail.actions.operationFailed")
               );
             } finally {
@@ -597,7 +597,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     } catch (error) {
       Alert.alert(
         t("taskDetail.actions.error"),
-        error.response?.data?.error || t("taskDetail.actions.operationFailed")
+        error.response?.data?.message || error.response?.data?.error || t("taskDetail.actions.operationFailed")
       );
     } finally {
       setActionLoading(false);
@@ -635,7 +635,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
             } catch (error) {
               Alert.alert(
                 t("taskDetail.actions.error"),
-                error.response?.data?.error ||
+                error.response?.data?.message || error.response?.data?.error ||
                   t("taskDetail.actions.operationFailed")
               );
             } finally {
@@ -678,7 +678,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
             } catch (error) {
               Alert.alert(
                 t("taskDetail.actions.error"),
-                error.response?.data?.error ||
+                error.response?.data?.message || error.response?.data?.error ||
                   t("taskDetail.actions.operationFailed")
               );
             } finally {
@@ -701,7 +701,7 @@ const DriverTaskDetail = ({ route, navigation }) => {
     } catch (e) {
       Alert.alert(
         t("taskDetail.actions.error"),
-        e.response?.data?.error || t("taskDetail.actions.operationFailed")
+        e.response?.data?.message || e.response?.data?.error || t("taskDetail.actions.operationFailed")
       );
     } finally {
       setActionLoading(false);

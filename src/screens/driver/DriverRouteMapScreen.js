@@ -1379,7 +1379,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.message || t("routeMap.taskCouldNotStart")
+        e.response?.data?.message || e.message || t("routeMap.taskCouldNotStart")
       );
     } finally {
       setActionLoading(false);
@@ -1416,7 +1416,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.message || t("routeMap.taskCouldNotComplete")
+        e.response?.data?.message || e.message || t("routeMap.taskCouldNotComplete")
       );
     } finally {
       setActionLoading(false);
@@ -1433,7 +1433,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.message || t("routeMap.taskCouldNotAccept")
+        e.response?.data?.message || e.message || t("routeMap.taskCouldNotAccept")
       );
     } finally {
       setActionLoading(false);
@@ -1461,7 +1461,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           } catch (e) {
             Alert.alert(
               t("routeMap.error"),
-              e.message || t("routeMap.taskCouldNotReject")
+              e.response?.data?.message || e.message || t("routeMap.taskCouldNotReject")
             );
           } finally {
             setActionLoading(false);
