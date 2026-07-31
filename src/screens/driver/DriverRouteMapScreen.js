@@ -681,6 +681,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     };
   }, []);
 
+  // BUG-3a fix (2026-07-31): gorev baska ekrandan baslatilip bu ekrana
+  // donulunce task state bayat kaliyordu (mount-only fetch) -> rota cizilmiyordu.
+  // Focus'ta aktif gorevi tazele; kill&relaunch workaround'u tarihe karisir.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadActiveTask();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   useEffect(() => {
     if (!task || task.status !== "in_progress") {
       lastRouteTaskIdRef.current = null;
