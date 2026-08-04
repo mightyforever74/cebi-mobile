@@ -1767,6 +1767,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
             isNavigating && navigationInfo ? navigationInfo.distance : null
           }
           duration={isNavigating && navigationInfo ? navigationInfo.eta : null}
+          taskNo={task ? getShortTaskNo() : null}
           onComplete={isNavigating ? handleCompleteTask : null}
           actionLoading={actionLoading}
           style={styles.waypointsPanel}
