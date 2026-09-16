@@ -1,0 +1,7721 @@
+# TulipFleet Mobile — P0-FIX rapor (sözleşme boşlukları + fallback-eksik key'ler)
+
+Branch: `i18n-mobile-p0fix` (`i18n-mobile-p1` ucundan).
+Sözlük mimarisi ve `src/locales/*.json` yolları değişmedi. `package.json` dokunulmadı. OTA/EAS yok. AST yok.
+Sözlük değişiklikleri yalnız `scripts/i18n-add-keys.mjs` + `scripts/i18n-patches/p0fix-*.json`. Kod yalnız Adım 3 dosyaları.
+
+## Commit'ler
+
+| # | hash | konu |
+|---|---|---|
+| 1 | 1512f1d | scripts: statik t() key'leri tr fallbackLng'de yoksa hata |
+| 2 | 47cda2d | sözlük: manifest doldurma + 133 fallback-eksik key; SOS→sos |
+| 3 | 4ab3a12 | AdminAlerts canlı tip haritası + fuel dashboard canlı kategoriler |
+| 4 | (bu commit) | docs/I18N_P0FIX_REPORT.md |
+
+`git log i18n-mobile-p1..HEAD`:
+
+```
+4ab3a12 fix(i18n): map live alert types with case-fold lookup and live fuel categories
+47cda2d fix(i18n): fill P0 contract gaps and add static keys missing from tr fallback
+1512f1d scripts(i18n): flag static t() keys missing from tr fallbackLng
+```
+
+## Adım 0 — verify-i18n fallback metriği
+
+Yeni kontrol: kodda kullanılan statik key'lerden `tr.json` (fallbackLng) olmayanlar → hata, listeli.
+Gerekçe: union, en-only key'leri gizliyordu (`routeMap.odometerPrompt` vb.).
+
+## verify BEFORE / AFTER
+
+Komut: `node scripts/verify-i18n.mjs` (exit ≠ 0 hem önce hem sonra — beklenen; union simetri hataları ve extra uyarıları P2+).
+
+| | BEFORE (commit 1, P1 sözlük) | AFTER (commit 3) |
+|---|---|---|
+| UNION | 2077 | **2246** |
+| intersection | 1757 | **1809** |
+| code keys not in union | **119** | **0** |
+| code keys missing in tr | **133** (119 + 14 in-union-not-tr) | **0** |
+| manifest subkey missing | **459** | **0** |
+| interp mismatches | 0 | 0 |
+| encoding mojibake | 0 | 0 |
+| errors / warnings | 3154 / 437 | 2491 / 1442 |
+| UNRESOLVED | — | **0** |
+| KU_OMITTED | — | **131** |
+
+Dil tablosu BEFORE:
+
+```
+lang  keys  missing  extra
+tr    1757      320      0
+en    1764      313      7
+nl    1875      202    118
+de    1785      292     28
+fr    1785      292     28
+es    1826      251     69
+it    1806      271     49
+bg    1759      318      2
+ku    1893      184    136
+```
+
+Dil tablosu AFTER:
+
+```
+lang  keys  missing  extra
+tr    1940      306    131
+en    1946      300    137
+nl    2048      198    239
+de    1965      281    156
+fr    1965      281    156
+es    1997      249    188
+it    1979      267    170
+bg    1940      306    131
+ku    1943      303    134
+```
+
+tr extra 131 = 2g key'lerinin ku'ya yazılmaması (KU_OMITTED). Union extra'lar uyarı olarak kaldı.
+
+Tam stdout: Appendix A (BEFORE) ve Appendix B (AFTER).
+
+## Patch dosyaları + idempotency
+
+| patch | ilk koşu | ikinci koşu |
+|---|---|---|
+| `scripts/i18n-patches/p0fix-manifest.json` (51 key) | added=450 identical=9 skipped_exists=0 skipped_lang=0 files=9 | added=0 identical=459 files=0 **0 değişiklik** |
+| `scripts/i18n-patches/p0fix-code-keys.json` (133 key, KU yok) | added=1023 skipped_exists=17 identical=24 skipped_lang=133 files=8 | added=0 skipped_exists=17 identical=1047 skipped_lang=133 files=0 **0 değişiklik** |
+
+Manifest 51×9=459; 9 identical = `adminAlerts.types.sos` zaten 9 dilde vardı.
+Code 133×8=1064; skipped_lang=133 = KU_OMITTED; 17 skipped_exists = başka dilde zaten olan in-union-not-tr değerler.
+
+`scripts/i18n-dynamic-roots.json`: `adminAlerts.types` listesinde `SOS` → `sos` (commit 2). Mevcut camelCase key'ler silinmedi. `geofence_entry` / `geofence_exit` kopyaları eklendi.
+
+## Adım 1 — kopya / sabit değer notları
+
+- 1a `task.statuses.withdrawn`, `taskDetail.statuses.withdrawn`: dil bazında `tasks.statuses.withdrawn` kopyası.
+- 1b `adminTasks.status.*`: 9 CHECK değeri `tasks.statuses.*` kopyası. `adminTasks.priority.*`: TR/EN/NL sabit; diğer 6 dil Cursor.
+- 1c–1e: TR/EN/NL kullanıcı sabiti; DE/FR/ES/IT/BG/KU Cursor (Adım 1 KU zorunlu).
+- 1e mevcut camelCase `adminAlerts.types.*` silinmedi; snake_case canlı tipler eklendi.
+- 1f `taskDetail.events.*` sözlükte UPPER; EN/NL Cursor, SUSPECT dışı.
+
+## Adım 2g — tam tablo (133 key)
+
+Kaynak: ekran satırı + `t(key, defaultValue)` ikinci argüman veya `t(key) || "…"` ekran fallback'i. Mojibake JS string'ler (`common.cannotOpenLink`, `tasks.noVehicleAssigned`, `tasks.contactAdmin`) intended TR'ye decode edildi, bozuk hali kopyalanmadı. In-union-not-tr key'lerde mevcut dil metni kaynak alındı.
+
+| key | kaynak (ekran:satır / defaultValue) | TR | EN | NL |
+|---|---|---|---|---|
+| `about.aboutText` | src/screens/shared/AboutScreen.js:120 / defaultValue | TulipFleet, lojistik şirketleri için geliştirilmiş kapsamlı bir filo yönetim platformudur. Gerçek zamanlı araç takibi, sürücü yönetimi, görev atama ve yakıt takibi gibi özelliklerle filonuzu verimli bir şekilde yönetmenizi sağlar. | TulipFleet is a comprehensive fleet management platform built for logistics companies. It helps you manage your fleet efficiently with real-time vehicle tracking, driver management, task assignment, and fuel tracking. | TulipFleet is een uitgebreid wagenparkbeheerplatform voor logistieke bedrijven. Het helpt u uw wagenpark efficiënt te beheren met realtime voertuigtracking, chauffeursbeheer, taaktoewijzing en brandstofregistratie. |
+| `about.aboutTitle` | src/screens/shared/AboutScreen.js:117 / defaultValue | TulipFleet Hakkında | About TulipFleet | Over TulipFleet |
+| `about.aiPowered` | src/screens/shared/AboutScreen.js:138 / defaultValue | Yapay Zeka Destekli Geliştirme | AI-Powered Development | AI-gestuurde ontwikkeling |
+| `about.allRightsReserved` | src/screens/shared/AboutScreen.js:226 / defaultValue | Tüm hakları saklıdır. | All rights reserved. | Alle rechten voorbehouden. |
+| `about.builtWith` | src/screens/shared/AboutScreen.js:135 / defaultValue | Yapay Zeka ile Geliştirildi | Built with Artificial Intelligence | Gebouwd met kunstmatige intelligentie |
+| `about.claudeDescription` | src/screens/shared/AboutScreen.js:143 / defaultValue | Bu uygulama, Anthropic tarafından geliştirilen Claude Opus 4.5 yapay zeka modeli ile tasarlanıp kodlanmıştır. Modern yazılım geliştirme ve yapay zeka işbirliğinin bir örneği olarak ortaya çıkmıştır. | This app was designed and coded with Anthropic's Claude Opus 4.5 AI model. It is an example of collaboration between modern software development and artificial intelligence. | Deze app is ontworpen en gecodeerd met het Claude Opus 4.5 AI-model van Anthropic. Het is een voorbeeld van samenwerking tussen moderne softwareontwikkeling en kunstmatige intelligentie. |
+| `about.contact` | src/screens/shared/AboutScreen.js:68 / defaultValue | İletişim | Contact | Contact |
+| `about.featureESP32` | src/screens/shared/AboutScreen.js:54 / defaultValue | ESP32 IoT entegrasyonu | ESP32 IoT integration | ESP32 IoT-integratie |
+| `about.featureFleet` | src/screens/shared/AboutScreen.js:39 / defaultValue | Filo yönetimi | Fleet management | Wagenparkbeheer |
+| `about.featureFuel` | src/screens/shared/AboutScreen.js:49 / defaultValue | Yakıt ve kilometre takibi | Fuel and mileage tracking | Brandstof- en kilometertelling |
+| `about.featureTasks` | src/screens/shared/AboutScreen.js:44 / defaultValue | Görev atama ve takibi | Task assignment and tracking | Taaktoewijzing en -opvolging |
+| `about.featureTracking` | src/screens/shared/AboutScreen.js:34 / defaultValue | Gerçek zamanlı GPS takibi | Real-time GPS tracking | Realtime GPS-tracking |
+| `about.features` | src/screens/shared/AboutScreen.js:159 / defaultValue | Özellikler | Features | Functies |
+| `about.links` | src/screens/shared/AboutScreen.js:185 / defaultValue | Bağlantılar | Links | Links |
+| `about.madeWith` | src/screens/shared/AboutScreen.js:222 / \|\| screen fallback | Türkiye'de ❤️ ve ☕ ile yapıldı | Made in Türkiye with ❤️ and ☕ | Gemaakt in Türkiye met ❤️ en ☕ |
+| `about.privacyPolicy` | src/screens/shared/AboutScreen.js:74 / defaultValue | Gizlilik Politikası | Privacy Policy | Privacybeleid |
+| `about.tagline` | src/screens/shared/AboutScreen.js:102 / defaultValue | Profesyonel Filo Yönetim Sistemi | Professional Fleet Management System | Professioneel wagenparkbeheersysteem |
+| `about.termsOfService` | src/screens/shared/AboutScreen.js:80 / defaultValue | Kullanım Şartları | Terms of Service | Servicevoorwaarden |
+| `about.website` | src/screens/shared/AboutScreen.js:62 / defaultValue | Web Sitesi | Website | Website |
+| `admin.selectLanguage` | src/screens/admin/AdminDashboard.js:2139 / defaultValue | Dil Seçin | Select Language | Selecteer taal |
+| `admin.total` | src/screens/admin/AdminDashboard.js:1465 / defaultValue | toplam | total | totaal |
+| `alerts.warning` | src/components/ui/StatusBadge.js:37 / \|\| screen fallback | Uyarı | Warning | Waarschuwing |
+| `changePassword.allFieldsRequired` | src/screens/shared/ChangePasswordScreen.js:133 / \|\| screen fallback | Tüm alanları doldurun | Please fill in all fields | Vul alle velden in |
+| `changePassword.confirmPassword` | src/screens/shared/ChangePasswordScreen.js:274 / existing:nl,es,it | Yeni Şifre (Tekrar) | New Password (Confirm) | Nieuw wachtwoord (bevestigen) |
+| `changePassword.confirmPlaceholder` | src/screens/shared/ChangePasswordScreen.js:279 / \|\| screen fallback | Yeni şifrenizi tekrar girin | Re-enter your new password | Voer uw nieuwe wachtwoord opnieuw in |
+| `changePassword.currentPassword` | src/screens/shared/ChangePasswordScreen.js:256 / existing:nl,es,it | Mevcut Şifre | Current Password | Huidig wachtwoord |
+| `changePassword.currentPlaceholder` | src/screens/shared/ChangePasswordScreen.js:261 / \|\| screen fallback | Mevcut şifrenizi girin | Enter your current password | Voer uw huidige wachtwoord in |
+| `changePassword.failed` | src/screens/shared/ChangePasswordScreen.js:189 / \|\| screen fallback | Şifre değiştirilemedi | Could not change password | Wachtwoord kon niet worden gewijzigd |
+| `changePassword.hint` | src/screens/shared/ChangePasswordScreen.js:248 / \|\| screen fallback | Güvenliğiniz için güçlü bir şifre seçin. En az 6 karakter kullanın. | Choose a strong password for your security. Use at least 6 characters. | Kies een sterk wachtwoord voor uw veiligheid. Gebruik minstens 6 tekens. |
+| `changePassword.minLength` | src/screens/shared/ChangePasswordScreen.js:140 / \|\| screen fallback | Yeni şifre en az 6 karakter olmalı | New password must be at least 6 characters | Nieuw wachtwoord moet minstens 6 tekens zijn |
+| `changePassword.mismatch` | src/screens/shared/ChangePasswordScreen.js:147 / existing:nl,es,it | Yeni şifreler eşleşmiyor | New passwords do not match | Nieuwe wachtwoorden komen niet overeen |
+| `changePassword.newPassword` | src/screens/shared/ChangePasswordScreen.js:265 / existing:nl,es,it | Yeni Şifre | New Password | Nieuw wachtwoord |
+| `changePassword.newPlaceholder` | src/screens/shared/ChangePasswordScreen.js:270 / \|\| screen fallback | Yeni şifrenizi girin | Enter your new password | Voer uw nieuwe wachtwoord in |
+| `changePassword.samePassword` | src/screens/shared/ChangePasswordScreen.js:154 / \|\| screen fallback | Yeni şifre mevcut şifreden farklı olmalı | New password must be different from the current password | Nieuw wachtwoord moet anders zijn dan het huidige |
+| `changePassword.submit` | src/screens/shared/ChangePasswordScreen.js:305 / \|\| screen fallback | Şifreyi Değiştir | Change Password | Wachtwoord wijzigen |
+| `changePassword.successMessage` | src/screens/shared/ChangePasswordScreen.js:173 / \|\| screen fallback | Şifreniz başarıyla değiştirildi. | Your password was changed successfully. | Uw wachtwoord is succesvol gewijzigd. |
+| `changePassword.successTitle` | src/screens/shared/ChangePasswordScreen.js:172 / \|\| screen fallback | Başarılı | Success | Gelukt |
+| `common.cannotOpenLink` | src/screens/driver/DriverDashboard.js:652 / defaultValue | Link açılamadı | Could not open the link | Link kon niet worden geopend |
+| `common.info` | src/screens/admin/AdminAlerts.js:640 / \|\| screen fallback | Bilgi | Info | Info |
+| `common.invalidHour` | src/screens/admin/AdminGeofenceScreen.js:946 / defaultValue | Geçerli saat aralığı 0–23 olmalıdır. | Valid hour range is 0–23. | Geldig uur ligt tussen 0 en 23. |
+| `common.optional` | src/screens/driver/FuelEntryScreen.js:819 / defaultValue | (opsiyonel) | (optional) | (optioneel) |
+| `common.vehicle` | src/screens/admin/VehicleTrackScreen.js:967 / defaultValue | Araç | Vehicle | Voertuig |
+| `dashboard.activeVehicles` | src/components/ui/StatCard.js:25 / \|\| screen fallback | Aktif Araçlar | Active Vehicles | Actieve voertuigen |
+| `dashboard.trafficClear` | src/screens/driver/DriverDashboard.js:877 / existing:de,fr | Trafik açık | Traffic clear | Verkeer vlot |
+| `deviceAssignment.confirmAssignment` | src/screens/driver/DriverDeviceAssignment.js:129 / \|\| screen fallback | Bu cihazı aracınıza atamak istiyor musunuz? | Do you want to assign this device to your vehicle? | Wilt u dit apparaat aan uw voertuig toewijzen? |
+| `deviceAssignment.scanQR` | src/screens/driver/DriverDeviceAssignment.js:368 / \|\| screen fallback | QR Tara | Scan QR | QR scannen |
+| `deviceAssignment.vehicle` | src/screens/driver/DriverDeviceAssignment.js:344 / \|\| screen fallback | Araç | Vehicle | Voertuig |
+| `deviceSetup.connecting` | src/screens/driver/DeviceSetupScreen.js:694 / existing:es,it,ku | Bağlanıyor... | Connecting... | Verbinden... |
+| `deviceSetup.connectionError` | src/screens/driver/DeviceSetupScreen.js:700 / \|\| screen fallback | Bağlantı hatası: {{error}} | Connection error: {{error}} | Verbindingsfout: {{error}} |
+| `editProfile.changePhoto` | src/screens/shared/EditProfileScreen.js:106 / \|\| screen fallback | Fotoğraf Değiştir | Change Photo | Foto wijzigen |
+| `editProfile.email` | src/screens/shared/EditProfileScreen.js:116 / existing:nl,es,it | E-posta | Email | E-mail |
+| `editProfile.emailReadonly` | src/screens/shared/EditProfileScreen.js:128 / \|\| screen fallback | E-posta değiştirilemez | Email cannot be changed | E-mail kan niet worden gewijzigd |
+| `editProfile.firstName` | src/screens/shared/EditProfileScreen.js:135 / existing:nl,es,it | Ad | First Name | Voornaam |
+| `editProfile.firstNamePlaceholder` | src/screens/shared/EditProfileScreen.js:149 / \|\| screen fallback | Adınızı girin | Enter your first name | Voer uw voornaam in |
+| `editProfile.firstNameRequired` | src/screens/shared/EditProfileScreen.js:40 / \|\| screen fallback | Ad alanı zorunludur | First name is required | Voornaam is verplicht |
+| `editProfile.lastName` | src/screens/shared/EditProfileScreen.js:159 / existing:nl,es,it | Soyad | Last Name | Achternaam |
+| `editProfile.lastNamePlaceholder` | src/screens/shared/EditProfileScreen.js:173 / \|\| screen fallback | Soyadınızı girin | Enter your last name | Voer uw achternaam in |
+| `editProfile.phone` | src/screens/shared/EditProfileScreen.js:183 / existing:nl,es,it | Telefon | Phone | Telefoon |
+| `editProfile.updateFailed` | src/screens/shared/EditProfileScreen.js:76 / \|\| screen fallback | Profil güncellenemedi | Could not update profile | Profiel kon niet worden bijgewerkt |
+| `editProfile.updated` | src/screens/shared/EditProfileScreen.js:63 / \|\| screen fallback | Profil güncellendi | Profile updated | Profiel bijgewerkt |
+| `geocode.addressLoadFailed` | src/screens/admin/VehicleTrackScreen.js:1277 / \|\| screen fallback | Adres yüklenemedi | Could not load address | Adres kon niet worden geladen |
+| `geocode.addressNotFound` | src/screens/admin/VehicleTrackScreen.js:873 / \|\| screen fallback | Adres bulunamadı | Address not found | Adres niet gevonden |
+| `geofence.tapEditToManage` | src/screens/admin/AdminGeofenceScreen.js:1355 / defaultValue | Yönetmek için dokunun | Tap to manage | Tik om te beheren |
+| `offerDetail.contactAdmin` | src/screens/driver/TaskOfferDetail.js:580 / \|\| screen fallback | Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin. | No vehicle is assigned to this task. Please contact an admin. | Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder. |
+| `offerDetail.goToMap` | src/screens/driver/TaskOfferDetail.js:428 / \|\| screen fallback | Haritaya Git | Go to Map | Naar de kaart |
+| `offerDetail.goToTasks` | src/screens/driver/TaskOfferDetail.js:432 / \|\| screen fallback | Görevlerime Dön | Back to My Tasks | Terug naar mijn taken |
+| `offerDetail.noVehicleAssigned` | src/screens/driver/TaskOfferDetail.js:423 / \|\| screen fallback | Görev kabul edildi. Araç atanmamış, admin bilgilendirilecek. | Task accepted. No vehicle is assigned; an admin will be notified. | Taak geaccepteerd. Er is geen voertuig toegewezen; een beheerder wordt geïnformeerd. |
+| `offerDetail.taskAccepted` | src/screens/driver/TaskOfferDetail.js:419 / \|\| screen fallback | ✅ Görev Kabul Edildi | ✅ Task Accepted | ✅ Taak geaccepteerd |
+| `offerDetail.trackOnMap` | src/screens/driver/TaskOfferDetail.js:421 / \|\| screen fallback | Görevi haritada takip etmek ister misiniz? | Would you like to track the task on the map? | Wilt u de taak op de kaart volgen? |
+| `offerDetail.vehicleNotAssigned` | src/screens/driver/TaskOfferDetail.js:579 / \|\| screen fallback | Araç Atanmamış | Vehicle Not Assigned | Voertuig niet toegewezen |
+| `register.confirmPassword` | src/screens/auth/RegisterScreen.js:420 / \|\| screen fallback | Şifre (Tekrar) | Password (Confirm) | Wachtwoord (bevestigen) |
+| `register.confirmPasswordHint` | src/screens/auth/RegisterScreen.js:428 / \|\| screen fallback | Şifreyi tekrar girin | Re-enter the password | Voer het wachtwoord opnieuw in |
+| `register.createAccount` | src/screens/auth/RegisterScreen.js:303 / \|\| screen fallback | Yeni Hesap Oluştur | Create New Account | Nieuw account aanmaken |
+| `register.driverRegistration` | src/screens/auth/RegisterScreen.js:296 / \|\| screen fallback | Sürücü Kaydı | Driver Registration | Chauffeursregistratie |
+| `register.errors.confirmPasswordRequired` | src/screens/auth/RegisterScreen.js:218 / \|\| screen fallback | Şifre tekrar gerekli | Please confirm the password | Bevestig het wachtwoord |
+| `register.errors.emailInvalid` | src/screens/auth/RegisterScreen.js:204 / \|\| screen fallback | Geçersiz email formatı | Invalid email format | Ongeldig e-mailformaat |
+| `register.errors.emailRequired` | src/screens/auth/RegisterScreen.js:201 / \|\| screen fallback | Email gerekli | Email is required | E-mail is verplicht |
+| `register.errors.firstNameRequired` | src/screens/auth/RegisterScreen.js:194 / \|\| screen fallback | Ad gerekli | First name is required | Voornaam is verplicht |
+| `register.errors.lastNameRequired` | src/screens/auth/RegisterScreen.js:198 / \|\| screen fallback | Soyad gerekli | Last name is required | Achternaam is verplicht |
+| `register.errors.licenseRequired` | src/screens/auth/RegisterScreen.js:225 / \|\| screen fallback | Ehliyet numarası gerekli | License number is required | Rijbewijsnummer is verplicht |
+| `register.errors.passwordMismatch` | src/screens/auth/RegisterScreen.js:221 / \|\| screen fallback | Şifreler eşleşmiyor | Passwords do not match | Wachtwoorden komen niet overeen |
+| `register.errors.passwordRequired` | src/screens/auth/RegisterScreen.js:211 / \|\| screen fallback | Şifre gerekli | Password is required | Wachtwoord is verplicht |
+| `register.errors.passwordShort` | src/screens/auth/RegisterScreen.js:214 / \|\| screen fallback | Şifre en az 6 karakter olmalı | Password must be at least 6 characters | Wachtwoord moet minstens 6 tekens zijn |
+| `register.errors.phoneRequired` | src/screens/auth/RegisterScreen.js:207 / \|\| screen fallback | Telefon gerekli | Phone is required | Telefoon is verplicht |
+| `register.failed` | src/screens/auth/RegisterScreen.js:261 / \|\| screen fallback | Kayıt başarısız | Registration failed | Registratie mislukt |
+| `register.firstName` | src/screens/auth/RegisterScreen.js:309 / \|\| screen fallback | Ad | First Name | Voornaam |
+| `register.hasAccount` | src/screens/auth/RegisterScreen.js:468 / \|\| screen fallback | Zaten hesabınız var mı? | Already have an account? | Heeft u al een account? |
+| `register.infoText` | src/screens/auth/RegisterScreen.js:482 / \|\| screen fallback | Kayıt sonrası yönetici onayı gereklidir. Onay sürecinden sonra giriş yapabilirsiniz. Sorularınız için: destek@tulipfleet.com | Admin approval is required after registration. You can sign in after approval. Questions: destek@tulipfleet.com | Na registratie is goedkeuring van de beheerder vereist. U kunt inloggen na goedkeuring. Vragen: destek@tulipfleet.com |
+| `register.infoTitle` | src/screens/auth/RegisterScreen.js:479 / \|\| screen fallback | Bilgi | Info | Info |
+| `register.lastName` | src/screens/auth/RegisterScreen.js:327 / \|\| screen fallback | Soyad | Last Name | Achternaam |
+| `register.licenseNumber` | src/screens/auth/RegisterScreen.js:383 / \|\| screen fallback | Ehliyet No | License No | Rijbewijsnummer |
+| `register.passwordHint` | src/screens/auth/RegisterScreen.js:404 / \|\| screen fallback | En az 6 karakter | At least 6 characters | Minstens 6 tekens |
+| `register.phone` | src/screens/auth/RegisterScreen.js:364 / \|\| screen fallback | Telefon | Phone | Telefoon |
+| `register.submit` | src/screens/auth/RegisterScreen.js:456 / \|\| screen fallback | Kayıt Ol | Register | Registreren |
+| `register.successMessage` | src/screens/auth/RegisterScreen.js:247 / \|\| screen fallback | Kaydınız alındı. Yönetici onayından sonra giriş yapabilirsiniz. | Your registration was received. You can sign in after admin approval. | Uw registratie is ontvangen. U kunt inloggen na goedkeuring van de beheerder. |
+| `register.successTitle` | src/screens/auth/RegisterScreen.js:245 / \|\| screen fallback | Başarılı! | Success! | Gelukt! |
+| `reportExport.cancel` | src/screens/admin/VehicleTrackScreen.js:1710 / \|\| screen fallback | İptal | Cancel | Annuleren |
+| `reportExport.exportError` | src/screens/admin/VehicleTrackScreen.js:975 / \|\| screen fallback | Dışa aktarma hatası | Export error | Exportfout |
+| `reportExport.shareCsv` | src/screens/admin/VehicleTrackScreen.js:1702 / \|\| screen fallback | CSV Paylaş | Share CSV | CSV delen |
+| `reportExport.shareError` | src/screens/admin/VehicleTrackScreen.js:977 / \|\| screen fallback | Paylaşım hatası | Share error | Deelfout |
+| `reportExport.sharePdf` | src/screens/admin/VehicleTrackScreen.js:1693 / \|\| screen fallback | PDF Paylaş | Share PDF | PDF delen |
+| `reportExport.title` | src/screens/admin/VehicleTrackScreen.js:1681 / \|\| screen fallback | Raporu Dışa Aktar | Export Report | Rapport exporteren |
+| `routeMap.odometerPrompt` | src/screens/driver/DriverRouteMapScreen.js:2084 / defaultValue | Araç km sayacını girin (isteğe bağlı): | Enter vehicle odometer reading (optional): | Voer de kilometerstand in (optioneel): |
+| `sos.callSubText` | src/screens/driver/DriverSOSScreen.js:337 / defaultValue | Telefon uygulaması açılır, siz arama başlatırsınız | The phone app opens; you start the call | De telefoon-app opent; u start het gesprek |
+| `sos.sending` | src/screens/driver/DriverSOSScreen.js:379 / defaultValue | Konum alınıyor ve SOS gönderiliyor... | Getting location and sending SOS... | Locatie ophalen en SOS verzenden... |
+| `sos.warningText` | src/screens/driver/DriverSOSScreen.js:316 / \|\| screen fallback | Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır. | Use this screen only for real emergencies. False alarms may have legal consequences. | Gebruik dit scherm alleen bij echte noodgevallen. Valse alarmen kunnen juridische gevolgen hebben. |
+| `taskDetail.vehicleNotAssigned` | src/screens/driver/DriverTaskDetail.js:447 / existing:nl,es,it | Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin. | No vehicle is assigned to this task. Please contact an admin. | Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder. |
+| `tasks.contactAdmin` | src/screens/driver/DriverTasks.js:553 / defaultValue | Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin. | No vehicle is assigned to this task. Please contact an admin. | Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder. |
+| `tasks.noVehicleAssigned` | src/screens/driver/DriverTasks.js:552 / defaultValue | Araç Atanmamış | Vehicle Not Assigned | Voertuig niet toegewezen |
+| `units.kmh` | src/screens/admin/VehicleTrackScreen.js:1629 / \|\| screen fallback | km/s | km/h | km/u |
+| `vehicle.lastRefuel` | src/screens/driver/DriverVehicle.js:531 / \|\| screen fallback | Son yakıt | Last refuel | Laatste tankbeurt |
+| `vehicleTrack.tripDetail.title` | src/screens/admin/VehicleTrackScreen.js:1305 / \|\| screen fallback | Sefer {{number}} | Trip {{number}} | Rit {{number}} |
+| `wifi.bleConnectionLost` | src/screens/driver/WiFiPickerScreen.js:264 / \|\| screen fallback | ESP32 ile bağlantı kopmuş. Kurulumu yeniden başlatın. | ESP32 connection was lost. Restart the setup. | De ESP32-verbinding is verbroken. Start de installatie opnieuw. |
+| `wifi.bleDisconnected` | src/screens/driver/WiFiPickerScreen.js:241 / \|\| screen fallback | ESP32 bağlantısı kesildi. Lütfen tekrar deneyin. | ESP32 disconnected. Please try again. | ESP32-verbinding verbroken. Probeer het opnieuw. |
+| `wifi.bleError` | src/screens/driver/WiFiPickerScreen.js:280 / \|\| screen fallback | BLE bağlantı hatası:  | BLE connection error:  | BLE-verbindingsfout:  |
+| `wifi.connectDevice` | src/screens/driver/WiFiPickerScreen.js:425 / \|\| screen fallback | Cihazı internete bağlayalım | Let's connect the device to the internet | Laten we het apparaat met internet verbinden |
+| `wifi.connectionError` | src/screens/driver/WiFiPickerScreen.js:263 / \|\| screen fallback | Bağlantı Hatası | Connection Error | Verbindingsfout |
+| `wifi.encOpen` | src/screens/driver/WiFiPickerScreen.js:396 / \|\| screen fallback | Açık | Open | Open |
+| `wifi.encSecured` | src/screens/driver/WiFiPickerScreen.js:400 / \|\| screen fallback | Şifreli | Secured | Beveiligd |
+| `wifi.firmwareNoSupport` | src/screens/driver/WiFiPickerScreen.js:336 / \|\| screen fallback | ESP32 firmware'i WiFi scan desteklemiyor. Firmware güncelleyin. | ESP32 firmware does not support WiFi scan. Please update the firmware. | ESP32-firmware ondersteunt geen WiFi-scan. Werk de firmware bij. |
+| `wifi.invalidData` | src/screens/driver/WiFiPickerScreen.js:340 / \|\| screen fallback | ESP32'den geçersiz veri geldi. Yeniden deneyin. | Invalid data received from ESP32. Please try again. | Ongeldige gegevens van ESP32 ontvangen. Probeer het opnieuw. |
+| `wifi.manualEntry` | src/screens/driver/WiFiPickerScreen.js:516 / \|\| screen fallback | Manuel Giriş | Manual Entry | Handmatige invoer |
+| `wifi.no5GHz` | src/screens/driver/WiFiPickerScreen.js:358 / \|\| screen fallback | Bu ağ 5GHz bandında. ESP32 sadece 2.4GHz ağları destekler. Başka bir ağ seçin. | This network is on the 5GHz band. ESP32 only supports 2.4GHz networks. Choose another network. | Dit netwerk zit op de 5GHz-band. ESP32 ondersteunt alleen 2.4GHz-netwerken. Kies een ander netwerk. |
+| `wifi.noNetworks` | src/screens/driver/WiFiPickerScreen.js:318 / \|\| screen fallback | WiFi ağı bulunamadı. ESP32'nin açık olduğundan emin olun. | No WiFi networks found. Make sure the ESP32 is on. | Geen WiFi-netwerken gevonden. Controleer of de ESP32 aan staat. |
+| `wifi.rescan` | src/screens/driver/WiFiPickerScreen.js:529 / \|\| screen fallback | Yeniden Tara | Rescan | Opnieuw scannen |
+| `wifi.retry` | src/screens/driver/WiFiPickerScreen.js:460 / \|\| screen fallback | Yeniden Dene | Retry | Opnieuw proberen |
+| `wifi.scanDuration` | src/screens/driver/WiFiPickerScreen.js:412 / \|\| screen fallback | Bu 5-10 saniye sürebilir | This may take 5–10 seconds | Dit kan 5–10 seconden duren |
+| `wifi.scanFailed` | src/screens/driver/WiFiPickerScreen.js:325 / \|\| screen fallback | WiFi taraması başarısız | WiFi scan failed | WiFi-scan mislukt |
+| `wifi.scanning` | src/screens/driver/WiFiPickerScreen.js:409 / \|\| screen fallback | WiFi ağları taranıyor... | Scanning WiFi networks... | WiFi-netwerken worden gescand... |
+| `wifi.scanningShort` | src/screens/driver/WiFiPickerScreen.js:528 / \|\| screen fallback | Taranıyor... | Scanning... | Scannen... |
+| `wifi.selectNetwork` | src/screens/driver/WiFiPickerScreen.js:422 / \|\| screen fallback | WiFi Seçin | Select WiFi | Selecteer WiFi |
+| `wifi.unsupported` | src/screens/driver/WiFiPickerScreen.js:491 / \|\| screen fallback | Desteklenmiyor | Unsupported | Niet ondersteund |
+| `wifi.vehicle` | src/screens/driver/WiFiPickerScreen.js:428 / \|\| screen fallback | Araç | Vehicle | Voertuig |
+
+## SUSPECT (dil bazında)
+
+DE / FR / ES / IT / BG — aşağıdaki Cursor çevirileri native review bekler (TR/EN/NL SUSPECT dışı; 1a/1b status kopyaları ve geofence_entry/exit kopyaları SUSPECT dışı):
+
+- Adım 1 yazılan (kopya olmayan): `adminTasks.priority.*`, `adminDrivers.status.*`, `adminVehicles.status|categories|fuelTypes.*`, `adminAlerts.types.{task_*,speeding,harsh_brake}`, `taskDetail.events.*`
+- Adım 2g: tablodaki 133 key'in DE/FR/ES/IT/BG değerleri
+
+## UNRESOLVED
+
+Yok (0). 133 key'in tümü ekran bağlamından veya mevcut dil değerinden türetildi.
+
+## KU_OMITTED (131)
+
+2g patch'inde `ku` yok (tr fallback çalışır). Zaten ku'da bulunan 2 key hariç:
+
+- `deviceSetup.connecting` (ku: "Tê girêdan...")
+- `routeMap.odometerPrompt` (ku: "Mîlometreya wesayîtê binivîsin (bijarte):")
+
+KU_OMITTED listesi:
+
+- `about.aboutText`
+- `about.aboutTitle`
+- `about.aiPowered`
+- `about.allRightsReserved`
+- `about.builtWith`
+- `about.claudeDescription`
+- `about.contact`
+- `about.featureESP32`
+- `about.featureFleet`
+- `about.featureFuel`
+- `about.featureTasks`
+- `about.featureTracking`
+- `about.features`
+- `about.links`
+- `about.madeWith`
+- `about.privacyPolicy`
+- `about.tagline`
+- `about.termsOfService`
+- `about.website`
+- `admin.selectLanguage`
+- `admin.total`
+- `alerts.warning`
+- `changePassword.allFieldsRequired`
+- `changePassword.confirmPassword`
+- `changePassword.confirmPlaceholder`
+- `changePassword.currentPassword`
+- `changePassword.currentPlaceholder`
+- `changePassword.failed`
+- `changePassword.hint`
+- `changePassword.minLength`
+- `changePassword.mismatch`
+- `changePassword.newPassword`
+- `changePassword.newPlaceholder`
+- `changePassword.samePassword`
+- `changePassword.submit`
+- `changePassword.successMessage`
+- `changePassword.successTitle`
+- `common.cannotOpenLink`
+- `common.info`
+- `common.invalidHour`
+- `common.optional`
+- `common.vehicle`
+- `dashboard.activeVehicles`
+- `dashboard.trafficClear`
+- `deviceAssignment.confirmAssignment`
+- `deviceAssignment.scanQR`
+- `deviceAssignment.vehicle`
+- `deviceSetup.connectionError`
+- `editProfile.changePhoto`
+- `editProfile.email`
+- `editProfile.emailReadonly`
+- `editProfile.firstName`
+- `editProfile.firstNamePlaceholder`
+- `editProfile.firstNameRequired`
+- `editProfile.lastName`
+- `editProfile.lastNamePlaceholder`
+- `editProfile.phone`
+- `editProfile.updateFailed`
+- `editProfile.updated`
+- `geocode.addressLoadFailed`
+- `geocode.addressNotFound`
+- `geofence.tapEditToManage`
+- `offerDetail.contactAdmin`
+- `offerDetail.goToMap`
+- `offerDetail.goToTasks`
+- `offerDetail.noVehicleAssigned`
+- `offerDetail.taskAccepted`
+- `offerDetail.trackOnMap`
+- `offerDetail.vehicleNotAssigned`
+- `register.confirmPassword`
+- `register.confirmPasswordHint`
+- `register.createAccount`
+- `register.driverRegistration`
+- `register.errors.confirmPasswordRequired`
+- `register.errors.emailInvalid`
+- `register.errors.emailRequired`
+- `register.errors.firstNameRequired`
+- `register.errors.lastNameRequired`
+- `register.errors.licenseRequired`
+- `register.errors.passwordMismatch`
+- `register.errors.passwordRequired`
+- `register.errors.passwordShort`
+- `register.errors.phoneRequired`
+- `register.failed`
+- `register.firstName`
+- `register.hasAccount`
+- `register.infoText`
+- `register.infoTitle`
+- `register.lastName`
+- `register.licenseNumber`
+- `register.passwordHint`
+- `register.phone`
+- `register.submit`
+- `register.successMessage`
+- `register.successTitle`
+- `reportExport.cancel`
+- `reportExport.exportError`
+- `reportExport.shareCsv`
+- `reportExport.shareError`
+- `reportExport.sharePdf`
+- `reportExport.title`
+- `sos.callSubText`
+- `sos.sending`
+- `sos.warningText`
+- `taskDetail.vehicleNotAssigned`
+- `tasks.contactAdmin`
+- `tasks.noVehicleAssigned`
+- `units.kmh`
+- `vehicle.lastRefuel`
+- `vehicleTrack.tripDetail.title`
+- `wifi.bleConnectionLost`
+- `wifi.bleDisconnected`
+- `wifi.bleError`
+- `wifi.connectDevice`
+- `wifi.connectionError`
+- `wifi.encOpen`
+- `wifi.encSecured`
+- `wifi.firmwareNoSupport`
+- `wifi.invalidData`
+- `wifi.manualEntry`
+- `wifi.no5GHz`
+- `wifi.noNetworks`
+- `wifi.rescan`
+- `wifi.retry`
+- `wifi.scanDuration`
+- `wifi.scanFailed`
+- `wifi.scanning`
+- `wifi.scanningShort`
+- `wifi.selectNetwork`
+- `wifi.unsupported`
+- `wifi.vehicle`
+
+## Adım 3 — kod diff (satır satır)
+
+### 3a `src/screens/admin/AdminAlerts.js`
+
+Canlı tipler eklendi. Arama: tam eşleşme → `type.toLowerCase()` → `default` (DB `SOS` → `sos`). `HARD_BRAKE` / `OVERSPEED` kaldı.
+
+Statik kanıt (`Select-String`): `toLowerCase` L372; `task_offered` L109; `harsh_brake` L144; `HARD_BRAKE` L42; `OVERSPEED` L67.
+
+```diff
+   sos: { ... i18nKey: "adminAlerts.types.sos" },
++  task_offered: { severity: "info", icon: "notifications", i18nKey: "adminAlerts.types.task_offered" },
++  task_accepted: { severity: "info", icon: "checkmark-circle", i18nKey: "adminAlerts.types.task_accepted" },
++  task_started: { severity: "info", icon: "play", i18nKey: "adminAlerts.types.task_started" },
++  task_completed: { severity: "info", icon: "checkmark-done", i18nKey: "adminAlerts.types.task_completed" },
++  task_rejected: { severity: "warning", icon: "close-circle", i18nKey: "adminAlerts.types.task_rejected" },
++  task_withdrawn: { severity: "warning", icon: "arrow-undo", i18nKey: "adminAlerts.types.task_withdrawn" },
++  speeding: { severity: "critical", icon: "speedometer", i18nKey: "adminAlerts.types.speeding" },
++  harsh_brake: { severity: "critical", icon: "warning", i18nKey: "adminAlerts.types.harsh_brake" },
+   default: { ... },
+ 
+ const getAlertConfig = (alertType) =>
+   ALERT_CONFIG_MAP[alertType] ||
+-  ALERT_CONFIG_MAP[alertType?.toUpperCase?.()] ||
++  ALERT_CONFIG_MAP[alertType?.toLowerCase?.()] ||
+   ALERT_CONFIG_MAP.default;
+```
+
+### 3b `src/screens/admin/fuel/AdminFuelDashboard.js`
+
+Canlı küme: `truck_heavy`, `truck_medium`, `van`. Benchmark **sayıları değişmedi**. Kaldırılan satırlar:
+
+| kaldırılan key | i18nKey | avg | good | excellent |
+|---|---|---|---|---|
+| `heavy_truck` (rename → `truck_heavy`) | fuelDash.bmHeavyTruck | 30 | 27 | 24 |
+| `medium_truck` (rename → `truck_medium`) | fuelDash.bmMediumTruck | 22 | 19 | 16 |
+| `light_commercial` | fuelDash.bmLightCommercial | 10 | 8.5 | 7 |
+| `car` | fuelDash.bmCar | 7 | 6 | 5 |
+
+Companion: `useState("light_commercial")` → `useState("van")` (aksi halde L978 crash). Sözlükteki `bmLightCommercial` / `bmCar` key'leri silinmedi.
+
+Statik kanıt: `truck_heavy` L110; `truck_medium` L116; `useState("van")` L206.
+
+## `git diff --stat i18n-mobile-p1...HEAD`
+
+```
+scripts/i18n-dynamic-roots.json              |    2 +-
+ scripts/i18n-patches/p0fix-code-keys.json    | 1332 ++++++++++++++++++++++++++
+ scripts/i18n-patches/p0fix-manifest.json     |  563 +++++++++++
+ scripts/verify-i18n.mjs                      |   38 +-
+ src/locales/bg.json                          |  251 ++++-
+ src/locales/de.json                          |  248 ++++-
+ src/locales/en.json                          |  252 ++++-
+ src/locales/es.json                          |  239 ++++-
+ src/locales/fr.json                          |  248 ++++-
+ src/locales/it.json                          |  243 ++++-
+ src/locales/ku.json                          |   76 +-
+ src/locales/nl.json                          |  241 ++++-
+ src/locales/tr.json                          |  255 ++++-
+ src/screens/admin/AdminAlerts.js             |   42 +-
+ src/screens/admin/fuel/AdminFuelDashboard.js |   14 +-
+ 15 files changed, 3851 insertions(+), 193 deletions(-)
+```
+
+Commit 4 bu dosyayı ekler; `git status --short` commit 4 sonrası boş beklenir.
+
+## Kapsam dışı — sonraki paket adayı
+
+- `config.js` `ALERT_TYPES` (P2)
+- `DriverDashboard` incident etiketleri (P2)
+- `formatDate` locale (P2)
+- Union simetri: tr/en/bg vs union missing ~300 (auth.*, assignment.*, changePassword.error/save/success/title, dashboard.activeTask, …) — extra key'ler diğer dillerde, bu pakette dokunulmadı
+- KU_OMITTED 131 key (isterseniz ayrı KU paketi)
+- JSDoc-only `t()` (`StatusBadge.js:37` `alerts.warning`, `StatCard.js:25` `dashboard.activeVehicles`) — verify regex yakaladı, sözlüğe eklendi; yorum temizliği P2
+- `AdminAlerts` `geofence_entry` hâlâ `adminAlerts.types.geofenceEntry` i18nKey (snake_case kopya da var; kod değişmedi)
+- Kullanılmayan `fuelDash.bmCar` / `fuelDash.bmLightCommercial` sözlük artığı
+- `it.json` `tasks.statuses.*` hâlâ İngilizce (1b kopyası adminTasks.status.it'ye de taşındı)
+- P0 `expo-doctor` 2/18
+
+Başka hardcoded/i18n bulgusu bu pakette **değiştirilmedi**.
+
+## Appendix A — verify BEFORE (tam stdout)
+
+```
+TulipFleet i18n verify
+reference=UNION (2077 keys)  intersection=1757  strict=false
+
+lang  keys  missing  extra
+----  ----  -------  -----
+tr    1757      320      0
+en    1764      313      7
+nl    1875      202    118
+de    1785      292     28
+fr    1785      292     28
+es    1826      251     69
+it    1806      271     49
+bg    1759      318      2
+ku    1893      184    136
+
+interp mismatches: 0
+
+code static keys not in union: 119
+  about.aboutText
+  about.aboutTitle
+  about.aiPowered
+  about.allRightsReserved
+  about.builtWith
+  about.claudeDescription
+  about.contact
+  about.featureESP32
+  about.featureFleet
+  about.featureFuel
+  about.featureTasks
+  about.featureTracking
+  about.features
+  about.links
+  about.madeWith
+  about.privacyPolicy
+  about.tagline
+  about.termsOfService
+  about.website
+  admin.selectLanguage
+  alerts.warning
+  changePassword.allFieldsRequired
+  changePassword.confirmPlaceholder
+  changePassword.currentPlaceholder
+  changePassword.failed
+  changePassword.hint
+  changePassword.minLength
+  changePassword.newPlaceholder
+  changePassword.samePassword
+  changePassword.submit
+  changePassword.successMessage
+  changePassword.successTitle
+  common.cannotOpenLink
+  common.info
+  common.invalidHour
+  common.optional
+  common.vehicle
+  dashboard.activeVehicles
+  deviceAssignment.confirmAssignment
+  deviceAssignment.scanQR
+  deviceAssignment.vehicle
+  deviceSetup.connectionError
+  editProfile.changePhoto
+  editProfile.emailReadonly
+  editProfile.firstNamePlaceholder
+  editProfile.firstNameRequired
+  editProfile.lastNamePlaceholder
+  editProfile.updateFailed
+  editProfile.updated
+  geocode.addressLoadFailed
+  geocode.addressNotFound
+  offerDetail.contactAdmin
+  offerDetail.goToMap
+  offerDetail.goToTasks
+  offerDetail.noVehicleAssigned
+  offerDetail.taskAccepted
+  offerDetail.trackOnMap
+  offerDetail.vehicleNotAssigned
+  register.confirmPassword
+  register.confirmPasswordHint
+  register.createAccount
+  register.driverRegistration
+  register.errors.confirmPasswordRequired
+  register.errors.emailInvalid
+  register.errors.emailRequired
+  register.errors.firstNameRequired
+  register.errors.lastNameRequired
+  register.errors.licenseRequired
+  register.errors.passwordMismatch
+  register.errors.passwordRequired
+  register.errors.passwordShort
+  register.errors.phoneRequired
+  register.failed
+  register.firstName
+  register.hasAccount
+  register.infoText
+  register.infoTitle
+  register.lastName
+  register.licenseNumber
+  register.passwordHint
+  register.phone
+  register.submit
+  register.successMessage
+  register.successTitle
+  reportExport.cancel
+  reportExport.exportError
+  reportExport.shareCsv
+  reportExport.shareError
+  reportExport.sharePdf
+  reportExport.title
+  sos.callSubText
+  sos.sending
+  sos.warningText
+  tasks.contactAdmin
+  tasks.noVehicleAssigned
+  units.kmh
+  vehicle.lastRefuel
+  vehicleTrack.tripDetail.title
+  wifi.bleConnectionLost
+  wifi.bleDisconnected
+  wifi.bleError
+  wifi.connectDevice
+  wifi.connectionError
+  wifi.encOpen
+  wifi.encSecured
+  wifi.firmwareNoSupport
+  wifi.invalidData
+  wifi.manualEntry
+  wifi.no5GHz
+  wifi.noNetworks
+  wifi.rescan
+  wifi.retry
+  wifi.scanDuration
+  wifi.scanFailed
+  wifi.scanning
+  wifi.scanningShort
+  wifi.selectNetwork
+  wifi.unsupported
+  wifi.vehicle
+
+code static keys missing in tr (fallbackLng): 133
+  about.aboutText  default="TulipFleet, lojistik şirketleri için geliştirilmiş kapsamlı bir filo yönetim platformudur. Gerçek zamanlı araç takibi, sürücü yönetimi, görev atama ve yakıt takibi gibi özelliklerle filonuzu verimli bir şekilde yönetmenizi sağlar."
+  about.aboutTitle  default="TulipFleet Hakkında"
+  about.aiPowered  default="AI-Powered Development"
+  about.allRightsReserved  default="Tüm hakları saklıdır."
+  about.builtWith  default="Yapay Zeka ile Geliştirildi"
+  about.claudeDescription  default="Bu uygulama, Anthropic tarafından geliştirilen Claude Opus 4.5 yapay zeka modeli ile tasarlanıp kodlanmıştır. Modern yazılım geliştirme ve yapay zeka işbirliğinin bir örneği olarak ortaya çıkmıştır."
+  about.contact  default="İletişim"
+  about.featureESP32  default="ESP32 IoT entegrasyonu"
+  about.featureFleet  default="Filo yönetimi"
+  about.featureFuel  default="Yakıt ve kilometre takibi"
+  about.featureTasks  default="Görev atama ve takibi"
+  about.featureTracking  default="Gerçek zamanlı GPS takibi"
+  about.features  default="Özellikler"
+  about.links  default="Bağlantılar"
+  about.madeWith
+  about.privacyPolicy  default="Gizlilik Politikası"
+  about.tagline  default="Profesyonel Filo Yönetim Sistemi"
+  about.termsOfService  default="Kullanım Şartları"
+  about.website  default="Web Sitesi"
+  admin.selectLanguage  default="Dil Seçin"
+  admin.total  default="toplam"
+  alerts.warning
+  changePassword.allFieldsRequired
+  changePassword.confirmPassword  (in union, not tr)
+  changePassword.confirmPlaceholder
+  changePassword.currentPassword  (in union, not tr)
+  changePassword.currentPlaceholder
+  changePassword.failed
+  changePassword.hint
+  changePassword.minLength
+  changePassword.mismatch  (in union, not tr)
+  changePassword.newPassword  (in union, not tr)
+  changePassword.newPlaceholder
+  changePassword.samePassword
+  changePassword.submit
+  changePassword.successMessage
+  changePassword.successTitle
+  common.cannotOpenLink  default="Link aÃ§Ä±lamadÄ±"
+  common.info
+  common.invalidHour  default="Geçerli saat aralığı 0–23 olmalıdır."
+  common.optional  default="(opsiyonel)"
+  common.vehicle  default="Vehicle"
+  dashboard.activeVehicles
+  dashboard.trafficClear  (in union, not tr)
+  deviceAssignment.confirmAssignment
+  deviceAssignment.scanQR
+  deviceAssignment.vehicle
+  deviceSetup.connecting  (in union, not tr)
+  deviceSetup.connectionError
+  editProfile.changePhoto
+  editProfile.email  (in union, not tr)
+  editProfile.emailReadonly
+  editProfile.firstName  (in union, not tr)
+  editProfile.firstNamePlaceholder
+  editProfile.firstNameRequired
+  editProfile.lastName  (in union, not tr)
+  editProfile.lastNamePlaceholder
+  editProfile.phone  (in union, not tr)
+  editProfile.updateFailed
+  editProfile.updated
+  geocode.addressLoadFailed
+  geocode.addressNotFound
+  geofence.tapEditToManage  default="Tap to manage"
+  offerDetail.contactAdmin
+  offerDetail.goToMap
+  offerDetail.goToTasks
+  offerDetail.noVehicleAssigned
+  offerDetail.taskAccepted
+  offerDetail.trackOnMap
+  offerDetail.vehicleNotAssigned
+  register.confirmPassword
+  register.confirmPasswordHint
+  register.createAccount
+  register.driverRegistration
+  register.errors.confirmPasswordRequired
+  register.errors.emailInvalid
+  register.errors.emailRequired
+  register.errors.firstNameRequired
+  register.errors.lastNameRequired
+  register.errors.licenseRequired
+  register.errors.passwordMismatch
+  register.errors.passwordRequired
+  register.errors.passwordShort
+  register.errors.phoneRequired
+  register.failed
+  register.firstName
+  register.hasAccount
+  register.infoText
+  register.infoTitle
+  register.lastName
+  register.licenseNumber
+  register.passwordHint
+  register.phone
+  register.submit
+  register.successMessage
+  register.successTitle
+  reportExport.cancel
+  reportExport.exportError
+  reportExport.shareCsv
+  reportExport.shareError
+  reportExport.sharePdf
+  reportExport.title
+  routeMap.odometerPrompt  default="Araç km sayacını girin (isteğe bağlı):"
+  sos.callSubText  default="Telefon uygulaması açılır, siz arama başlatırsınız"
+  sos.sending  default="Konum alınıyor ve SOS gönderiliyor..."
+  sos.warningText
+  taskDetail.vehicleNotAssigned  (in union, not tr)
+  tasks.contactAdmin  default="Bu gÃ¶reve araÃ§ atanmamÄ±ÅŸ. LÃ¼tfen admin ile iletiÅŸime geÃ§in."
+  tasks.noVehicleAssigned  default="AraÃ§ AtanmamÄ±ÅŸ"
+  units.kmh
+  vehicle.lastRefuel
+  vehicleTrack.tripDetail.title
+  wifi.bleConnectionLost
+  wifi.bleDisconnected
+  wifi.bleError
+  wifi.connectDevice
+  wifi.connectionError
+  wifi.encOpen
+  wifi.encSecured
+  wifi.firmwareNoSupport
+  wifi.invalidData
+  wifi.manualEntry
+  wifi.no5GHz
+  wifi.noNetworks
+  wifi.rescan
+  wifi.retry
+  wifi.scanDuration
+  wifi.scanFailed
+  wifi.scanning
+  wifi.scanningShort
+  wifi.selectNetwork
+  wifi.unsupported
+  wifi.vehicle
+
+dynamic roots in code:
+  adminDrivers.status  (1)  ok
+  adminTasks.priority  (1)  ok
+  adminTasks.status  (1)  ok
+  adminVehicles.categories  (1)  ok
+  adminVehicles.fuelTypes  (1)  ok
+  adminVehicles.status  (1)  ok
+  driveAssist.incident  (1)  ok
+  geofence.categories  (1)  ok
+  reports.filter  (1)  ok
+  reports.placeholder  (2)  ok
+  reports.tabs  (1)  ok
+  task.statuses  (1)  ok
+  taskDetail.events  (1)  ok
+  taskDetail.statuses  (1)  ok
+  taskDetail.waypoints  (1)  ok
+  tasks.statuses  (1)  ok
+
+manifest subkey missing: 459
+  task.statuses.withdrawn  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.statuses.withdrawn  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.pending  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.pending_review  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.accepted  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.assigned  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.rejected  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.in_progress  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.completed  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.cancelled  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.status.withdrawn  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.priority.low  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.priority.normal  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.priority.high  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminTasks.priority.urgent  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_accepted  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_started  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_completed  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_withdrawn  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_offered  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.task_rejected  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.geofence_entry  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.geofence_exit  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.SOS  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.speeding  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminAlerts.types.harsh_brake  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.status.available  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.status.in_use  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.status.maintenance  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.status.retired  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.categories.truck_heavy  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.categories.truck_medium  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.categories.van  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.fuelTypes.diesel  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.fuelTypes.gasoline  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.fuelTypes.electric  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.fuelTypes.hybrid  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminVehicles.fuelTypes.lpg  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminDrivers.status.available  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminDrivers.status.on_task  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminDrivers.status.task_pending  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminDrivers.status.on_leave  [tr,en,nl,de,fr,es,it,bg,ku]
+  adminDrivers.status.offline  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.TASK_COMPLETED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.TASK_STARTED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.TASK_ACCEPTED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.TASK_REJECTED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.TASK_WITHDRAWN  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.STOP_ARRIVED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.STOP_DEPARTED  [tr,en,nl,de,fr,es,it,bg,ku]
+  taskDetail.events.WAYPOINT_COMPLETED  [tr,en,nl,de,fr,es,it,bg,ku]
+
+encoding mojibake: 0
+
+[tr] missing vs union (320):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - routeMap.odometerPrompt
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[en] missing vs union (313):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[en] extra vs intersection (7):
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - routeMap.odometerPrompt
+[nl] missing vs union (202):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[nl] extra vs intersection (118):
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - routeMap.odometerPrompt
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - taskDetail.vehicleNotAssigned
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+[de] missing vs union (292):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - taskDetail.vehicleNotAssigned
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[de] extra vs intersection (28):
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - routeMap.odometerPrompt
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+[fr] missing vs union (292):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - taskDetail.vehicleNotAssigned
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[fr] extra vs intersection (28):
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - routeMap.odometerPrompt
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+[es] missing vs union (251):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.message
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[es] extra vs intersection (69):
+  - admin.total
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.retry
+  - deviceSetup.scanQR
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - routeMap.odometerPrompt
+  - taskDetail.vehicleNotAssigned
+  - tasks.taskRejectedMessage
+[it] missing vs union (271):
+  - admin.total
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - routeMap.odometerPrompt
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[it] extra vs intersection (49):
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.retry
+  - deviceSetup.scanQR
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - taskDetail.vehicleNotAssigned
+  - tasks.taskRejectedMessage
+[bg] missing vs union (318):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[bg] extra vs intersection (2):
+  - admin.total
+  - routeMap.odometerPrompt
+[ku] missing vs union (184):
+  - admin.total
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.confirmPassword
+  - changePassword.currentPassword
+  - changePassword.error
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - editProfile.email
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.lastName
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+[ku] extra vs intersection (136):
+  - adminAlerts.adminAlerts.mapButton
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connecting
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - routeMap.odometerPrompt
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+
+FAIL  errors=3154  warnings=437
+```
+
+## Appendix B — verify AFTER (tam stdout)
+
+```
+TulipFleet i18n verify
+reference=UNION (2246 keys)  intersection=1809  strict=false
+
+lang  keys  missing  extra
+----  ----  -------  -----
+tr    1940      306    131
+en    1946      300    137
+nl    2048      198    239
+de    1965      281    156
+fr    1965      281    156
+es    1997      249    188
+it    1979      267    170
+bg    1940      306    131
+ku    1943      303    134
+
+interp mismatches: 0
+
+code static keys not in union: 0
+
+code static keys missing in tr (fallbackLng): 0
+
+dynamic roots in code:
+  adminDrivers.status  (1)  ok
+  adminTasks.priority  (1)  ok
+  adminTasks.status  (1)  ok
+  adminVehicles.categories  (1)  ok
+  adminVehicles.fuelTypes  (1)  ok
+  adminVehicles.status  (1)  ok
+  driveAssist.incident  (1)  ok
+  geofence.categories  (1)  ok
+  reports.filter  (1)  ok
+  reports.placeholder  (2)  ok
+  reports.tabs  (1)  ok
+  task.statuses  (1)  ok
+  taskDetail.events  (1)  ok
+  taskDetail.statuses  (1)  ok
+  taskDetail.waypoints  (1)  ok
+  tasks.statuses  (1)  ok
+
+manifest subkey missing: 0
+
+encoding mojibake: 0
+
+[tr] missing vs union (306):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.error
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.error
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[tr] extra vs intersection (131):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.submit
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connectionError
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[en] missing vs union (300):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.error
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.error
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[en] extra vs intersection (137):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.submit
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connectionError
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.updateFailed
+  - editProfile.updated
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[nl] missing vs union (198):
+  - adminAlerts.adminAlerts.mapButton
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[nl] extra vs intersection (239):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.error
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.save
+  - changePassword.submit
+  - changePassword.success
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - changePassword.title
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.connectionError
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - units.kmh
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[de] missing vs union (281):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.error
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.error
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[de] extra vs intersection (156):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.submit
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeTask
+  - dashboard.activeVehicles
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connectionError
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.contactAdmin
+  - tasks.noTasks
+  - tasks.noVehicleAssigned
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[fr] missing vs union (281):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.error
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.error
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[fr] extra vs intersection (156):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.submit
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeTask
+  - dashboard.activeVehicles
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connectionError
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.contactAdmin
+  - tasks.noTasks
+  - tasks.noVehicleAssigned
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[es] missing vs union (249):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.message
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[es] extra vs intersection (188):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.error
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.save
+  - changePassword.submit
+  - changePassword.success
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - changePassword.title
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connected
+  - deviceSetup.connectionError
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.retry
+  - deviceSetup.scanQR
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - tasks.taskRejectedMessage
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[it] missing vs union (267):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[it] extra vs intersection (170):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.error
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.save
+  - changePassword.submit
+  - changePassword.success
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - changePassword.title
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connected
+  - deviceSetup.connectionError
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.retry
+  - deviceSetup.scanQR
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - editProfile.updateFailed
+  - editProfile.updated
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - tasks.taskRejectedMessage
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[bg] missing vs union (306):
+  - adminAlerts.adminAlerts.mapButton
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.error
+  - changePassword.save
+  - changePassword.success
+  - changePassword.title
+  - dashboard.activeTask
+  - dashboard.noActiveTask
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.enterSerial
+  - deviceSetup.error
+  - deviceSetup.failed
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - editProfile.error
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geofence.delete
+  - geofence.save
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.noTasks
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+[bg] extra vs intersection (131):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.submit
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeVehicles
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.connectionError
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.updateFailed
+  - editProfile.updated
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.tapEditToManage
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.contactAdmin
+  - tasks.noVehicleAssigned
+  - units.kmh
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[ku] missing vs union (303):
+  - about.aboutText
+  - about.aboutTitle
+  - about.aiPowered
+  - about.allRightsReserved
+  - about.builtWith
+  - about.claudeDescription
+  - about.contact
+  - about.featureESP32
+  - about.featureFleet
+  - about.featureFuel
+  - about.featureTasks
+  - about.featureTracking
+  - about.features
+  - about.links
+  - about.madeWith
+  - about.privacyPolicy
+  - about.tagline
+  - about.termsOfService
+  - about.website
+  - admin.selectLanguage
+  - admin.total
+  - alerts.warning
+  - assignment.assign
+  - assignment.assignment
+  - assignment.driver
+  - assignment.reassign
+  - assignment.select_driver
+  - assignment.select_vehicle
+  - assignment.unassigned
+  - assignment.vehicle
+  - auth.alerts
+  - auth.all
+  - auth.back
+  - auth.companies
+  - auth.continue
+  - auth.deviceSetup
+  - auth.devices
+  - auth.drivers
+  - auth.fleetMap
+  - auth.fuelEntry
+  - auth.myTasks
+  - auth.myVehicle
+  - auth.next
+  - auth.none
+  - auth.profile
+  - auth.qrManagement
+  - auth.refresh
+  - auth.reports
+  - auth.retry
+  - auth.search
+  - auth.settings
+  - auth.taskHistory
+  - auth.tasks
+  - auth.warning
+  - changePassword.allFieldsRequired
+  - changePassword.confirmPassword
+  - changePassword.confirmPlaceholder
+  - changePassword.currentPassword
+  - changePassword.currentPlaceholder
+  - changePassword.error
+  - changePassword.failed
+  - changePassword.hint
+  - changePassword.minLength
+  - changePassword.mismatch
+  - changePassword.newPassword
+  - changePassword.newPlaceholder
+  - changePassword.samePassword
+  - changePassword.save
+  - changePassword.submit
+  - changePassword.success
+  - changePassword.successMessage
+  - changePassword.successTitle
+  - changePassword.title
+  - common.cannotOpenLink
+  - common.info
+  - common.invalidHour
+  - common.optional
+  - common.vehicle
+  - dashboard.activeTask
+  - dashboard.activeVehicles
+  - dashboard.noActiveTask
+  - dashboard.trafficClear
+  - deviceAssignment.confirmAssignment
+  - deviceAssignment.scanQR
+  - deviceAssignment.vehicle
+  - deviceSetup.buttons.back
+  - deviceSetup.buttons.done
+  - deviceSetup.buttons.next
+  - deviceSetup.buttons.retry
+  - deviceSetup.complete.done
+  - deviceSetup.complete.message
+  - deviceSetup.complete.title
+  - deviceSetup.connectionError
+  - deviceSetup.enterSerial
+  - deviceSetup.failed
+  - deviceSetup.scan.found
+  - deviceSetup.scan.notFound
+  - deviceSetup.scan.notFoundMessage
+  - deviceSetup.scan.rescan
+  - deviceSetup.scan.scanning
+  - deviceSetup.scanQR
+  - deviceSetup.wifi.failed
+  - deviceSetup.wifi.failedMessage
+  - deviceSetup.wifi.success
+  - editProfile.changePhoto
+  - editProfile.email
+  - editProfile.emailReadonly
+  - editProfile.error
+  - editProfile.firstName
+  - editProfile.firstNamePlaceholder
+  - editProfile.firstNameRequired
+  - editProfile.lastName
+  - editProfile.lastNamePlaceholder
+  - editProfile.phone
+  - editProfile.save
+  - editProfile.success
+  - editProfile.title
+  - editProfile.updateFailed
+  - editProfile.updated
+  - fuel.error.distSource.gps
+  - fuel.error.distSource.manual
+  - fuel.error.distSource.route
+  - fuel.error.distSource.tasks
+  - fuel.error.distSource.title
+  - fuel.error.distSource.unknown
+  - geocode.addressLoadFailed
+  - geocode.addressNotFound
+  - geofence.delete
+  - geofence.save
+  - geofence.tapEditToManage
+  - geofence.zoneDeleted
+  - geofence.zoneSaved
+  - map.arrived
+  - map.completeConfirm
+  - map.completeTask
+  - map.couldNotComplete
+  - map.distance
+  - map.eta
+  - map.follow
+  - map.loadingRoute
+  - map.myLocation
+  - map.recenter
+  - map.routeNotFound
+  - map.satellite
+  - map.taskCompleted
+  - map.title
+  - map.traffic
+  - offerDetail.contactAdmin
+  - offerDetail.goToMap
+  - offerDetail.goToTasks
+  - offerDetail.noVehicleAssigned
+  - offerDetail.taskAccepted
+  - offerDetail.trackOnMap
+  - offerDetail.vehicleNotAssigned
+  - profile.error.distSource.gps
+  - profile.error.distSource.manual
+  - profile.error.distSource.route
+  - profile.error.distSource.tasks
+  - profile.error.distSource.title
+  - profile.error.distSource.unknown
+  - profile.error.loadFailed
+  - profile.error.noVehicle
+  - profile.error.saveFailed
+  - profile.error.title
+  - profile.error.vehicleUpdateFailed
+  - profile.fuelTypes.diesel
+  - profile.fuelTypes.electric
+  - profile.fuelTypes.gasoline
+  - profile.fuelTypes.lpg
+  - profile.message
+  - profile.notFullTankWarning.cancel
+  - profile.notFullTankWarning.message
+  - profile.notFullTankWarning.saveAnyway
+  - profile.notFullTankWarning.title
+  - register.confirmPassword
+  - register.confirmPasswordHint
+  - register.createAccount
+  - register.driverRegistration
+  - register.errors.confirmPasswordRequired
+  - register.errors.emailInvalid
+  - register.errors.emailRequired
+  - register.errors.firstNameRequired
+  - register.errors.lastNameRequired
+  - register.errors.licenseRequired
+  - register.errors.passwordMismatch
+  - register.errors.passwordRequired
+  - register.errors.passwordShort
+  - register.errors.phoneRequired
+  - register.failed
+  - register.firstName
+  - register.hasAccount
+  - register.infoText
+  - register.infoTitle
+  - register.lastName
+  - register.licenseNumber
+  - register.passwordHint
+  - register.phone
+  - register.submit
+  - register.successMessage
+  - register.successTitle
+  - reportExport.cancel
+  - reportExport.exportError
+  - reportExport.shareCsv
+  - reportExport.shareError
+  - reportExport.sharePdf
+  - reportExport.title
+  - reports.tabs.alerts
+  - reports.tabs.drivers
+  - reports.tabs.summary
+  - reports.tabs.tasks
+  - reports.tabs.vehicles
+  - route.destination
+  - route.distance
+  - route.end_location
+  - route.enter_destination
+  - route.enter_destination_address
+  - route.enter_start_address
+  - route.enter_start_location
+  - route.estimated_time
+  - route.route
+  - route.start_location
+  - route.via
+  - schedule.actual_end
+  - schedule.actual_start
+  - schedule.date
+  - schedule.duration
+  - schedule.end
+  - schedule.end_after_start
+  - schedule.end_time_before_start
+  - schedule.hours
+  - schedule.hours_short
+  - schedule.minutes
+  - schedule.minutes_short
+  - schedule.schedule
+  - schedule.scheduled_end
+  - schedule.scheduled_start
+  - schedule.select_end_date
+  - schedule.select_end_time
+  - schedule.select_start_date
+  - schedule.select_start_time
+  - schedule.start
+  - schedule.time
+  - sos.callSubText
+  - sos.sending
+  - sos.warningText
+  - taskDetail.vehicleNotAssigned
+  - tasks.actions.cancel
+  - tasks.actions.complete
+  - tasks.actions.completeConfirm
+  - tasks.actions.completeTask
+  - tasks.actions.error
+  - tasks.actions.goToNavigation
+  - tasks.actions.operationFailed
+  - tasks.actions.reject
+  - tasks.actions.rejectTask
+  - tasks.actions.start
+  - tasks.actions.startConfirm
+  - tasks.actions.startTask
+  - tasks.actions.stayHere
+  - tasks.actions.success
+  - tasks.actions.taskCompleted
+  - tasks.actions.taskRejected
+  - tasks.actions.taskStarted
+  - tasks.actions.taskStartedMessage
+  - tasks.contactAdmin
+  - tasks.noTasks
+  - tasks.noVehicleAssigned
+  - tasks.taskRejectedMessage
+  - time.h
+  - time.hours
+  - time.min
+  - time.minutes
+  - time.seconds
+  - units.kmh
+  - validation.invalid_date
+  - validation.invalid_location
+  - validation.invalid_time
+  - validation.max_length
+  - validation.min_length
+  - validation.required_field
+  - vehicle.lastRefuel
+  - vehicleTrack.tripDetail.title
+  - wifi.bleConnectionLost
+  - wifi.bleDisconnected
+  - wifi.bleError
+  - wifi.connectDevice
+  - wifi.connectionError
+  - wifi.encOpen
+  - wifi.encSecured
+  - wifi.firmwareNoSupport
+  - wifi.invalidData
+  - wifi.manualEntry
+  - wifi.no5GHz
+  - wifi.noNetworks
+  - wifi.rescan
+  - wifi.retry
+  - wifi.scanDuration
+  - wifi.scanFailed
+  - wifi.scanning
+  - wifi.scanningShort
+  - wifi.selectNetwork
+  - wifi.unsupported
+  - wifi.vehicle
+[ku] extra vs intersection (134):
+  - adminAlerts.adminAlerts.mapButton
+  - deviceSetup.activate
+  - deviceSetup.activateSubtitle
+  - deviceSetup.activateTitle
+  - deviceSetup.activated
+  - deviceSetup.activating
+  - deviceSetup.activationFailed
+  - deviceSetup.activeWarning.desc
+  - deviceSetup.availableDevices
+  - deviceSetup.back
+  - deviceSetup.bleNotEnabled
+  - deviceSetup.bleNotSupported
+  - deviceSetup.cameraPermissionDenied
+  - deviceSetup.cameraPermissionRequired
+  - deviceSetup.cancel
+  - deviceSetup.close
+  - deviceSetup.complete
+  - deviceSetup.configure
+  - deviceSetup.configureSubtitle
+  - deviceSetup.connect
+  - deviceSetup.connectSubtitle
+  - deviceSetup.connectTitle
+  - deviceSetup.connected
+  - deviceSetup.connectionFailed
+  - deviceSetup.deviceAlreadyAssigned
+  - deviceSetup.deviceNotFound
+  - deviceSetup.deviceReady
+  - deviceSetup.enableCameraPermission
+  - deviceSetup.enableLocation
+  - deviceSetup.error
+  - deviceSetup.hint
+  - deviceSetup.invalidQR
+  - deviceSetup.list
+  - deviceSetup.locationRequired
+  - deviceSetup.next
+  - deviceSetup.noDevicesAvailable
+  - deviceSetup.noDevicesFound
+  - deviceSetup.noResultsYet
+  - deviceSetup.openSettings
+  - deviceSetup.password
+  - deviceSetup.qrInstructions
+  - deviceSetup.requestingCamera
+  - deviceSetup.retry
+  - deviceSetup.scan
+  - deviceSetup.scanSubtitle
+  - deviceSetup.scanTitle
+  - deviceSetup.search
+  - deviceSetup.searchBySerial
+  - deviceSetup.searching
+  - deviceSetup.selectNetwork
+  - deviceSetup.serialPlaceholder
+  - deviceSetup.steps.activateDevice
+  - deviceSetup.steps.activateDeviceDesc
+  - deviceSetup.steps.configureWiFi
+  - deviceSetup.steps.configureWiFiDesc
+  - deviceSetup.steps.connectDevice
+  - deviceSetup.steps.connectDeviceDesc
+  - deviceSetup.steps.scanQR
+  - deviceSetup.steps.scanQRDesc
+  - deviceSetup.steps.selectVehicle
+  - deviceSetup.steps.selectVehicleDesc
+  - deviceSetup.success
+  - deviceSetup.tapToConnect
+  - deviceSetup.turnOnBluetooth
+  - deviceSetup.wifiConnected
+  - deviceSetup.wifiConnecting
+  - deviceSetup.wifiFailed
+  - deviceSetup.wifiTitle
+  - driverTasks.accept
+  - driverTasks.acceptConfirmMessage
+  - driverTasks.acceptConfirmTitle
+  - driverTasks.activeTab
+  - driverTasks.cancel
+  - driverTasks.complete
+  - driverTasks.completeConfirmMessage
+  - driverTasks.completeConfirmTitle
+  - driverTasks.completedTab
+  - driverTasks.confirm
+  - driverTasks.emptyActive
+  - driverTasks.emptyActiveDesc
+  - driverTasks.emptyCompleted
+  - driverTasks.emptyCompletedDesc
+  - driverTasks.emptyPending
+  - driverTasks.emptyPendingDesc
+  - driverTasks.errorLoading
+  - driverTasks.loading
+  - driverTasks.navigate
+  - driverTasks.pendingTab
+  - driverTasks.reject
+  - driverTasks.rejectConfirmMessage
+  - driverTasks.rejectConfirmTitle
+  - driverTasks.retry
+  - driverTasks.start
+  - driverTasks.startConfirmMessage
+  - driverTasks.startConfirmTitle
+  - driverTasks.statusMessages.accepted
+  - driverTasks.statusMessages.cancelled
+  - driverTasks.statusMessages.completed
+  - driverTasks.statusMessages.in_progress
+  - driverTasks.statusMessages.pending_review
+  - driverTasks.statusMessages.rejected
+  - driverTasks.success
+  - driverTasks.taskAcceptFailed
+  - driverTasks.taskAccepted
+  - driverTasks.taskCompleteFailed
+  - driverTasks.taskCompleted
+  - driverTasks.taskRejectFailed
+  - driverTasks.taskRejected
+  - driverTasks.taskStartFailed
+  - driverTasks.taskStarted
+  - driverTasks.title
+  - settings.clearCacheConfirm
+  - settings.languageChanged
+  - vehicle.addVehicle
+  - vehicle.colorOptions.beige
+  - vehicle.colorOptions.black
+  - vehicle.colorOptions.blue
+  - vehicle.colorOptions.brown
+  - vehicle.colorOptions.gray
+  - vehicle.colorOptions.green
+  - vehicle.colorOptions.navy
+  - vehicle.colorOptions.orange
+  - vehicle.colorOptions.red
+  - vehicle.colorOptions.silver
+  - vehicle.colorOptions.white
+  - vehicle.colorOptions.yellow
+  - vehicle.driver
+  - vehicle.editVehicle
+  - vehicle.editVehicleSettings
+  - vehicle.fuel
+  - vehicle.noVehicle
+  - vehicle.odometer
+  - vehicle.updateError
+  - vehicle.updateSuccess
+
+FAIL  errors=2491  warnings=1442
+```
