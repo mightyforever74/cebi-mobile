@@ -1,0 +1,106 @@
+{
+  "task.statuses": [
+    "pending",
+    "pending_review",
+    "accepted",
+    "assigned",
+    "rejected",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "withdrawn"
+  ],
+  "tasks.statuses": [
+    "pending",
+    "pending_review",
+    "accepted",
+    "assigned",
+    "rejected",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "withdrawn"
+  ],
+  "taskDetail.statuses": [
+    "pending",
+    "pending_review",
+    "accepted",
+    "assigned",
+    "rejected",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "withdrawn"
+  ],
+  "adminTasks.status": [
+    "pending",
+    "pending_review",
+    "accepted",
+    "assigned",
+    "rejected",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "withdrawn"
+  ],
+  "adminTasks.priority": ["low", "normal", "high", "urgent"],
+  "adminAlerts.types": [
+    "task_accepted",
+    "task_started",
+    "task_completed",
+    "task_withdrawn",
+    "task_offered",
+    "task_rejected",
+    "geofence_entry",
+    "geofence_exit",
+    "sos",
+    "speeding",
+    "harsh_brake"
+  ],
+  "adminVehicles.status": ["available", "in_use", "maintenance", "retired"],
+  "adminVehicles.categories": ["truck_heavy", "truck_medium", "van"],
+  "adminVehicles.fuelTypes": ["diesel", "gasoline", "electric", "hybrid", "lpg"],
+  "adminDrivers.status": [
+    "available",
+    "on_task",
+    "task_pending",
+    "on_leave",
+    "offline"
+  ],
+  "taskDetail.events": [
+    "TASK_COMPLETED",
+    "TASK_STARTED",
+    "TASK_ACCEPTED",
+    "TASK_REJECTED",
+    "TASK_WITHDRAWN",
+    "STOP_ARRIVED",
+    "STOP_DEPARTED",
+    "WAYPOINT_COMPLETED"
+  ],
+  "taskDetail.waypoints": ["title", "stop", "arrived", "departed", "complete"],
+  "geofence.categories": [
+    "general",
+    "depot",
+    "city_center",
+    "emission_zone",
+    "border",
+    "sensitive_area"
+  ],
+  "reports.tabs": [
+    "operations",
+    "fuel",
+    "driving",
+    "fleet",
+    "sustainability"
+  ],
+  "reports.filter": ["7d", "30d", "90d"],
+  "reports.placeholder": ["fuel", "driving", "fleet", "sustainability"],
+  "driveAssist.incident": [
+    "accident",
+    "road_closed",
+    "construction",
+    "congestion",
+    "disabled_vehicle",
+    "incident"
+  ]
+}

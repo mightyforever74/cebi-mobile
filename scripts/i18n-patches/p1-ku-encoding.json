@@ -1,0 +1,89 @@
+{
+  "device.title": {
+    "ku": "Rêveberiya Amûran"
+  },
+  "device.serial": {
+    "ku": "Hejmara Rêzê"
+  },
+  "device.status": {
+    "ku": "Rewş"
+  },
+  "device.online": {
+    "ku": "Serhêl"
+  },
+  "device.offline": {
+    "ku": "Negirêdayî"
+  },
+  "device.assigned": {
+    "ku": "Hatiye tayînkirin"
+  },
+  "device.unassigned": {
+    "ku": "Nehatiye tayînkirin"
+  },
+  "device.generateQR": {
+    "ku": "QR çêke"
+  },
+  "device.showQR": {
+    "ku": "QR nîşan bide"
+  },
+  "device.refreshQR": {
+    "ku": "QR nû bike"
+  },
+  "device.qrGenerated": {
+    "ku": "QR kod hate çêkirin"
+  },
+  "device.qrExpires": {
+    "ku": "Dema bidawîbûnê"
+  },
+  "device.scanQR": {
+    "ku": "QR bişkîne"
+  },
+  "device.searchBySerial": {
+    "ku": "Bi hejmara rêzê bigere"
+  },
+  "device.addToStock": {
+    "ku": "Li stokê zêde bike"
+  },
+  "device.assignToVehicle": {
+    "ku": "Li wesayîtê tayîn bike"
+  },
+  "device.assignDevice": {
+    "ku": "Amûrê tayîn bike"
+  },
+  "device.deviceAssigned": {
+    "ku": "Amûr hate tayînkirin"
+  },
+  "device.noDevices": {
+    "ku": "Amûr nehat dîtin"
+  },
+  "device.claimDevice": {
+    "ku": "Amûrê bistîne"
+  },
+  "device.activating": {
+    "ku": "Tê çalakkirin..."
+  },
+  "device.activated": {
+    "ku": "Hat çalakkirin"
+  },
+  "device.statuses.PRINTED": {
+    "ku": "Hatiye çapkirin"
+  },
+  "device.statuses.IN_STOCK": {
+    "ku": "Di stokê de"
+  },
+  "device.statuses.ASSIGNED": {
+    "ku": "Hatiye tayînkirin"
+  },
+  "device.statuses.ACTIVATED": {
+    "ku": "Çalak"
+  },
+  "device.statuses.SUSPENDED": {
+    "ku": "Rawestayî"
+  },
+  "device.statuses.RETIRED": {
+    "ku": "Teqawît"
+  },
+  "help.footer": {
+    "ku": "© 2026 TulipFleet - Hemmu maf parastin"
+  }
+}

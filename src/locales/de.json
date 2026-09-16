@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Start",
       "end": "Ende",
-      "clear": "Löschen"
+      "clear": "Löschen",
+      "title": "Fahrt {{number}}"
     }
   },
   "common": {
@@ -84,7 +85,12 @@
       "statusBothIssue": "Verbindungsproblem",
       "statusBothIssueMeaning": "WLAN und GPS gestört; Gerät prüfen",
       "infoNote": "Die LEDs befinden sich an der Vorderseite des Geräts. Dauerhaftes Blinken deutet auf ein Problem hin."
-    }
+    },
+    "cannotOpenLink": "Link konnte nicht geöffnet werden",
+    "info": "Info",
+    "invalidHour": "Gültiger Stundenbereich ist 0–23.",
+    "optional": "(optional)",
+    "vehicle": "Fahrzeug"
   },
   "auth": {
     "login": "Anmelden",
@@ -348,7 +354,10 @@
     "errorDesc": "Bitte rufen Sie 112 an oder überprüfen Sie Ihre Internetverbindung.",
     "cancelTitle": "SOS Abbrechen",
     "cancelDesc": "Das SOS-Signal wird zurückgerufen. Sind Sie sicher?",
-    "cancelConfirm": "Ja, Abbrechen"
+    "cancelConfirm": "Ja, Abbrechen",
+    "callSubText": "Die Telefon-App öffnet sich; Sie starten den Anruf",
+    "sending": "Standort wird ermittelt und SOS gesendet...",
+    "warningText": "Verwenden Sie diesen Bildschirm nur bei echten Notfällen. Falscher Alarm kann rechtliche Folgen haben."
   },
   "dashboard": {
     "todayKm": "Heute km",
@@ -403,7 +412,8 @@
     "totalDistance": "Gesamtstrecke",
     "avgScore": "Ø Punkte",
     "activeTasksCount": "Aktiv",
-    "fuelEntry": "Kraftstoffeintrag"
+    "fuelEntry": "Kraftstoffeintrag",
+    "activeVehicles": "Aktive Fahrzeuge"
   },
   "tasks": {
     "couldNotLoadTasks": "Aufgaben konnten nicht geladen werden",
@@ -503,7 +513,9 @@
     "withdraw": "Abbrechen",
     "taskWithdrawn": "Auftrag zurückgezogen. Ihr Administrator wurde benachrichtigt.",
     "viewHistory": "Verlauf anzeigen",
-    "couldNotWithdrawTask": "Auftrag konnte nicht zurückgezogen werden"
+    "couldNotWithdrawTask": "Auftrag konnte nicht zurückgezogen werden",
+    "contactAdmin": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin.",
+    "noVehicleAssigned": "Fahrzeug nicht zugewiesen"
   },
   "adminDrivers": {
     "filterAll": "Alle",
@@ -526,7 +538,14 @@
     "deleteDriver": "Fahrer löschen",
     "deleteConfirm": "Möchten Sie diesen Fahrer wirklich löschen?",
     "driverDeleted": "Fahrer erfolgreich gelöscht",
-    "deleteFailed": "Löschen fehlgeschlagen"
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "status": {
+      "available": "Verfügbar",
+      "on_task": "Im Einsatz",
+      "task_pending": "Aufgabe ausstehend",
+      "on_leave": "Im Urlaub",
+      "offline": "Offline"
+    }
   },
   "adminVehicles": {
     "filterAll": "Alle",
@@ -552,7 +571,25 @@
     "vehicleDeleted": "Fahrzeug erfolgreich gelöscht",
     "deleteFailed": "Löschen fehlgeschlagen",
     "deleteBlockedTitle": "Gerät zugeordnet",
-    "deleteBlockedMsg": "Fahrzeug {{plate}} hat ein zugeordnetes Gerät. Bitte trennen Sie das Gerät zuerst."
+    "deleteBlockedMsg": "Fahrzeug {{plate}} hat ein zugeordnetes Gerät. Bitte trennen Sie das Gerät zuerst.",
+    "status": {
+      "available": "Verfügbar",
+      "in_use": "In Benutzung",
+      "maintenance": "Wartung",
+      "retired": "Außer Dienst"
+    },
+    "categories": {
+      "truck_heavy": "Schwerer Lkw",
+      "truck_medium": "Mittlerer Lkw",
+      "van": "Transporter"
+    },
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "gasoline": "Benzin",
+      "electric": "Elektrisch",
+      "hybrid": "Hybrid",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "Alle",
@@ -582,7 +619,24 @@
     "deleteTask": "Aufgabe löschen",
     "deleteConfirm": "Möchten Sie diese Aufgabe wirklich löschen?",
     "taskDeleted": "Aufgabe erfolgreich gelöscht",
-    "deleteFailed": "Löschen fehlgeschlagen"
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "status": {
+      "pending": "Ausstehend",
+      "pending_review": "Wartet auf Ihre Überprüfung",
+      "accepted": "Angenommen",
+      "assigned": "Zugewiesen",
+      "rejected": "Abgelehnt",
+      "in_progress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen",
+      "withdrawn": "Zurückgezogen"
+    },
+    "priority": {
+      "low": "Niedrig",
+      "normal": "Normal",
+      "high": "Hoch",
+      "urgent": "Dringend"
+    }
   },
   "adminAlerts": {
     "mapButton": "Auf Karte anzeigen",
@@ -634,7 +688,17 @@
       "battery": "Batterie",
       "idle": "Leerlauf",
       "sos": "SOS",
-      "default": "Warnung"
+      "default": "Warnung",
+      "task_offered": "Aufgabe angeboten",
+      "task_accepted": "Aufgabe angenommen",
+      "task_started": "Aufgabe gestartet",
+      "task_completed": "Aufgabe abgeschlossen",
+      "task_rejected": "Aufgabe abgelehnt",
+      "task_withdrawn": "Aufgabe zurückgezogen",
+      "speeding": "Geschwindigkeitsüberschreitung",
+      "harsh_brake": "Hartes Bremsen",
+      "geofence_entry": "Eintritt in Zone",
+      "geofence_exit": "Austritt aus Zone"
     },
     "filterVehicle": "Fahrzeug"
   },
@@ -693,7 +757,7 @@
     "hintCircle": "Lang drücken, um Zonenmittelpunkt zu platzieren",
     "save": "Speichern",
     "delete": "Löschen",
-    "deleteConfirm": "Diese Zone wirklich löschen?",
+    "deleteConfirm": "Diese Zone \"{{name}}\" wirklich löschen?",
     "zoneDeleted": "Zone erfolgreich gelöscht",
     "zoneSaved": "Zone erfolgreich gespeichert",
     "tapEditToManage": "Bearbeiten tippen zum Verwalten",
@@ -873,7 +937,14 @@
       "urgent": "Dringend",
       "low": "Niedrige Priorität",
       "normal": "Normal"
-    }
+    },
+    "contactAdmin": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin.",
+    "goToMap": "Zur Karte",
+    "goToTasks": "Zurück zu meinen Aufgaben",
+    "noVehicleAssigned": "Aufgabe angenommen. Kein Fahrzeug zugewiesen; ein Admin wird benachrichtigt.",
+    "taskAccepted": "✅ Aufgabe angenommen",
+    "trackOnMap": "Möchten Sie die Aufgabe auf der Karte verfolgen?",
+    "vehicleNotAssigned": "Fahrzeug nicht zugewiesen"
   },
   "reports": {
     "loading": "Wird geladen...",
@@ -1039,7 +1110,8 @@
     "m": "m",
     "h": "Std.",
     "min": "Min",
-    "sec": "Sek"
+    "sec": "Sek",
+    "kmh": "km/h"
   },
   "drawer": {
     "fleetManagement": "Flottenmanagementsystem",
@@ -1123,7 +1195,9 @@
     "filterCompleted": "Abgeschlossen",
     "filterDelays": "Verzögerungen",
     "filterAlerts": "Warnungen",
-    "noFilteredActivities": "Keine Aktivitäten in dieser Kategorie"
+    "noFilteredActivities": "Keine Aktivitäten in dieser Kategorie",
+    "selectLanguage": "Sprache wählen",
+    "total": "gesamt"
   },
   "deviceSetup": {
     "qr": {
@@ -1271,7 +1345,9 @@
       "btnNewDevice": "Anderes Gerät einrichten",
       "reprovisionTitle": "WLAN neu konfigurieren",
       "reprovisionMsg": "Das Gerät muss neu gestartet werden, um in den BLE-Modus zu wechseln. Es erscheint innerhalb von 90 Sekunden im BLE-Scan. Möchten Sie fortfahren?"
-    }
+    },
+    "connecting": "Wird verbunden...",
+    "connectionError": "Verbindungsfehler: {{error}}"
   },
   "profile": {
     "title": "Profil",
@@ -1389,7 +1465,8 @@
       "brown": "Braun",
       "beige": "Beige"
     },
-    "noRefuelRecord": "Keine Tankaufzeichnung"
+    "noRefuelRecord": "Keine Tankaufzeichnung",
+    "lastRefuel": "Letzte Tankung"
   },
   "task": {
     "title": "Auftragsverwaltung",
@@ -1413,7 +1490,8 @@
       "cancelled": "Storniert",
       "pending_review": "In Überprüfung",
       "accepted": "Angenommen",
-      "rejected": "Abgelehnt"
+      "rejected": "Abgelehnt",
+      "withdrawn": "Zurückgezogen"
     }
   },
   "alert": {
@@ -1441,7 +1519,28 @@
       "authFailed": "Falsches WLAN-Passwort",
       "timeout": "Verbindungszeit überschritten",
       "notFound": "WLAN-Netzwerk nicht gefunden"
-    }
+    },
+    "bleConnectionLost": "Die ESP32-Verbindung wurde unterbrochen. Starten Sie die Einrichtung neu.",
+    "bleDisconnected": "ESP32-Verbindung getrennt. Bitte erneut versuchen.",
+    "bleError": "BLE-Verbindungsfehler: ",
+    "connectDevice": "Lassen Sie uns das Gerät mit dem Internet verbinden",
+    "connectionError": "Verbindungsfehler",
+    "encOpen": "Offen",
+    "encSecured": "Gesichert",
+    "firmwareNoSupport": "Die ESP32-Firmware unterstützt keinen WLAN-Scan. Bitte Firmware aktualisieren.",
+    "invalidData": "Ungültige Daten vom ESP32 empfangen. Bitte erneut versuchen.",
+    "manualEntry": "Manuelle Eingabe",
+    "no5GHz": "Dieses Netzwerk ist im 5-GHz-Band. ESP32 unterstützt nur 2,4-GHz-Netze. Wählen Sie ein anderes Netzwerk.",
+    "noNetworks": "Keine WLAN-Netzwerke gefunden. Stellen Sie sicher, dass der ESP32 eingeschaltet ist.",
+    "rescan": "Erneut scannen",
+    "retry": "Erneut versuchen",
+    "scanDuration": "Dies kann 5–10 Sekunden dauern",
+    "scanFailed": "WLAN-Scan fehlgeschlagen",
+    "scanning": "WLAN-Netzwerke werden gescannt...",
+    "scanningShort": "Scannen...",
+    "selectNetwork": "WLAN wählen",
+    "unsupported": "Nicht unterstützt",
+    "vehicle": "Fahrzeug"
   },
   "ble": {
     "scanning": "Geräte werden gesucht...",
@@ -1501,7 +1600,8 @@
       "rejected": "Abgelehnt",
       "pending": "Ausstehend",
       "assigned": "Zugewiesen",
-      "cancelled": "Storniert"
+      "cancelled": "Storniert",
+      "withdrawn": "Zurückgezogen"
     },
     "info": {
       "taskNo": "Auftragsnr.",
@@ -1555,7 +1655,15 @@
       "cancelled": "Dieser Auftrag wurde storniert"
     },
     "events": {
-      "title": "Auftragsereignisse"
+      "title": "Auftragsereignisse",
+      "TASK_ACCEPTED": "Aufgabe angenommen",
+      "TASK_STARTED": "Aufgabe gestartet",
+      "TASK_COMPLETED": "Aufgabe abgeschlossen",
+      "TASK_REJECTED": "Aufgabe abgelehnt",
+      "TASK_WITHDRAWN": "Aufgabe zurückgezogen",
+      "STOP_ARRIVED": "An Haltestelle angekommen",
+      "STOP_DEPARTED": "Von Haltestelle abgefahren",
+      "WAYPOINT_COMPLETED": "Wegpunkt abgeschlossen"
     },
     "waypoints": {
       "title": "Haltepunkte",
@@ -1563,7 +1671,8 @@
       "arrived": "Angekommen",
       "departed": "Abgefahren",
       "complete": "Abschließen"
-    }
+    },
+    "vehicleNotAssigned": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin."
   },
   "deviceAssignment": {
     "title": "Gerät zuweisen",
@@ -1604,7 +1713,10 @@
     "search": "Suchen",
     "noResultsYet": "Noch keine Ergebnisse",
     "availableDevices": "Verfügbare Geräte",
-    "noDevicesAvailable": "Keine Geräte verfügbar"
+    "noDevicesAvailable": "Keine Geräte verfügbar",
+    "confirmAssignment": "Möchten Sie dieses Gerät Ihrem Fahrzeug zuweisen?",
+    "scanQR": "QR scannen",
+    "vehicle": "Fahrzeug"
   },
   "root": {
     "loading": "Wird geladen..."
@@ -2073,5 +2185,101 @@
     "grantPermission": "Erlauben",
     "enableInSettings": "Bitte erlauben Sie den Kamerazugriff in den Einstellungen",
     "requestingPermission": "Kameraberechtigung wird angefordert..."
+  },
+  "about": {
+    "aboutText": "TulipFleet ist eine umfassende Flottenmanagement-Plattform für Logistikunternehmen. Sie ermöglicht effizientes Flottenmanagement mit Echtzeit-Fahrzeugverfolgung, Fahrerverwaltung, Aufgabenzuweisung und Kraftstoffüberwachung.",
+    "aboutTitle": "Über TulipFleet",
+    "aiPowered": "KI-gestützte Entwicklung",
+    "allRightsReserved": "Alle Rechte vorbehalten.",
+    "builtWith": "Mit künstlicher Intelligenz entwickelt",
+    "claudeDescription": "Diese App wurde mit Anthropics KI-Modell Claude Opus 4.5 entworfen und programmiert. Sie ist ein Beispiel für die Zusammenarbeit von moderner Softwareentwicklung und künstlicher Intelligenz.",
+    "contact": "Kontakt",
+    "featureESP32": "ESP32-IoT-Integration",
+    "featureFleet": "Flottenmanagement",
+    "featureFuel": "Kraftstoff- und Kilometerüberwachung",
+    "featureTasks": "Aufgabenzuweisung und -verfolgung",
+    "featureTracking": "Echtzeit-GPS-Verfolgung",
+    "features": "Funktionen",
+    "links": "Links",
+    "madeWith": "Hergestellt in Türkiye mit ❤️ und ☕",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "tagline": "Professionelles Flottenmanagementsystem",
+    "termsOfService": "Nutzungsbedingungen",
+    "website": "Webseite"
+  },
+  "alerts": {
+    "warning": "Warnung"
+  },
+  "changePassword": {
+    "allFieldsRequired": "Bitte füllen Sie alle Felder aus",
+    "confirmPassword": "Neues Passwort (wiederholen)",
+    "confirmPlaceholder": "Neues Passwort erneut eingeben",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPlaceholder": "Aktuelles Passwort eingeben",
+    "failed": "Passwort konnte nicht geändert werden",
+    "hint": "Wählen Sie aus Sicherheitsgründen ein starkes Passwort. Verwenden Sie mindestens 6 Zeichen.",
+    "minLength": "Neues Passwort muss mindestens 6 Zeichen haben",
+    "mismatch": "Neue Passwörter stimmen nicht überein",
+    "newPassword": "Neues Passwort",
+    "newPlaceholder": "Neues Passwort eingeben",
+    "samePassword": "Neues Passwort muss sich vom aktuellen unterscheiden",
+    "submit": "Passwort ändern",
+    "successMessage": "Ihr Passwort wurde erfolgreich geändert.",
+    "successTitle": "Erfolg"
+  },
+  "editProfile": {
+    "changePhoto": "Foto ändern",
+    "email": "E-Mail",
+    "emailReadonly": "E-Mail kann nicht geändert werden",
+    "firstName": "Vorname",
+    "firstNamePlaceholder": "Vornamen eingeben",
+    "firstNameRequired": "Vorname ist erforderlich",
+    "lastName": "Nachname",
+    "lastNamePlaceholder": "Nachnamen eingeben",
+    "phone": "Telefon",
+    "updateFailed": "Profil konnte nicht aktualisiert werden",
+    "updated": "Profil aktualisiert"
+  },
+  "geocode": {
+    "addressLoadFailed": "Adresse konnte nicht geladen werden",
+    "addressNotFound": "Adresse nicht gefunden"
+  },
+  "register": {
+    "confirmPassword": "Passwort (wiederholen)",
+    "confirmPasswordHint": "Passwort erneut eingeben",
+    "createAccount": "Neues Konto erstellen",
+    "driverRegistration": "Fahrerregistrierung",
+    "errors": {
+      "confirmPasswordRequired": "Passwortbestätigung erforderlich",
+      "emailInvalid": "Ungültiges E-Mail-Format",
+      "emailRequired": "E-Mail ist erforderlich",
+      "firstNameRequired": "Vorname ist erforderlich",
+      "lastNameRequired": "Nachname ist erforderlich",
+      "licenseRequired": "Führerscheinnummer ist erforderlich",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "passwordRequired": "Passwort ist erforderlich",
+      "passwordShort": "Passwort muss mindestens 6 Zeichen haben",
+      "phoneRequired": "Telefon ist erforderlich"
+    },
+    "failed": "Registrierung fehlgeschlagen",
+    "firstName": "Vorname",
+    "hasAccount": "Haben Sie bereits ein Konto?",
+    "infoText": "Nach der Registrierung ist eine Admin-Freigabe erforderlich. Nach der Freigabe können Sie sich anmelden. Fragen: destek@tulipfleet.com",
+    "infoTitle": "Info",
+    "lastName": "Nachname",
+    "licenseNumber": "Führerschein-Nr.",
+    "passwordHint": "Mindestens 6 Zeichen",
+    "phone": "Telefon",
+    "submit": "Registrieren",
+    "successMessage": "Ihre Registrierung wurde empfangen. Nach der Admin-Freigabe können Sie sich anmelden.",
+    "successTitle": "Erfolg!"
+  },
+  "reportExport": {
+    "cancel": "Abbrechen",
+    "exportError": "Exportfehler",
+    "shareCsv": "CSV teilen",
+    "shareError": "Teilfehler",
+    "sharePdf": "PDF teilen",
+    "title": "Bericht exportieren"
   }
 }

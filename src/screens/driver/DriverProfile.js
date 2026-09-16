@@ -439,7 +439,7 @@ const DriverProfile = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>Â© 2025 TulipFleet</Text>
+        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
       </View>
     </ScrollView>
   );

@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Başlangıç",
       "end": "Bitiş",
-      "clear": "Temizle"
+      "clear": "Temizle",
+      "title": "Sefer {{number}}"
     }
   },
   "common": {
@@ -84,7 +85,12 @@
     },
     "superAdmin": "Süper Admin",
     "companyAdmin": "Yönetici",
-    "driver": "Sürücü"
+    "driver": "Sürücü",
+    "cannotOpenLink": "Link açılamadı",
+    "info": "Bilgi",
+    "invalidHour": "Geçerli saat aralığı 0–23 olmalıdır.",
+    "optional": "(opsiyonel)",
+    "vehicle": "Araç"
   },
   "profile": {
     "title": "Profil",
@@ -298,7 +304,8 @@
       "brown": "Kahverengi",
       "beige": "Bej"
     },
-    "noRefuelRecord": "Yakıt kaydı yok"
+    "noRefuelRecord": "Yakıt kaydı yok",
+    "lastRefuel": "Son yakıt"
   },
   "task": {
     "title": "Görev Yönetimi",
@@ -322,7 +329,8 @@
       "cancelled": "İptal Edildi",
       "pending_review": "İncelemede",
       "accepted": "Kabul Edildi",
-      "rejected": "Reddedildi"
+      "rejected": "Reddedildi",
+      "withdrawn": "Geri Çekildi"
     }
   },
   "alert": {
@@ -457,7 +465,28 @@
       "authFailed": "WiFi şifresi yanlış",
       "timeout": "Bağlantı zaman aşımı",
       "notFound": "WiFi ağı bulunamadı"
-    }
+    },
+    "bleConnectionLost": "ESP32 ile bağlantı kopmuş. Kurulumu yeniden başlatın.",
+    "bleDisconnected": "ESP32 bağlantısı kesildi. Lütfen tekrar deneyin.",
+    "bleError": "BLE bağlantı hatası: ",
+    "connectDevice": "Cihazı internete bağlayalım",
+    "connectionError": "Bağlantı Hatası",
+    "encOpen": "Açık",
+    "encSecured": "Şifreli",
+    "firmwareNoSupport": "ESP32 firmware'i WiFi scan desteklemiyor. Firmware güncelleyin.",
+    "invalidData": "ESP32'den geçersiz veri geldi. Yeniden deneyin.",
+    "manualEntry": "Manuel Giriş",
+    "no5GHz": "Bu ağ 5GHz bandında. ESP32 sadece 2.4GHz ağları destekler. Başka bir ağ seçin.",
+    "noNetworks": "WiFi ağı bulunamadı. ESP32'nin açık olduğundan emin olun.",
+    "rescan": "Yeniden Tara",
+    "retry": "Yeniden Dene",
+    "scanDuration": "Bu 5-10 saniye sürebilir",
+    "scanFailed": "WiFi taraması başarısız",
+    "scanning": "WiFi ağları taranıyor...",
+    "scanningShort": "Taranıyor...",
+    "selectNetwork": "WiFi Seçin",
+    "unsupported": "Desteklenmiyor",
+    "vehicle": "Araç"
   },
   "ble": {
     "scanning": "Cihazlar taranıyor...",
@@ -517,7 +546,9 @@
     "activeTasksCount": "Aktif",
     "fuelEntry": "Yakıt Girişi",
     "todayKm": "Bugün KM",
-    "monthKm": "Bu Ay KM"
+    "monthKm": "Bu Ay KM",
+    "activeVehicles": "Aktif Araçlar",
+    "trafficClear": "Trafik açık"
   },
   "tasks": {
     "title": "Görevlerim",
@@ -596,7 +627,9 @@
       "assigned": "Atandı",
       "cancelled": "İptal",
       "withdrawn": "Geri Çekildi"
-    }
+    },
+    "contactAdmin": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+    "noVehicleAssigned": "Araç Atanmamış"
   },
   "deviceSetup": {
     "title": "Cihaz Kurulumu",
@@ -744,7 +777,9 @@
       "btnNewDevice": "Farklı Cihaz Kur",
       "reprovisionTitle": "WiFi Yeniden Yapılandır",
       "reprovisionMsg": "Cihazın BLE moduna geçmesi için yeniden başlatılması gerekiyor. Cihaz 90 saniye içinde BLE taramasında görünecek. Devam etmek istiyor musunuz?"
-    }
+    },
+    "connecting": "Bağlanıyor...",
+    "connectionError": "Bağlantı hatası: {{error}}"
   },
   "taskOffers": {
     "title": "Görev Teklifleri",
@@ -796,7 +831,8 @@
       "rejected": "Reddedildi",
       "pending": "Bekliyor",
       "assigned": "Atandı",
-      "cancelled": "İptal Edildi"
+      "cancelled": "İptal Edildi",
+      "withdrawn": "Geri Çekildi"
     },
     "info": {
       "taskNo": "Görev No",
@@ -850,7 +886,15 @@
       "cancelled": "Bu görev iptal edildi"
     },
     "events": {
-      "title": "Görev Olayları"
+      "title": "Görev Olayları",
+      "TASK_ACCEPTED": "Görev Kabul Edildi",
+      "TASK_STARTED": "Görev Başlatıldı",
+      "TASK_COMPLETED": "Görev Tamamlandı",
+      "TASK_REJECTED": "Görev Reddedildi",
+      "TASK_WITHDRAWN": "Görev Geri Çekildi",
+      "STOP_ARRIVED": "Durağa Varıldı",
+      "STOP_DEPARTED": "Duraktan Ayrılındı",
+      "WAYPOINT_COMPLETED": "Ara Nokta Tamamlandı"
     },
     "waypoints": {
       "title": "Duraklar",
@@ -858,7 +902,8 @@
       "arrived": "Varıldı",
       "departed": "Ayrıldı",
       "complete": "Tamamla"
-    }
+    },
+    "vehicleNotAssigned": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin."
   },
   "routeMap": {
     "loading": "Konum alınıyor...",
@@ -898,7 +943,8 @@
     "min": "dk",
     "delayMin": "+{{delay}} dk gecikme",
     "delayOnRoute": "Güzergahta {{delay}} dakika gecikme var.",
-    "weatherTemp": "Hava {{temp}} derece."
+    "weatherTemp": "Hava {{temp}} derece.",
+    "odometerPrompt": "Araç km sayacını girin (isteğe bağlı):"
   },
   "navigator": {
     "fuelManagement": "Yakıt Yönetimi",
@@ -1009,7 +1055,14 @@
       "urgent": "Acil",
       "low": "Düşük Öncelik",
       "normal": "Normal"
-    }
+    },
+    "contactAdmin": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+    "goToMap": "Haritaya Git",
+    "goToTasks": "Görevlerime Dön",
+    "noVehicleAssigned": "Görev kabul edildi. Araç atanmamış, admin bilgilendirilecek.",
+    "taskAccepted": "✅ Görev Kabul Edildi",
+    "trackOnMap": "Görevi haritada takip etmek ister misiniz?",
+    "vehicleNotAssigned": "Araç Atanmamış"
   },
   "deviceAssignment": {
     "title": "Cihaz Ata",
@@ -1050,7 +1103,10 @@
     "search": "Ara",
     "noResultsYet": "Henüz sonuç yok",
     "availableDevices": "Mevcut Cihazlar",
-    "noDevicesAvailable": "Mevcut cihaz yok"
+    "noDevicesAvailable": "Mevcut cihaz yok",
+    "confirmAssignment": "Bu cihazı aracınıza atamak istiyor musunuz?",
+    "scanQR": "QR Tara",
+    "vehicle": "Araç"
   },
   "root": {
     "loading": "Yükleniyor..."
@@ -1090,7 +1146,8 @@
     "m": "m",
     "h": "sa",
     "min": "dk",
-    "sec": "sn"
+    "sec": "sn",
+    "kmh": "km/s"
   },
   "fuel": {
     "title": "Yakıt Girişi",
@@ -1451,7 +1508,9 @@
     "filterCompleted": "Tamamlanan",
     "filterDelays": "Gecikmeler",
     "filterAlerts": "Uyarılar",
-    "noFilteredActivities": "Bu kategoride etkinlik yok"
+    "noFilteredActivities": "Bu kategoride etkinlik yok",
+    "selectLanguage": "Dil Seçin",
+    "total": "toplam"
   },
   "createTask": {
     "title": "Yeni Görev",
@@ -1632,7 +1691,14 @@
     "deleteDriver": "Sürücüyü Sil",
     "deleteConfirm": "Bu sürücüyü silmek istediğinizden emin misiniz?",
     "driverDeleted": "Sürücü başarıyla silindi",
-    "deleteFailed": "Sürücü silinemedi"
+    "deleteFailed": "Sürücü silinemedi",
+    "status": {
+      "available": "Müsait",
+      "on_task": "Görevde",
+      "task_pending": "Görev Bekliyor",
+      "on_leave": "İzinli",
+      "offline": "Çevrimdışı"
+    }
   },
   "adminVehicles": {
     "filterAll": "Tümü",
@@ -1658,7 +1724,25 @@
     "vehicleDeleted": "Araç başarıyla silindi",
     "deleteFailed": "Araç silinemedi",
     "deleteBlockedTitle": "Cihaz Bağlı",
-    "deleteBlockedMsg": "{{plate}} plakalı araçta bağlı bir cihaz var. Silmeden önce cihazı araçtan ayırın."
+    "deleteBlockedMsg": "{{plate}} plakalı araçta bağlı bir cihaz var. Silmeden önce cihazı araçtan ayırın.",
+    "status": {
+      "available": "Müsait",
+      "in_use": "Kullanımda",
+      "maintenance": "Bakımda",
+      "retired": "Hizmet Dışı"
+    },
+    "categories": {
+      "truck_heavy": "Ağır Kamyon",
+      "truck_medium": "Kamyonet",
+      "van": "Panelvan"
+    },
+    "fuelTypes": {
+      "diesel": "Dizel",
+      "gasoline": "Benzin",
+      "electric": "Elektrik",
+      "hybrid": "Hibrit",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "Tümü",
@@ -1688,7 +1772,24 @@
     "deleteTask": "Görevi Sil",
     "deleteConfirm": "Bu görevi silmek istediğinizden emin misiniz?",
     "taskDeleted": "Görev başarıyla silindi",
-    "deleteFailed": "Görev silinemedi"
+    "deleteFailed": "Görev silinemedi",
+    "status": {
+      "pending": "Bekliyor",
+      "pending_review": "Yeni Görev!",
+      "accepted": "Kabul Edildi",
+      "assigned": "Atandı",
+      "rejected": "Reddedildi",
+      "in_progress": "Devam Ediyor",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal",
+      "withdrawn": "Geri Çekildi"
+    },
+    "priority": {
+      "low": "Düşük",
+      "normal": "Normal",
+      "high": "Yüksek",
+      "urgent": "Acil"
+    }
   },
   "adminAlerts": {
     "mapButton": "Haritada Göster",
@@ -1733,7 +1834,17 @@
       "battery": "Batarya",
       "idle": "Rölanti",
       "sos": "SOS",
-      "default": "Uyarı"
+      "default": "Uyarı",
+      "task_offered": "Görev Teklif Edildi",
+      "task_accepted": "Görev Kabul Edildi",
+      "task_started": "Görev Başlatıldı",
+      "task_completed": "Görev Tamamlandı",
+      "task_rejected": "Görev Reddedildi",
+      "task_withdrawn": "Görev Geri Çekildi",
+      "speeding": "Hız İhlali",
+      "harsh_brake": "Sert Fren",
+      "geofence_entry": "Bölgeye Giriş",
+      "geofence_exit": "Bölgeden Çıkış"
     },
     "time": {
       "justNow": "Az önce",
@@ -1965,7 +2076,8 @@
     "vehicleRequired": "Lütfen bir araç seçin",
     "noVehicles": "Araç bulunamadı",
     "noVehiclesHint": "Cihaz atanmış aktif araç yok",
-    "searchPlaceholder": "Konum ara..."
+    "searchPlaceholder": "Konum ara...",
+    "tapEditToManage": "Yönetmek için dokunun"
   },
   "vehicleList": {
     "title": "Araç Listesi",
@@ -2042,6 +2154,105 @@
     "errorDesc": "Lütfen 112'yi arayın veya internet bağlantınızı kontrol edin.",
     "cancelTitle": "SOS İptal",
     "cancelDesc": "SOS sinyali geri alınacak. Emin misiniz?",
-    "cancelConfirm": "Evet, İptal Et"
+    "cancelConfirm": "Evet, İptal Et",
+    "callSubText": "Telefon uygulaması açılır, siz arama başlatırsınız",
+    "sending": "Konum alınıyor ve SOS gönderiliyor...",
+    "warningText": "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır."
+  },
+  "about": {
+    "aboutText": "TulipFleet, lojistik şirketleri için geliştirilmiş kapsamlı bir filo yönetim platformudur. Gerçek zamanlı araç takibi, sürücü yönetimi, görev atama ve yakıt takibi gibi özelliklerle filonuzu verimli bir şekilde yönetmenizi sağlar.",
+    "aboutTitle": "TulipFleet Hakkında",
+    "aiPowered": "Yapay Zeka Destekli Geliştirme",
+    "allRightsReserved": "Tüm hakları saklıdır.",
+    "builtWith": "Yapay Zeka ile Geliştirildi",
+    "claudeDescription": "Bu uygulama, Anthropic tarafından geliştirilen Claude Opus 4.5 yapay zeka modeli ile tasarlanıp kodlanmıştır. Modern yazılım geliştirme ve yapay zeka işbirliğinin bir örneği olarak ortaya çıkmıştır.",
+    "contact": "İletişim",
+    "featureESP32": "ESP32 IoT entegrasyonu",
+    "featureFleet": "Filo yönetimi",
+    "featureFuel": "Yakıt ve kilometre takibi",
+    "featureTasks": "Görev atama ve takibi",
+    "featureTracking": "Gerçek zamanlı GPS takibi",
+    "features": "Özellikler",
+    "links": "Bağlantılar",
+    "madeWith": "Türkiye'de ❤️ ve ☕ ile yapıldı",
+    "privacyPolicy": "Gizlilik Politikası",
+    "tagline": "Profesyonel Filo Yönetim Sistemi",
+    "termsOfService": "Kullanım Şartları",
+    "website": "Web Sitesi"
+  },
+  "alerts": {
+    "warning": "Uyarı"
+  },
+  "changePassword": {
+    "allFieldsRequired": "Tüm alanları doldurun",
+    "confirmPassword": "Yeni Şifre (Tekrar)",
+    "confirmPlaceholder": "Yeni şifrenizi tekrar girin",
+    "currentPassword": "Mevcut Şifre",
+    "currentPlaceholder": "Mevcut şifrenizi girin",
+    "failed": "Şifre değiştirilemedi",
+    "hint": "Güvenliğiniz için güçlü bir şifre seçin. En az 6 karakter kullanın.",
+    "minLength": "Yeni şifre en az 6 karakter olmalı",
+    "mismatch": "Yeni şifreler eşleşmiyor",
+    "newPassword": "Yeni Şifre",
+    "newPlaceholder": "Yeni şifrenizi girin",
+    "samePassword": "Yeni şifre mevcut şifreden farklı olmalı",
+    "submit": "Şifreyi Değiştir",
+    "successMessage": "Şifreniz başarıyla değiştirildi.",
+    "successTitle": "Başarılı"
+  },
+  "editProfile": {
+    "changePhoto": "Fotoğraf Değiştir",
+    "email": "E-posta",
+    "emailReadonly": "E-posta değiştirilemez",
+    "firstName": "Ad",
+    "firstNamePlaceholder": "Adınızı girin",
+    "firstNameRequired": "Ad alanı zorunludur",
+    "lastName": "Soyad",
+    "lastNamePlaceholder": "Soyadınızı girin",
+    "phone": "Telefon",
+    "updateFailed": "Profil güncellenemedi",
+    "updated": "Profil güncellendi"
+  },
+  "geocode": {
+    "addressLoadFailed": "Adres yüklenemedi",
+    "addressNotFound": "Adres bulunamadı"
+  },
+  "register": {
+    "confirmPassword": "Şifre (Tekrar)",
+    "confirmPasswordHint": "Şifreyi tekrar girin",
+    "createAccount": "Yeni Hesap Oluştur",
+    "driverRegistration": "Sürücü Kaydı",
+    "errors": {
+      "confirmPasswordRequired": "Şifre tekrar gerekli",
+      "emailInvalid": "Geçersiz email formatı",
+      "emailRequired": "Email gerekli",
+      "firstNameRequired": "Ad gerekli",
+      "lastNameRequired": "Soyad gerekli",
+      "licenseRequired": "Ehliyet numarası gerekli",
+      "passwordMismatch": "Şifreler eşleşmiyor",
+      "passwordRequired": "Şifre gerekli",
+      "passwordShort": "Şifre en az 6 karakter olmalı",
+      "phoneRequired": "Telefon gerekli"
+    },
+    "failed": "Kayıt başarısız",
+    "firstName": "Ad",
+    "hasAccount": "Zaten hesabınız var mı?",
+    "infoText": "Kayıt sonrası yönetici onayı gereklidir. Onay sürecinden sonra giriş yapabilirsiniz. Sorularınız için: destek@tulipfleet.com",
+    "infoTitle": "Bilgi",
+    "lastName": "Soyad",
+    "licenseNumber": "Ehliyet No",
+    "passwordHint": "En az 6 karakter",
+    "phone": "Telefon",
+    "submit": "Kayıt Ol",
+    "successMessage": "Kaydınız alındı. Yönetici onayından sonra giriş yapabilirsiniz.",
+    "successTitle": "Başarılı!"
+  },
+  "reportExport": {
+    "cancel": "İptal",
+    "exportError": "Dışa aktarma hatası",
+    "shareCsv": "CSV Paylaş",
+    "shareError": "Paylaşım hatası",
+    "sharePdf": "PDF Paylaş",
+    "title": "Raporu Dışa Aktar"
   }
 }

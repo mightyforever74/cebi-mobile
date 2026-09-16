@@ -1,0 +1,1332 @@
+{
+  "about.aboutText": {
+    "tr": "TulipFleet, lojistik şirketleri için geliştirilmiş kapsamlı bir filo yönetim platformudur. Gerçek zamanlı araç takibi, sürücü yönetimi, görev atama ve yakıt takibi gibi özelliklerle filonuzu verimli bir şekilde yönetmenizi sağlar.",
+    "en": "TulipFleet is a comprehensive fleet management platform built for logistics companies. It helps you manage your fleet efficiently with real-time vehicle tracking, driver management, task assignment, and fuel tracking.",
+    "nl": "TulipFleet is een uitgebreid wagenparkbeheerplatform voor logistieke bedrijven. Het helpt u uw wagenpark efficiënt te beheren met realtime voertuigtracking, chauffeursbeheer, taaktoewijzing en brandstofregistratie.",
+    "de": "TulipFleet ist eine umfassende Flottenmanagement-Plattform für Logistikunternehmen. Sie ermöglicht effizientes Flottenmanagement mit Echtzeit-Fahrzeugverfolgung, Fahrerverwaltung, Aufgabenzuweisung und Kraftstoffüberwachung.",
+    "fr": "TulipFleet est une plateforme complète de gestion de flotte pour les entreprises de logistique. Elle vous permet de gérer efficacement votre flotte grâce au suivi des véhicules en temps réel, à la gestion des conducteurs, à l'attribution des tâches et au suivi du carburant.",
+    "es": "TulipFleet es una plataforma integral de gestión de flotas para empresas de logística. Le permite gestionar su flota de forma eficiente con seguimiento de vehículos en tiempo real, gestión de conductores, asignación de tareas y control de combustible.",
+    "it": "TulipFleet è una piattaforma completa di gestione flotte per aziende di logistica. Consente di gestire la flotta in modo efficiente con tracciamento veicoli in tempo reale, gestione autisti, assegnazione attività e monitoraggio carburante.",
+    "bg": "TulipFleet е цялостна платформа за управление на автопарк за логистични компании. Помага ви да управлявате автопарка ефективно със следене на превозни средства в реално време, управление на шофьори, възлагане на задачи и проследяване на гориво."
+  },
+  "about.aboutTitle": {
+    "tr": "TulipFleet Hakkında",
+    "en": "About TulipFleet",
+    "nl": "Over TulipFleet",
+    "de": "Über TulipFleet",
+    "fr": "À propos de TulipFleet",
+    "es": "Acerca de TulipFleet",
+    "it": "Informazioni su TulipFleet",
+    "bg": "За TulipFleet"
+  },
+  "about.aiPowered": {
+    "tr": "Yapay Zeka Destekli Geliştirme",
+    "en": "AI-Powered Development",
+    "nl": "AI-gestuurde ontwikkeling",
+    "de": "KI-gestützte Entwicklung",
+    "fr": "Développement assisté par IA",
+    "es": "Desarrollo impulsado por IA",
+    "it": "Sviluppo basato sull'IA",
+    "bg": "Разработка с изкуствен интелект"
+  },
+  "about.allRightsReserved": {
+    "tr": "Tüm hakları saklıdır.",
+    "en": "All rights reserved.",
+    "nl": "Alle rechten voorbehouden.",
+    "de": "Alle Rechte vorbehalten.",
+    "fr": "Tous droits réservés.",
+    "es": "Todos los derechos reservados.",
+    "it": "Tutti i diritti riservati.",
+    "bg": "Всички права запазени."
+  },
+  "about.builtWith": {
+    "tr": "Yapay Zeka ile Geliştirildi",
+    "en": "Built with Artificial Intelligence",
+    "nl": "Gebouwd met kunstmatige intelligentie",
+    "de": "Mit künstlicher Intelligenz entwickelt",
+    "fr": "Développé avec l'intelligence artificielle",
+    "es": "Desarrollado con inteligencia artificial",
+    "it": "Sviluppato con l'intelligenza artificiale",
+    "bg": "Разработено с изкуствен интелект"
+  },
+  "about.claudeDescription": {
+    "tr": "Bu uygulama, Anthropic tarafından geliştirilen Claude Opus 4.5 yapay zeka modeli ile tasarlanıp kodlanmıştır. Modern yazılım geliştirme ve yapay zeka işbirliğinin bir örneği olarak ortaya çıkmıştır.",
+    "en": "This app was designed and coded with Anthropic's Claude Opus 4.5 AI model. It is an example of collaboration between modern software development and artificial intelligence.",
+    "nl": "Deze app is ontworpen en gecodeerd met het Claude Opus 4.5 AI-model van Anthropic. Het is een voorbeeld van samenwerking tussen moderne softwareontwikkeling en kunstmatige intelligentie.",
+    "de": "Diese App wurde mit Anthropics KI-Modell Claude Opus 4.5 entworfen und programmiert. Sie ist ein Beispiel für die Zusammenarbeit von moderner Softwareentwicklung und künstlicher Intelligenz.",
+    "fr": "Cette application a été conçue et codée avec le modèle d'IA Claude Opus 4.5 d'Anthropic. Elle illustre la collaboration entre le développement logiciel moderne et l'intelligence artificielle.",
+    "es": "Esta aplicación fue diseñada y programada con el modelo de IA Claude Opus 4.5 de Anthropic. Es un ejemplo de colaboración entre el desarrollo de software moderno y la inteligencia artificial.",
+    "it": "Questa app è stata progettata e scritta con il modello di IA Claude Opus 4.5 di Anthropic. È un esempio di collaborazione tra sviluppo software moderno e intelligenza artificiale.",
+    "bg": "Това приложение е проектирано и написано с модела за изкуствен интелект Claude Opus 4.5 на Anthropic. То е пример за сътрудничество между съвременна разработка и изкуствен интелект."
+  },
+  "about.contact": {
+    "tr": "İletişim",
+    "en": "Contact",
+    "nl": "Contact",
+    "de": "Kontakt",
+    "fr": "Contact",
+    "es": "Contacto",
+    "it": "Contatto",
+    "bg": "Контакт"
+  },
+  "about.featureESP32": {
+    "tr": "ESP32 IoT entegrasyonu",
+    "en": "ESP32 IoT integration",
+    "nl": "ESP32 IoT-integratie",
+    "de": "ESP32-IoT-Integration",
+    "fr": "Intégration IoT ESP32",
+    "es": "Integración IoT ESP32",
+    "it": "Integrazione IoT ESP32",
+    "bg": "IoT интеграция с ESP32"
+  },
+  "about.featureFleet": {
+    "tr": "Filo yönetimi",
+    "en": "Fleet management",
+    "nl": "Wagenparkbeheer",
+    "de": "Flottenmanagement",
+    "fr": "Gestion de flotte",
+    "es": "Gestión de flotas",
+    "it": "Gestione flotte",
+    "bg": "Управление на автопарк"
+  },
+  "about.featureFuel": {
+    "tr": "Yakıt ve kilometre takibi",
+    "en": "Fuel and mileage tracking",
+    "nl": "Brandstof- en kilometertelling",
+    "de": "Kraftstoff- und Kilometerüberwachung",
+    "fr": "Suivi du carburant et du kilométrage",
+    "es": "Seguimiento de combustible y kilometraje",
+    "it": "Monitoraggio carburante e chilometraggio",
+    "bg": "Проследяване на гориво и пробег"
+  },
+  "about.featureTasks": {
+    "tr": "Görev atama ve takibi",
+    "en": "Task assignment and tracking",
+    "nl": "Taaktoewijzing en -opvolging",
+    "de": "Aufgabenzuweisung und -verfolgung",
+    "fr": "Attribution et suivi des tâches",
+    "es": "Asignación y seguimiento de tareas",
+    "it": "Assegnazione e monitoraggio delle attività",
+    "bg": "Възлагане и проследяване на задачи"
+  },
+  "about.featureTracking": {
+    "tr": "Gerçek zamanlı GPS takibi",
+    "en": "Real-time GPS tracking",
+    "nl": "Realtime GPS-tracking",
+    "de": "Echtzeit-GPS-Verfolgung",
+    "fr": "Suivi GPS en temps réel",
+    "es": "Seguimiento GPS en tiempo real",
+    "it": "Tracciamento GPS in tempo reale",
+    "bg": "GPS проследяване в реално време"
+  },
+  "about.features": {
+    "tr": "Özellikler",
+    "en": "Features",
+    "nl": "Functies",
+    "de": "Funktionen",
+    "fr": "Fonctionnalités",
+    "es": "Funciones",
+    "it": "Funzionalità",
+    "bg": "Функции"
+  },
+  "about.links": {
+    "tr": "Bağlantılar",
+    "en": "Links",
+    "nl": "Links",
+    "de": "Links",
+    "fr": "Liens",
+    "es": "Enlaces",
+    "it": "Collegamenti",
+    "bg": "Връзки"
+  },
+  "about.madeWith": {
+    "tr": "Türkiye'de ❤️ ve ☕ ile yapıldı",
+    "en": "Made in Türkiye with ❤️ and ☕",
+    "nl": "Gemaakt in Türkiye met ❤️ en ☕",
+    "de": "Hergestellt in Türkiye mit ❤️ und ☕",
+    "fr": "Fait en Türkiye avec ❤️ et ☕",
+    "es": "Hecho en Türkiye con ❤️ y ☕",
+    "it": "Fatto in Türkiye con ❤️ e ☕",
+    "bg": "Направено в Türkiye с ❤️ и ☕"
+  },
+  "about.privacyPolicy": {
+    "tr": "Gizlilik Politikası",
+    "en": "Privacy Policy",
+    "nl": "Privacybeleid",
+    "de": "Datenschutzrichtlinie",
+    "fr": "Politique de confidentialité",
+    "es": "Política de privacidad",
+    "it": "Informativa sulla privacy",
+    "bg": "Политика за поверителност"
+  },
+  "about.tagline": {
+    "tr": "Profesyonel Filo Yönetim Sistemi",
+    "en": "Professional Fleet Management System",
+    "nl": "Professioneel wagenparkbeheersysteem",
+    "de": "Professionelles Flottenmanagementsystem",
+    "fr": "Système professionnel de gestion de flotte",
+    "es": "Sistema profesional de gestión de flotas",
+    "it": "Sistema professionale di gestione flotte",
+    "bg": "Професионална система за управление на автопарк"
+  },
+  "about.termsOfService": {
+    "tr": "Kullanım Şartları",
+    "en": "Terms of Service",
+    "nl": "Servicevoorwaarden",
+    "de": "Nutzungsbedingungen",
+    "fr": "Conditions d'utilisation",
+    "es": "Términos de servicio",
+    "it": "Termini di servizio",
+    "bg": "Условия за ползване"
+  },
+  "about.website": {
+    "tr": "Web Sitesi",
+    "en": "Website",
+    "nl": "Website",
+    "de": "Webseite",
+    "fr": "Site web",
+    "es": "Sitio web",
+    "it": "Sito web",
+    "bg": "Уебсайт"
+  },
+  "admin.selectLanguage": {
+    "tr": "Dil Seçin",
+    "en": "Select Language",
+    "nl": "Selecteer taal",
+    "de": "Sprache wählen",
+    "fr": "Choisir la langue",
+    "es": "Seleccionar idioma",
+    "it": "Seleziona lingua",
+    "bg": "Изберете език"
+  },
+  "admin.total": {
+    "tr": "toplam",
+    "en": "total",
+    "nl": "totaal",
+    "de": "gesamt",
+    "fr": "total",
+    "es": "total",
+    "it": "totale",
+    "bg": "общо"
+  },
+  "alerts.warning": {
+    "tr": "Uyarı",
+    "en": "Warning",
+    "nl": "Waarschuwing",
+    "de": "Warnung",
+    "fr": "Avertissement",
+    "es": "Advertencia",
+    "it": "Avviso",
+    "bg": "Предупреждение"
+  },
+  "changePassword.allFieldsRequired": {
+    "tr": "Tüm alanları doldurun",
+    "en": "Please fill in all fields",
+    "nl": "Vul alle velden in",
+    "de": "Bitte füllen Sie alle Felder aus",
+    "fr": "Veuillez remplir tous les champs",
+    "es": "Complete todos los campos",
+    "it": "Compila tutti i campi",
+    "bg": "Попълнете всички полета"
+  },
+  "changePassword.confirmPassword": {
+    "tr": "Yeni Şifre (Tekrar)",
+    "en": "New Password (Confirm)",
+    "nl": "Nieuw wachtwoord (bevestigen)",
+    "de": "Neues Passwort (wiederholen)",
+    "fr": "Nouveau mot de passe (confirmation)",
+    "es": "Nueva contraseña (repetir)",
+    "it": "Nuova password (conferma)",
+    "bg": "Нова парола (повторете)"
+  },
+  "changePassword.confirmPlaceholder": {
+    "tr": "Yeni şifrenizi tekrar girin",
+    "en": "Re-enter your new password",
+    "nl": "Voer uw nieuwe wachtwoord opnieuw in",
+    "de": "Neues Passwort erneut eingeben",
+    "fr": "Saisissez à nouveau votre nouveau mot de passe",
+    "es": "Vuelva a introducir la nueva contraseña",
+    "it": "Reinserisci la nuova password",
+    "bg": "Въведете отново новата парола"
+  },
+  "changePassword.currentPassword": {
+    "tr": "Mevcut Şifre",
+    "en": "Current Password",
+    "nl": "Huidig wachtwoord",
+    "de": "Aktuelles Passwort",
+    "fr": "Mot de passe actuel",
+    "es": "Contraseña actual",
+    "it": "Password attuale",
+    "bg": "Текуща парола"
+  },
+  "changePassword.currentPlaceholder": {
+    "tr": "Mevcut şifrenizi girin",
+    "en": "Enter your current password",
+    "nl": "Voer uw huidige wachtwoord in",
+    "de": "Aktuelles Passwort eingeben",
+    "fr": "Saisissez votre mot de passe actuel",
+    "es": "Introduzca su contraseña actual",
+    "it": "Inserisci la password attuale",
+    "bg": "Въведете текущата парола"
+  },
+  "changePassword.failed": {
+    "tr": "Şifre değiştirilemedi",
+    "en": "Could not change password",
+    "nl": "Wachtwoord kon niet worden gewijzigd",
+    "de": "Passwort konnte nicht geändert werden",
+    "fr": "Impossible de modifier le mot de passe",
+    "es": "No se pudo cambiar la contraseña",
+    "it": "Impossibile modificare la password",
+    "bg": "Паролата не можа да бъде променена"
+  },
+  "changePassword.hint": {
+    "tr": "Güvenliğiniz için güçlü bir şifre seçin. En az 6 karakter kullanın.",
+    "en": "Choose a strong password for your security. Use at least 6 characters.",
+    "nl": "Kies een sterk wachtwoord voor uw veiligheid. Gebruik minstens 6 tekens.",
+    "de": "Wählen Sie aus Sicherheitsgründen ein starkes Passwort. Verwenden Sie mindestens 6 Zeichen.",
+    "fr": "Choisissez un mot de passe fort pour votre sécurité. Utilisez au moins 6 caractères.",
+    "es": "Elija una contraseña segura. Use al menos 6 caracteres.",
+    "it": "Scegli una password sicura. Usa almeno 6 caratteri.",
+    "bg": "Изберете силна парола за сигурност. Използвайте поне 6 знака."
+  },
+  "changePassword.minLength": {
+    "tr": "Yeni şifre en az 6 karakter olmalı",
+    "en": "New password must be at least 6 characters",
+    "nl": "Nieuw wachtwoord moet minstens 6 tekens zijn",
+    "de": "Neues Passwort muss mindestens 6 Zeichen haben",
+    "fr": "Le nouveau mot de passe doit contenir au moins 6 caractères",
+    "es": "La nueva contraseña debe tener al menos 6 caracteres",
+    "it": "La nuova password deve avere almeno 6 caratteri",
+    "bg": "Новата парола трябва да е поне 6 знака"
+  },
+  "changePassword.mismatch": {
+    "tr": "Yeni şifreler eşleşmiyor",
+    "en": "New passwords do not match",
+    "nl": "Nieuwe wachtwoorden komen niet overeen",
+    "de": "Neue Passwörter stimmen nicht überein",
+    "fr": "Les nouveaux mots de passe ne correspondent pas",
+    "es": "Las nuevas contraseñas no coinciden",
+    "it": "Le nuove password non coincidono",
+    "bg": "Новите пароли не съвпадат"
+  },
+  "changePassword.newPassword": {
+    "tr": "Yeni Şifre",
+    "en": "New Password",
+    "nl": "Nieuw wachtwoord",
+    "de": "Neues Passwort",
+    "fr": "Nouveau mot de passe",
+    "es": "Nueva contraseña",
+    "it": "Nuova password",
+    "bg": "Нова парола"
+  },
+  "changePassword.newPlaceholder": {
+    "tr": "Yeni şifrenizi girin",
+    "en": "Enter your new password",
+    "nl": "Voer uw nieuwe wachtwoord in",
+    "de": "Neues Passwort eingeben",
+    "fr": "Saisissez votre nouveau mot de passe",
+    "es": "Introduzca su nueva contraseña",
+    "it": "Inserisci la nuova password",
+    "bg": "Въведете новата парола"
+  },
+  "changePassword.samePassword": {
+    "tr": "Yeni şifre mevcut şifreden farklı olmalı",
+    "en": "New password must be different from the current password",
+    "nl": "Nieuw wachtwoord moet anders zijn dan het huidige",
+    "de": "Neues Passwort muss sich vom aktuellen unterscheiden",
+    "fr": "Le nouveau mot de passe doit être différent de l'actuel",
+    "es": "La nueva contraseña debe ser distinta de la actual",
+    "it": "La nuova password deve essere diversa da quella attuale",
+    "bg": "Новата парола трябва да се различава от текущата"
+  },
+  "changePassword.submit": {
+    "tr": "Şifreyi Değiştir",
+    "en": "Change Password",
+    "nl": "Wachtwoord wijzigen",
+    "de": "Passwort ändern",
+    "fr": "Modifier le mot de passe",
+    "es": "Cambiar contraseña",
+    "it": "Cambia password",
+    "bg": "Промяна на паролата"
+  },
+  "changePassword.successMessage": {
+    "tr": "Şifreniz başarıyla değiştirildi.",
+    "en": "Your password was changed successfully.",
+    "nl": "Uw wachtwoord is succesvol gewijzigd.",
+    "de": "Ihr Passwort wurde erfolgreich geändert.",
+    "fr": "Votre mot de passe a été modifié avec succès.",
+    "es": "Su contraseña se cambió correctamente.",
+    "it": "La password è stata modificata con successo.",
+    "bg": "Паролата е променена успешно."
+  },
+  "changePassword.successTitle": {
+    "tr": "Başarılı",
+    "en": "Success",
+    "nl": "Gelukt",
+    "de": "Erfolg",
+    "fr": "Succès",
+    "es": "Éxito",
+    "it": "Operazione riuscita",
+    "bg": "Успех"
+  },
+  "common.cannotOpenLink": {
+    "tr": "Link açılamadı",
+    "en": "Could not open the link",
+    "nl": "Link kon niet worden geopend",
+    "de": "Link konnte nicht geöffnet werden",
+    "fr": "Impossible d'ouvrir le lien",
+    "es": "No se pudo abrir el enlace",
+    "it": "Impossibile aprire il collegamento",
+    "bg": "Връзката не можа да бъде отворена"
+  },
+  "common.info": {
+    "tr": "Bilgi",
+    "en": "Info",
+    "nl": "Info",
+    "de": "Info",
+    "fr": "Info",
+    "es": "Info",
+    "it": "Info",
+    "bg": "Информация"
+  },
+  "common.invalidHour": {
+    "tr": "Geçerli saat aralığı 0–23 olmalıdır.",
+    "en": "Valid hour range is 0–23.",
+    "nl": "Geldig uur ligt tussen 0 en 23.",
+    "de": "Gültiger Stundenbereich ist 0–23.",
+    "fr": "La plage horaire valide est 0–23.",
+    "es": "El rango de hora válido es 0–23.",
+    "it": "L'intervallo orario valido è 0–23.",
+    "bg": "Валидният часов диапазон е 0–23."
+  },
+  "common.optional": {
+    "tr": "(opsiyonel)",
+    "en": "(optional)",
+    "nl": "(optioneel)",
+    "de": "(optional)",
+    "fr": "(facultatif)",
+    "es": "(opcional)",
+    "it": "(opzionale)",
+    "bg": "(по избор)"
+  },
+  "common.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Fahrzeug",
+    "fr": "Véhicule",
+    "es": "Vehículo",
+    "it": "Veicolo",
+    "bg": "Превозно средство"
+  },
+  "dashboard.activeVehicles": {
+    "tr": "Aktif Araçlar",
+    "en": "Active Vehicles",
+    "nl": "Actieve voertuigen",
+    "de": "Aktive Fahrzeuge",
+    "fr": "Véhicules actifs",
+    "es": "Vehículos activos",
+    "it": "Veicoli attivi",
+    "bg": "Активни превозни средства"
+  },
+  "dashboard.trafficClear": {
+    "tr": "Trafik açık",
+    "en": "Traffic clear",
+    "nl": "Verkeer vlot",
+    "de": "Verkehr fließt",
+    "fr": "Trafic fluide",
+    "es": "Tráfico fluido",
+    "it": "Traffico scorrevole",
+    "bg": "Свободен трафик"
+  },
+  "deviceAssignment.confirmAssignment": {
+    "tr": "Bu cihazı aracınıza atamak istiyor musunuz?",
+    "en": "Do you want to assign this device to your vehicle?",
+    "nl": "Wilt u dit apparaat aan uw voertuig toewijzen?",
+    "de": "Möchten Sie dieses Gerät Ihrem Fahrzeug zuweisen?",
+    "fr": "Voulez-vous attribuer cet appareil à votre véhicule ?",
+    "es": "¿Desea asignar este dispositivo a su vehículo?",
+    "it": "Vuoi assegnare questo dispositivo al tuo veicolo?",
+    "bg": "Искате ли да присвоите това устройство към превозното средство?"
+  },
+  "deviceAssignment.scanQR": {
+    "tr": "QR Tara",
+    "en": "Scan QR",
+    "nl": "QR scannen",
+    "de": "QR scannen",
+    "fr": "Scanner le QR",
+    "es": "Escanear QR",
+    "it": "Scansiona QR",
+    "bg": "Сканирай QR"
+  },
+  "deviceAssignment.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Fahrzeug",
+    "fr": "Véhicule",
+    "es": "Vehículo",
+    "it": "Veicolo",
+    "bg": "Превозно средство"
+  },
+  "deviceSetup.connecting": {
+    "tr": "Bağlanıyor...",
+    "en": "Connecting...",
+    "nl": "Verbinden...",
+    "de": "Wird verbunden...",
+    "fr": "Connexion en cours...",
+    "es": "Conectando...",
+    "it": "Connessione...",
+    "bg": "Свързване..."
+  },
+  "deviceSetup.connectionError": {
+    "tr": "Bağlantı hatası: {{error}}",
+    "en": "Connection error: {{error}}",
+    "nl": "Verbindingsfout: {{error}}",
+    "de": "Verbindungsfehler: {{error}}",
+    "fr": "Erreur de connexion : {{error}}",
+    "es": "Error de conexión: {{error}}",
+    "it": "Errore di connessione: {{error}}",
+    "bg": "Грешка при връзка: {{error}}"
+  },
+  "editProfile.changePhoto": {
+    "tr": "Fotoğraf Değiştir",
+    "en": "Change Photo",
+    "nl": "Foto wijzigen",
+    "de": "Foto ändern",
+    "fr": "Changer la photo",
+    "es": "Cambiar foto",
+    "it": "Cambia foto",
+    "bg": "Смяна на снимка"
+  },
+  "editProfile.email": {
+    "tr": "E-posta",
+    "en": "Email",
+    "nl": "E-mail",
+    "de": "E-Mail",
+    "fr": "E-mail",
+    "es": "Correo electrónico",
+    "it": "E-mail",
+    "bg": "Имейл"
+  },
+  "editProfile.emailReadonly": {
+    "tr": "E-posta değiştirilemez",
+    "en": "Email cannot be changed",
+    "nl": "E-mail kan niet worden gewijzigd",
+    "de": "E-Mail kann nicht geändert werden",
+    "fr": "L'e-mail ne peut pas être modifiée",
+    "es": "El correo no se puede cambiar",
+    "it": "L'e-mail non può essere modificata",
+    "bg": "Имейлът не може да се променя"
+  },
+  "editProfile.firstName": {
+    "tr": "Ad",
+    "en": "First Name",
+    "nl": "Voornaam",
+    "de": "Vorname",
+    "fr": "Prénom",
+    "es": "Nombre",
+    "it": "Nome",
+    "bg": "Име"
+  },
+  "editProfile.firstNamePlaceholder": {
+    "tr": "Adınızı girin",
+    "en": "Enter your first name",
+    "nl": "Voer uw voornaam in",
+    "de": "Vornamen eingeben",
+    "fr": "Saisissez votre prénom",
+    "es": "Introduzca su nombre",
+    "it": "Inserisci il nome",
+    "bg": "Въведете името"
+  },
+  "editProfile.firstNameRequired": {
+    "tr": "Ad alanı zorunludur",
+    "en": "First name is required",
+    "nl": "Voornaam is verplicht",
+    "de": "Vorname ist erforderlich",
+    "fr": "Le prénom est obligatoire",
+    "es": "El nombre es obligatorio",
+    "it": "Il nome è obbligatorio",
+    "bg": "Името е задължително"
+  },
+  "editProfile.lastName": {
+    "tr": "Soyad",
+    "en": "Last Name",
+    "nl": "Achternaam",
+    "de": "Nachname",
+    "fr": "Nom",
+    "es": "Apellido",
+    "it": "Cognome",
+    "bg": "Фамилия"
+  },
+  "editProfile.lastNamePlaceholder": {
+    "tr": "Soyadınızı girin",
+    "en": "Enter your last name",
+    "nl": "Voer uw achternaam in",
+    "de": "Nachnamen eingeben",
+    "fr": "Saisissez votre nom",
+    "es": "Introduzca su apellido",
+    "it": "Inserisci il cognome",
+    "bg": "Въведете фамилията"
+  },
+  "editProfile.phone": {
+    "tr": "Telefon",
+    "en": "Phone",
+    "nl": "Telefoon",
+    "de": "Telefon",
+    "fr": "Téléphone",
+    "es": "Teléfono",
+    "it": "Telefono",
+    "bg": "Телефон"
+  },
+  "editProfile.updateFailed": {
+    "tr": "Profil güncellenemedi",
+    "en": "Could not update profile",
+    "nl": "Profiel kon niet worden bijgewerkt",
+    "de": "Profil konnte nicht aktualisiert werden",
+    "fr": "Impossible de mettre à jour le profil",
+    "es": "No se pudo actualizar el perfil",
+    "it": "Impossibile aggiornare il profilo",
+    "bg": "Профилът не можа да бъде обновен"
+  },
+  "editProfile.updated": {
+    "tr": "Profil güncellendi",
+    "en": "Profile updated",
+    "nl": "Profiel bijgewerkt",
+    "de": "Profil aktualisiert",
+    "fr": "Profil mis à jour",
+    "es": "Perfil actualizado",
+    "it": "Profilo aggiornato",
+    "bg": "Профилът е обновен"
+  },
+  "geocode.addressLoadFailed": {
+    "tr": "Adres yüklenemedi",
+    "en": "Could not load address",
+    "nl": "Adres kon niet worden geladen",
+    "de": "Adresse konnte nicht geladen werden",
+    "fr": "Impossible de charger l'adresse",
+    "es": "No se pudo cargar la dirección",
+    "it": "Impossibile caricare l'indirizzo",
+    "bg": "Адресът не можа да бъде зареден"
+  },
+  "geocode.addressNotFound": {
+    "tr": "Adres bulunamadı",
+    "en": "Address not found",
+    "nl": "Adres niet gevonden",
+    "de": "Adresse nicht gefunden",
+    "fr": "Adresse introuvable",
+    "es": "Dirección no encontrada",
+    "it": "Indirizzo non trovato",
+    "bg": "Адресът не е намерен"
+  },
+  "geofence.tapEditToManage": {
+    "tr": "Yönetmek için dokunun",
+    "en": "Tap to manage",
+    "nl": "Tik om te beheren",
+    "de": "Bearbeiten tippen zum Verwalten",
+    "fr": "Appuyer sur Modifier pour gérer",
+    "es": "Toca para gestionar",
+    "it": "Tocca per gestire",
+    "bg": "Натиснете за управление"
+  },
+  "offerDetail.contactAdmin": {
+    "tr": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+    "en": "No vehicle is assigned to this task. Please contact an admin.",
+    "nl": "Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder.",
+    "de": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin.",
+    "fr": "Aucun véhicule n'est attribué à cette tâche. Veuillez contacter un administrateur.",
+    "es": "No hay vehículo asignado a esta tarea. Contacte a un administrador.",
+    "it": "Nessun veicolo è assegnato a questa attività. Contatta un amministratore.",
+    "bg": "Към тази задача няма назначено превозно средство. Свържете се с администратор."
+  },
+  "offerDetail.goToMap": {
+    "tr": "Haritaya Git",
+    "en": "Go to Map",
+    "nl": "Naar de kaart",
+    "de": "Zur Karte",
+    "fr": "Aller à la carte",
+    "es": "Ir al mapa",
+    "it": "Vai alla mappa",
+    "bg": "Към картата"
+  },
+  "offerDetail.goToTasks": {
+    "tr": "Görevlerime Dön",
+    "en": "Back to My Tasks",
+    "nl": "Terug naar mijn taken",
+    "de": "Zurück zu meinen Aufgaben",
+    "fr": "Retour à mes tâches",
+    "es": "Volver a mis tareas",
+    "it": "Torna alle mie attività",
+    "bg": "Назад към моите задачи"
+  },
+  "offerDetail.noVehicleAssigned": {
+    "tr": "Görev kabul edildi. Araç atanmamış, admin bilgilendirilecek.",
+    "en": "Task accepted. No vehicle is assigned; an admin will be notified.",
+    "nl": "Taak geaccepteerd. Er is geen voertuig toegewezen; een beheerder wordt geïnformeerd.",
+    "de": "Aufgabe angenommen. Kein Fahrzeug zugewiesen; ein Admin wird benachrichtigt.",
+    "fr": "Tâche acceptée. Aucun véhicule n'est attribué ; un administrateur sera informé.",
+    "es": "Tarea aceptada. No hay vehículo asignado; se avisará a un administrador.",
+    "it": "Attività accettata. Nessun veicolo assegnato; un amministratore verrà avvisato.",
+    "bg": "Задачата е приета. Няма назначено превозно средство; администратор ще бъде уведомен."
+  },
+  "offerDetail.taskAccepted": {
+    "tr": "✅ Görev Kabul Edildi",
+    "en": "✅ Task Accepted",
+    "nl": "✅ Taak geaccepteerd",
+    "de": "✅ Aufgabe angenommen",
+    "fr": "✅ Tâche acceptée",
+    "es": "✅ Tarea aceptada",
+    "it": "✅ Attività accettata",
+    "bg": "✅ Задачата е приета"
+  },
+  "offerDetail.trackOnMap": {
+    "tr": "Görevi haritada takip etmek ister misiniz?",
+    "en": "Would you like to track the task on the map?",
+    "nl": "Wilt u de taak op de kaart volgen?",
+    "de": "Möchten Sie die Aufgabe auf der Karte verfolgen?",
+    "fr": "Souhaitez-vous suivre la tâche sur la carte ?",
+    "es": "¿Desea seguir la tarea en el mapa?",
+    "it": "Vuoi seguire l'attività sulla mappa?",
+    "bg": "Искате ли да следите задачата на картата?"
+  },
+  "offerDetail.vehicleNotAssigned": {
+    "tr": "Araç Atanmamış",
+    "en": "Vehicle Not Assigned",
+    "nl": "Voertuig niet toegewezen",
+    "de": "Fahrzeug nicht zugewiesen",
+    "fr": "Véhicule non attribué",
+    "es": "Vehículo no asignado",
+    "it": "Veicolo non assegnato",
+    "bg": "Няма назначено превозно средство"
+  },
+  "register.confirmPassword": {
+    "tr": "Şifre (Tekrar)",
+    "en": "Password (Confirm)",
+    "nl": "Wachtwoord (bevestigen)",
+    "de": "Passwort (wiederholen)",
+    "fr": "Mot de passe (confirmation)",
+    "es": "Contraseña (repetir)",
+    "it": "Password (conferma)",
+    "bg": "Парола (повторете)"
+  },
+  "register.confirmPasswordHint": {
+    "tr": "Şifreyi tekrar girin",
+    "en": "Re-enter the password",
+    "nl": "Voer het wachtwoord opnieuw in",
+    "de": "Passwort erneut eingeben",
+    "fr": "Saisissez à nouveau le mot de passe",
+    "es": "Vuelva a introducir la contraseña",
+    "it": "Reinserisci la password",
+    "bg": "Въведете отново паролата"
+  },
+  "register.createAccount": {
+    "tr": "Yeni Hesap Oluştur",
+    "en": "Create New Account",
+    "nl": "Nieuw account aanmaken",
+    "de": "Neues Konto erstellen",
+    "fr": "Créer un nouveau compte",
+    "es": "Crear cuenta nueva",
+    "it": "Crea un nuovo account",
+    "bg": "Създай нов акаунт"
+  },
+  "register.driverRegistration": {
+    "tr": "Sürücü Kaydı",
+    "en": "Driver Registration",
+    "nl": "Chauffeursregistratie",
+    "de": "Fahrerregistrierung",
+    "fr": "Inscription conducteur",
+    "es": "Registro de conductor",
+    "it": "Registrazione autista",
+    "bg": "Регистрация на шофьор"
+  },
+  "register.errors.confirmPasswordRequired": {
+    "tr": "Şifre tekrar gerekli",
+    "en": "Please confirm the password",
+    "nl": "Bevestig het wachtwoord",
+    "de": "Passwortbestätigung erforderlich",
+    "fr": "La confirmation du mot de passe est requise",
+    "es": "Debe confirmar la contraseña",
+    "it": "Conferma della password obbligatoria",
+    "bg": "Потвърдете паролата"
+  },
+  "register.errors.emailInvalid": {
+    "tr": "Geçersiz email formatı",
+    "en": "Invalid email format",
+    "nl": "Ongeldig e-mailformaat",
+    "de": "Ungültiges E-Mail-Format",
+    "fr": "Format d'e-mail invalide",
+    "es": "Formato de correo inválido",
+    "it": "Formato e-mail non valido",
+    "bg": "Невалиден имейл формат"
+  },
+  "register.errors.emailRequired": {
+    "tr": "Email gerekli",
+    "en": "Email is required",
+    "nl": "E-mail is verplicht",
+    "de": "E-Mail ist erforderlich",
+    "fr": "L'e-mail est obligatoire",
+    "es": "El correo es obligatorio",
+    "it": "L'e-mail è obbligatoria",
+    "bg": "Имейлът е задължителен"
+  },
+  "register.errors.firstNameRequired": {
+    "tr": "Ad gerekli",
+    "en": "First name is required",
+    "nl": "Voornaam is verplicht",
+    "de": "Vorname ist erforderlich",
+    "fr": "Le prénom est obligatoire",
+    "es": "El nombre es obligatorio",
+    "it": "Il nome è obbligatorio",
+    "bg": "Името е задължително"
+  },
+  "register.errors.lastNameRequired": {
+    "tr": "Soyad gerekli",
+    "en": "Last name is required",
+    "nl": "Achternaam is verplicht",
+    "de": "Nachname ist erforderlich",
+    "fr": "Le nom est obligatoire",
+    "es": "El apellido es obligatorio",
+    "it": "Il cognome è obbligatorio",
+    "bg": "Фамилията е задължителна"
+  },
+  "register.errors.licenseRequired": {
+    "tr": "Ehliyet numarası gerekli",
+    "en": "License number is required",
+    "nl": "Rijbewijsnummer is verplicht",
+    "de": "Führerscheinnummer ist erforderlich",
+    "fr": "Le numéro de permis est obligatoire",
+    "es": "El número de licencia es obligatorio",
+    "it": "Il numero di patente è obbligatorio",
+    "bg": "Номерът на шофьорската книжка е задължителен"
+  },
+  "register.errors.passwordMismatch": {
+    "tr": "Şifreler eşleşmiyor",
+    "en": "Passwords do not match",
+    "nl": "Wachtwoorden komen niet overeen",
+    "de": "Passwörter stimmen nicht überein",
+    "fr": "Les mots de passe ne correspondent pas",
+    "es": "Las contraseñas no coinciden",
+    "it": "Le password non coincidono",
+    "bg": "Паролите не съвпадат"
+  },
+  "register.errors.passwordRequired": {
+    "tr": "Şifre gerekli",
+    "en": "Password is required",
+    "nl": "Wachtwoord is verplicht",
+    "de": "Passwort ist erforderlich",
+    "fr": "Le mot de passe est obligatoire",
+    "es": "La contraseña es obligatoria",
+    "it": "La password è obbligatoria",
+    "bg": "Паролата е задължителна"
+  },
+  "register.errors.passwordShort": {
+    "tr": "Şifre en az 6 karakter olmalı",
+    "en": "Password must be at least 6 characters",
+    "nl": "Wachtwoord moet minstens 6 tekens zijn",
+    "de": "Passwort muss mindestens 6 Zeichen haben",
+    "fr": "Le mot de passe doit contenir au moins 6 caractères",
+    "es": "La contraseña debe tener al menos 6 caracteres",
+    "it": "La password deve avere almeno 6 caratteri",
+    "bg": "Паролата трябва да е поне 6 знака"
+  },
+  "register.errors.phoneRequired": {
+    "tr": "Telefon gerekli",
+    "en": "Phone is required",
+    "nl": "Telefoon is verplicht",
+    "de": "Telefon ist erforderlich",
+    "fr": "Le téléphone est obligatoire",
+    "es": "El teléfono es obligatorio",
+    "it": "Il telefono è obbligatorio",
+    "bg": "Телефонът е задължителен"
+  },
+  "register.failed": {
+    "tr": "Kayıt başarısız",
+    "en": "Registration failed",
+    "nl": "Registratie mislukt",
+    "de": "Registrierung fehlgeschlagen",
+    "fr": "L'inscription a échoué",
+    "es": "El registro falló",
+    "it": "Registrazione non riuscita",
+    "bg": "Регистрацията не успя"
+  },
+  "register.firstName": {
+    "tr": "Ad",
+    "en": "First Name",
+    "nl": "Voornaam",
+    "de": "Vorname",
+    "fr": "Prénom",
+    "es": "Nombre",
+    "it": "Nome",
+    "bg": "Име"
+  },
+  "register.hasAccount": {
+    "tr": "Zaten hesabınız var mı?",
+    "en": "Already have an account?",
+    "nl": "Heeft u al een account?",
+    "de": "Haben Sie bereits ein Konto?",
+    "fr": "Vous avez déjà un compte ?",
+    "es": "¿Ya tiene una cuenta?",
+    "it": "Hai già un account?",
+    "bg": "Вече имате акаунт?"
+  },
+  "register.infoText": {
+    "tr": "Kayıt sonrası yönetici onayı gereklidir. Onay sürecinden sonra giriş yapabilirsiniz. Sorularınız için: destek@tulipfleet.com",
+    "en": "Admin approval is required after registration. You can sign in after approval. Questions: destek@tulipfleet.com",
+    "nl": "Na registratie is goedkeuring van de beheerder vereist. U kunt inloggen na goedkeuring. Vragen: destek@tulipfleet.com",
+    "de": "Nach der Registrierung ist eine Admin-Freigabe erforderlich. Nach der Freigabe können Sie sich anmelden. Fragen: destek@tulipfleet.com",
+    "fr": "Une validation administrateur est requise après l'inscription. Vous pourrez vous connecter après validation. Questions : destek@tulipfleet.com",
+    "es": "Se requiere aprobación del administrador tras el registro. Podrá iniciar sesión después de la aprobación. Preguntas: destek@tulipfleet.com",
+    "it": "Dopo la registrazione è necessaria l'approvazione dell'amministratore. Potrai accedere dopo l'approvazione. Domande: destek@tulipfleet.com",
+    "bg": "След регистрацията е необходимо одобрение от администратор. Можете да влезете след одобрение. Въпроси: destek@tulipfleet.com"
+  },
+  "register.infoTitle": {
+    "tr": "Bilgi",
+    "en": "Info",
+    "nl": "Info",
+    "de": "Info",
+    "fr": "Info",
+    "es": "Info",
+    "it": "Info",
+    "bg": "Информация"
+  },
+  "register.lastName": {
+    "tr": "Soyad",
+    "en": "Last Name",
+    "nl": "Achternaam",
+    "de": "Nachname",
+    "fr": "Nom",
+    "es": "Apellido",
+    "it": "Cognome",
+    "bg": "Фамилия"
+  },
+  "register.licenseNumber": {
+    "tr": "Ehliyet No",
+    "en": "License No",
+    "nl": "Rijbewijsnummer",
+    "de": "Führerschein-Nr.",
+    "fr": "N° de permis",
+    "es": "N.º de licencia",
+    "it": "N. patente",
+    "bg": "№ на книжката"
+  },
+  "register.passwordHint": {
+    "tr": "En az 6 karakter",
+    "en": "At least 6 characters",
+    "nl": "Minstens 6 tekens",
+    "de": "Mindestens 6 Zeichen",
+    "fr": "Au moins 6 caractères",
+    "es": "Al menos 6 caracteres",
+    "it": "Almeno 6 caratteri",
+    "bg": "Поне 6 знака"
+  },
+  "register.phone": {
+    "tr": "Telefon",
+    "en": "Phone",
+    "nl": "Telefoon",
+    "de": "Telefon",
+    "fr": "Téléphone",
+    "es": "Teléfono",
+    "it": "Telefono",
+    "bg": "Телефон"
+  },
+  "register.submit": {
+    "tr": "Kayıt Ol",
+    "en": "Register",
+    "nl": "Registreren",
+    "de": "Registrieren",
+    "fr": "S'inscrire",
+    "es": "Registrarse",
+    "it": "Registrati",
+    "bg": "Регистрация"
+  },
+  "register.successMessage": {
+    "tr": "Kaydınız alındı. Yönetici onayından sonra giriş yapabilirsiniz.",
+    "en": "Your registration was received. You can sign in after admin approval.",
+    "nl": "Uw registratie is ontvangen. U kunt inloggen na goedkeuring van de beheerder.",
+    "de": "Ihre Registrierung wurde empfangen. Nach der Admin-Freigabe können Sie sich anmelden.",
+    "fr": "Votre inscription a été reçue. Vous pourrez vous connecter après validation par un administrateur.",
+    "es": "Se recibió su registro. Podrá iniciar sesión tras la aprobación del administrador.",
+    "it": "La registrazione è stata ricevuta. Potrai accedere dopo l'approvazione dell'amministratore.",
+    "bg": "Регистрацията е приета. Можете да влезете след одобрение от администратор."
+  },
+  "register.successTitle": {
+    "tr": "Başarılı!",
+    "en": "Success!",
+    "nl": "Gelukt!",
+    "de": "Erfolg!",
+    "fr": "Succès !",
+    "es": "¡Éxito!",
+    "it": "Operazione riuscita!",
+    "bg": "Успех!"
+  },
+  "reportExport.cancel": {
+    "tr": "İptal",
+    "en": "Cancel",
+    "nl": "Annuleren",
+    "de": "Abbrechen",
+    "fr": "Annuler",
+    "es": "Cancelar",
+    "it": "Annulla",
+    "bg": "Отказ"
+  },
+  "reportExport.exportError": {
+    "tr": "Dışa aktarma hatası",
+    "en": "Export error",
+    "nl": "Exportfout",
+    "de": "Exportfehler",
+    "fr": "Erreur d'exportation",
+    "es": "Error de exportación",
+    "it": "Errore di esportazione",
+    "bg": "Грешка при експорт"
+  },
+  "reportExport.shareCsv": {
+    "tr": "CSV Paylaş",
+    "en": "Share CSV",
+    "nl": "CSV delen",
+    "de": "CSV teilen",
+    "fr": "Partager CSV",
+    "es": "Compartir CSV",
+    "it": "Condividi CSV",
+    "bg": "Сподели CSV"
+  },
+  "reportExport.shareError": {
+    "tr": "Paylaşım hatası",
+    "en": "Share error",
+    "nl": "Deelfout",
+    "de": "Teilfehler",
+    "fr": "Erreur de partage",
+    "es": "Error al compartir",
+    "it": "Errore di condivisione",
+    "bg": "Грешка при споделяне"
+  },
+  "reportExport.sharePdf": {
+    "tr": "PDF Paylaş",
+    "en": "Share PDF",
+    "nl": "PDF delen",
+    "de": "PDF teilen",
+    "fr": "Partager PDF",
+    "es": "Compartir PDF",
+    "it": "Condividi PDF",
+    "bg": "Сподели PDF"
+  },
+  "reportExport.title": {
+    "tr": "Raporu Dışa Aktar",
+    "en": "Export Report",
+    "nl": "Rapport exporteren",
+    "de": "Bericht exportieren",
+    "fr": "Exporter le rapport",
+    "es": "Exportar informe",
+    "it": "Esporta report",
+    "bg": "Експорт на отчет"
+  },
+  "routeMap.odometerPrompt": {
+    "tr": "Araç km sayacını girin (isteğe bağlı):",
+    "en": "Enter vehicle odometer reading (optional):",
+    "nl": "Voer de kilometerstand in (optioneel):",
+    "de": "Tachometerstand eingeben (optional):",
+    "fr": "Entrez le kilométrage du véhicule (facultatif):",
+    "es": "Ingrese el kilometraje del vehículo (opcional):",
+    "it": "Inserisci il chilometraggio del veicolo (opzionale):",
+    "bg": "Araç km sayacını girin (isteğe bağlı):"
+  },
+  "sos.callSubText": {
+    "tr": "Telefon uygulaması açılır, siz arama başlatırsınız",
+    "en": "The phone app opens; you start the call",
+    "nl": "De telefoon-app opent; u start het gesprek",
+    "de": "Die Telefon-App öffnet sich; Sie starten den Anruf",
+    "fr": "L'application téléphone s'ouvre ; vous lancez l'appel",
+    "es": "Se abre la app de teléfono; usted inicia la llamada",
+    "it": "Si apre l'app telefono; avvii tu la chiamata",
+    "bg": "Отваря се телефонното приложение; вие започвате обаждането"
+  },
+  "sos.sending": {
+    "tr": "Konum alınıyor ve SOS gönderiliyor...",
+    "en": "Getting location and sending SOS...",
+    "nl": "Locatie ophalen en SOS verzenden...",
+    "de": "Standort wird ermittelt und SOS gesendet...",
+    "fr": "Récupération de la position et envoi du SOS...",
+    "es": "Obteniendo ubicación y enviando SOS...",
+    "it": "Acquisizione posizione e invio SOS...",
+    "bg": "Получаване на местоположение и изпращане на SOS..."
+  },
+  "sos.warningText": {
+    "tr": "Bu ekran yalnızca gerçek acil durumlar için kullanın. Yanlış alarm bildirilmesi yasaldır.",
+    "en": "Use this screen only for real emergencies. False alarms may have legal consequences.",
+    "nl": "Gebruik dit scherm alleen bij echte noodgevallen. Valse alarmen kunnen juridische gevolgen hebben.",
+    "de": "Verwenden Sie diesen Bildschirm nur bei echten Notfällen. Falscher Alarm kann rechtliche Folgen haben.",
+    "fr": "Utilisez cet écran uniquement en cas d'urgence réelle. Les fausses alertes peuvent avoir des conséquences juridiques.",
+    "es": "Use esta pantalla solo en emergencias reales. Las alarmas falsas pueden tener consecuencias legales.",
+    "it": "Usa questa schermata solo per emergenze reali. I falsi allarmi possono avere conseguenze legali.",
+    "bg": "Използвайте този екран само при реални спешни случаи. Фалшивите сигнали могат да имат правни последици."
+  },
+  "taskDetail.vehicleNotAssigned": {
+    "tr": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+    "en": "No vehicle is assigned to this task. Please contact an admin.",
+    "nl": "Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder.",
+    "de": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin.",
+    "fr": "Aucun véhicule n'est attribué à cette tâche. Veuillez contacter un administrateur.",
+    "es": "No hay vehículo asignado a esta tarea. Contacte a un administrador.",
+    "it": "Nessun veicolo è assegnato a questa attività. Contatta un amministratore.",
+    "bg": "Към тази задача няма назначено превозно средство. Свържете се с администратор."
+  },
+  "tasks.contactAdmin": {
+    "tr": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin.",
+    "en": "No vehicle is assigned to this task. Please contact an admin.",
+    "nl": "Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder.",
+    "de": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin.",
+    "fr": "Aucun véhicule n'est attribué à cette tâche. Veuillez contacter un administrateur.",
+    "es": "No hay vehículo asignado a esta tarea. Contacte a un administrador.",
+    "it": "Nessun veicolo è assegnato a questa attività. Contatta un amministratore.",
+    "bg": "Към тази задача няма назначено превозно средство. Свържете се с администратор."
+  },
+  "tasks.noVehicleAssigned": {
+    "tr": "Araç Atanmamış",
+    "en": "Vehicle Not Assigned",
+    "nl": "Voertuig niet toegewezen",
+    "de": "Fahrzeug nicht zugewiesen",
+    "fr": "Véhicule non attribué",
+    "es": "Vehículo no asignado",
+    "it": "Veicolo non assegnato",
+    "bg": "Няма назначено превозно средство"
+  },
+  "units.kmh": {
+    "tr": "km/s",
+    "en": "km/h",
+    "nl": "km/u",
+    "de": "km/h",
+    "fr": "km/h",
+    "es": "km/h",
+    "it": "km/h",
+    "bg": "км/ч"
+  },
+  "vehicle.lastRefuel": {
+    "tr": "Son yakıt",
+    "en": "Last refuel",
+    "nl": "Laatste tankbeurt",
+    "de": "Letzte Tankung",
+    "fr": "Dernier ravitaillement",
+    "es": "Último repostaje",
+    "it": "Ultimo rifornimento",
+    "bg": "Последно зареждане"
+  },
+  "vehicleTrack.tripDetail.title": {
+    "tr": "Sefer {{number}}",
+    "en": "Trip {{number}}",
+    "nl": "Rit {{number}}",
+    "de": "Fahrt {{number}}",
+    "fr": "Trajet {{number}}",
+    "es": "Viaje {{number}}",
+    "it": "Viaggio {{number}}",
+    "bg": "Курс {{number}}"
+  },
+  "wifi.bleConnectionLost": {
+    "tr": "ESP32 ile bağlantı kopmuş. Kurulumu yeniden başlatın.",
+    "en": "ESP32 connection was lost. Restart the setup.",
+    "nl": "De ESP32-verbinding is verbroken. Start de installatie opnieuw.",
+    "de": "Die ESP32-Verbindung wurde unterbrochen. Starten Sie die Einrichtung neu.",
+    "fr": "La connexion ESP32 a été perdue. Relancez la configuration.",
+    "es": "Se perdió la conexión ESP32. Reinicie la configuración.",
+    "it": "La connessione ESP32 è stata persa. Riavvia la configurazione.",
+    "bg": "Връзката с ESP32 е загубена. Рестартирайте настройката."
+  },
+  "wifi.bleDisconnected": {
+    "tr": "ESP32 bağlantısı kesildi. Lütfen tekrar deneyin.",
+    "en": "ESP32 disconnected. Please try again.",
+    "nl": "ESP32-verbinding verbroken. Probeer het opnieuw.",
+    "de": "ESP32-Verbindung getrennt. Bitte erneut versuchen.",
+    "fr": "ESP32 déconnecté. Veuillez réessayer.",
+    "es": "ESP32 desconectado. Inténtelo de nuevo.",
+    "it": "ESP32 disconnesso. Riprova.",
+    "bg": "ESP32 е прекъснат. Опитайте отново."
+  },
+  "wifi.bleError": {
+    "tr": "BLE bağlantı hatası: ",
+    "en": "BLE connection error: ",
+    "nl": "BLE-verbindingsfout: ",
+    "de": "BLE-Verbindungsfehler: ",
+    "fr": "Erreur de connexion BLE : ",
+    "es": "Error de conexión BLE: ",
+    "it": "Errore di connessione BLE: ",
+    "bg": "Грешка при BLE връзка: "
+  },
+  "wifi.connectDevice": {
+    "tr": "Cihazı internete bağlayalım",
+    "en": "Let's connect the device to the internet",
+    "nl": "Laten we het apparaat met internet verbinden",
+    "de": "Lassen Sie uns das Gerät mit dem Internet verbinden",
+    "fr": "Connectons l'appareil à Internet",
+    "es": "Conectemos el dispositivo a internet",
+    "it": "Colleghiamo il dispositivo a internet",
+    "bg": "Нека свържем устройството с интернет"
+  },
+  "wifi.connectionError": {
+    "tr": "Bağlantı Hatası",
+    "en": "Connection Error",
+    "nl": "Verbindingsfout",
+    "de": "Verbindungsfehler",
+    "fr": "Erreur de connexion",
+    "es": "Error de conexión",
+    "it": "Errore di connessione",
+    "bg": "Грешка при връзка"
+  },
+  "wifi.encOpen": {
+    "tr": "Açık",
+    "en": "Open",
+    "nl": "Open",
+    "de": "Offen",
+    "fr": "Ouvert",
+    "es": "Abierta",
+    "it": "Aperta",
+    "bg": "Отворена"
+  },
+  "wifi.encSecured": {
+    "tr": "Şifreli",
+    "en": "Secured",
+    "nl": "Beveiligd",
+    "de": "Gesichert",
+    "fr": "Sécurisé",
+    "es": "Protegida",
+    "it": "Protetta",
+    "bg": "Защитена"
+  },
+  "wifi.firmwareNoSupport": {
+    "tr": "ESP32 firmware'i WiFi scan desteklemiyor. Firmware güncelleyin.",
+    "en": "ESP32 firmware does not support WiFi scan. Please update the firmware.",
+    "nl": "ESP32-firmware ondersteunt geen WiFi-scan. Werk de firmware bij.",
+    "de": "Die ESP32-Firmware unterstützt keinen WLAN-Scan. Bitte Firmware aktualisieren.",
+    "fr": "Le firmware ESP32 ne prend pas en charge le scan WiFi. Mettez à jour le firmware.",
+    "es": "El firmware ESP32 no admite el escaneo WiFi. Actualice el firmware.",
+    "it": "Il firmware ESP32 non supporta la scansione WiFi. Aggiorna il firmware.",
+    "bg": "Фърмуерът на ESP32 не поддържа WiFi сканиране. Обновете фърмуера."
+  },
+  "wifi.invalidData": {
+    "tr": "ESP32'den geçersiz veri geldi. Yeniden deneyin.",
+    "en": "Invalid data received from ESP32. Please try again.",
+    "nl": "Ongeldige gegevens van ESP32 ontvangen. Probeer het opnieuw.",
+    "de": "Ungültige Daten vom ESP32 empfangen. Bitte erneut versuchen.",
+    "fr": "Données invalides reçues de l'ESP32. Veuillez réessayer.",
+    "es": "Se recibieron datos inválidos del ESP32. Inténtelo de nuevo.",
+    "it": "Dati non validi ricevuti dall'ESP32. Riprova.",
+    "bg": "Получени са невалидни данни от ESP32. Опитайте отново."
+  },
+  "wifi.manualEntry": {
+    "tr": "Manuel Giriş",
+    "en": "Manual Entry",
+    "nl": "Handmatige invoer",
+    "de": "Manuelle Eingabe",
+    "fr": "Saisie manuelle",
+    "es": "Entrada manual",
+    "it": "Inserimento manuale",
+    "bg": "Ръчно въвеждане"
+  },
+  "wifi.no5GHz": {
+    "tr": "Bu ağ 5GHz bandında. ESP32 sadece 2.4GHz ağları destekler. Başka bir ağ seçin.",
+    "en": "This network is on the 5GHz band. ESP32 only supports 2.4GHz networks. Choose another network.",
+    "nl": "Dit netwerk zit op de 5GHz-band. ESP32 ondersteunt alleen 2.4GHz-netwerken. Kies een ander netwerk.",
+    "de": "Dieses Netzwerk ist im 5-GHz-Band. ESP32 unterstützt nur 2,4-GHz-Netze. Wählen Sie ein anderes Netzwerk.",
+    "fr": "Ce réseau est en bande 5 GHz. L'ESP32 ne prend en charge que le 2,4 GHz. Choisissez un autre réseau.",
+    "es": "Esta red está en la banda de 5 GHz. ESP32 solo admite redes de 2,4 GHz. Elija otra red.",
+    "it": "Questa rete è sulla banda 5 GHz. ESP32 supporta solo reti 2,4 GHz. Scegli un'altra rete.",
+    "bg": "Тази мрежа е в 5 GHz лента. ESP32 поддържа само 2,4 GHz мрежи. Изберете друга мрежа."
+  },
+  "wifi.noNetworks": {
+    "tr": "WiFi ağı bulunamadı. ESP32'nin açık olduğundan emin olun.",
+    "en": "No WiFi networks found. Make sure the ESP32 is on.",
+    "nl": "Geen WiFi-netwerken gevonden. Controleer of de ESP32 aan staat.",
+    "de": "Keine WLAN-Netzwerke gefunden. Stellen Sie sicher, dass der ESP32 eingeschaltet ist.",
+    "fr": "Aucun réseau WiFi trouvé. Vérifiez que l'ESP32 est allumé.",
+    "es": "No se encontraron redes WiFi. Asegúrese de que el ESP32 esté encendido.",
+    "it": "Nessuna rete WiFi trovata. Assicurati che l'ESP32 sia acceso.",
+    "bg": "Не са намерени WiFi мрежи. Уверете се, че ESP32 е включен."
+  },
+  "wifi.rescan": {
+    "tr": "Yeniden Tara",
+    "en": "Rescan",
+    "nl": "Opnieuw scannen",
+    "de": "Erneut scannen",
+    "fr": "Scanner à nouveau",
+    "es": "Volver a escanear",
+    "it": "Nuova scansione",
+    "bg": "Повторно сканиране"
+  },
+  "wifi.retry": {
+    "tr": "Yeniden Dene",
+    "en": "Retry",
+    "nl": "Opnieuw proberen",
+    "de": "Erneut versuchen",
+    "fr": "Réessayer",
+    "es": "Reintentar",
+    "it": "Riprova",
+    "bg": "Опитай отново"
+  },
+  "wifi.scanDuration": {
+    "tr": "Bu 5-10 saniye sürebilir",
+    "en": "This may take 5–10 seconds",
+    "nl": "Dit kan 5–10 seconden duren",
+    "de": "Dies kann 5–10 Sekunden dauern",
+    "fr": "Cela peut prendre 5 à 10 secondes",
+    "es": "Esto puede tardar 5–10 segundos",
+    "it": "Potrebbe richiedere 5–10 secondi",
+    "bg": "Това може да отнеме 5–10 секунди"
+  },
+  "wifi.scanFailed": {
+    "tr": "WiFi taraması başarısız",
+    "en": "WiFi scan failed",
+    "nl": "WiFi-scan mislukt",
+    "de": "WLAN-Scan fehlgeschlagen",
+    "fr": "Échec du scan WiFi",
+    "es": "Error al escanear WiFi",
+    "it": "Scansione WiFi non riuscita",
+    "bg": "WiFi сканирането не успя"
+  },
+  "wifi.scanning": {
+    "tr": "WiFi ağları taranıyor...",
+    "en": "Scanning WiFi networks...",
+    "nl": "WiFi-netwerken worden gescand...",
+    "de": "WLAN-Netzwerke werden gescannt...",
+    "fr": "Analyse des réseaux WiFi...",
+    "es": "Escaneando redes WiFi...",
+    "it": "Scansione delle reti WiFi...",
+    "bg": "Сканиране на WiFi мрежи..."
+  },
+  "wifi.scanningShort": {
+    "tr": "Taranıyor...",
+    "en": "Scanning...",
+    "nl": "Scannen...",
+    "de": "Scannen...",
+    "fr": "Analyse...",
+    "es": "Escaneando...",
+    "it": "Scansione...",
+    "bg": "Сканиране..."
+  },
+  "wifi.selectNetwork": {
+    "tr": "WiFi Seçin",
+    "en": "Select WiFi",
+    "nl": "Selecteer WiFi",
+    "de": "WLAN wählen",
+    "fr": "Sélectionner le WiFi",
+    "es": "Seleccionar WiFi",
+    "it": "Seleziona WiFi",
+    "bg": "Изберете WiFi"
+  },
+  "wifi.unsupported": {
+    "tr": "Desteklenmiyor",
+    "en": "Unsupported",
+    "nl": "Niet ondersteund",
+    "de": "Nicht unterstützt",
+    "fr": "Non pris en charge",
+    "es": "No compatible",
+    "it": "Non supportato",
+    "bg": "Не се поддържа"
+  },
+  "wifi.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Fahrzeug",
+    "fr": "Véhicule",
+    "es": "Vehículo",
+    "it": "Veicolo",
+    "bg": "Превозно средство"
+  }
+}

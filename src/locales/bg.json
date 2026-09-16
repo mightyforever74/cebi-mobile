@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Начало",
       "end": "Край",
-      "clear": "Изчисти"
+      "clear": "Изчисти",
+      "title": "Курс {{number}}"
     }
   },
   "common": {
@@ -84,7 +85,12 @@
     },
     "superAdmin": "Супер Администратор",
     "companyAdmin": "Мениджър",
-    "driver": "Шофьор"
+    "driver": "Шофьор",
+    "cannotOpenLink": "Връзката не можа да бъде отворена",
+    "info": "Информация",
+    "invalidHour": "Валидният часов диапазон е 0–23.",
+    "optional": "(по избор)",
+    "vehicle": "Превозно средство"
   },
   "auth": {
     "login": "Вход",
@@ -146,7 +152,8 @@
     "contactEmailSubject": "TulipFleet - Заявка за акаунт",
     "contactEmailBody": "Здравейте,\n\nБих искал да създам акаунт за TulipFleet.\n\nИме на фирма:\nЛице за контакт:\nТелефон:\nБрой превозни средства:\n\nБлагодаря.",
     "callNotAvailable": "Не може да се обади",
-    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet."
+    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet.",
+    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -338,7 +345,9 @@
     "deviceNotFound": "Устройството не е намерено",
     "deviceCheckFailed": "Проверката на устройството е неуспешна",
     "todayKm": "Днес KM",
-    "monthKm": "Месец KM"
+    "monthKm": "Месец KM",
+    "activeVehicles": "Активни превозни средства",
+    "trafficClear": "Свободен трафик"
   },
   "vehicle": {
     "title": "Моето превозно средство",
@@ -389,7 +398,8 @@
       "brown": "Кафяв",
       "beige": "Бежов"
     },
-    "noRefuelRecord": "Няма запис за зареждане"
+    "noRefuelRecord": "Няма запис за зареждане",
+    "lastRefuel": "Последно зареждане"
   },
   "profile": {
     "title": "Профил",
@@ -446,7 +456,8 @@
       "cancelled": "Отменена",
       "pending_review": "В преглед",
       "accepted": "Приета",
-      "rejected": "Отхвърлена"
+      "rejected": "Отхвърлена",
+      "withdrawn": "Оттеглена"
     }
   },
   "drawer": {
@@ -530,7 +541,9 @@
       "assigned": "Възложена",
       "cancelled": "Отменена",
       "withdrawn": "Оттеглена"
-    }
+    },
+    "contactAdmin": "Към тази задача няма назначено превозно средство. Свържете се с администратор.",
+    "noVehicleAssigned": "Няма назначено превозно средство"
   },
   "deviceSetup": {
     "title": "Настройка на Устройство",
@@ -678,7 +691,9 @@
       "btnNewDevice": "Настройка на ново устройство",
       "reprovisionTitle": "Преконфигуриране на WiFi",
       "reprovisionMsg": "Устройството трябва да се рестартира, за да влезе в BLE режим. Ще се появи в BLE сканирането в рамките на 90 секунди. Искате ли да продължите?"
-    }
+    },
+    "connecting": "Свързване...",
+    "connectionError": "Грешка при връзка: {{error}}"
   },
   "taskOffers": {
     "title": "Оферти за Задачи",
@@ -730,7 +745,8 @@
       "rejected": "Отхвърлена",
       "pending": "Чакаща",
       "assigned": "Възложена",
-      "cancelled": "Отменена"
+      "cancelled": "Отменена",
+      "withdrawn": "Оттеглена"
     },
     "info": {
       "taskNo": "Номер на Задача",
@@ -784,7 +800,15 @@
       "cancelled": "Тази задача е отменена"
     },
     "events": {
-      "title": "Събития на задачата"
+      "title": "Събития на задачата",
+      "TASK_ACCEPTED": "Задачата е приета",
+      "TASK_STARTED": "Задачата е стартирана",
+      "TASK_COMPLETED": "Задачата е завършена",
+      "TASK_REJECTED": "Задачата е отхвърлена",
+      "TASK_WITHDRAWN": "Задачата е оттеглена",
+      "STOP_ARRIVED": "Пристигане на спирка",
+      "STOP_DEPARTED": "Тръгване от спирка",
+      "WAYPOINT_COMPLETED": "Междинна точка завършена"
     },
     "waypoints": {
       "title": "Спирки",
@@ -792,7 +816,8 @@
       "arrived": "Пристигнал",
       "departed": "Заминал",
       "complete": "Завърши"
-    }
+    },
+    "vehicleNotAssigned": "Към тази задача няма назначено превозно средство. Свържете се с администратор."
   },
   "routeMap": {
     "odometerPrompt": "Araç km sayacını girin (isteğe bağlı):",
@@ -944,7 +969,14 @@
       "urgent": "Спешно",
       "low": "Нисък Приоритет",
       "normal": "Нормален"
-    }
+    },
+    "contactAdmin": "Към тази задача няма назначено превозно средство. Свържете се с администратор.",
+    "goToMap": "Към картата",
+    "goToTasks": "Назад към моите задачи",
+    "noVehicleAssigned": "Задачата е приета. Няма назначено превозно средство; администратор ще бъде уведомен.",
+    "taskAccepted": "✅ Задачата е приета",
+    "trackOnMap": "Искате ли да следите задачата на картата?",
+    "vehicleNotAssigned": "Няма назначено превозно средство"
   },
   "deviceAssignment": {
     "title": "Назначаване на Устройство",
@@ -985,7 +1017,10 @@
     "search": "Търси",
     "noResultsYet": "Все още няма резултати",
     "availableDevices": "Налични Устройства",
-    "noDevicesAvailable": "Няма налични устройства"
+    "noDevicesAvailable": "Няма налични устройства",
+    "confirmAssignment": "Искате ли да присвоите това устройство към превозното средство?",
+    "scanQR": "Сканирай QR",
+    "vehicle": "Превозно средство"
   },
   "nav": {
     "route_waypoints": "Точки по маршрута",
@@ -1013,14 +1048,17 @@
     "min": "мин",
     "noSpeed": "Изчакване на движение",
     "delayRisk": "РИСК ОТ ЗАКЪСНЕНИЕ",
-    "noEta": "ETA не е наличен"
+    "noEta": "ETA не е наличен",
+    "final_destination": "Крайна дестинация",
+    "nextStop": "Следваща спирка"
   },
   "units": {
     "km": "км",
     "m": "м",
     "h": "ч",
     "min": "мин",
-    "sec": "сек"
+    "sec": "сек",
+    "kmh": "км/ч"
   },
   "root": {
     "loading": "Зареждане..."
@@ -1385,7 +1423,8 @@
     "searchPlaceholder": "Търсене...",
     "records": "записа",
     "noData": "Няма намерени данни",
-    "noResults": "Няма намерени резултати"
+    "noResults": "Няма намерени резултати",
+    "selectLanguage": "Изберете език"
   },
   "createTask": {
     "title": "Нова задача",
@@ -1600,7 +1639,28 @@
       "authFailed": "Грешна парола",
       "timeout": "Времето за изчакване изтече",
       "notFound": "Мрежата не е намерена"
-    }
+    },
+    "bleConnectionLost": "Връзката с ESP32 е загубена. Рестартирайте настройката.",
+    "bleDisconnected": "ESP32 е прекъснат. Опитайте отново.",
+    "bleError": "Грешка при BLE връзка: ",
+    "connectDevice": "Нека свържем устройството с интернет",
+    "connectionError": "Грешка при връзка",
+    "encOpen": "Отворена",
+    "encSecured": "Защитена",
+    "firmwareNoSupport": "Фърмуерът на ESP32 не поддържа WiFi сканиране. Обновете фърмуера.",
+    "invalidData": "Получени са невалидни данни от ESP32. Опитайте отново.",
+    "manualEntry": "Ръчно въвеждане",
+    "no5GHz": "Тази мрежа е в 5 GHz лента. ESP32 поддържа само 2,4 GHz мрежи. Изберете друга мрежа.",
+    "noNetworks": "Не са намерени WiFi мрежи. Уверете се, че ESP32 е включен.",
+    "rescan": "Повторно сканиране",
+    "retry": "Опитай отново",
+    "scanDuration": "Това може да отнеме 5–10 секунди",
+    "scanFailed": "WiFi сканирането не успя",
+    "scanning": "Сканиране на WiFi мрежи...",
+    "scanningShort": "Сканиране...",
+    "selectNetwork": "Изберете WiFi",
+    "unsupported": "Не се поддържа",
+    "vehicle": "Превозно средство"
   },
   "ble": {
     "scanning": "Сканиране...",
@@ -1631,7 +1691,14 @@
     "deleteDriver": "Изтрий шофьор",
     "deleteConfirm": "Сигурни ли сте, че искате да изтриете този шофьор?",
     "driverDeleted": "Шофьорът е изтрит успешно",
-    "deleteFailed": "Неуспешно изтриване"
+    "deleteFailed": "Неуспешно изтриване",
+    "status": {
+      "available": "Наличен",
+      "on_task": "На задача",
+      "task_pending": "Чакаща задача",
+      "on_leave": "В отпуск",
+      "offline": "Офлайн"
+    }
   },
   "adminVehicles": {
     "filterAll": "Всички",
@@ -1657,7 +1724,25 @@
     "vehicleDeleted": "Превозното средство е изтрито успешно",
     "deleteFailed": "Неуспешно изтриване",
     "deleteBlockedTitle": "Устройство Свързано",
-    "deleteBlockedMsg": "Превозно средство {{plate}} има свързано устройство. Моля, откачете го преди изтриване."
+    "deleteBlockedMsg": "Превозно средство {{plate}} има свързано устройство. Моля, откачете го преди изтриване.",
+    "status": {
+      "available": "Наличен",
+      "in_use": "В употреба",
+      "maintenance": "Поддръжка",
+      "retired": "Изведен от експлоатация"
+    },
+    "categories": {
+      "truck_heavy": "Тежък камион",
+      "truck_medium": "Среден камион",
+      "van": "Бус"
+    },
+    "fuelTypes": {
+      "diesel": "Дизел",
+      "gasoline": "Бензин",
+      "electric": "Електрически",
+      "hybrid": "Хибрид",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "Всички",
@@ -1687,7 +1772,24 @@
     "deleteTask": "Изтрий задача",
     "deleteConfirm": "Сигурни ли сте, че искате да изтриете тази задача?",
     "taskDeleted": "Задачата е изтрита успешно",
-    "deleteFailed": "Неуспешно изтриване"
+    "deleteFailed": "Неуспешно изтриване",
+    "status": {
+      "pending": "Чакаща",
+      "pending_review": "Нова Задача!",
+      "accepted": "Приета",
+      "assigned": "Възложена",
+      "rejected": "Отхвърлена",
+      "in_progress": "В Процес",
+      "completed": "Завършена",
+      "cancelled": "Отменена",
+      "withdrawn": "Оттеглена"
+    },
+    "priority": {
+      "low": "Ниска",
+      "normal": "Нормален",
+      "high": "Висок",
+      "urgent": "Спешен"
+    }
   },
   "adminAlerts": {
     "filterAll": "Всички",
@@ -1731,7 +1833,17 @@
       "battery": "Батерия",
       "idle": "Празен ход",
       "sos": "SOS",
-      "default": "Сигнал"
+      "default": "Сигнал",
+      "task_offered": "Предложена задача",
+      "task_accepted": "Приета задача",
+      "task_started": "Започната задача",
+      "task_completed": "Завършена задача",
+      "task_rejected": "Отхвърлена задача",
+      "task_withdrawn": "Оттеглена задача",
+      "speeding": "Превишена скорост",
+      "harsh_brake": "Рязко спиране",
+      "geofence_entry": "Влизане в зона",
+      "geofence_exit": "Излизане от зона"
     },
     "time": {
       "justNow": "Току-що",
@@ -1964,7 +2076,8 @@
     "vehicleRequired": "Моля изберете превозно средство",
     "noVehicles": "Няма намерени превозни средства",
     "noVehiclesHint": "Няма активни превозни средства с устройство",
-    "searchPlaceholder": "Търсене на местоположение..."
+    "searchPlaceholder": "Търсене на местоположение...",
+    "tapEditToManage": "Натиснете за управление"
   },
   "vehicleList": {
     "title": "Списък превозни средства",
@@ -2041,6 +2154,105 @@
     "errorDesc": "Моля, обадете се на 112 или проверете интернет връзката.",
     "cancelTitle": "Отмени SOS",
     "cancelDesc": "SOS сигналът ще бъде отменен. Сигурни ли сте?",
-    "cancelConfirm": "Да, Отмени"
+    "cancelConfirm": "Да, Отмени",
+    "callSubText": "Отваря се телефонното приложение; вие започвате обаждането",
+    "sending": "Получаване на местоположение и изпращане на SOS...",
+    "warningText": "Използвайте този екран само при реални спешни случаи. Фалшивите сигнали могат да имат правни последици."
+  },
+  "about": {
+    "aboutText": "TulipFleet е цялостна платформа за управление на автопарк за логистични компании. Помага ви да управлявате автопарка ефективно със следене на превозни средства в реално време, управление на шофьори, възлагане на задачи и проследяване на гориво.",
+    "aboutTitle": "За TulipFleet",
+    "aiPowered": "Разработка с изкуствен интелект",
+    "allRightsReserved": "Всички права запазени.",
+    "builtWith": "Разработено с изкуствен интелект",
+    "claudeDescription": "Това приложение е проектирано и написано с модела за изкуствен интелект Claude Opus 4.5 на Anthropic. То е пример за сътрудничество между съвременна разработка и изкуствен интелект.",
+    "contact": "Контакт",
+    "featureESP32": "IoT интеграция с ESP32",
+    "featureFleet": "Управление на автопарк",
+    "featureFuel": "Проследяване на гориво и пробег",
+    "featureTasks": "Възлагане и проследяване на задачи",
+    "featureTracking": "GPS проследяване в реално време",
+    "features": "Функции",
+    "links": "Връзки",
+    "madeWith": "Направено в Türkiye с ❤️ и ☕",
+    "privacyPolicy": "Политика за поверителност",
+    "tagline": "Професионална система за управление на автопарк",
+    "termsOfService": "Условия за ползване",
+    "website": "Уебсайт"
+  },
+  "alerts": {
+    "warning": "Предупреждение"
+  },
+  "changePassword": {
+    "allFieldsRequired": "Попълнете всички полета",
+    "confirmPassword": "Нова парола (повторете)",
+    "confirmPlaceholder": "Въведете отново новата парола",
+    "currentPassword": "Текуща парола",
+    "currentPlaceholder": "Въведете текущата парола",
+    "failed": "Паролата не можа да бъде променена",
+    "hint": "Изберете силна парола за сигурност. Използвайте поне 6 знака.",
+    "minLength": "Новата парола трябва да е поне 6 знака",
+    "mismatch": "Новите пароли не съвпадат",
+    "newPassword": "Нова парола",
+    "newPlaceholder": "Въведете новата парола",
+    "samePassword": "Новата парола трябва да се различава от текущата",
+    "submit": "Промяна на паролата",
+    "successMessage": "Паролата е променена успешно.",
+    "successTitle": "Успех"
+  },
+  "editProfile": {
+    "changePhoto": "Смяна на снимка",
+    "email": "Имейл",
+    "emailReadonly": "Имейлът не може да се променя",
+    "firstName": "Име",
+    "firstNamePlaceholder": "Въведете името",
+    "firstNameRequired": "Името е задължително",
+    "lastName": "Фамилия",
+    "lastNamePlaceholder": "Въведете фамилията",
+    "phone": "Телефон",
+    "updateFailed": "Профилът не можа да бъде обновен",
+    "updated": "Профилът е обновен"
+  },
+  "geocode": {
+    "addressLoadFailed": "Адресът не можа да бъде зареден",
+    "addressNotFound": "Адресът не е намерен"
+  },
+  "register": {
+    "confirmPassword": "Парола (повторете)",
+    "confirmPasswordHint": "Въведете отново паролата",
+    "createAccount": "Създай нов акаунт",
+    "driverRegistration": "Регистрация на шофьор",
+    "errors": {
+      "confirmPasswordRequired": "Потвърдете паролата",
+      "emailInvalid": "Невалиден имейл формат",
+      "emailRequired": "Имейлът е задължителен",
+      "firstNameRequired": "Името е задължително",
+      "lastNameRequired": "Фамилията е задължителна",
+      "licenseRequired": "Номерът на шофьорската книжка е задължителен",
+      "passwordMismatch": "Паролите не съвпадат",
+      "passwordRequired": "Паролата е задължителна",
+      "passwordShort": "Паролата трябва да е поне 6 знака",
+      "phoneRequired": "Телефонът е задължителен"
+    },
+    "failed": "Регистрацията не успя",
+    "firstName": "Име",
+    "hasAccount": "Вече имате акаунт?",
+    "infoText": "След регистрацията е необходимо одобрение от администратор. Можете да влезете след одобрение. Въпроси: destek@tulipfleet.com",
+    "infoTitle": "Информация",
+    "lastName": "Фамилия",
+    "licenseNumber": "№ на книжката",
+    "passwordHint": "Поне 6 знака",
+    "phone": "Телефон",
+    "submit": "Регистрация",
+    "successMessage": "Регистрацията е приета. Можете да влезете след одобрение от администратор.",
+    "successTitle": "Успех!"
+  },
+  "reportExport": {
+    "cancel": "Отказ",
+    "exportError": "Грешка при експорт",
+    "shareCsv": "Сподели CSV",
+    "shareError": "Грешка при споделяне",
+    "sharePdf": "Сподели PDF",
+    "title": "Експорт на отчет"
   }
 }

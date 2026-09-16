@@ -1,0 +1,6 @@
+{
+  "geofence.deleteConfirm": {
+    "de": "Diese Zone \"{{name}}\" wirklich löschen?",
+    "fr": "Supprimer cette zone \"{{name}}\"?"
+  }
+}

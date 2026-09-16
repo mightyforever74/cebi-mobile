@@ -107,26 +107,19 @@ const getPerformanceIcon = (perf) => {
 // SECTOR BENCHMARKS (L/100km)
 // ============================================
 const SECTOR_BENCHMARKS = {
-  heavy_truck: {
+  truck_heavy: {
     i18nKey: "fuelDash.bmHeavyTruck",
     avg: 30,
     good: 27,
     excellent: 24,
   },
-  medium_truck: {
+  truck_medium: {
     i18nKey: "fuelDash.bmMediumTruck",
     avg: 22,
     good: 19,
     excellent: 16,
   },
-  light_commercial: {
-    i18nKey: "fuelDash.bmLightCommercial",
-    avg: 10,
-    good: 8.5,
-    excellent: 7,
-  },
   van: { i18nKey: "fuelDash.bmVan", avg: 9, good: 7.5, excellent: 6.5 },
-  car: { i18nKey: "fuelDash.bmCar", avg: 7, good: 6, excellent: 5 },
 };
 
 // EU 2026 CO2 limit (g/km) - commercial vehicles
@@ -210,8 +203,7 @@ const AdminFuelDashboard = ({ navigation }) => {
   const [savings, setSavings] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [expandedVehicle, setExpandedVehicle] = useState(null);
-  const [selectedBenchmark, setSelectedBenchmark] =
-    useState("light_commercial");
+  const [selectedBenchmark, setSelectedBenchmark] = useState("van");
 
   // ============================================
   // DATA FETCH

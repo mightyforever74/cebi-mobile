@@ -1,0 +1,47 @@
+{
+  "deviceSetup.activeWarning.message": {
+    "ku": "Cîhaz {{serial}} niha çalak e{{vehicle}}. Tu dixwazî bidomînî?"
+  },
+  "deviceSetup.ble.devicesFound": {
+    "ku": "{{count}} Cîhaz hatin dîtin"
+  },
+  "deviceSetup.deviceActiveMessage": {
+    "ku": "Cîhaz çalak e û karê xwe dike ({{serial}}, {{plate}})"
+  },
+  "deviceSetup.wifi.lastUsed": {
+    "ku": "Dawî hatiye bikaranîn: {{ssid}}"
+  },
+  "deviceSetup.wifi.network": {
+    "ku": "Tor: {{ssid}}"
+  },
+  "offerDetail.hoursMinutesRemaining": {
+    "ku": "{{hours}} Saet û {{minutes}} deqe mane"
+  },
+  "offerDetail.minutesRemaining": {
+    "ku": "{{count}} Deqe mane"
+  },
+  "taskOffers.connectionIssue": {
+    "ku": "Pirsgirêka girêdanê ({{current}}/{{max}})"
+  },
+  "taskOffers.timeRemaining.hours": {
+    "ku": "{{hours}} Saet"
+  },
+  "taskOffers.timeRemaining.minutes": {
+    "ku": "{{minutes}} Deqe"
+  },
+  "tasks.acceptTaskConfirm": {
+    "ku": "Tu dixwazî \"{{title}}\" peywirê qebûl bikî?"
+  },
+  "tasks.newOffersWaiting": {
+    "ku": "{{count}} Pêşniyarên nû li bendê ne"
+  },
+  "tasks.rejectTaskConfirm": {
+    "ku": "Tu dixwazî \"{{title}}\" peywirê red bikî?"
+  },
+  "tasks.tasksWaitingApproval": {
+    "ku": "{{count}} Peywir li bendê erêkirinê ne"
+  },
+  "tasks.withdrawTaskConfirm": {
+    "ku": "Tu dixwazî \"{{title}}\" peywirê vekişînî?"
+  }
+}

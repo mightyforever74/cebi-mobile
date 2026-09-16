@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Start",
       "end": "End",
-      "clear": "Clear"
+      "clear": "Clear",
+      "title": "Trip {{number}}"
     }
   },
   "common": {
@@ -74,7 +75,22 @@
     "superAdmin": "Super Admin",
     "companyAdmin": "Manager",
     "driver": "Driver",
-    "user": "User"
+    "user": "User",
+    "all": "All",
+    "back": "Back",
+    "next": "Next",
+    "no": "No",
+    "none": "None",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "search": "Search",
+    "warning": "Warning",
+    "yes": "Yes",
+    "cannotOpenLink": "Could not open the link",
+    "info": "Info",
+    "invalidHour": "Valid hour range is 0–23.",
+    "optional": "(optional)",
+    "vehicle": "Vehicle"
   },
   "auth": {
     "login": "Sign In",
@@ -136,12 +152,14 @@
     "contactEmailSubject": "TulipFleet - Account Request",
     "contactEmailBody": "Hello,\n\nI would like to create an account for TulipFleet.\n\nCompany Name:\nContact Person:\nPhone:\nNumber of Vehicles:\n\nThank you.",
     "callNotAvailable": "Unable to make a call",
-    "whatsappMessage": "Hello, I would like to learn more about TulipFleet."
+    "whatsappMessage": "Hello, I would like to learn more about TulipFleet.",
+    "logoutConfirm": "Are you sure you want to log out?"
   },
   "roles": {
     "driver": "Driver",
     "admin": "Manager",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Company Admin"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -253,7 +271,8 @@
       "brown": "Brown",
       "beige": "Beige"
     },
-    "noRefuelRecord": "No refuel record"
+    "noRefuelRecord": "No refuel record",
+    "lastRefuel": "Last refuel"
   },
   "task": {
     "title": "Task Management",
@@ -277,7 +296,8 @@
       "cancelled": "Cancelled",
       "pending_review": "Pending Review",
       "accepted": "Accepted",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
     }
   },
   "alert": {
@@ -412,7 +432,28 @@
       "authFailed": "Wrong WiFi password",
       "timeout": "Connection timeout",
       "notFound": "WiFi network not found"
-    }
+    },
+    "bleConnectionLost": "ESP32 connection was lost. Restart the setup.",
+    "bleDisconnected": "ESP32 disconnected. Please try again.",
+    "bleError": "BLE connection error: ",
+    "connectDevice": "Let's connect the device to the internet",
+    "connectionError": "Connection Error",
+    "encOpen": "Open",
+    "encSecured": "Secured",
+    "firmwareNoSupport": "ESP32 firmware does not support WiFi scan. Please update the firmware.",
+    "invalidData": "Invalid data received from ESP32. Please try again.",
+    "manualEntry": "Manual Entry",
+    "no5GHz": "This network is on the 5GHz band. ESP32 only supports 2.4GHz networks. Choose another network.",
+    "noNetworks": "No WiFi networks found. Make sure the ESP32 is on.",
+    "rescan": "Rescan",
+    "retry": "Retry",
+    "scanDuration": "This may take 5–10 seconds",
+    "scanFailed": "WiFi scan failed",
+    "scanning": "Scanning WiFi networks...",
+    "scanningShort": "Scanning...",
+    "selectNetwork": "Select WiFi",
+    "unsupported": "Unsupported",
+    "vehicle": "Vehicle"
   },
   "ble": {
     "scanning": "Scanning devices...",
@@ -472,7 +513,9 @@
     "activeTasksCount": "Active",
     "fuelEntry": "Fuel Entry",
     "todayKm": "Today KM",
-    "monthKm": "Month KM"
+    "monthKm": "Month KM",
+    "activeVehicles": "Active Vehicles",
+    "trafficClear": "Traffic clear"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -555,7 +598,9 @@
       "assigned": "Assigned",
       "cancelled": "Cancelled",
       "withdrawn": "Withdrawn"
-    }
+    },
+    "contactAdmin": "No vehicle is assigned to this task. Please contact an admin.",
+    "noVehicleAssigned": "Vehicle Not Assigned"
   },
   "profile": {
     "driver": "Driver",
@@ -587,7 +632,8 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v2.0.5\n\nFleet Management System\n© 2026 TulipFleet\n\nAll rights reserved."
+    "aboutMessage": "TulipFleet v2.0.5\n\nFleet Management System\n© 2026 TulipFleet\n\nAll rights reserved.",
+    "title": "Profile"
   },
   "deviceSetup": {
     "title": "Device Setup",
@@ -735,7 +781,9 @@
       "btnNewDevice": "Setup New Device",
       "reprovisionTitle": "Reconfigure WiFi",
       "reprovisionMsg": "The device needs to restart to enter BLE mode. It will appear in the BLE scan within 90 seconds. Do you want to continue?"
-    }
+    },
+    "connecting": "Connecting...",
+    "connectionError": "Connection error: {{error}}"
   },
   "taskOffers": {
     "title": "Task Offers",
@@ -787,7 +835,8 @@
       "rejected": "Rejected",
       "pending": "Pending",
       "assigned": "Assigned",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "withdrawn": "Withdrawn"
     },
     "info": {
       "taskNo": "Task No",
@@ -841,7 +890,15 @@
       "cancelled": "This task has been cancelled"
     },
     "events": {
-      "title": "Task Events"
+      "title": "Task Events",
+      "TASK_ACCEPTED": "Task Accepted",
+      "TASK_STARTED": "Task Started",
+      "TASK_COMPLETED": "Task Completed",
+      "TASK_REJECTED": "Task Rejected",
+      "TASK_WITHDRAWN": "Task Withdrawn",
+      "STOP_ARRIVED": "Arrived at stop",
+      "STOP_DEPARTED": "Departed from stop",
+      "WAYPOINT_COMPLETED": "Waypoint completed"
     },
     "waypoints": {
       "title": "Stops",
@@ -849,7 +906,8 @@
       "arrived": "Arrived",
       "departed": "Departed",
       "complete": "Complete"
-    }
+    },
+    "vehicleNotAssigned": "No vehicle is assigned to this task. Please contact an admin."
   },
   "routeMap": {
     "odometerPrompt": "Enter vehicle odometer reading (optional):",
@@ -1001,7 +1059,14 @@
       "urgent": "Urgent",
       "low": "Low Priority",
       "normal": "Normal"
-    }
+    },
+    "contactAdmin": "No vehicle is assigned to this task. Please contact an admin.",
+    "goToMap": "Go to Map",
+    "goToTasks": "Back to My Tasks",
+    "noVehicleAssigned": "Task accepted. No vehicle is assigned; an admin will be notified.",
+    "taskAccepted": "✅ Task Accepted",
+    "trackOnMap": "Would you like to track the task on the map?",
+    "vehicleNotAssigned": "Vehicle Not Assigned"
   },
   "deviceAssignment": {
     "title": "Assign Device",
@@ -1042,7 +1107,10 @@
     "search": "Search",
     "noResultsYet": "No results yet",
     "availableDevices": "Available Devices",
-    "noDevicesAvailable": "No devices available"
+    "noDevicesAvailable": "No devices available",
+    "confirmAssignment": "Do you want to assign this device to your vehicle?",
+    "scanQR": "Scan QR",
+    "vehicle": "Vehicle"
   },
   "nav": {
     "route_waypoints": "Route Waypoints",
@@ -1070,7 +1138,9 @@
     "min": "min",
     "noSpeed": "Waiting for movement",
     "delayRisk": "DELAY RISK",
-    "noEta": "ETA unavailable"
+    "noEta": "ETA unavailable",
+    "final_destination": "Final destination",
+    "nextStop": "Next stop"
   },
   "root": {
     "loading": "Loading..."
@@ -1442,7 +1512,9 @@
     "filterCompleted": "Completed",
     "filterDelays": "Delays",
     "filterAlerts": "Alerts",
-    "noFilteredActivities": "No activities in this category"
+    "noFilteredActivities": "No activities in this category",
+    "selectLanguage": "Select Language",
+    "total": "total"
   },
   "createTask": {
     "title": "New Task",
@@ -1619,7 +1691,14 @@
     "deleteDriver": "Delete Driver",
     "deleteConfirm": "Are you sure you want to delete this driver?",
     "driverDeleted": "Driver deleted successfully",
-    "deleteFailed": "Failed to delete driver"
+    "deleteFailed": "Failed to delete driver",
+    "status": {
+      "available": "Available",
+      "on_task": "On Task",
+      "task_pending": "Task Pending",
+      "on_leave": "On Leave",
+      "offline": "Offline"
+    }
   },
   "adminVehicles": {
     "filterAll": "All",
@@ -1645,7 +1724,25 @@
     "vehicleDeleted": "Vehicle deleted successfully",
     "deleteFailed": "Failed to delete vehicle",
     "deleteBlockedTitle": "Device Attached",
-    "deleteBlockedMsg": "Vehicle {{plate}} has a device attached. Please detach the device before deleting."
+    "deleteBlockedMsg": "Vehicle {{plate}} has a device attached. Please detach the device before deleting.",
+    "status": {
+      "available": "Available",
+      "in_use": "In Use",
+      "maintenance": "Maintenance",
+      "retired": "Retired"
+    },
+    "categories": {
+      "truck_heavy": "Heavy Truck",
+      "truck_medium": "Medium Truck",
+      "van": "Van"
+    },
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "gasoline": "Gasoline",
+      "electric": "Electric",
+      "hybrid": "Hybrid",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "All",
@@ -1675,7 +1772,24 @@
     "deleteTask": "Delete Task",
     "deleteConfirm": "Are you sure you want to delete this task?",
     "taskDeleted": "Task deleted successfully",
-    "deleteFailed": "Failed to delete task"
+    "deleteFailed": "Failed to delete task",
+    "status": {
+      "pending": "Pending",
+      "pending_review": "New Task!",
+      "accepted": "Accepted",
+      "assigned": "Assigned",
+      "rejected": "Rejected",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "withdrawn": "Withdrawn"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    }
   },
   "adminAlerts": {
     "mapButton": "Map",
@@ -1720,7 +1834,17 @@
       "battery": "Battery",
       "idle": "Idle",
       "sos": "SOS",
-      "default": "Alert"
+      "default": "Alert",
+      "task_offered": "Task Offered",
+      "task_accepted": "Task Accepted",
+      "task_started": "Task Started",
+      "task_completed": "Task Completed",
+      "task_rejected": "Task Rejected",
+      "task_withdrawn": "Task Withdrawn",
+      "speeding": "Speeding",
+      "harsh_brake": "Harsh Braking",
+      "geofence_entry": "Zone Entry",
+      "geofence_exit": "Zone Exit"
     },
     "time": {
       "justNow": "Just now",
@@ -1952,7 +2076,8 @@
     "vehicleRequired": "Please select a vehicle",
     "noVehicles": "No vehicles found",
     "noVehiclesHint": "No active vehicles with device assigned",
-    "searchPlaceholder": "Search location..."
+    "searchPlaceholder": "Search location...",
+    "tapEditToManage": "Tap to manage"
   },
   "vehicleList": {
     "title": "Vehicle List",
@@ -2029,6 +2154,113 @@
     "errorDesc": "Please call 112 or check your internet connection.",
     "cancelTitle": "Cancel SOS",
     "cancelDesc": "The SOS signal will be recalled. Are you sure?",
-    "cancelConfirm": "Yes, Cancel"
+    "cancelConfirm": "Yes, Cancel",
+    "callSubText": "The phone app opens; you start the call",
+    "sending": "Getting location and sending SOS...",
+    "warningText": "Use this screen only for real emergencies. False alarms may have legal consequences."
+  },
+  "units": {
+    "h": "h",
+    "km": "km",
+    "m": "m",
+    "min": "min",
+    "sec": "sec",
+    "kmh": "km/h"
+  },
+  "about": {
+    "aboutText": "TulipFleet is a comprehensive fleet management platform built for logistics companies. It helps you manage your fleet efficiently with real-time vehicle tracking, driver management, task assignment, and fuel tracking.",
+    "aboutTitle": "About TulipFleet",
+    "aiPowered": "AI-Powered Development",
+    "allRightsReserved": "All rights reserved.",
+    "builtWith": "Built with Artificial Intelligence",
+    "claudeDescription": "This app was designed and coded with Anthropic's Claude Opus 4.5 AI model. It is an example of collaboration between modern software development and artificial intelligence.",
+    "contact": "Contact",
+    "featureESP32": "ESP32 IoT integration",
+    "featureFleet": "Fleet management",
+    "featureFuel": "Fuel and mileage tracking",
+    "featureTasks": "Task assignment and tracking",
+    "featureTracking": "Real-time GPS tracking",
+    "features": "Features",
+    "links": "Links",
+    "madeWith": "Made in Türkiye with ❤️ and ☕",
+    "privacyPolicy": "Privacy Policy",
+    "tagline": "Professional Fleet Management System",
+    "termsOfService": "Terms of Service",
+    "website": "Website"
+  },
+  "alerts": {
+    "warning": "Warning"
+  },
+  "changePassword": {
+    "allFieldsRequired": "Please fill in all fields",
+    "confirmPassword": "New Password (Confirm)",
+    "confirmPlaceholder": "Re-enter your new password",
+    "currentPassword": "Current Password",
+    "currentPlaceholder": "Enter your current password",
+    "failed": "Could not change password",
+    "hint": "Choose a strong password for your security. Use at least 6 characters.",
+    "minLength": "New password must be at least 6 characters",
+    "mismatch": "New passwords do not match",
+    "newPassword": "New Password",
+    "newPlaceholder": "Enter your new password",
+    "samePassword": "New password must be different from the current password",
+    "submit": "Change Password",
+    "successMessage": "Your password was changed successfully.",
+    "successTitle": "Success"
+  },
+  "editProfile": {
+    "changePhoto": "Change Photo",
+    "email": "Email",
+    "emailReadonly": "Email cannot be changed",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Enter your first name",
+    "firstNameRequired": "First name is required",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Enter your last name",
+    "phone": "Phone",
+    "updateFailed": "Could not update profile",
+    "updated": "Profile updated"
+  },
+  "geocode": {
+    "addressLoadFailed": "Could not load address",
+    "addressNotFound": "Address not found"
+  },
+  "register": {
+    "confirmPassword": "Password (Confirm)",
+    "confirmPasswordHint": "Re-enter the password",
+    "createAccount": "Create New Account",
+    "driverRegistration": "Driver Registration",
+    "errors": {
+      "confirmPasswordRequired": "Please confirm the password",
+      "emailInvalid": "Invalid email format",
+      "emailRequired": "Email is required",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "licenseRequired": "License number is required",
+      "passwordMismatch": "Passwords do not match",
+      "passwordRequired": "Password is required",
+      "passwordShort": "Password must be at least 6 characters",
+      "phoneRequired": "Phone is required"
+    },
+    "failed": "Registration failed",
+    "firstName": "First Name",
+    "hasAccount": "Already have an account?",
+    "infoText": "Admin approval is required after registration. You can sign in after approval. Questions: destek@tulipfleet.com",
+    "infoTitle": "Info",
+    "lastName": "Last Name",
+    "licenseNumber": "License No",
+    "passwordHint": "At least 6 characters",
+    "phone": "Phone",
+    "submit": "Register",
+    "successMessage": "Your registration was received. You can sign in after admin approval.",
+    "successTitle": "Success!"
+  },
+  "reportExport": {
+    "cancel": "Cancel",
+    "exportError": "Export error",
+    "shareCsv": "Share CSV",
+    "shareError": "Share error",
+    "sharePdf": "Share PDF",
+    "title": "Export Report"
   }
 }
