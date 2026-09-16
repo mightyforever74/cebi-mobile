@@ -5,6 +5,7 @@
  *
  * Reference = UNION of keys across 9 locale files (not tr-only).
  * Extra keys are warnings unless --strict.
+ * Also errors if a static t() key is missing from tr.json (fallbackLng).
  */
 import fs from "fs";
 import path from "path";
@@ -72,6 +73,7 @@ function walkJs(dir, acc = []) {
 function collectStaticKeys(files) {
   const staticRe = /\b(?:i18n\.)?t\(\s*(['"])([^'"]+)\1/g;
   const used = new Map();
+  const defaults = new Map();
   for (const file of files) {
     const text = fs.readFileSync(file, "utf8");
     const rel = path.relative(ROOT, file).replace(/\\/g, "/");
@@ -83,9 +85,14 @@ function collectStaticKeys(files) {
       if (!used.has(key)) used.set(key, []);
       const line = text.slice(0, m.index).split(/\n/).length;
       used.get(key).push(`${rel}:${line}`);
+      if (!defaults.has(key)) {
+        const after = text.slice(m.index + m[0].length);
+        const defM = after.match(/^\s*,\s*(['"])([^'"]*)\1/);
+        if (defM) defaults.set(key, defM[2]);
+      }
     }
   }
-  return used;
+  return { used, defaults };
 }
 
 function collectDynamicRoots(files) {
@@ -166,9 +173,13 @@ for (const key of unionList) {
 }
 
 const jsFiles = walkJs(SRC_DIR);
-const staticUsed = collectStaticKeys(jsFiles);
+const { used: staticUsed, defaults: staticDefaults } = collectStaticKeys(jsFiles);
 const codeMissingInUnion = [...staticUsed.keys()]
   .filter((k) => !union.has(k))
+  .sort();
+const trKeySet = new Set(Object.keys(flats.tr));
+const codeMissingInTr = [...staticUsed.keys()]
+  .filter((k) => !trKeySet.has(k))
   .sort();
 
 const dynamicRoots = collectDynamicRoots(jsFiles);
@@ -222,6 +233,14 @@ for (const k of codeMissingInUnion) {
     usages: staticUsed.get(k).slice(0, 5),
   });
 }
+for (const k of codeMissingInTr) {
+  errors.push({
+    type: "code_key_missing_tr",
+    key: k,
+    usages: staticUsed.get(k).slice(0, 5),
+    defaultValue: staticDefaults.get(k) || null,
+  });
+}
 for (const r of unmanifestedRoots) {
   warnings.push({
     type: "unmanifested_root",
@@ -247,6 +266,14 @@ const report = {
   staticUsedCount: staticUsed.size,
   codeMissingInUnionCount: codeMissingInUnion.length,
   codeMissingInUnion,
+  codeMissingInTrCount: codeMissingInTr.length,
+  codeMissingInTr,
+  codeMissingInTrDetail: codeMissingInTr.map((k) => ({
+    key: k,
+    usages: staticUsed.get(k),
+    defaultValue: staticDefaults.get(k) || null,
+    inUnion: union.has(k),
+  })),
   dynamicRoots: Object.fromEntries(
     [...dynamicRoots.entries()].map(([r, usages]) => [
       r,
@@ -290,6 +317,13 @@ function printTable() {
   push("");
   push(`code static keys not in union: ${codeMissingInUnion.length}`);
   for (const k of codeMissingInUnion) push(`  ${k}`);
+  push("");
+  push(`code static keys missing in tr (fallbackLng): ${codeMissingInTr.length}`);
+  for (const k of codeMissingInTr) {
+    const def = staticDefaults.get(k);
+    const extra = def ? `  default=${JSON.stringify(def)}` : union.has(k) ? "  (in union, not tr)" : "";
+    push(`  ${k}${extra}`);
+  }
   push("");
   push("dynamic roots in code:");
   for (const [root, usages] of [...dynamicRoots.entries()].sort()) {
