@@ -106,6 +106,46 @@ const ALERT_CONFIG_MAP = {
     icon: "alert-circle",
     i18nKey: "adminAlerts.types.sos",
   },
+  task_offered: {
+    severity: "info",
+    icon: "notifications",
+    i18nKey: "adminAlerts.types.task_offered",
+  },
+  task_accepted: {
+    severity: "info",
+    icon: "checkmark-circle",
+    i18nKey: "adminAlerts.types.task_accepted",
+  },
+  task_started: {
+    severity: "info",
+    icon: "play",
+    i18nKey: "adminAlerts.types.task_started",
+  },
+  task_completed: {
+    severity: "info",
+    icon: "checkmark-done",
+    i18nKey: "adminAlerts.types.task_completed",
+  },
+  task_rejected: {
+    severity: "warning",
+    icon: "close-circle",
+    i18nKey: "adminAlerts.types.task_rejected",
+  },
+  task_withdrawn: {
+    severity: "warning",
+    icon: "arrow-undo",
+    i18nKey: "adminAlerts.types.task_withdrawn",
+  },
+  speeding: {
+    severity: "critical",
+    icon: "speedometer",
+    i18nKey: "adminAlerts.types.speeding",
+  },
+  harsh_brake: {
+    severity: "critical",
+    icon: "warning",
+    i18nKey: "adminAlerts.types.harsh_brake",
+  },
   default: {
     severity: "info",
     icon: "notifications",
@@ -329,7 +369,7 @@ const makeStyles = (COLORS) =>
 // ─────────────────────────────────────────────
 const getAlertConfig = (alertType) =>
   ALERT_CONFIG_MAP[alertType] ||
-  ALERT_CONFIG_MAP[alertType?.toUpperCase?.()] ||
+  ALERT_CONFIG_MAP[alertType?.toLowerCase?.()] ||
   ALERT_CONFIG_MAP.default;
 
 const formatRelativeTime = (dateString, t) => {
