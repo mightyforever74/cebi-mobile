@@ -53,7 +53,7 @@
     "task_rejected",
     "geofence_entry",
     "geofence_exit",
-    "SOS",
+    "sos",
     "speeding",
     "harsh_brake"
   ],

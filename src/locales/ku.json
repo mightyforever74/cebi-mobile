@@ -397,7 +397,8 @@
       "cancelled": "Hatiye betalkirin",
       "pending_review": "Di nirxandinê de",
       "accepted": "Qebûl kir",
-      "rejected": "Red kir"
+      "rejected": "Red kir",
+      "withdrawn": "Vekişandî"
     }
   },
   "alert": {
@@ -1587,7 +1588,8 @@
       "rejected": "Redkirî",
       "pending": "Pending",
       "assigned": "Girêdayî",
-      "cancelled": "Betalkirin"
+      "cancelled": "Betalkirin",
+      "withdrawn": "Vekişandî"
     },
     "info": {
       "taskNo": "Hejmara Peywirê",
@@ -1641,7 +1643,15 @@
       "cancelled": "Peywir hate betalkirim"
     },
     "events": {
-      "title": "Bûyerên karê"
+      "title": "Bûyerên karê",
+      "TASK_ACCEPTED": "Peywir hat qebûlkirin",
+      "TASK_STARTED": "Peywir hat destpêkirin",
+      "TASK_COMPLETED": "Peywir temam bû",
+      "TASK_REJECTED": "Peywir hat redkirin",
+      "TASK_WITHDRAWN": "Peywir hat vekişandin",
+      "STOP_ARRIVED": "Gihîşt rawestanê",
+      "STOP_DEPARTED": "Ji rawestanê derket",
+      "WAYPOINT_COMPLETED": "Xala navîn temam bû"
     },
     "waypoints": {
       "title": "Rawestgehên",
@@ -1773,7 +1783,14 @@
     "deleteDriver": "Ajokar jê bibe",
     "deleteConfirm": "Hûn dixin ewle in ku hûn vî ajokarî jêbirin?",
     "driverDeleted": "Ajokar bi serfirazî hat jêbirin",
-    "deleteFailed": "Jêbirin têk çû"
+    "deleteFailed": "Jêbirin têk çû",
+    "status": {
+      "available": "Berdest",
+      "on_task": "Li peywirê",
+      "task_pending": "Peywir li bendê",
+      "on_leave": "Bi destûr",
+      "offline": "Negirêdayî"
+    }
   },
   "adminVehicles": {
     "filterAll": "Hemû",
@@ -1799,7 +1816,25 @@
     "vehicleDeleted": "Wesayît bi serfirazî hat jêbirin",
     "deleteFailed": "Jêbirin têk çû",
     "deleteBlockedTitle": "Cihaz Girêdayî",
-    "deleteBlockedMsg": "Wesaîta {{plate}} cihazek girêdayî heye. Berî jêbirinê cihazê veqetînin."
+    "deleteBlockedMsg": "Wesaîta {{plate}} cihazek girêdayî heye. Berî jêbirinê cihazê veqetînin.",
+    "status": {
+      "available": "Berdest",
+      "in_use": "Di kar de",
+      "maintenance": "Tamîr",
+      "retired": "Ji xizmetê derketî"
+    },
+    "categories": {
+      "truck_heavy": "Kamyona giran",
+      "truck_medium": "Kamyoneta navîn",
+      "van": "Van"
+    },
+    "fuelTypes": {
+      "diesel": "Mazot",
+      "gasoline": "Benzîn",
+      "electric": "Elektrîk",
+      "hybrid": "Hîbrîd",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "Hemû",
@@ -1829,7 +1864,24 @@
     "deleteTask": "Karê jê bibe",
     "deleteConfirm": "Hûn dixin ewle in ku hûn vî karî jêbirin?",
     "taskDeleted": "Kar bi serfirazî hat jêbirin",
-    "deleteFailed": "Jêbirin têk çû"
+    "deleteFailed": "Jêbirin têk çû",
+    "status": {
+      "pending": "Pending",
+      "pending_review": "Li Bendê",
+      "accepted": "Qebûlkirî",
+      "assigned": "Girêdayî",
+      "rejected": "Redkirî",
+      "in_progress": "Di Pêvajoyê de",
+      "completed": "Temam",
+      "cancelled": "Betalkirin",
+      "withdrawn": "Vekişandî"
+    },
+    "priority": {
+      "low": "Nizim",
+      "normal": "Normal",
+      "high": "Bilind",
+      "urgent": "Acîl"
+    }
   },
   "adminAlerts": {
     "mapButton": "Li nexşeyê nîşan bide",
@@ -1877,7 +1929,17 @@
       "battery": "Batarya",
       "idle": "Bêkar",
       "sos": "SOS",
-      "default": "Hişyarî"
+      "default": "Hişyarî",
+      "task_offered": "Peywir hat pêşniyarkirin",
+      "task_accepted": "Peywir hat qebûlkirin",
+      "task_started": "Peywir hat destpêkirin",
+      "task_completed": "Peywir temam bû",
+      "task_rejected": "Peywir hat redkirin",
+      "task_withdrawn": "Peywir hat vekişandin",
+      "speeding": "Zêdekirina lezê",
+      "harsh_brake": "Frêna tûj",
+      "geofence_entry": "Ketina Deverê",
+      "geofence_exit": "Derketina Deverê"
     },
     "time": {
       "justNow": "Naha",

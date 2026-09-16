@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Start",
       "end": "Einde",
-      "clear": "Wissen"
+      "clear": "Wissen",
+      "title": "Rit {{number}}"
     }
   },
   "common": {
@@ -84,7 +85,12 @@
       "wifiConnectingMeaning": "No WiFi or connecting",
       "wifiLed": "WiFi LED (Blue)"
     },
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "cannotOpenLink": "Link kon niet worden geopend",
+    "info": "Info",
+    "invalidHour": "Geldig uur ligt tussen 0 en 23.",
+    "optional": "(optioneel)",
+    "vehicle": "Voertuig"
   },
   "profile": {
     "title": "Profiel",
@@ -326,7 +332,8 @@
       "brown": "Bruin",
       "beige": "Beige"
     },
-    "noRefuelRecord": "Geen tankregistratie"
+    "noRefuelRecord": "Geen tankregistratie",
+    "lastRefuel": "Laatste tankbeurt"
   },
   "task": {
     "title": "Taakbeheer",
@@ -350,7 +357,8 @@
       "cancelled": "Geannuleerd",
       "pending_review": "In behandeling",
       "accepted": "Geaccepteerd",
-      "rejected": "Geweigerd"
+      "rejected": "Geweigerd",
+      "withdrawn": "Ingetrokken"
     }
   },
   "alert": {
@@ -485,7 +493,28 @@
       "authFailed": "Onjuist WiFi-wachtwoord",
       "timeout": "Verbinding time-out",
       "notFound": "WiFi-netwerk niet gevonden"
-    }
+    },
+    "bleConnectionLost": "De ESP32-verbinding is verbroken. Start de installatie opnieuw.",
+    "bleDisconnected": "ESP32-verbinding verbroken. Probeer het opnieuw.",
+    "bleError": "BLE-verbindingsfout: ",
+    "connectDevice": "Laten we het apparaat met internet verbinden",
+    "connectionError": "Verbindingsfout",
+    "encOpen": "Open",
+    "encSecured": "Beveiligd",
+    "firmwareNoSupport": "ESP32-firmware ondersteunt geen WiFi-scan. Werk de firmware bij.",
+    "invalidData": "Ongeldige gegevens van ESP32 ontvangen. Probeer het opnieuw.",
+    "manualEntry": "Handmatige invoer",
+    "no5GHz": "Dit netwerk zit op de 5GHz-band. ESP32 ondersteunt alleen 2.4GHz-netwerken. Kies een ander netwerk.",
+    "noNetworks": "Geen WiFi-netwerken gevonden. Controleer of de ESP32 aan staat.",
+    "rescan": "Opnieuw scannen",
+    "retry": "Opnieuw proberen",
+    "scanDuration": "Dit kan 5–10 seconden duren",
+    "scanFailed": "WiFi-scan mislukt",
+    "scanning": "WiFi-netwerken worden gescand...",
+    "scanningShort": "Scannen...",
+    "selectNetwork": "Selecteer WiFi",
+    "unsupported": "Niet ondersteund",
+    "vehicle": "Voertuig"
   },
   "ble": {
     "scanning": "Apparaten zoeken...",
@@ -545,7 +574,9 @@
     "deviceNotFound": "Apparaat niet gevonden",
     "deviceCheckFailed": "Apparaatcontrole mislukt",
     "todayKm": "Vandaag KM",
-    "monthKm": "Maand KM"
+    "monthKm": "Maand KM",
+    "activeVehicles": "Actieve voertuigen",
+    "trafficClear": "Verkeer vlot"
   },
   "drawer": {
     "fleetManagement": "Fleet Management System",
@@ -628,7 +659,9 @@
       "cancelled": "Geannuleerd",
       "withdrawn": "Ingetrokken"
     },
-    "withdrawTaskConfirm": "Are you sure you want to withdraw \"{{title}}\"?\n\nYour manager will be notified."
+    "withdrawTaskConfirm": "Are you sure you want to withdraw \"{{title}}\"?\n\nYour manager will be notified.",
+    "contactAdmin": "Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder.",
+    "noVehicleAssigned": "Voertuig niet toegewezen"
   },
   "deviceSetup": {
     "title": "Apparaat Instellen",
@@ -795,7 +828,9 @@
       "btnNewDevice": "Nieuw apparaat instellen",
       "reprovisionTitle": "WiFi opnieuw configureren",
       "reprovisionMsg": "Het apparaat moet opnieuw opstarten om BLE-modus te activeren. Het verschijnt binnen 90 seconden in de BLE-scan. Wilt u doorgaan?"
-    }
+    },
+    "connecting": "Verbinden...",
+    "connectionError": "Verbindingsfout: {{error}}"
   },
   "editProfile": {
     "title": "Profiel Bewerken",
@@ -805,7 +840,14 @@
     "phone": "Telefoon",
     "save": "Wijzigingen Opslaan",
     "success": "Profiel succesvol bijgewerkt",
-    "error": "Fout bij bijwerken van profiel"
+    "error": "Fout bij bijwerken van profiel",
+    "changePhoto": "Foto wijzigen",
+    "emailReadonly": "E-mail kan niet worden gewijzigd",
+    "firstNamePlaceholder": "Voer uw voornaam in",
+    "firstNameRequired": "Voornaam is verplicht",
+    "lastNamePlaceholder": "Voer uw achternaam in",
+    "updateFailed": "Profiel kon niet worden bijgewerkt",
+    "updated": "Profiel bijgewerkt"
   },
   "changePassword": {
     "title": "Wachtwoord Wijzigen",
@@ -815,7 +857,18 @@
     "save": "Wachtwoord Wijzigen",
     "success": "Wachtwoord succesvol gewijzigd",
     "error": "Fout bij wijzigen van wachtwoord",
-    "mismatch": "Wachtwoorden komen niet overeen"
+    "mismatch": "Wachtwoorden komen niet overeen",
+    "allFieldsRequired": "Vul alle velden in",
+    "confirmPlaceholder": "Voer uw nieuwe wachtwoord opnieuw in",
+    "currentPlaceholder": "Voer uw huidige wachtwoord in",
+    "failed": "Wachtwoord kon niet worden gewijzigd",
+    "hint": "Kies een sterk wachtwoord voor uw veiligheid. Gebruik minstens 6 tekens.",
+    "minLength": "Nieuw wachtwoord moet minstens 6 tekens zijn",
+    "newPlaceholder": "Voer uw nieuwe wachtwoord in",
+    "samePassword": "Nieuw wachtwoord moet anders zijn dan het huidige",
+    "submit": "Wachtwoord wijzigen",
+    "successMessage": "Uw wachtwoord is succesvol gewijzigd.",
+    "successTitle": "Gelukt"
   },
   "map": {
     "title": "Navigatie",
@@ -950,7 +1003,14 @@
       "urgent": "Urgent",
       "low": "Lage Prioriteit",
       "normal": "Normaal"
-    }
+    },
+    "contactAdmin": "Aan deze taak is geen voertuig toegewezen. Neem contact op met een beheerder.",
+    "goToMap": "Naar de kaart",
+    "goToTasks": "Terug naar mijn taken",
+    "noVehicleAssigned": "Taak geaccepteerd. Er is geen voertuig toegewezen; een beheerder wordt geïnformeerd.",
+    "taskAccepted": "✅ Taak geaccepteerd",
+    "trackOnMap": "Wilt u de taak op de kaart volgen?",
+    "vehicleNotAssigned": "Voertuig niet toegewezen"
   },
   "deviceAssignment": {
     "title": "Apparaat Toewijzen",
@@ -991,7 +1051,10 @@
     "search": "Zoeken",
     "noResultsYet": "Nog geen resultaten",
     "availableDevices": "Beschikbare Apparaten",
-    "noDevicesAvailable": "Geen apparaten beschikbaar"
+    "noDevicesAvailable": "Geen apparaten beschikbaar",
+    "confirmAssignment": "Wilt u dit apparaat aan uw voertuig toewijzen?",
+    "scanQR": "QR scannen",
+    "vehicle": "Voertuig"
   },
   "root": {
     "loading": "Laden..."
@@ -1031,7 +1094,8 @@
     "m": "m",
     "h": "u",
     "min": "min",
-    "sec": "sec"
+    "sec": "sec",
+    "kmh": "km/u"
   },
   "schedule": {
     "schedule": "Planning",
@@ -1445,7 +1509,9 @@
     "filterCompleted": "Voltooid",
     "filterDelays": "Vertragingen",
     "filterAlerts": "Waarschuwingen",
-    "noFilteredActivities": "Geen activiteiten in deze categorie"
+    "noFilteredActivities": "Geen activiteiten in deze categorie",
+    "selectLanguage": "Selecteer taal",
+    "total": "totaal"
   },
   "createTask": {
     "title": "Nieuwe Taak",
@@ -1622,7 +1688,14 @@
     "deleteDriver": "Chauffeur verwijderen",
     "deleteConfirm": "Weet u zeker dat u deze chauffeur wilt verwijderen?",
     "driverDeleted": "Chauffeur succesvol verwijderd",
-    "deleteFailed": "Verwijderen mislukt"
+    "deleteFailed": "Verwijderen mislukt",
+    "status": {
+      "available": "Beschikbaar",
+      "on_task": "Op taak",
+      "task_pending": "Taak in afwachting",
+      "on_leave": "Met verlof",
+      "offline": "Offline"
+    }
   },
   "adminVehicles": {
     "filterAll": "Alle",
@@ -1648,7 +1721,25 @@
     "vehicleDeleted": "Voertuig succesvol verwijderd",
     "deleteFailed": "Verwijderen mislukt",
     "deleteBlockedTitle": "Apparaat Gekoppeld",
-    "deleteBlockedMsg": "Voertuig {{plate}} heeft een gekoppeld apparaat. Ontkoppel het apparaat eerst."
+    "deleteBlockedMsg": "Voertuig {{plate}} heeft een gekoppeld apparaat. Ontkoppel het apparaat eerst.",
+    "status": {
+      "available": "Beschikbaar",
+      "in_use": "In gebruik",
+      "maintenance": "Onderhoud",
+      "retired": "Buiten dienst"
+    },
+    "categories": {
+      "truck_heavy": "Zware vrachtwagen",
+      "truck_medium": "Middelzware vrachtwagen",
+      "van": "Bestelwagen"
+    },
+    "fuelTypes": {
+      "diesel": "Diesel",
+      "gasoline": "Benzine",
+      "electric": "Elektrisch",
+      "hybrid": "Hybride",
+      "lpg": "LPG"
+    }
   },
   "adminTasks": {
     "filterAll": "Alle",
@@ -1678,7 +1769,24 @@
     "deleteTask": "Taak verwijderen",
     "deleteConfirm": "Weet u zeker dat u deze taak wilt verwijderen?",
     "taskDeleted": "Taak succesvol verwijderd",
-    "deleteFailed": "Verwijderen mislukt"
+    "deleteFailed": "Verwijderen mislukt",
+    "status": {
+      "pending": "Wachtend",
+      "pending_review": "Nieuwe Taak!",
+      "accepted": "Geaccepteerd",
+      "assigned": "Toegewezen",
+      "rejected": "Geweigerd",
+      "in_progress": "Bezig",
+      "completed": "Voltooid",
+      "cancelled": "Geannuleerd",
+      "withdrawn": "Ingetrokken"
+    },
+    "priority": {
+      "low": "Laag",
+      "normal": "Normaal",
+      "high": "Hoog",
+      "urgent": "Urgent"
+    }
   },
   "adminAlerts": {
     "filterAll": "Alle",
@@ -1722,7 +1830,17 @@
       "battery": "Batterij",
       "idle": "Stationair",
       "sos": "SOS",
-      "default": "Waarschuwing"
+      "default": "Waarschuwing",
+      "task_offered": "Taak aangeboden",
+      "task_accepted": "Taak geaccepteerd",
+      "task_started": "Taak gestart",
+      "task_completed": "Taak voltooid",
+      "task_rejected": "Taak geweigerd",
+      "task_withdrawn": "Taak ingetrokken",
+      "speeding": "Snelheidsovertreding",
+      "harsh_brake": "Hard remmen",
+      "geofence_entry": "Zone Binnenkomst",
+      "geofence_exit": "Zone Verlaten"
     },
     "time": {
       "justNow": "Zojuist",
@@ -1819,7 +1937,8 @@
       "rejected": "Geweigerd",
       "pending": "In behandeling",
       "assigned": "Toegewezen",
-      "cancelled": "Geannuleerd"
+      "cancelled": "Geannuleerd",
+      "withdrawn": "Ingetrokken"
     },
     "info": {
       "taskNo": "Taaknummer",
@@ -1873,7 +1992,15 @@
       "cancelled": "Deze taak is geannuleerd"
     },
     "events": {
-      "title": "Taakgebeurtenissen"
+      "title": "Taakgebeurtenissen",
+      "TASK_ACCEPTED": "Taak geaccepteerd",
+      "TASK_STARTED": "Taak gestart",
+      "TASK_COMPLETED": "Taak voltooid",
+      "TASK_REJECTED": "Taak geweigerd",
+      "TASK_WITHDRAWN": "Taak ingetrokken",
+      "STOP_ARRIVED": "Aangekomen bij stop",
+      "STOP_DEPARTED": "Vertrokken van stop",
+      "WAYPOINT_COMPLETED": "Tussenstop voltooid"
     },
     "waypoints": {
       "title": "Stops",
@@ -2074,7 +2201,8 @@
     "vehicleRequired": "Selecteer een voertuig",
     "noVehicles": "Geen voertuigen gevonden",
     "noVehiclesHint": "Geen actieve voertuigen met apparaat",
-    "searchPlaceholder": "Zoek locatie..."
+    "searchPlaceholder": "Zoek locatie...",
+    "tapEditToManage": "Tik om te beheren"
   },
   "taskOffers": {
     "checkInternet": "Controleer uw internetverbinding.",
@@ -2188,6 +2316,75 @@
     "errorDesc": "Bel 112 of controleer uw internetverbinding.",
     "cancelTitle": "SOS Annuleren",
     "cancelDesc": "Het SOS-signaal wordt ingetrokken. Weet u het zeker?",
-    "cancelConfirm": "Ja, Annuleren"
+    "cancelConfirm": "Ja, Annuleren",
+    "callSubText": "De telefoon-app opent; u start het gesprek",
+    "sending": "Locatie ophalen en SOS verzenden...",
+    "warningText": "Gebruik dit scherm alleen bij echte noodgevallen. Valse alarmen kunnen juridische gevolgen hebben."
+  },
+  "about": {
+    "aboutText": "TulipFleet is een uitgebreid wagenparkbeheerplatform voor logistieke bedrijven. Het helpt u uw wagenpark efficiënt te beheren met realtime voertuigtracking, chauffeursbeheer, taaktoewijzing en brandstofregistratie.",
+    "aboutTitle": "Over TulipFleet",
+    "aiPowered": "AI-gestuurde ontwikkeling",
+    "allRightsReserved": "Alle rechten voorbehouden.",
+    "builtWith": "Gebouwd met kunstmatige intelligentie",
+    "claudeDescription": "Deze app is ontworpen en gecodeerd met het Claude Opus 4.5 AI-model van Anthropic. Het is een voorbeeld van samenwerking tussen moderne softwareontwikkeling en kunstmatige intelligentie.",
+    "contact": "Contact",
+    "featureESP32": "ESP32 IoT-integratie",
+    "featureFleet": "Wagenparkbeheer",
+    "featureFuel": "Brandstof- en kilometertelling",
+    "featureTasks": "Taaktoewijzing en -opvolging",
+    "featureTracking": "Realtime GPS-tracking",
+    "features": "Functies",
+    "links": "Links",
+    "madeWith": "Gemaakt in Türkiye met ❤️ en ☕",
+    "privacyPolicy": "Privacybeleid",
+    "tagline": "Professioneel wagenparkbeheersysteem",
+    "termsOfService": "Servicevoorwaarden",
+    "website": "Website"
+  },
+  "alerts": {
+    "warning": "Waarschuwing"
+  },
+  "geocode": {
+    "addressLoadFailed": "Adres kon niet worden geladen",
+    "addressNotFound": "Adres niet gevonden"
+  },
+  "register": {
+    "confirmPassword": "Wachtwoord (bevestigen)",
+    "confirmPasswordHint": "Voer het wachtwoord opnieuw in",
+    "createAccount": "Nieuw account aanmaken",
+    "driverRegistration": "Chauffeursregistratie",
+    "errors": {
+      "confirmPasswordRequired": "Bevestig het wachtwoord",
+      "emailInvalid": "Ongeldig e-mailformaat",
+      "emailRequired": "E-mail is verplicht",
+      "firstNameRequired": "Voornaam is verplicht",
+      "lastNameRequired": "Achternaam is verplicht",
+      "licenseRequired": "Rijbewijsnummer is verplicht",
+      "passwordMismatch": "Wachtwoorden komen niet overeen",
+      "passwordRequired": "Wachtwoord is verplicht",
+      "passwordShort": "Wachtwoord moet minstens 6 tekens zijn",
+      "phoneRequired": "Telefoon is verplicht"
+    },
+    "failed": "Registratie mislukt",
+    "firstName": "Voornaam",
+    "hasAccount": "Heeft u al een account?",
+    "infoText": "Na registratie is goedkeuring van de beheerder vereist. U kunt inloggen na goedkeuring. Vragen: destek@tulipfleet.com",
+    "infoTitle": "Info",
+    "lastName": "Achternaam",
+    "licenseNumber": "Rijbewijsnummer",
+    "passwordHint": "Minstens 6 tekens",
+    "phone": "Telefoon",
+    "submit": "Registreren",
+    "successMessage": "Uw registratie is ontvangen. U kunt inloggen na goedkeuring van de beheerder.",
+    "successTitle": "Gelukt!"
+  },
+  "reportExport": {
+    "cancel": "Annuleren",
+    "exportError": "Exportfout",
+    "shareCsv": "CSV delen",
+    "shareError": "Deelfout",
+    "sharePdf": "PDF delen",
+    "title": "Rapport exporteren"
   }
 }

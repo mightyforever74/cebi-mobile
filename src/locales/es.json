@@ -32,7 +32,8 @@
     "tripDetail": {
       "start": "Inicio",
       "end": "Fin",
-      "clear": "Limpiar"
+      "clear": "Limpiar",
+      "title": "Viaje {{number}}"
     }
   },
   "common": {
@@ -84,7 +85,12 @@
       "wifiConnectingMeaning": "Sin WiFi o conectando",
       "wifiLed": "LED WiFi (Azul)"
     },
-    "superAdmin": "Superadministrador"
+    "superAdmin": "Superadministrador",
+    "cannotOpenLink": "No se pudo abrir el enlace",
+    "info": "Info",
+    "invalidHour": "El rango de hora válido es 0–23.",
+    "optional": "(opcional)",
+    "vehicle": "Vehículo"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -330,7 +336,9 @@
     "enterSerialMessage": "Enter the serial number from QR code (e.g., TF-2025-00008-5)",
     "serialEmpty": "Serial number cannot be empty",
     "todayKm": "Hoy KM",
-    "monthKm": "Mes KM"
+    "monthKm": "Mes KM",
+    "activeVehicles": "Vehículos activos",
+    "trafficClear": "Tráfico fluido"
   },
   "task": {
     "title": "Gestión de tareas",
@@ -354,7 +362,8 @@
       "cancelled": "Cancelada",
       "pending_review": "En revisión",
       "accepted": "Aceptada",
-      "rejected": "Rechazada"
+      "rejected": "Rechazada",
+      "withdrawn": "Retirada"
     }
   },
   "drawer": {
@@ -439,7 +448,9 @@
     "withdraw": "Retirar",
     "withdrawConfirm": "Sí, retirar",
     "withdrawTask": "Retirar tarea",
-    "withdrawTaskConfirm": "¿Está seguro de que desea retirar \"{{title}}\"?\n\nSe notificará a su gerente."
+    "withdrawTaskConfirm": "¿Está seguro de que desea retirar \"{{title}}\"?\n\nSe notificará a su gerente.",
+    "contactAdmin": "No hay vehículo asignado a esta tarea. Contacte a un administrador.",
+    "noVehicleAssigned": "Vehículo no asignado"
   },
   "vehicle": {
     "title": "Mi Vehículo",
@@ -490,7 +501,8 @@
       "brown": "Marrón",
       "beige": "Beige"
     },
-    "noRefuelRecord": "Sin registros de repostaje"
+    "noRefuelRecord": "Sin registros de repostaje",
+    "lastRefuel": "Último repostaje"
   },
   "profile": {
     "title": "Perfil",
@@ -560,7 +572,14 @@
     "phone": "Teléfono",
     "save": "Guardar Cambios",
     "success": "Perfil actualizado exitosamente",
-    "error": "Error al actualizar el perfil"
+    "error": "Error al actualizar el perfil",
+    "changePhoto": "Cambiar foto",
+    "emailReadonly": "El correo no se puede cambiar",
+    "firstNamePlaceholder": "Introduzca su nombre",
+    "firstNameRequired": "El nombre es obligatorio",
+    "lastNamePlaceholder": "Introduzca su apellido",
+    "updateFailed": "No se pudo actualizar el perfil",
+    "updated": "Perfil actualizado"
   },
   "changePassword": {
     "title": "Cambiar Contraseña",
@@ -570,7 +589,18 @@
     "save": "Cambiar Contraseña",
     "success": "Contraseña cambiada exitosamente",
     "error": "Error al cambiar la contraseña",
-    "mismatch": "Las contraseñas no coinciden"
+    "mismatch": "Las contraseñas no coinciden",
+    "allFieldsRequired": "Complete todos los campos",
+    "confirmPlaceholder": "Vuelva a introducir la nueva contraseña",
+    "currentPlaceholder": "Introduzca su contraseña actual",
+    "failed": "No se pudo cambiar la contraseña",
+    "hint": "Elija una contraseña segura. Use al menos 6 caracteres.",
+    "minLength": "La nueva contraseña debe tener al menos 6 caracteres",
+    "newPlaceholder": "Introduzca su nueva contraseña",
+    "samePassword": "La nueva contraseña debe ser distinta de la actual",
+    "submit": "Cambiar contraseña",
+    "successMessage": "Su contraseña se cambió correctamente.",
+    "successTitle": "Éxito"
   },
   "deviceSetup": {
     "title": "Configuración del Dispositivo",
@@ -724,7 +754,8 @@
       "btnNewDevice": "Configurar nuevo dispositivo",
       "reprovisionTitle": "Reconfigurar WiFi",
       "reprovisionMsg": "El dispositivo necesita reiniciarse para entrar en modo BLE. Aparecerá en el escaneo BLE en 90 segundos. ¿Desea continuar?"
-    }
+    },
+    "connectionError": "Error de conexión: {{error}}"
   },
   "navigator": {
     "fuelManagement": "Gestión de Combustible",
@@ -835,7 +866,14 @@
       "urgent": "Urgente",
       "low": "Baja Prioridad",
       "normal": "Normal"
-    }
+    },
+    "contactAdmin": "No hay vehículo asignado a esta tarea. Contacte a un administrador.",
+    "goToMap": "Ir al mapa",
+    "goToTasks": "Volver a mis tareas",
+    "noVehicleAssigned": "Tarea aceptada. No hay vehículo asignado; se avisará a un administrador.",
+    "taskAccepted": "✅ Tarea aceptada",
+    "trackOnMap": "¿Desea seguir la tarea en el mapa?",
+    "vehicleNotAssigned": "Vehículo no asignado"
   },
   "deviceAssignment": {
     "title": "Asignar Dispositivo",
@@ -876,7 +914,10 @@
     "search": "Buscar",
     "noResultsYet": "Aún sin resultados",
     "availableDevices": "Dispositivos Disponibles",
-    "noDevicesAvailable": "No hay dispositivos disponibles"
+    "noDevicesAvailable": "No hay dispositivos disponibles",
+    "confirmAssignment": "¿Desea asignar este dispositivo a su vehículo?",
+    "scanQR": "Escanear QR",
+    "vehicle": "Vehículo"
   },
   "nav": {
     "route_waypoints": "Puntos de ruta",
@@ -913,7 +954,8 @@
     "m": "m",
     "h": "h",
     "min": "min",
-    "sec": "seg"
+    "sec": "seg",
+    "kmh": "km/h"
   },
   "root": {
     "loading": "Cargando..."
@@ -1278,7 +1320,8 @@
     "noData": "No se encontraron datos",
     "noResults": "No se encontraron resultados",
     "records": "records",
-    "searchPlaceholder": "Buscar..."
+    "searchPlaceholder": "Buscar...",
+    "selectLanguage": "Seleccionar idioma"
   },
   "roles": {
     "driver": "Conductor",
@@ -1488,7 +1531,14 @@
     "deleteDriver": "Eliminar conductor",
     "deleteConfirm": "¿Está seguro de que desea eliminar este conductor?",
     "driverDeleted": "Conductor eliminado exitosamente",
-    "deleteFailed": "Error al eliminar"
+    "deleteFailed": "Error al eliminar",
+    "status": {
+      "available": "Disponible",
+      "on_task": "En tarea",
+      "task_pending": "Tarea pendiente",
+      "on_leave": "De permiso",
+      "offline": "Desconectado"
+    }
   },
   "adminVehicles": {
     "filterAll": "Todos",
@@ -1514,7 +1564,25 @@
     "vehicleDeleted": "Vehículo eliminado exitosamente",
     "deleteFailed": "Error al eliminar vehículo",
     "deleteBlockedTitle": "Dispositivo Conectado",
-    "deleteBlockedMsg": "El vehículo {{plate}} tiene un dispositivo conectado. Desconéctelo antes de eliminar."
+    "deleteBlockedMsg": "El vehículo {{plate}} tiene un dispositivo conectado. Desconéctelo antes de eliminar.",
+    "status": {
+      "available": "Disponible",
+      "in_use": "En uso",
+      "maintenance": "Mantenimiento",
+      "retired": "Fuera de servicio"
+    },
+    "categories": {
+      "truck_heavy": "Camión pesado",
+      "truck_medium": "Camión mediano",
+      "van": "Furgoneta"
+    },
+    "fuelTypes": {
+      "diesel": "Diésel",
+      "gasoline": "Gasolina",
+      "electric": "Eléctrico",
+      "hybrid": "Híbrido",
+      "lpg": "GLP"
+    }
   },
   "adminTasks": {
     "filterAll": "Todos",
@@ -1544,7 +1612,24 @@
     "deleteTask": "Eliminar tarea",
     "deleteConfirm": "¿Está seguro de que desea eliminar esta tarea?",
     "taskDeleted": "Tarea eliminada exitosamente",
-    "deleteFailed": "Error al eliminar tarea"
+    "deleteFailed": "Error al eliminar tarea",
+    "status": {
+      "pending": "Pendiente",
+      "pending_review": "¡Nueva tarea!",
+      "accepted": "Aceptada",
+      "assigned": "Asignada",
+      "rejected": "Rechazada",
+      "in_progress": "En progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "withdrawn": "Retirada"
+    },
+    "priority": {
+      "low": "Baja",
+      "normal": "Normal",
+      "high": "Alta",
+      "urgent": "Urgente"
+    }
   },
   "adminAlerts": {
     "mapButton": "Mostrar en mapa",
@@ -1589,7 +1674,17 @@
       "battery": "Batería",
       "idle": "Ralentí",
       "sos": "SOS",
-      "default": "Alerta"
+      "default": "Alerta",
+      "task_offered": "Tarea ofrecida",
+      "task_accepted": "Tarea aceptada",
+      "task_started": "Tarea iniciada",
+      "task_completed": "Tarea completada",
+      "task_rejected": "Tarea rechazada",
+      "task_withdrawn": "Tarea retirada",
+      "speeding": "Exceso de velocidad",
+      "harsh_brake": "Frenado brusco",
+      "geofence_entry": "Entrada a Zona",
+      "geofence_exit": "Salida de Zona"
     },
     "time": {
       "justNow": "Ahora mismo",
@@ -1685,7 +1780,8 @@
       "rejected": "Rechazada",
       "pending": "Pendiente",
       "assigned": "Asignada",
-      "cancelled": "Cancelada"
+      "cancelled": "Cancelada",
+      "withdrawn": "Retirada"
     },
     "info": {
       "taskNo": "Número de tarea",
@@ -1739,7 +1835,15 @@
       "cancelled": "Esta tarea fue cancelada"
     },
     "events": {
-      "title": "Eventos de tarea"
+      "title": "Eventos de tarea",
+      "TASK_ACCEPTED": "Tarea aceptada",
+      "TASK_STARTED": "Tarea iniciada",
+      "TASK_COMPLETED": "Tarea completada",
+      "TASK_REJECTED": "Tarea rechazada",
+      "TASK_WITHDRAWN": "Tarea retirada",
+      "STOP_ARRIVED": "Llegada a la parada",
+      "STOP_DEPARTED": "Salida de la parada",
+      "WAYPOINT_COMPLETED": "Punto intermedio completado"
     },
     "waypoints": {
       "title": "Paradas",
@@ -1940,7 +2044,8 @@
     "vehicleRequired": "Por favor seleccione un vehículo",
     "noVehicles": "No se encontraron vehículos",
     "noVehiclesHint": "No hay vehículos activos con dispositivo",
-    "searchPlaceholder": "Buscar ubicación..."
+    "searchPlaceholder": "Buscar ubicación...",
+    "tapEditToManage": "Toca para gestionar"
   },
   "alert": {
     "active": "Activa",
@@ -2046,7 +2151,28 @@
       "timeout": "Tiempo de conexión agotado"
     },
     "password": "Contraseña WiFi",
-    "ssid": "Red WiFi"
+    "ssid": "Red WiFi",
+    "bleConnectionLost": "Se perdió la conexión ESP32. Reinicie la configuración.",
+    "bleDisconnected": "ESP32 desconectado. Inténtelo de nuevo.",
+    "bleError": "Error de conexión BLE: ",
+    "connectDevice": "Conectemos el dispositivo a internet",
+    "connectionError": "Error de conexión",
+    "encOpen": "Abierta",
+    "encSecured": "Protegida",
+    "firmwareNoSupport": "El firmware ESP32 no admite el escaneo WiFi. Actualice el firmware.",
+    "invalidData": "Se recibieron datos inválidos del ESP32. Inténtelo de nuevo.",
+    "manualEntry": "Entrada manual",
+    "no5GHz": "Esta red está en la banda de 5 GHz. ESP32 solo admite redes de 2,4 GHz. Elija otra red.",
+    "noNetworks": "No se encontraron redes WiFi. Asegúrese de que el ESP32 esté encendido.",
+    "rescan": "Volver a escanear",
+    "retry": "Reintentar",
+    "scanDuration": "Esto puede tardar 5–10 segundos",
+    "scanFailed": "Error al escanear WiFi",
+    "scanning": "Escaneando redes WiFi...",
+    "scanningShort": "Escaneando...",
+    "selectNetwork": "Seleccionar WiFi",
+    "unsupported": "No compatible",
+    "vehicle": "Vehículo"
   },
   "vehicleList": {
     "title": "Lista de vehículos",
@@ -2123,6 +2249,75 @@
     "errorDesc": "Por favor llame al 112 o compruebe su conexión a internet.",
     "cancelTitle": "Cancelar SOS",
     "cancelDesc": "La señal SOS será retirada. ¿Está seguro?",
-    "cancelConfirm": "Sí, Cancelar"
+    "cancelConfirm": "Sí, Cancelar",
+    "callSubText": "Se abre la app de teléfono; usted inicia la llamada",
+    "sending": "Obteniendo ubicación y enviando SOS...",
+    "warningText": "Use esta pantalla solo en emergencias reales. Las alarmas falsas pueden tener consecuencias legales."
+  },
+  "about": {
+    "aboutText": "TulipFleet es una plataforma integral de gestión de flotas para empresas de logística. Le permite gestionar su flota de forma eficiente con seguimiento de vehículos en tiempo real, gestión de conductores, asignación de tareas y control de combustible.",
+    "aboutTitle": "Acerca de TulipFleet",
+    "aiPowered": "Desarrollo impulsado por IA",
+    "allRightsReserved": "Todos los derechos reservados.",
+    "builtWith": "Desarrollado con inteligencia artificial",
+    "claudeDescription": "Esta aplicación fue diseñada y programada con el modelo de IA Claude Opus 4.5 de Anthropic. Es un ejemplo de colaboración entre el desarrollo de software moderno y la inteligencia artificial.",
+    "contact": "Contacto",
+    "featureESP32": "Integración IoT ESP32",
+    "featureFleet": "Gestión de flotas",
+    "featureFuel": "Seguimiento de combustible y kilometraje",
+    "featureTasks": "Asignación y seguimiento de tareas",
+    "featureTracking": "Seguimiento GPS en tiempo real",
+    "features": "Funciones",
+    "links": "Enlaces",
+    "madeWith": "Hecho en Türkiye con ❤️ y ☕",
+    "privacyPolicy": "Política de privacidad",
+    "tagline": "Sistema profesional de gestión de flotas",
+    "termsOfService": "Términos de servicio",
+    "website": "Sitio web"
+  },
+  "alerts": {
+    "warning": "Advertencia"
+  },
+  "geocode": {
+    "addressLoadFailed": "No se pudo cargar la dirección",
+    "addressNotFound": "Dirección no encontrada"
+  },
+  "register": {
+    "confirmPassword": "Contraseña (repetir)",
+    "confirmPasswordHint": "Vuelva a introducir la contraseña",
+    "createAccount": "Crear cuenta nueva",
+    "driverRegistration": "Registro de conductor",
+    "errors": {
+      "confirmPasswordRequired": "Debe confirmar la contraseña",
+      "emailInvalid": "Formato de correo inválido",
+      "emailRequired": "El correo es obligatorio",
+      "firstNameRequired": "El nombre es obligatorio",
+      "lastNameRequired": "El apellido es obligatorio",
+      "licenseRequired": "El número de licencia es obligatorio",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordShort": "La contraseña debe tener al menos 6 caracteres",
+      "phoneRequired": "El teléfono es obligatorio"
+    },
+    "failed": "El registro falló",
+    "firstName": "Nombre",
+    "hasAccount": "¿Ya tiene una cuenta?",
+    "infoText": "Se requiere aprobación del administrador tras el registro. Podrá iniciar sesión después de la aprobación. Preguntas: destek@tulipfleet.com",
+    "infoTitle": "Info",
+    "lastName": "Apellido",
+    "licenseNumber": "N.º de licencia",
+    "passwordHint": "Al menos 6 caracteres",
+    "phone": "Teléfono",
+    "submit": "Registrarse",
+    "successMessage": "Se recibió su registro. Podrá iniciar sesión tras la aprobación del administrador.",
+    "successTitle": "¡Éxito!"
+  },
+  "reportExport": {
+    "cancel": "Cancelar",
+    "exportError": "Error de exportación",
+    "shareCsv": "Compartir CSV",
+    "shareError": "Error al compartir",
+    "sharePdf": "Compartir PDF",
+    "title": "Exportar informe"
   }
 }
