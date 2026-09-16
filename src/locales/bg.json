@@ -146,7 +146,8 @@
     "contactEmailSubject": "TulipFleet - Заявка за акаунт",
     "contactEmailBody": "Здравейте,\n\nБих искал да създам акаунт за TulipFleet.\n\nИме на фирма:\nЛице за контакт:\nТелефон:\nБрой превозни средства:\n\nБлагодаря.",
     "callNotAvailable": "Не може да се обади",
-    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet."
+    "whatsappMessage": "Здравейте, бих искал да науча повече за TulipFleet.",
+    "logoutConfirm": "Сигурни ли сте, че искате да излезете?"
   },
   "roles": {
     "superAdmin": "Super Admin",
@@ -1013,7 +1014,9 @@
     "min": "мин",
     "noSpeed": "Изчакване на движение",
     "delayRisk": "РИСК ОТ ЗАКЪСНЕНИЕ",
-    "noEta": "ETA не е наличен"
+    "noEta": "ETA не е наличен",
+    "final_destination": "Крайна дестинация",
+    "nextStop": "Следваща спирка"
   },
   "units": {
     "km": "км",

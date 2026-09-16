@@ -1,0 +1,65 @@
+{
+  "auth.logoutConfirm": {
+    "en": "Are you sure you want to log out?",
+    "bg": "Сигурни ли сте, че искате да излезете?"
+  },
+  "common.all": {
+    "en": "All"
+  },
+  "common.back": {
+    "en": "Back"
+  },
+  "common.next": {
+    "en": "Next"
+  },
+  "common.no": {
+    "en": "No"
+  },
+  "common.none": {
+    "en": "None"
+  },
+  "common.refresh": {
+    "en": "Refresh"
+  },
+  "common.retry": {
+    "en": "Retry"
+  },
+  "common.search": {
+    "en": "Search"
+  },
+  "common.warning": {
+    "en": "Warning"
+  },
+  "common.yes": {
+    "en": "Yes"
+  },
+  "nav.final_destination": {
+    "en": "Final destination",
+    "bg": "Крайна дестинация"
+  },
+  "nav.nextStop": {
+    "en": "Next stop",
+    "bg": "Следваща спирка"
+  },
+  "profile.title": {
+    "en": "Profile"
+  },
+  "roles.companyAdmin": {
+    "en": "Company Admin"
+  },
+  "units.h": {
+    "en": "h"
+  },
+  "units.km": {
+    "en": "km"
+  },
+  "units.m": {
+    "en": "m"
+  },
+  "units.min": {
+    "en": "min"
+  },
+  "units.sec": {
+    "en": "sec"
+  }
+}

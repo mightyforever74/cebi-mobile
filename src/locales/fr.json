@@ -693,7 +693,7 @@
     "hintCircle": "Appui long sur la carte pour placer le centre de la zone",
     "save": "Enregistrer",
     "delete": "Supprimer",
-    "deleteConfirm": "Supprimer cette zone?",
+    "deleteConfirm": "Supprimer cette zone \"{{name}}\"?",
     "zoneDeleted": "Zone supprimée avec succès",
     "zoneSaved": "Zone enregistrée avec succès",
     "tapEditToManage": "Appuyer sur Modifier pour gérer",

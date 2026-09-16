@@ -74,7 +74,17 @@
     "superAdmin": "Super Admin",
     "companyAdmin": "Manager",
     "driver": "Driver",
-    "user": "User"
+    "user": "User",
+    "all": "All",
+    "back": "Back",
+    "next": "Next",
+    "no": "No",
+    "none": "None",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "search": "Search",
+    "warning": "Warning",
+    "yes": "Yes"
   },
   "auth": {
     "login": "Sign In",
@@ -136,12 +146,14 @@
     "contactEmailSubject": "TulipFleet - Account Request",
     "contactEmailBody": "Hello,\n\nI would like to create an account for TulipFleet.\n\nCompany Name:\nContact Person:\nPhone:\nNumber of Vehicles:\n\nThank you.",
     "callNotAvailable": "Unable to make a call",
-    "whatsappMessage": "Hello, I would like to learn more about TulipFleet."
+    "whatsappMessage": "Hello, I would like to learn more about TulipFleet.",
+    "logoutConfirm": "Are you sure you want to log out?"
   },
   "roles": {
     "driver": "Driver",
     "admin": "Manager",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "companyAdmin": "Company Admin"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -587,7 +599,8 @@
     "supportMessage": "Need help?",
     "sendEmail": "Send Email",
     "aboutTitle": "About TulipFleet",
-    "aboutMessage": "TulipFleet v2.0.5\n\nFleet Management System\n© 2026 TulipFleet\n\nAll rights reserved."
+    "aboutMessage": "TulipFleet v2.0.5\n\nFleet Management System\n© 2026 TulipFleet\n\nAll rights reserved.",
+    "title": "Profile"
   },
   "deviceSetup": {
     "title": "Device Setup",
@@ -1070,7 +1083,9 @@
     "min": "min",
     "noSpeed": "Waiting for movement",
     "delayRisk": "DELAY RISK",
-    "noEta": "ETA unavailable"
+    "noEta": "ETA unavailable",
+    "final_destination": "Final destination",
+    "nextStop": "Next stop"
   },
   "root": {
     "loading": "Loading..."
@@ -2030,5 +2045,12 @@
     "cancelTitle": "Cancel SOS",
     "cancelDesc": "The SOS signal will be recalled. Are you sure?",
     "cancelConfirm": "Yes, Cancel"
+  },
+  "units": {
+    "h": "h",
+    "km": "km",
+    "m": "m",
+    "min": "min",
+    "sec": "sec"
   }
 }

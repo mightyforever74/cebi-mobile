@@ -693,7 +693,7 @@
     "hintCircle": "Lang drücken, um Zonenmittelpunkt zu platzieren",
     "save": "Speichern",
     "delete": "Löschen",
-    "deleteConfirm": "Diese Zone wirklich löschen?",
+    "deleteConfirm": "Diese Zone \"{{name}}\" wirklich löschen?",
     "zoneDeleted": "Zone erfolgreich gelöscht",
     "zoneSaved": "Zone erfolgreich gespeichert",
     "tapEditToManage": "Bearbeiten tippen zum Verwalten",
