@@ -84,7 +84,7 @@ const char* DEVICE_ACTIVATION_KEY = "TulipFleet2025SecureActivationKeyESP32";
 const char* mqtt_server = "mqtt.tulipfleet.com";
 const int mqtt_port = 8883;
 const char* mqtt_username = "fleet_esp32";
-const char* mqtt_password = "FleetESP32Secure2026!";
+const char* mqtt_password = "EspTf26!vX9mQ4kR";
 
 // NTP
 const char* ntpServer = "pool.ntp.org";
