@@ -1,151 +1,340 @@
 #!/usr/bin/env node
-import fs from 'fs';
-import path from 'path';
+/**
+ * TulipFleet i18n verifier.
+ * Usage: node scripts/verify-i18n.mjs [--json] [--strict]
+ *
+ * Reference = UNION of keys across 9 locale files (not tr-only).
+ * Extra keys are warnings unless --strict.
+ */
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const locales = ['en', 'tr', 'ku', 'nl', 'it', 'bg', 'es'];
-const baseDir = path.resolve('src', 'locales');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "..");
+const LOCALE_DIR = path.join(ROOT, "src", "locales");
+const SRC_DIR = path.join(ROOT, "src");
+const LANGS = ["tr", "en", "nl", "de", "fr", "es", "it", "bg", "ku"];
+const MANIFEST_PATH = path.join(__dirname, "i18n-dynamic-roots.json");
 
-const expected = {
-  welcome: [
-    'driver',
-    'goodMorning',
-    'goodAfternoon',
-    'goodEvening',
-    'goodNight',
-    'subtitle',
-    'tasksReady',
-    'vehicleActive',
-    'tapToContinue',
-  ],
-  offerDetail: [
-    'loading',
-    'error',
-    'loadFailed',
-    'notFound',
-    'acceptTask',
-    'acceptConfirm',
-    'cancel',
-    'accept',
-    'success',
-    'acceptSuccess',
-    'ok',
-    'acceptFailed',
-    'rejected',
-    'rejectSuccess',
-    'operationFailed',
-    'reject',
-    'expired',
-    'minutesRemaining',
-    'hoursMinutesRemaining',
-    'timeRemaining',
-    'taskDetail',
-    'route',
-    'origin',
-    'destination',
-    'vehicle',
-    'schedule',
-    'scheduledStart',
-    'scheduledEnd',
-    'waypoints',
-    'point',
-    'navigation',
-    'noDestination',
-    'startNavigation',
-    'rejectReason',
-    'rejectReasonHint',
-    'rejectReasonPlaceholder',
-    'statuses.accepted',
-    'statuses.rejected',
-    'statuses.expired',
-    'priorities.high',
-    'priorities.urgent',
-    'priorities.low',
-    'priorities.normal',
-  ],
-  deviceAssignment: [
-    'title',
-    'error',
-    'loadFailed',
-    'noVehicle',
-    'qrValid',
-    'device',
-    'expiresIn',
-    'hours',
-    'cancel',
-    'assignToVehicle',
-    'invalidQR',
-    'qrExpired',
-    'success',
-    'deviceAssigned',
-    'assignFailed',
-    'enterSerial',
-    'notFound',
-    'deviceNotFound',
-    'assign',
-    'status',
-    'cannotAssign',
-    'vehicleId',
-    'notSelected',
-    'vehicleRequired',
-    'qrScan',
-    'serial',
-    'list',
-    'hint',
-    'requestingCamera',
-    'cameraPermissionDenied',
-    'enableCameraPermission',
-    'openSettings',
-    'close',
-    'searchBySerial',
-    'serialPlaceholder',
-    'search',
-    'noResultsYet',
-    'availableDevices',
-    'noDevicesAvailable',
-  ],
-};
+const args = new Set(process.argv.slice(2));
+const asJson = args.has("--json");
+const strict = args.has("--strict");
 
-function getNested(obj, dottedKey) {
-  return dottedKey.split('.').reduce((acc, k) => (acc && acc[k] !== undefined ? acc[k] : undefined), obj);
+function flatten(obj, prefix = "", out = {}) {
+  if (obj === null || obj === undefined) return out;
+  if (typeof obj !== "object" || Array.isArray(obj)) {
+    out[prefix] = obj;
+    return out;
+  }
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v !== null && typeof v === "object" && !Array.isArray(v)) {
+      flatten(v, key, out);
+    } else {
+      out[key] = v;
+    }
+  }
+  return out;
 }
 
-const results = {};
-for (const loc of locales) {
-  const file = path.join(baseDir, `${loc}.json`);
-  const raw = fs.readFileSync(file, 'utf8');
-  const json = JSON.parse(raw);
-  const missing = [];
-
-  for (const section of Object.keys(expected)) {
-    if (!json[section] || typeof json[section] !== 'object') {
-      missing.push(`${section}.* (section missing)`);
-      continue;
+function getNested(obj, dotted) {
+  return dotted.split(".").reduce((acc, k) => {
+    if (acc === undefined || acc === null || typeof acc !== "object") {
+      return undefined;
     }
-    for (const key of expected[section]) {
-      const val = getNested(json[section], key);
-      if (val === undefined) {
-        missing.push(`${section}.${key}`);
+    return acc[k];
+  }, obj);
+}
+
+function paramsOf(value) {
+  if (typeof value !== "string") return [];
+  const found = [];
+  const re = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+  let m;
+  while ((m = re.exec(value))) found.push(m[1]);
+  return [...new Set(found)].sort();
+}
+
+function walkJs(dir, acc = []) {
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, ent.name);
+    if (ent.isDirectory()) {
+      if (ent.name === "node_modules" || ent.name === "locales") continue;
+      walkJs(p, acc);
+    } else if (ent.name.endsWith(".js")) {
+      acc.push(p);
+    }
+  }
+  return acc;
+}
+
+function collectStaticKeys(files) {
+  const staticRe = /\b(?:i18n\.)?t\(\s*(['"])([^'"]+)\1/g;
+  const used = new Map();
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    const rel = path.relative(ROOT, file).replace(/\\/g, "/");
+    staticRe.lastIndex = 0;
+    let m;
+    while ((m = staticRe.exec(text))) {
+      const key = m[2];
+      if (!key || key.includes("${")) continue;
+      if (!used.has(key)) used.set(key, []);
+      const line = text.slice(0, m.index).split(/\n/).length;
+      used.get(key).push(`${rel}:${line}`);
+    }
+  }
+  return used;
+}
+
+function collectDynamicRoots(files) {
+  // t(`root.${var}`) or t(`root.${var}.suffix`)
+  const dynRe = /\b(?:i18n\.)?t\(\s*`([^`$]+)\.\$\{[^}]+\}[^`]*`/g;
+  const roots = new Map();
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    const rel = path.relative(ROOT, file).replace(/\\/g, "/");
+    dynRe.lastIndex = 0;
+    let m;
+    while ((m = dynRe.exec(text))) {
+      const root = m[1];
+      if (!roots.has(root)) roots.set(root, []);
+      const line = text.slice(0, m.index).split(/\n/).length;
+      roots.get(root).push({ file: rel, line, sample: m[0] });
+    }
+  }
+  return roots;
+}
+
+function mojibakeHits(flat, lang) {
+  const hits = [];
+  for (const [key, val] of Object.entries(flat)) {
+    if (typeof val !== "string") continue;
+    if (val.includes("Ã") || val.includes("Â") || val.includes("â€")) {
+      hits.push({ lang, key, preview: val.slice(0, 80) });
+    }
+  }
+  return hits;
+}
+
+const dicts = {};
+const flats = {};
+for (const lang of LANGS) {
+  const raw = fs.readFileSync(path.join(LOCALE_DIR, `${lang}.json`), "utf8");
+  dicts[lang] = JSON.parse(raw);
+  flats[lang] = flatten(dicts[lang]);
+}
+
+const union = new Set();
+for (const lang of LANGS) {
+  for (const k of Object.keys(flats[lang])) union.add(k);
+}
+const intersection = [...union].filter((k) =>
+  LANGS.every((lang) => k in flats[lang])
+);
+const unionList = [...union].sort();
+
+const symmetry = {};
+for (const lang of LANGS) {
+  const keys = Object.keys(flats[lang]);
+  const keySet = new Set(keys);
+  const missing = unionList.filter((k) => !keySet.has(k));
+  const extra = keys.filter((k) => !intersection.includes(k)).sort();
+  symmetry[lang] = {
+    count: keys.length,
+    missingCount: missing.length,
+    extraCount: extra.length,
+    missing,
+    extra,
+  };
+}
+
+const interp = [];
+for (const key of unionList) {
+  const byLang = {};
+  const signatures = new Set();
+  for (const lang of LANGS) {
+    if (!(key in flats[lang])) continue;
+    const params = paramsOf(flats[lang][key]);
+    byLang[lang] = params;
+    signatures.add(params.join(","));
+  }
+  if (signatures.size > 1) {
+    interp.push({ key, byLang });
+  }
+}
+
+const jsFiles = walkJs(SRC_DIR);
+const staticUsed = collectStaticKeys(jsFiles);
+const codeMissingInUnion = [...staticUsed.keys()]
+  .filter((k) => !union.has(k))
+  .sort();
+
+const dynamicRoots = collectDynamicRoots(jsFiles);
+const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
+const unmanifestedRoots = [...dynamicRoots.keys()]
+  .filter((r) => !(r in manifest))
+  .sort();
+
+const manifestMissing = [];
+for (const [root, subkeys] of Object.entries(manifest)) {
+  for (const lang of LANGS) {
+    const node = getNested(dicts[lang], root);
+    for (const sub of subkeys) {
+      const present =
+        node !== undefined &&
+        node !== null &&
+        typeof node === "object" &&
+        Object.prototype.hasOwnProperty.call(node, sub);
+      if (!present) {
+        manifestMissing.push({ root, sub, lang, key: `${root}.${sub}` });
       }
     }
   }
-
-  results[loc] = missing;
 }
 
-const hasAnyMissing = Object.values(results).some(arr => arr.length > 0);
-for (const loc of locales) {
-  const miss = results[loc];
-  if (miss.length === 0) {
-    console.log(`[${loc}] OK — all keys present.`);
-  } else {
-    console.log(`[${loc}] Missing keys (${miss.length}):`);
-    miss.forEach(k => console.log(`  - ${k}`));
+const encoding = [];
+for (const lang of LANGS) {
+  encoding.push(...mojibakeHits(flats[lang], lang));
+}
+
+const errors = [];
+const warnings = [];
+
+for (const lang of LANGS) {
+  for (const k of symmetry[lang].missing) {
+    errors.push({ type: "missing_key", lang, key: k });
+  }
+  for (const k of symmetry[lang].extra) {
+    const item = { type: "extra_key", lang, key: k };
+    if (strict) errors.push(item);
+    else warnings.push(item);
   }
 }
-
-if (hasAnyMissing) {
-  process.exitCode = 1;
-  console.log('\n❌ Some locales have missing keys.');
-} else {
-  console.log('\n✅ All locales verified.');
+for (const row of interp) {
+  errors.push({ type: "interp_mismatch", key: row.key, byLang: row.byLang });
 }
+for (const k of codeMissingInUnion) {
+  errors.push({
+    type: "code_key_missing",
+    key: k,
+    usages: staticUsed.get(k).slice(0, 5),
+  });
+}
+for (const r of unmanifestedRoots) {
+  warnings.push({
+    type: "unmanifested_root",
+    root: r,
+    hint: "manifest'e ekle",
+    usages: dynamicRoots.get(r).slice(0, 5),
+  });
+}
+for (const row of manifestMissing) {
+  errors.push({ type: "manifest_missing", ...row });
+}
+for (const row of encoding) {
+  errors.push({ type: "encoding", lang: row.lang, key: row.key, preview: row.preview });
+}
+
+const report = {
+  langs: LANGS,
+  unionCount: union.size,
+  intersectionCount: intersection.length,
+  symmetry,
+  interpMismatchCount: interp.length,
+  interp,
+  staticUsedCount: staticUsed.size,
+  codeMissingInUnionCount: codeMissingInUnion.length,
+  codeMissingInUnion,
+  dynamicRoots: Object.fromEntries(
+    [...dynamicRoots.entries()].map(([r, usages]) => [
+      r,
+      usages.map((u) => `${u.file}:${u.line}`),
+    ])
+  ),
+  unmanifestedRoots,
+  manifestMissingCount: manifestMissing.length,
+  manifestMissing,
+  encodingCount: encoding.length,
+  encoding,
+  errorCount: errors.length,
+  warningCount: warnings.length,
+  errors,
+  warnings,
+  strict,
+};
+
+function printTable() {
+  const lines = [];
+  const push = (s = "") => lines.push(s);
+  push("TulipFleet i18n verify");
+  push(`reference=UNION (${union.size} keys)  intersection=${intersection.length}  strict=${strict}`);
+  push("");
+  push("lang  keys  missing  extra");
+  push("----  ----  -------  -----");
+  for (const lang of LANGS) {
+    const s = symmetry[lang];
+    push(
+      `${lang.padEnd(4)}  ${String(s.count).padStart(4)}  ${String(s.missingCount).padStart(7)}  ${String(s.extraCount).padStart(5)}`
+    );
+  }
+  push("");
+  push(`interp mismatches: ${interp.length}`);
+  for (const row of interp) {
+    const sig = LANGS.filter((l) => row.byLang[l])
+      .map((l) => `${l}=[${row.byLang[l].join(",")}]`)
+      .join(" ");
+    push(`  ${row.key}  ${sig}`);
+  }
+  push("");
+  push(`code static keys not in union: ${codeMissingInUnion.length}`);
+  for (const k of codeMissingInUnion) push(`  ${k}`);
+  push("");
+  push("dynamic roots in code:");
+  for (const [root, usages] of [...dynamicRoots.entries()].sort()) {
+    const flag = root in manifest ? "ok" : "WARN manifest'e ekle";
+    push(`  ${root}  (${usages.length})  ${flag}`);
+  }
+  push("");
+  push(`manifest subkey missing: ${manifestMissing.length}`);
+  const grouped = new Map();
+  for (const row of manifestMissing) {
+    const id = `${row.root}.${row.sub}`;
+    if (!grouped.has(id)) grouped.set(id, []);
+    grouped.get(id).push(row.lang);
+  }
+  for (const [id, langs] of grouped) push(`  ${id}  [${langs.join(",")}]`);
+  push("");
+  push(`encoding mojibake: ${encoding.length}`);
+  for (const row of encoding) {
+    push(`  src/locales/${row.lang}.json  ${row.key}  ${JSON.stringify(row.preview)}`);
+  }
+  push("");
+  for (const lang of LANGS) {
+    if (symmetry[lang].missing.length) {
+      push(`[${lang}] missing vs union (${symmetry[lang].missingCount}):`);
+      for (const k of symmetry[lang].missing) push(`  - ${k}`);
+    }
+    if (symmetry[lang].extra.length) {
+      push(`[${lang}] extra vs intersection (${symmetry[lang].extraCount}):`);
+      for (const k of symmetry[lang].extra) push(`  - ${k}`);
+    }
+  }
+  push("");
+  push(
+    errors.length
+      ? `FAIL  errors=${errors.length}  warnings=${warnings.length}`
+      : `PASS  errors=0  warnings=${warnings.length}`
+  );
+  return lines.join("\n");
+}
+
+if (asJson) {
+  process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+} else {
+  process.stdout.write(printTable() + "\n");
+}
+
+if (errors.length) process.exitCode = 1;
+else process.exitCode = 0;
