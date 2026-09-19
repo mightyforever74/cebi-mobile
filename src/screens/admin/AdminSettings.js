@@ -1020,7 +1020,7 @@ const AdminSettings = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.aboutApp") || "Uygulama Hakkında"}
-          subtitle={(t("settings.version") || "Versiyon") + " " + APP_VERSION}
+          subtitle={t("settings.version", { version: APP_VERSION })}
           onPress={handleAbout}
         />
       </View>
@@ -1046,8 +1046,12 @@ const AdminSettings = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v{APP_VERSION}</Text>
-        <Text style={styles.footerSubtext}>© 2026 TulipFleet</Text>
+        <Text style={styles.footerText}>
+          {t("settings.version", { version: APP_VERSION })}
+        </Text>
+        <Text style={styles.footerSubtext}>
+          {t("common.copyright", { year: new Date().getFullYear() })}
+        </Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
 

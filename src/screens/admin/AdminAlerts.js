@@ -28,6 +28,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { alertAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
+import { formatDate } from "../../utils/helpers";
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -382,7 +383,7 @@ const formatRelativeTime = (dateString, t) => {
   if (mins < 60) return t("adminAlerts.time.minsAgo", { count: mins });
   if (hours < 24) return t("adminAlerts.time.hoursAgo", { count: hours });
   if (days < 7) return t("adminAlerts.time.daysAgo", { count: days });
-  return new Date(dateString).toLocaleDateString();
+  return formatDate(dateString);
 };
 
 // ─────────────────────────────────────────────

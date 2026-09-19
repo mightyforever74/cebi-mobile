@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -20,6 +21,7 @@ import { driverAPI } from "../../services/api";
 
 const EditDriverScreen = ({ navigation, route }) => {
   const { driver } = route.params;
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -35,10 +37,10 @@ const EditDriverScreen = ({ navigation, route }) => {
   });
 
   const statusTypes = [
-    { value: "idle", label: "Bosta" },
-    { value: "active", label: "Aktif" },
-    { value: "paused", label: "Duraklatildi" },
-    { value: "offline", label: "Cevrimdisi" },
+    { value: "idle", key: "createDriver.statusIdle" },
+    { value: "active", key: "createDriver.statusActive" },
+    { value: "paused", key: "createDriver.statusPaused" },
+    { value: "offline", key: "adminDrivers.status.offline" },
   ];
 
   const handleChange = (field, value) => {
@@ -47,7 +49,7 @@ const EditDriverScreen = ({ navigation, route }) => {
 
   const handleSave = async () => {
     if (!formData.license_no.trim()) {
-      Alert.alert("Hata", "Ehliyet numarasi zorunludur");
+      Alert.alert(t("common.error"), t("createDriver.licenseRequired"));
       return;
     }
 
@@ -57,17 +59,17 @@ const EditDriverScreen = ({ navigation, route }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "Basarili",
-          "Surucu basariyla guncellendi",
-          [{ text: "Tamam", onPress: () => navigation.goBack() }],
+          t("common.success"),
+          t("createDriver.updated"),
+          [{ text: t("common.ok"), onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
       }, 100);
     } catch (error) {
       console.error("Update driver error:", error);
       Alert.alert(
-        "Hata",
-        error.response?.data?.error || "Surucu guncellenemedi"
+        t("common.error"),
+        error.response?.data?.error || t("createDriver.updateFailed")
       );
     } finally {
       setLoading(false);
@@ -112,7 +114,7 @@ const EditDriverScreen = ({ navigation, route }) => {
                 formData[field] === option.value && styles.selectorTextActive,
               ]}
             >
-              {option.label}
+              {t(option.key)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -130,7 +132,7 @@ const EditDriverScreen = ({ navigation, route }) => {
           {/* Email (readonly) */}
           <Card variant="flat">
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t("createDriver.email")}</Text>
               <TextInput
                 style={[styles.input, styles.inputDisabled]}
                 value={driver.email}
@@ -140,48 +142,56 @@ const EditDriverScreen = ({ navigation, route }) => {
           </Card>
 
           {/* Kisisel Bilgiler */}
-          <Text style={styles.sectionTitle}>Kisisel Bilgiler</Text>
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.personalInfo")}
+          </Text>
           <Card variant="flat">
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                {renderInput("Ad", "first_name", "Ali", {
+                {renderInput(t("createDriver.firstName"), "first_name", "Ali", {
                   autoCapitalize: "words",
                 })}
               </View>
               <View style={styles.halfInput}>
-                {renderInput("Soyad", "last_name", "Yilmaz", {
+                {renderInput(t("createDriver.lastName"), "last_name", "Yilmaz", {
                   autoCapitalize: "words",
                 })}
               </View>
             </View>
 
-            {renderInput("Telefon", "phone", "05XX XXX XX XX", {
+            {renderInput(t("createDriver.phone"), "phone", "05XX XXX XX XX", {
               keyboardType: "phone-pad",
             })}
           </Card>
 
           {/* Ehliyet Bilgileri */}
-          <Text style={styles.sectionTitle}>Ehliyet Bilgileri</Text>
+          <Text style={styles.sectionTitle}>
+            {t("createDriver.licenseInfo")}
+          </Text>
           <Card variant="flat">
-            {renderInput("Ehliyet No *", "license_no", "TR123456789", {
+            {renderInput(
+              t("createDriver.licenseNo"),
+              "license_no",
+              "TR123456789",
+              {
               autoCapitalize: "characters",
             })}
 
             {renderInput(
-              "Ehliyet Bitis Tarihi",
+              t("createDriver.licenseExpiry"),
               "license_expiry",
               "2025-12-31"
             )}
           </Card>
 
           {/* Durum */}
-          {renderSelector("Durum", "status", statusTypes)}
+          {renderSelector(t("createDriver.statusLabel"), "status", statusTypes)}
 
           {/* Acil Durum */}
-          <Text style={styles.sectionTitle}>Acil Durum</Text>
+          <Text style={styles.sectionTitle}>{t("createDriver.emergency")}</Text>
           <Card variant="flat">
             {renderInput(
-              "Acil Durum Kisisi",
+              t("createDriver.emergencyContact"),
               "emergency_contact",
               "Ayse Yilmaz - 05XX XXX XX XX"
             )}
@@ -198,7 +208,9 @@ const EditDriverScreen = ({ navigation, route }) => {
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
-                <Text style={styles.saveButtonText}>Guncelle</Text>
+                <Text style={styles.saveButtonText}>
+                  {t("createDriver.updateButton")}
+                </Text>
               </>
             )}
           </TouchableOpacity>

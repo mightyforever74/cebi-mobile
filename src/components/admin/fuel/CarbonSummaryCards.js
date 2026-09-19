@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../../constants/config";
+import { formatNumber } from "../../../utils/helpers";
 
 const CarbonSummaryCards = ({ data }) => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ const CarbonSummaryCards = ({ data }) => {
       icon: "globe",
       value: `${data.totalCO2ton || 0} ton`,
       label: t("fuelDashboard.carbon.totalEmission"),
-      subLabel: `${data.totalCO2kg?.toLocaleString() || 0} kg`,
+      subLabel: `${formatNumber(data.totalCO2kg || 0)} kg`,
       change: data.percentChange,
       color: "#3B82F6",
       bgColor: "#EFF6FF",

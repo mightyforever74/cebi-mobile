@@ -92,7 +92,8 @@
     "optional": "(opsiyonel)",
     "vehicle": "Araç",
     "copyright": "© {{year}} TulipFleet",
-    "unknown": "Bilinmeyen"
+    "unknown": "Bilinmeyen",
+    "csv": "CSV"
   },
   "profile": {
     "title": "Profil",
@@ -366,7 +367,7 @@
     "notifications": "Bildirimler",
     "darkMode": "Karanlık Mod",
     "about": "Hakkında",
-    "version": "Versiyon",
+    "version": "TulipFleet v{{version}}",
     "changePassword": "Şifre Değiştir",
     "privacy": "Gizlilik",
     "terms": "Kullanım Şartları",
@@ -1608,7 +1609,17 @@
     "statusCancelled": "İptal",
     "startLocation": "Başlangıç adresi",
     "endLocation": "Bitiş adresi",
-    "dataLoadError": "Veriler yüklenemedi"
+    "dataLoadError": "Veriler yüklenemedi",
+    "taskCode": "Görev Kodu",
+    "titleLabel": "Başlık",
+    "titlePlaceholder": "Görev başlığı",
+    "descPlaceholder": "Görev detayları...",
+    "loading": "Yükleniyor...",
+    "priority": "Öncelik",
+    "driver": "Sürücü",
+    "vehicle": "Araç",
+    "route": "Rota",
+    "description": "Açıklama"
   },
   "waypointEditor": {
     "title": "Duraklar",
@@ -1914,7 +1925,14 @@
     "passwordRequired": "Şifre zorunludur",
     "passwordMinLength": "Şifre en az 6 karakter olmalı",
     "licenseRequired": "Ehliyet numarası zorunludur",
-    "createFailed": "Sürücü oluşturulamadı"
+    "createFailed": "Sürücü oluşturulamadı",
+    "updated": "Sürücü başarıyla güncellendi",
+    "updateFailed": "Sürücü güncellenemedi",
+    "updateButton": "Güncelle",
+    "statusIdle": "Boşta",
+    "statusActive": "Aktif",
+    "statusPaused": "Duraklatıldı",
+    "statusLabel": "Durum"
   },
   "camera": {
     "permissionDenied": "Kamera izni reddedildi",
@@ -2325,5 +2343,65 @@
       "months": "{{count}} ay önce",
       "years": "{{count}} yıl önce"
     }
+  },
+  "vehicleInfo": {
+    "historyRoute": "Geçmiş Rota"
+  },
+  "createVehicle": {
+    "plateRequired": "Plaka zorunludur",
+    "deviceIdRequired": "ESP32 Cihaz ID zorunludur",
+    "brandRequired": "Marka zorunludur",
+    "modelRequired": "Model zorunludur",
+    "added": "Araç başarıyla eklendi",
+    "addFailed": "Araç eklenemedi",
+    "updated": "Araç başarıyla güncellendi",
+    "updateFailed": "Araç güncellenemedi",
+    "addButton": "Araç Ekle",
+    "updateButton": "Güncelle",
+    "plate": "Plaka *",
+    "deviceId": "ESP32 Cihaz ID *",
+    "brand": "Marka *",
+    "brandOptional": "Marka",
+    "model": "Model *",
+    "modelOptional": "Model",
+    "year": "Yıl",
+    "fuelType": "Yakıt Tipi",
+    "status": "Durum"
+  },
+  "deviceInventory": {
+    "title": "Cihaz Envanteri",
+    "fetchFailed": "Cihazlar yüklenemedi",
+    "invalidSerialTitle": "Geçersiz seri no",
+    "invalidSerialMessage": "QR kod geçerli bir seri numarası içermelidir (TF-XXXX-XXXXX-X)",
+    "addToStockTitle": "Stoka ekle",
+    "addToStockConfirm": "Seri: {{serial}}\n\nBu cihazı stoka eklemek istiyor musunuz?",
+    "addToStock": "Stoka ekle",
+    "scanFailed": "QR kod okunamadı",
+    "addedToStock": "Cihaz {{serial}} stoka eklendi!",
+    "addedToStockSimple": "Cihaz stoka eklendi!",
+    "addFailed": "Cihaz eklenemedi",
+    "addFailedStock": "Cihaz stoka eklenemedi",
+    "enterSerial": "Seri numarası girin",
+    "notFoundTitle": "Bulunamadı",
+    "notFound": "Cihaz bulunamadı",
+    "serialNotFound": "Cihaz seri numarası bulunamadı",
+    "allDevices": "Tüm cihazlar",
+    "assigned": "Atanmış",
+    "unassigned": "Atanmamış",
+    "scanQr": "QR tara",
+    "empty": "Cihaz bulunamadı",
+    "vehicle": "Araç:",
+    "driver": "Sürücü:",
+    "qrStatus": "QR durumu:",
+    "qrUsed": "Kullanıldı",
+    "qrActive": "Aktif",
+    "qrNone": "Yok",
+    "searchBySerial": "Seri numarasıyla ara",
+    "serialPlaceholder": "Seri numarası girin (TF-XXXX-XXXXX-X)",
+    "statusLine": "Durum: {{status}}",
+    "add": "Ekle",
+    "cannotClaim": "Alınamaz (atanmış)",
+    "online": "Çevrimiçi ({{count}})",
+    "offline": "Çevrimdışı ({{count}})"
   }
 }

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -21,23 +22,24 @@ import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
 
 const EditTaskScreen = ({ navigation, route }) => {
   const { task } = route.params;
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   // Status/Priority options use semantic COLORS tokens
   const STATUS_OPTIONS = [
-    { value: "pending", label: "Bekliyor", color: COLORS.WARNING },
-    { value: "assigned", label: "Atandi", color: COLORS.INFO },
-    { value: "in_progress", label: "Devam Ediyor", color: COLORS.PRIMARY },
-    { value: "completed", label: "Tamamlandi", color: COLORS.SUCCESS },
-    { value: "cancelled", label: "Iptal", color: COLORS.ERROR },
+    { value: "pending", color: COLORS.WARNING },
+    { value: "assigned", color: COLORS.INFO },
+    { value: "in_progress", color: COLORS.PRIMARY },
+    { value: "completed", color: COLORS.SUCCESS },
+    { value: "cancelled", color: COLORS.ERROR },
   ];
 
   const PRIORITY_OPTIONS = [
-    { value: "low", label: "Dusuk", color: COLORS.SUCCESS },
-    { value: "normal", label: "Normal", color: COLORS.INFO },
-    { value: "high", label: "Yuksek", color: COLORS.WARNING },
-    { value: "urgent", label: "Acil", color: COLORS.ERROR },
+    { value: "low", color: COLORS.SUCCESS },
+    { value: "normal", color: COLORS.INFO },
+    { value: "high", color: COLORS.WARNING },
+    { value: "urgent", color: COLORS.ERROR },
   ];
 
   const [loading, setLoading] = useState(false);
@@ -91,7 +93,7 @@ const EditTaskScreen = ({ navigation, route }) => {
       setSelectedVehicle(currentVehicle || null);
     } catch (error) {
       console.error("Fetch data error:", error);
-      Alert.alert("Hata", "Veriler yuklenemedi");
+      Alert.alert(t("common.error"), t("editTask.dataLoadError"));
     } finally {
       setLoadingData(false);
     }
@@ -103,11 +105,11 @@ const EditTaskScreen = ({ navigation, route }) => {
 
   const handleSave = async () => {
     if (!selectedDriver) {
-      Alert.alert("Hata", "Surucu seciniz");
+      Alert.alert(t("common.error"), t("editTask.selectDriver"));
       return;
     }
     if (!selectedVehicle) {
-      Alert.alert("Hata", "Arac seciniz");
+      Alert.alert(t("common.error"), t("editTask.selectVehicle"));
       return;
     }
 
@@ -141,17 +143,17 @@ const EditTaskScreen = ({ navigation, route }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "Basarili",
-          "Gorev basariyla guncellendi",
-          [{ text: "Tamam", onPress: () => navigation.goBack() }],
+          t("common.success"),
+          t("editTask.taskUpdated"),
+          [{ text: t("common.ok"), onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
       }, 100);
     } catch (error) {
       console.error("Update task error:", error);
       Alert.alert(
-        "Hata",
-        error.response?.data?.error || "Gorev guncellenemedi"
+        t("common.error"),
+        error.response?.data?.error || t("editTask.taskUpdateError")
       );
     } finally {
       setLoading(false);
@@ -163,7 +165,7 @@ const EditTaskScreen = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>Yukleniyor...</Text>
+          <Text style={styles.loadingText}>{t("editTask.loading")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -179,13 +181,13 @@ const EditTaskScreen = ({ navigation, route }) => {
           {/* Task Code (Readonly) */}
           <Card variant="elevated">
             <View style={styles.taskCodeInner}>
-              <Text style={styles.taskCodeLabel}>Gorev Kodu</Text>
+              <Text style={styles.taskCodeLabel}>{t("editTask.taskCode")}</Text>
               <Text style={styles.taskCode}>{task.task_code}</Text>
             </View>
           </Card>
 
           {/* Status Selection */}
-          <Text style={styles.sectionTitle}>Durum</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.status")}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
               {STATUS_OPTIONS.map((option) => (
@@ -207,7 +209,7 @@ const EditTaskScreen = ({ navigation, route }) => {
                         styles.optionTextActive,
                     ]}
                   >
-                    {option.label}
+                    {t(`adminTasks.status.${option.value}`)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -215,7 +217,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Priority Selection */}
-          <Text style={styles.sectionTitle}>Oncelik</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.priority")}</Text>
           <View style={styles.optionRow}>
             {PRIORITY_OPTIONS.map((option) => (
               <TouchableOpacity
@@ -236,14 +238,14 @@ const EditTaskScreen = ({ navigation, route }) => {
                       styles.optionTextActive,
                   ]}
                 >
-                  {option.label}
+                    {t(`adminTasks.priority.${option.value}`)}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Driver Selection */}
-          <Text style={styles.sectionTitle}>Surucu</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.driver")}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
               {drivers.map((d) => (
@@ -279,7 +281,7 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Vehicle Selection */}
-          <Text style={styles.sectionTitle}>Arac</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.vehicle")}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.optionRow}>
               {vehicles.map((v) => (
@@ -315,29 +317,29 @@ const EditTaskScreen = ({ navigation, route }) => {
           </ScrollView>
 
           {/* Title */}
-          <Text style={styles.sectionTitle}>Baslik</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.titleLabel")}</Text>
           <TextInput
             style={styles.input}
             value={formData.title}
             onChangeText={(v) => handleChange("title", v)}
-            placeholder="Gorev basligi"
+            placeholder={t("editTask.titlePlaceholder")}
             placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
           {/* Locations */}
-          <Text style={styles.sectionTitle}>Rota</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.route")}</Text>
           <TextInput
             style={styles.input}
             value={formData.startLocation}
             onChangeText={(v) => handleChange("startLocation", v)}
-            placeholder="Baslangic adresi"
+            placeholder={t("editTask.startLocation")}
             placeholderTextColor={COLORS.PLACEHOLDER}
           />
           <TextInput
             style={[styles.input, { marginTop: COLORS.SPACING.sm }]}
             value={formData.endLocation}
             onChangeText={(v) => handleChange("endLocation", v)}
-            placeholder="Bitis adresi"
+            placeholder={t("editTask.endLocation")}
             placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
@@ -360,27 +362,27 @@ const EditTaskScreen = ({ navigation, route }) => {
               inputStyle={styles.input}
               maxStops={10}
               labels={{
-                title: "Duraklar",
-                add: "Durak Ekle",
-                limitReached: "Durak limiti doldu",
-                name: "Durak Adi",
-                address: "Durak Adresi",
+                title: t("waypointEditor.title"),
+                add: t("waypointEditor.addStop"),
+                limitReached: t("waypointEditor.limitReached"),
+                name: t("waypointEditor.stopName"),
+                address: t("waypointEditor.stopAddress"),
                 lat: "Lat",
                 lng: "Lng",
-                planned: "Planlanan Varis",
-                invalid: "Koordinatlar gecersiz",
-                noStops: "Henuz durak eklenmedi",
+                planned: t("waypointEditor.plannedArrival"),
+                invalid: t("waypointEditor.invalidCoords"),
+                noStops: t("waypointEditor.noStops"),
               }}
             />
           </View>
 
           {/* Description */}
-          <Text style={styles.sectionTitle}>Aciklama</Text>
+          <Text style={styles.sectionTitle}>{t("editTask.description")}</Text>
           <TextInput
             style={[styles.input, styles.inputMultiline]}
             value={formData.description}
             onChangeText={(v) => handleChange("description", v)}
-            placeholder="Gorev detaylari..."
+            placeholder={t("editTask.descPlaceholder")}
             placeholderTextColor={COLORS.PLACEHOLDER}
             multiline
             numberOfLines={3}
@@ -401,7 +403,7 @@ const EditTaskScreen = ({ navigation, route }) => {
                   size={20}
                   color={COLORS.WHITE}
                 />
-                <Text style={styles.saveButtonText}>Kaydet</Text>
+                <Text style={styles.saveButtonText}>{t("editTask.save")}</Text>
               </>
             )}
           </TouchableOpacity>

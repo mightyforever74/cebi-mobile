@@ -92,7 +92,8 @@
     "optional": "(optional)",
     "vehicle": "Fahrzeug",
     "copyright": "© {{year}} TulipFleet",
-    "unknown": "Unbekannt"
+    "unknown": "Unbekannt",
+    "csv": "CSV"
   },
   "auth": {
     "login": "Anmelden",
@@ -206,7 +207,7 @@
     "notifications": "Benachrichtigungen",
     "darkMode": "Dunkelmodus",
     "about": "Über",
-    "version": "Version",
+    "version": "TulipFleet v{{version}}",
     "changePassword": "Passwort ändern",
     "privacy": "Datenschutz",
     "logout": "Abmelden",
@@ -2161,7 +2162,17 @@
     "statusCancelled": "Storniert",
     "startLocation": "Startadresse",
     "endLocation": "Zieladresse",
-    "dataLoadError": "Daten konnten nicht geladen werden"
+    "dataLoadError": "Daten konnten nicht geladen werden",
+    "taskCode": "Aufgaben-Code",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Aufgabentitel",
+    "descPlaceholder": "Aufgabendetails...",
+    "loading": "Wird geladen...",
+    "priority": "Priorität",
+    "driver": "Fahrer",
+    "vehicle": "Fahrzeug",
+    "route": "Route",
+    "description": "Beschreibung"
   },
   "waypointEditor": {
     "title": "Haltepunkte",
@@ -2215,7 +2226,14 @@
     "passwordRequired": "Passwort erforderlich",
     "passwordMinLength": "Passwort muss mindestens 6 Zeichen lang sein",
     "licenseRequired": "Führerscheinnummer erforderlich",
-    "createFailed": "Fahrer konnte nicht erstellt werden"
+    "createFailed": "Fahrer konnte nicht erstellt werden",
+    "updated": "Fahrer erfolgreich aktualisiert",
+    "updateFailed": "Fahrer konnte nicht aktualisiert werden",
+    "updateButton": "Aktualisieren",
+    "statusIdle": "Leerlauf",
+    "statusActive": "Aktiv",
+    "statusPaused": "Pausiert",
+    "statusLabel": "Status"
   },
   "camera": {
     "permissionDenied": "Kameraberechtigung verweigert",
@@ -2352,5 +2370,65 @@
       "months": "vor {{count}} Mon.",
       "years": "vor {{count}} J."
     }
+  },
+  "vehicleInfo": {
+    "historyRoute": "Routenverlauf"
+  },
+  "createVehicle": {
+    "plateRequired": "Kennzeichen ist erforderlich",
+    "deviceIdRequired": "ESP32-Geräte-ID ist erforderlich",
+    "brandRequired": "Marke ist erforderlich",
+    "modelRequired": "Modell ist erforderlich",
+    "added": "Fahrzeug erfolgreich hinzugefügt",
+    "addFailed": "Fahrzeug konnte nicht hinzugefügt werden",
+    "updated": "Fahrzeug erfolgreich aktualisiert",
+    "updateFailed": "Fahrzeug konnte nicht aktualisiert werden",
+    "addButton": "Fahrzeug hinzufügen",
+    "updateButton": "Aktualisieren",
+    "plate": "Kennzeichen *",
+    "deviceId": "ESP32-Geräte-ID *",
+    "brand": "Marke *",
+    "brandOptional": "Marke",
+    "model": "Modell *",
+    "modelOptional": "Modell",
+    "year": "Jahr",
+    "fuelType": "Kraftstoffart",
+    "status": "Status"
+  },
+  "deviceInventory": {
+    "title": "Gerätebestand",
+    "fetchFailed": "Geräte konnten nicht geladen werden",
+    "invalidSerialTitle": "Ungültige Seriennummer",
+    "invalidSerialMessage": "QR-Code muss eine gültige Seriennummer enthalten (TF-XXXX-XXXXX-X)",
+    "addToStockTitle": "Zum Bestand hinzufügen",
+    "addToStockConfirm": "Serie: {{serial}}\n\nDieses Gerät zum Bestand hinzufügen?",
+    "addToStock": "Zum Bestand hinzufügen",
+    "scanFailed": "QR-Code konnte nicht gelesen werden",
+    "addedToStock": "Gerät {{serial}} zum Bestand hinzugefügt!",
+    "addedToStockSimple": "Gerät zum Bestand hinzugefügt!",
+    "addFailed": "Gerät konnte nicht hinzugefügt werden",
+    "addFailedStock": "Gerät konnte nicht zum Bestand hinzugefügt werden",
+    "enterSerial": "Seriennummer eingeben",
+    "notFoundTitle": "Nicht gefunden",
+    "notFound": "Gerät nicht gefunden",
+    "serialNotFound": "Geräteseriennummer nicht gefunden",
+    "allDevices": "Alle Geräte",
+    "assigned": "Zugewiesen",
+    "unassigned": "Nicht zugewiesen",
+    "scanQr": "QR scannen",
+    "empty": "Keine Geräte gefunden",
+    "vehicle": "Fahrzeug:",
+    "driver": "Fahrer:",
+    "qrStatus": "QR-Status:",
+    "qrUsed": "Verwendet",
+    "qrActive": "Aktiv",
+    "qrNone": "Keine",
+    "searchBySerial": "Gerät per Seriennummer suchen",
+    "serialPlaceholder": "Seriennummer eingeben (TF-XXXX-XXXXX-X)",
+    "statusLine": "Status: {{status}}",
+    "add": "Hinzufügen",
+    "cannotClaim": "Kann nicht beansprucht werden (zugewiesen)",
+    "online": "Online ({{count}})",
+    "offline": "Offline ({{count}})"
   }
 }

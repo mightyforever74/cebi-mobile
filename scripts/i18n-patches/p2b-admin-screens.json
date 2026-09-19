@@ -1,0 +1,362 @@
+{
+  "createVehicle.plateRequired": {
+    "tr": "Plaka zorunludur",
+    "en": "License plate is required",
+    "nl": "Kenteken is verplicht",
+    "de": "Kennzeichen ist erforderlich",
+    "fr": "La plaque est obligatoire",
+    "es": "La matrícula es obligatoria",
+    "it": "La targa è obbligatoria",
+    "bg": "Регистрационният номер е задължителен"
+  },
+  "createVehicle.deviceIdRequired": {
+    "tr": "ESP32 Cihaz ID zorunludur",
+    "en": "ESP32 device ID is required",
+    "nl": "ESP32-apparaat-ID is verplicht",
+    "de": "ESP32-Geräte-ID ist erforderlich",
+    "fr": "L'ID appareil ESP32 est obligatoire",
+    "es": "El ID de dispositivo ESP32 es obligatorio",
+    "it": "L'ID dispositivo ESP32 è obbligatorio",
+    "bg": "ESP32 ID на устройството е задължителен"
+  },
+  "createVehicle.brandRequired": {
+    "tr": "Marka zorunludur",
+    "en": "Brand is required",
+    "nl": "Merk is verplicht",
+    "de": "Marke ist erforderlich",
+    "fr": "La marque est obligatoire",
+    "es": "La marca es obligatoria",
+    "it": "La marca è obbligatoria",
+    "bg": "Марката е задължителна"
+  },
+  "createVehicle.modelRequired": {
+    "tr": "Model zorunludur",
+    "en": "Model is required",
+    "nl": "Model is verplicht",
+    "de": "Modell ist erforderlich",
+    "fr": "Le modèle est obligatoire",
+    "es": "El modelo es obligatorio",
+    "it": "Il modello è obbligatorio",
+    "bg": "Моделът е задължителен"
+  },
+  "createVehicle.added": {
+    "tr": "Araç başarıyla eklendi",
+    "en": "Vehicle added successfully",
+    "nl": "Voertuig succesvol toegevoegd",
+    "de": "Fahrzeug erfolgreich hinzugefügt",
+    "fr": "Véhicule ajouté",
+    "es": "Vehículo añadido",
+    "it": "Veicolo aggiunto",
+    "bg": "Превозното средство е добавено"
+  },
+  "createVehicle.addFailed": {
+    "tr": "Araç eklenemedi",
+    "en": "Could not add vehicle",
+    "nl": "Voertuig kon niet worden toegevoegd",
+    "de": "Fahrzeug konnte nicht hinzugefügt werden",
+    "fr": "Impossible d'ajouter le véhicule",
+    "es": "No se pudo añadir el vehículo",
+    "it": "Impossibile aggiungere il veicolo",
+    "bg": "Превозното средство не можа да бъде добавено"
+  },
+  "createVehicle.updated": {
+    "tr": "Araç başarıyla güncellendi",
+    "en": "Vehicle updated successfully",
+    "nl": "Voertuig succesvol bijgewerkt",
+    "de": "Fahrzeug erfolgreich aktualisiert",
+    "fr": "Véhicule mis à jour",
+    "es": "Vehículo actualizado",
+    "it": "Veicolo aggiornato",
+    "bg": "Превозното средство е обновено"
+  },
+  "createVehicle.updateFailed": {
+    "tr": "Araç güncellenemedi",
+    "en": "Could not update vehicle",
+    "nl": "Voertuig kon niet worden bijgewerkt",
+    "de": "Fahrzeug konnte nicht aktualisiert werden",
+    "fr": "Impossible de mettre à jour le véhicule",
+    "es": "No se pudo actualizar el vehículo",
+    "it": "Impossibile aggiornare il veicolo",
+    "bg": "Превозното средство не можа да бъде обновено"
+  },
+  "createVehicle.addButton": {
+    "tr": "Araç Ekle",
+    "en": "Add Vehicle",
+    "nl": "Voertuig toevoegen",
+    "de": "Fahrzeug hinzufügen",
+    "fr": "Ajouter un véhicule",
+    "es": "Añadir vehículo",
+    "it": "Aggiungi veicolo",
+    "bg": "Добави превозно средство"
+  },
+  "createVehicle.updateButton": {
+    "tr": "Güncelle",
+    "en": "Update",
+    "nl": "Bijwerken",
+    "de": "Aktualisieren",
+    "fr": "Mettre à jour",
+    "es": "Actualizar",
+    "it": "Aggiorna",
+    "bg": "Обнови"
+  },
+  "createVehicle.plate": {
+    "tr": "Plaka *",
+    "en": "Plate *",
+    "nl": "Kenteken *",
+    "de": "Kennzeichen *",
+    "fr": "Plaque *",
+    "es": "Matrícula *",
+    "it": "Targa *",
+    "bg": "Номер *"
+  },
+  "createVehicle.deviceId": {
+    "tr": "ESP32 Cihaz ID *",
+    "en": "ESP32 Device ID *",
+    "nl": "ESP32-apparaat-ID *",
+    "de": "ESP32-Geräte-ID *",
+    "fr": "ID appareil ESP32 *",
+    "es": "ID de dispositivo ESP32 *",
+    "it": "ID dispositivo ESP32 *",
+    "bg": "ESP32 ID *"
+  },
+  "createVehicle.brand": {
+    "tr": "Marka *",
+    "en": "Brand *",
+    "nl": "Merk *",
+    "de": "Marke *",
+    "fr": "Marque *",
+    "es": "Marca *",
+    "it": "Marca *",
+    "bg": "Марка *"
+  },
+  "createVehicle.brandOptional": {
+    "tr": "Marka",
+    "en": "Brand",
+    "nl": "Merk",
+    "de": "Marke",
+    "fr": "Marque",
+    "es": "Marca",
+    "it": "Marca",
+    "bg": "Марка"
+  },
+  "createVehicle.model": {
+    "tr": "Model *",
+    "en": "Model *",
+    "nl": "Model *",
+    "de": "Modell *",
+    "fr": "Modèle *",
+    "es": "Modelo *",
+    "it": "Modello *",
+    "bg": "Модел *"
+  },
+  "createVehicle.modelOptional": {
+    "tr": "Model",
+    "en": "Model",
+    "nl": "Model",
+    "de": "Modell",
+    "fr": "Modèle",
+    "es": "Modelo",
+    "it": "Modello",
+    "bg": "Модел"
+  },
+  "createVehicle.year": {
+    "tr": "Yıl",
+    "en": "Year",
+    "nl": "Jaar",
+    "de": "Jahr",
+    "fr": "Année",
+    "es": "Año",
+    "it": "Anno",
+    "bg": "Година"
+  },
+  "createVehicle.fuelType": {
+    "tr": "Yakıt Tipi",
+    "en": "Fuel Type",
+    "nl": "Brandstoftype",
+    "de": "Kraftstoffart",
+    "fr": "Type de carburant",
+    "es": "Tipo de combustible",
+    "it": "Tipo di carburante",
+    "bg": "Тип гориво"
+  },
+  "createVehicle.status": {
+    "tr": "Durum",
+    "en": "Status",
+    "nl": "Status",
+    "de": "Status",
+    "fr": "État",
+    "es": "Estado",
+    "it": "Stato",
+    "bg": "Статус"
+  },
+  "editTask.taskCode": {
+    "tr": "Görev Kodu",
+    "en": "Task Code",
+    "nl": "Taakcode",
+    "de": "Aufgaben-Code",
+    "fr": "Code de tâche",
+    "es": "Código de tarea",
+    "it": "Codice attività",
+    "bg": "Код на задачата"
+  },
+  "editTask.titleLabel": {
+    "tr": "Başlık",
+    "en": "Title",
+    "nl": "Titel",
+    "de": "Titel",
+    "fr": "Titre",
+    "es": "Título",
+    "it": "Titolo",
+    "bg": "Заглавие"
+  },
+  "editTask.titlePlaceholder": {
+    "tr": "Görev başlığı",
+    "en": "Task title",
+    "nl": "Taaktitel",
+    "de": "Aufgabentitel",
+    "fr": "Titre de la tâche",
+    "es": "Título de la tarea",
+    "it": "Titolo dell'attività",
+    "bg": "Заглавие на задачата"
+  },
+  "editTask.descPlaceholder": {
+    "tr": "Görev detayları...",
+    "en": "Task details...",
+    "nl": "Taakdetails...",
+    "de": "Aufgabendetails...",
+    "fr": "Détails de la tâche...",
+    "es": "Detalles de la tarea...",
+    "it": "Dettagli attività...",
+    "bg": "Подробности за задачата..."
+  },
+  "editTask.loading": {
+    "tr": "Yükleniyor...",
+    "en": "Loading...",
+    "nl": "Laden...",
+    "de": "Wird geladen...",
+    "fr": "Chargement...",
+    "es": "Cargando...",
+    "it": "Caricamento...",
+    "bg": "Зареждане..."
+  },
+  "editTask.priority": {
+    "tr": "Öncelik",
+    "en": "Priority",
+    "nl": "Prioriteit",
+    "de": "Priorität",
+    "fr": "Priorité",
+    "es": "Prioridad",
+    "it": "Priorità",
+    "bg": "Приоритет"
+  },
+  "editTask.driver": {
+    "tr": "Sürücü",
+    "en": "Driver",
+    "nl": "Chauffeur",
+    "de": "Fahrer",
+    "fr": "Conducteur",
+    "es": "Conductor",
+    "it": "Autista",
+    "bg": "Шофьор"
+  },
+  "editTask.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Fahrzeug",
+    "fr": "Véhicule",
+    "es": "Vehículo",
+    "it": "Veicolo",
+    "bg": "Превозно средство"
+  },
+  "editTask.route": {
+    "tr": "Rota",
+    "en": "Route",
+    "nl": "Route",
+    "de": "Route",
+    "fr": "Itinéraire",
+    "es": "Ruta",
+    "it": "Percorso",
+    "bg": "Маршрут"
+  },
+  "editTask.description": {
+    "tr": "Açıklama",
+    "en": "Description",
+    "nl": "Beschrijving",
+    "de": "Beschreibung",
+    "fr": "Description",
+    "es": "Descripción",
+    "it": "Descrizione",
+    "bg": "Описание"
+  },
+  "createDriver.updated": {
+    "tr": "Sürücü başarıyla güncellendi",
+    "en": "Driver updated successfully",
+    "nl": "Chauffeur succesvol bijgewerkt",
+    "de": "Fahrer erfolgreich aktualisiert",
+    "fr": "Conducteur mis à jour",
+    "es": "Conductor actualizado",
+    "it": "Autista aggiornato",
+    "bg": "Шофьорът е обновен"
+  },
+  "createDriver.updateFailed": {
+    "tr": "Sürücü güncellenemedi",
+    "en": "Could not update driver",
+    "nl": "Chauffeur kon niet worden bijgewerkt",
+    "de": "Fahrer konnte nicht aktualisiert werden",
+    "fr": "Impossible de mettre à jour le conducteur",
+    "es": "No se pudo actualizar el conductor",
+    "it": "Impossibile aggiornare l'autista",
+    "bg": "Шофьорът не можа да бъде обновен"
+  },
+  "createDriver.updateButton": {
+    "tr": "Güncelle",
+    "en": "Update",
+    "nl": "Bijwerken",
+    "de": "Aktualisieren",
+    "fr": "Mettre à jour",
+    "es": "Actualizar",
+    "it": "Aggiorna",
+    "bg": "Обнови"
+  },
+  "createDriver.statusIdle": {
+    "tr": "Boşta",
+    "en": "Idle",
+    "nl": "Inactief",
+    "de": "Leerlauf",
+    "fr": "Inactif",
+    "es": "Inactivo",
+    "it": "Inattivo",
+    "bg": "Празен ход"
+  },
+  "createDriver.statusActive": {
+    "tr": "Aktif",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Aktiv",
+    "fr": "Actif",
+    "es": "Activo",
+    "it": "Attivo",
+    "bg": "Активен"
+  },
+  "createDriver.statusPaused": {
+    "tr": "Duraklatıldı",
+    "en": "Paused",
+    "nl": "Gepauzeerd",
+    "de": "Pausiert",
+    "fr": "En pause",
+    "es": "En pausa",
+    "it": "In pausa",
+    "bg": "На пауза"
+  },
+  "createDriver.statusLabel": {
+    "tr": "Durum",
+    "en": "Status",
+    "nl": "Status",
+    "de": "Status",
+    "fr": "État",
+    "es": "Estado",
+    "it": "Stato",
+    "bg": "Статус"
+  }
+}

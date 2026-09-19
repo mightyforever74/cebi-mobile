@@ -35,6 +35,7 @@ import DataState from "../../../components/ui/DataState";
 import { useTheme } from "../../../context/ThemeContext";
 import { useThemedStyles } from "../../../hooks/useThemedStyles";
 import api from "../../../services/api";
+import { formatNumber } from "../../../utils/helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -59,7 +60,7 @@ const fmtMoney = (val, symbol = "\u20BA") => {
 const fmtKm = (val) => {
   const n = parseInt(val);
   if (isNaN(n) || n === 0) return "0";
-  return n.toLocaleString("tr-TR");
+  return formatNumber(n);
 };
 
 // Performance helpers - use COLORS tokens passed at render time

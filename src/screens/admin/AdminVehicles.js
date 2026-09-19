@@ -32,6 +32,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { vehicleAPI } from "../../services/api";
 import FuelGauge from "../../components/FuelGauge";
+import { formatDate, formatNumber } from "../../utils/helpers";
 
 const withAlpha = (hex, a) => {
   if (
@@ -440,7 +441,7 @@ const AdminVehicles = ({ navigation }) => {
           <View style={styles.metric}>
             <Text style={styles.metricValue}>
               {vehicle.total_km
-                ? Number(vehicle.total_km).toLocaleString()
+                ? formatNumber(Number(vehicle.total_km))
                 : "0"}
             </Text>
             <Text style={styles.metricLabel}>km</Text>
@@ -580,7 +581,7 @@ const AdminVehicles = ({ navigation }) => {
                   {t("adminVehicles.lastMaint")}
                 </Text>
                 <Text style={styles.detailValue}>
-                  {new Date(vehicle.last_maintenance_date).toLocaleDateString()}
+                  {formatDate(vehicle.last_maintenance_date)}
                 </Text>
               </View>
             ) : null}

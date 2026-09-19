@@ -40,6 +40,7 @@ import { vehicleAPI } from "../../services/api";
 import { geocodingAPI } from "../../services/geocoding";
 import { exportTripReport } from "../../services/reportExport";
 import { calculateDistance, toFloat } from "../../utils/mapMath";
+import { formatTime as formatTimeHelper } from "../../utils/helpers";
 
 // ============================================================================
 // CONSTANTS
@@ -153,10 +154,9 @@ const formatDuration = (startTime, endTime, t) => {
   return `${hours} ${hourLabel} ${mins} ${minLabel}`;
 };
 
-const formatTime = (isoString, locale) => {
+const formatTime = (isoString) => {
   if (!isoString) return "-";
-  const d = new Date(isoString);
-  return d.toLocaleTimeString(locale || "tr-TR", { hour: "2-digit", minute: "2-digit" });
+  return formatTimeHelper(isoString);
 };
 
 const formatDurationShort = (ms, t) => {
@@ -316,16 +316,9 @@ const VehicleTrackScreen = ({ route, navigation }) => {
   const vehicleId = params.vehicleId || params.vehicle?.id;
   const vehiclePlate = params.vehiclePlate || params.vehicle?.plate_no;
   const { COLORS } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const mapRef = useRef(null);
-
-  // Locale-aware format wrappers
-  const locale = i18n.language || "tr";
-  const localeMap = { tr: "tr-TR", en: "en-GB", nl: "nl-NL", bg: "bg-BG", es: "es-ES", it: "it-IT", ku: "ku" };
-  const fmtLocale = localeMap[locale] || "tr-TR";
-  // format wrappers removed — direct calls with params
-
 
   const formatDistance = (meters) =>
     meters > 1000
@@ -910,8 +903,8 @@ const VehicleTrackScreen = ({ route, navigation }) => {
           ? `${(totalDistance / 1000).toFixed(1)} ${t("units.km")}`
           : `${Math.round(totalDistance)} ${t("units.m")}`,
       duration: formatDuration(startTime, endTime, t),
-      startTime: formatTime(startTime, fmtLocale),
-      endTime: formatTime(endTime, fmtLocale),
+      startTime: formatTime(startTime),
+      endTime: formatTime(endTime),
     };
   }, [points]);
 
@@ -1569,8 +1562,8 @@ const VehicleTrackScreen = ({ route, navigation }) => {
                           </Text>
 
                           <Text style={styles.timelineTime}>
-                            {formatTime(new Date(item.start).toISOString(), fmtLocale)} -{" "}
-                            {formatTime(new Date(item.end).toISOString(), fmtLocale)}
+                            {formatTime(new Date(item.start).toISOString())} -{" "}
+                            {formatTime(new Date(item.end).toISOString())}
                           </Text>
                         </View>
 
@@ -1624,7 +1617,7 @@ const VehicleTrackScreen = ({ route, navigation }) => {
 
                 {currentPoint && (
                   <Text style={styles.timeLabel}>
-                    {formatTime(currentPoint.time, fmtLocale)}
+                    {formatTime(currentPoint.time)}
                     {currentPoint.speed != null &&
                       ` \u2022 ${Math.round(currentPoint.speed)} ${t("units.kmh")}`}
                   </Text>

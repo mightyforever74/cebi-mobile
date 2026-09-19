@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../../constants/config";
+import { formatNumber } from "../../../utils/helpers";
 
 const SummaryCard = ({ icon, value, label, change, color, bgColor }) => {
   const isPositive = change >= 0;
@@ -49,7 +50,7 @@ const FuelSummaryCards = ({ data }) => {
   const cards = [
     {
       icon: "water",
-      value: `${data.totalLiters?.toLocaleString() || 0} L`,
+      value: `${formatNumber(data.totalLiters || 0)} L`,
       label: t("fuelDashboard.totalFuel"),
       change: data.percentageChange?.liters,
       color: "#3B82F6",
@@ -57,7 +58,7 @@ const FuelSummaryCards = ({ data }) => {
     },
     {
       icon: "cash",
-      value: `₺${data.totalCost?.toLocaleString() || 0}`,
+      value: `₺${formatNumber(data.totalCost || 0)}`,
       label: t("fuelDashboard.totalCost"),
       change: data.percentageChange?.cost,
       color: "#10B981",
@@ -73,7 +74,7 @@ const FuelSummaryCards = ({ data }) => {
     },
     {
       icon: "navigate",
-      value: `${data.totalDistance?.toLocaleString() || 0} km`,
+      value: `${formatNumber(data.totalDistance || 0)} km`,
       label: t("fuelDashboard.totalDistance"),
       change: data.percentageChange?.distance,
       color: "#F59E0B",

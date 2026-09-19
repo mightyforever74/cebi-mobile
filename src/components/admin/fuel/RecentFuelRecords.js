@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../../../constants/config";
+import { formatDate, formatNumber, formatTime } from "../../../utils/helpers";
 
 const RecentFuelRecords = ({ records, onViewAll }) => {
   const { t } = useTranslation();
@@ -24,22 +25,6 @@ const RecentFuelRecords = ({ records, onViewAll }) => {
       </View>
     );
   }
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
-
-  const formatTime = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString("tr-TR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   return (
     <View style={styles.container}>
@@ -66,7 +51,7 @@ const RecentFuelRecords = ({ records, onViewAll }) => {
                   : record.currency === "BGN"
                     ? "лв"
                     : "₺"}
-                {record.cost?.toLocaleString()}
+                {record.cost != null ? formatNumber(record.cost) : ""}
               </Text>
             </View>
             <Text style={styles.recordDetail}>
@@ -74,7 +59,7 @@ const RecentFuelRecords = ({ records, onViewAll }) => {
             </Text>
             <Text style={styles.recordMeta}>
               {formatDate(record.date)} {formatTime(record.date)} • 🛣️{" "}
-              {record.odometer?.toLocaleString()} km
+              {record.odometer != null ? formatNumber(record.odometer) : "0"} km
             </Text>
           </View>
         </View>

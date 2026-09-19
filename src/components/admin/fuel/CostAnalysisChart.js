@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../../constants/config";
+import { formatNumber } from "../../../utils/helpers";
 
 const FUEL_COLORS = {
   diesel: "#3B82F6",
@@ -12,14 +13,6 @@ const FUEL_COLORS = {
   petrol: "#10B981",
   lpg: "#F59E0B",
   electric: "#8B5CF6",
-};
-
-const FUEL_LABELS = {
-  diesel: "Dizel",
-  gasoline: "Benzin",
-  petrol: "Benzin",
-  lpg: "LPG",
-  electric: "Elektrik",
 };
 
 const CostAnalysisChart = ({ data }) => {
@@ -63,12 +56,12 @@ const CostAnalysisChart = ({ data }) => {
                   ]}
                 />
                 <Text style={styles.legendLabel}>
-                  {FUEL_LABELS[item.type] || item.type}
+                  {t(`adminVehicles.fuelTypes.${item.type === "petrol" ? "gasoline" : item.type}`, item.type)}
                 </Text>
               </View>
               <View style={styles.legendValues}>
                 <Text style={styles.legendAmount}>
-                  ₺{item.amount?.toLocaleString()}
+                  ₺{formatNumber(item.amount)}
                 </Text>
                 <Text style={styles.legendPercent}>{item.percentage}%</Text>
               </View>
@@ -79,7 +72,7 @@ const CostAnalysisChart = ({ data }) => {
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t("fuelDashboard.total")}:</Text>
-            <Text style={styles.summaryValue}>₺{total.toLocaleString()}</Text>
+            <Text style={styles.summaryValue}>₺{formatNumber(total)}</Text>
           </View>
 
           <View style={styles.summaryRow}>
@@ -87,7 +80,7 @@ const CostAnalysisChart = ({ data }) => {
               {t("fuelDashboard.previousMonth")}:
             </Text>
             <Text style={styles.summaryValue}>
-              ₺{prevMonth.toLocaleString()}
+              ₺{formatNumber(prevMonth)}
             </Text>
           </View>
 
