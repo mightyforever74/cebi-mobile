@@ -321,7 +321,9 @@ const CustomDrawerContent = ({ navigation, state, menuItems, headerColor }) => {
           <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.versionText}>TulipFleet v2.0.0</Text>
+        <Text style={styles.versionText}>
+          {t("settings.version", { version: "2.0.0" })}
+        </Text>
       </ScrollView>
     </View>
   );
@@ -457,7 +459,7 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
       />
       <Text style={styles.placeholderTitle}>{t(titleKey)}</Text>
       <Text style={styles.placeholderDesc}>
-        {t(descriptionKey) || "Yak�nda..."}
+        {t(descriptionKey) || t("navigator.placeholder.comingSoon")}
       </Text>
     </View>
   );
@@ -465,17 +467,17 @@ const PlaceholderScreen = ({ titleKey, icon, descriptionKey }) => {
 
 const PlatformReportsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Raporlar�"
+    titleKey="navigator.placeholder.platformReports"
     icon="bar-chart-outline"
-    descriptionKey="Platform istatistikleri"
+    descriptionKey="navigator.placeholder.aggregateStats"
   />
 );
 
 const PlatformSettingsScreen = () => (
   <PlaceholderScreen
-    titleKey="Platform Ayarlar�"
+    titleKey="navigator.placeholder.platformSettings"
     icon="settings-outline"
-    descriptionKey="Sistem konfig�rasyonu"
+    descriptionKey="navigator.placeholder.systemConfig"
   />
 );
 

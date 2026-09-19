@@ -618,7 +618,9 @@ const DrawerContent = ({ navigation, state }) => {
           />
           <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
-        <Text style={styles.version}>TulipFleet v2.1.0</Text>
+        <Text style={styles.version}>
+          {t("settings.version", { version: "2.1.0" })}
+        </Text>
       </View>
 
       {/* Language Selection Modal */}

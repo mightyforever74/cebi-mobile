@@ -5,6 +5,7 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 
 import { useTheme } from "../context/ThemeContext";
@@ -56,18 +57,19 @@ const useHeaderOptions = () => {
 // Companies Stack (CompanyDetail now handled as modal elsewhere)
 const CompaniesStack = () => {
   const headerOptions = useHeaderOptions();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator screenOptions={headerOptions}>
       <Stack.Screen
         name="CompaniesList"
         component={CompaniesScreen}
-        options={{ title: "🏢 Şirketler" }}
+        options={{ title: t("navigation.companies") }}
       />
       <Stack.Screen
         name="CreateCompany"
         component={CreateCompanyScreen}
-        options={{ title: "➕ Yeni Şirket" }}
+        options={{ title: t("superadmin.nav.newCompany") }}
       />
     </Stack.Navigator>
   );
@@ -76,23 +78,24 @@ const CompaniesStack = () => {
 // Devices Stack
 const DevicesStack = () => {
   const headerOptions = useHeaderOptions();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator screenOptions={headerOptions}>
       <Stack.Screen
         name="DevicesList"
         component={DevicesScreen}
-        options={{ title: "📦 Cihazlar" }}
+        options={{ title: t("navigation.devices") }}
       />
       <Stack.Screen
         name="DeviceDetail"
         component={DeviceDetailScreen}
-        options={{ title: "🔎 Cihaz Detayı" }}
+        options={{ title: t("superadmin.nav.deviceDetail") }}
       />
       <Stack.Screen
         name="DeviceQRManagement"
         component={DeviceQRManagement}
-        options={{ title: "🧾 QR Yönetimi" }}
+        options={{ title: t("navigation.qrManagement") }}
       />
     </Stack.Navigator>
   );
@@ -100,6 +103,7 @@ const DevicesStack = () => {
 
 export default function SuperAdminNavigator() {
   const { COLORS } = useTheme();
+  const { t } = useTranslation();
   useThemedStyles(makeStyles); // rehber standardı: themed styles hook'u (şu an noop)
 
   const drawerScreenOptions = React.useMemo(
@@ -118,27 +122,27 @@ export default function SuperAdminNavigator() {
       <Drawer.Screen
         name="Dashboard"
         component={SuperAdminDashboard}
-        options={{ title: "📊 Dashboard" }}
+        options={{ title: t("navigation.dashboard") }}
       />
       <Drawer.Screen
         name="Companies"
         component={CompaniesStack}
-        options={{ title: "🏢 Şirketler" }}
+        options={{ title: t("navigation.companies") }}
       />
       <Drawer.Screen
         name="Devices"
         component={DevicesStack}
-        options={{ title: "📦 Cihazlar" }}
+        options={{ title: t("navigation.devices") }}
       />
       <Drawer.Screen
         name="Users"
         component={PlatformUsersScreen}
-        options={{ title: "👥 Kullanıcılar" }}
+        options={{ title: t("navigation.platformUsers") }}
       />
       <Drawer.Screen
         name="Settings"
         component={PlatformSettingsScreen}
-        options={{ title: "⚙️ Ayarlar" }}
+        options={{ title: t("navigation.settings") }}
       />
       {/* ❌ Abonelikler menüsü yok - şirketler içinde */}
     </Drawer.Navigator>
