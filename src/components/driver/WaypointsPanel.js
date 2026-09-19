@@ -8,6 +8,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatTime } from "../../utils/helpers";
 import {
   ActivityIndicator,
   Animated,
@@ -61,48 +62,29 @@ const STATUS_CONFIG = {
   },
 };
 
-// i18n helper with namespace prefix
-const getText = (t, key, fallbackTr, fallbackEn, isEn) => {
-  const namespacedKey = `nav.${key}`;
-  let translated = t(namespacedKey);
-
-  if (translated === namespacedKey) {
-    translated = t(key);
-  }
-
-  if (translated === key || translated === namespacedKey) {
-    return isEn ? fallbackEn : fallbackTr;
-  }
-  return translated;
-};
-
 /**
  * Single Waypoint Item
  */
-const WaypointItem = ({ waypoint, displayIndex, isLast, onPress, isEn, t }) => {
+const WaypointItem = ({ waypoint, displayIndex, isLast, onPress, t }) => {
   const status = waypoint.status || "pending";
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
 
   const formatETA = (eta) => {
     if (!eta) return null;
-    const date = new Date(eta);
-    return date.toLocaleTimeString(isEn ? "en-GB" : "tr-TR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatTime(eta);
   };
 
   const formatDuration = (minutes) => {
     if (!minutes) return null;
     if (minutes < 60) {
-      return isEn ? `${minutes} min` : `${minutes} dk`;
+      return `${minutes} ${t("units.min")}`;
     }
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (mins === 0) {
-      return isEn ? `${hours}h` : `${hours} sa`;
+      return `${hours} ${t("units.h")}`;
     }
-    return isEn ? `${hours}h ${mins}m` : `${hours} sa ${mins} dk`;
+    return `${hours} ${t("units.h")} ${mins} ${t("units.min")}`;
   };
 
   const handlePress = () => {
@@ -141,7 +123,9 @@ const WaypointItem = ({ waypoint, displayIndex, isLast, onPress, isEn, t }) => {
               {displayIndex}
             </Text>
             <Text style={styles.waypointName} numberOfLines={1}>
-              {waypoint.name || waypoint.address || `Waypoint ${displayIndex}`}
+              {waypoint.name ||
+                waypoint.address ||
+                t("taskDetail.waypoints.unnamed", { index: displayIndex })}
             </Text>
           </View>
           {waypoint.eta && status !== "completed" && (
@@ -199,8 +183,8 @@ const WaypointItem = ({ waypoint, displayIndex, isLast, onPress, isEn, t }) => {
                 color={COLORS.textSecondary}
               />
               <Text style={styles.metaText}>
-                {getText(t, "stop", "Durak", "Stop", isEn)}:{" "}
-                {waypoint.stop_duration_min} dk
+                {t("taskDetail.waypoints.stop")}: {waypoint.stop_duration_min}{" "}
+                {t("units.min")}
               </Text>
             </View>
           )}
@@ -259,8 +243,7 @@ export default function WaypointsPanel({
   actionLoading = false,
   style,
 }) {
-  const { t, i18n } = useTranslation();
-  const isEn = i18n.language === "en";
+  const { t } = useTranslation();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
@@ -284,7 +267,7 @@ export default function WaypointsPanel({
         _type: "origin",
         waypointIndex: null,
         name:
-          origin.name || getText(t, "start_point", "Başlangıç", "Start", isEn),
+          origin.name || t("taskDetail.route.origin"),
         status: "completed",
         displayIndex: displayIdx++,
       });
@@ -318,8 +301,7 @@ export default function WaypointsPanel({
         _type: "destination",
         waypointIndex: null,
         name:
-          destination.name ||
-          getText(t, "destination", "Varış", "Destination", isEn),
+          destination.name || t("taskDetail.route.destination"),
         status: destStatus,
         displayIndex: displayIdx++,
       });
@@ -335,7 +317,6 @@ export default function WaypointsPanel({
     completedWaypoints,
     totalWaypoints,
     t,
-    isEn,
   ]);
 
   const expandedMaxHeight = useMemo(() => {
@@ -393,29 +374,13 @@ export default function WaypointsPanel({
           </View>
           <View>
             <Text style={styles.headerTitle}>
-              {getText(
-                t,
-                "route_waypoints",
-                "Rota Noktaları",
-                "Route Waypoints",
-                isEn
-              )}
+              {t("nav.route_waypoints")}
             </Text>
             <Text style={styles.headerSubtitle}>
               {isDirectRoute
-                ? getText(
-                    t,
-                    "direct_route",
-                    "Direkt rota",
-                    "Direct route",
-                    isEn
-                  )
-                : `${completedWaypoints}/${totalWaypoints} ${getText(
-                    t,
-                    "completed",
-                    "tamamlandı",
-                    "completed",
-                    isEn
+                ? t("nav.direct_route")
+                : `${completedWaypoints}/${totalWaypoints} ${t(
+                    "nav.completed"
                   )}`}
             </Text>
           </View>
@@ -457,13 +422,17 @@ export default function WaypointsPanel({
           {distance != null && (
             <View style={styles.infoItem}>
               <Ionicons name="speedometer" size={14} color={COLORS.textSecondary} />
-              <Text style={styles.infoText}>{distance} km</Text>
+              <Text style={styles.infoText}>
+                {distance} {t("units.km")}
+              </Text>
             </View>
           )}
           {duration != null && (
             <View style={styles.infoItem}>
               <Ionicons name="time" size={14} color={COLORS.textSecondary} />
-              <Text style={styles.infoText}>{duration} dk</Text>
+              <Text style={styles.infoText}>
+                {duration} {t("units.min")}
+              </Text>
             </View>
           )}
           {taskNo && (
@@ -483,7 +452,7 @@ export default function WaypointsPanel({
                 <>
                   <Ionicons name="checkmark" size={14} color="#fff" />
                   <Text style={styles.completeBtnText}>
-                    {isEn ? "Complete" : "Tamamla"}
+                    {t("taskDetail.waypoints.complete")}
                   </Text>
                 </>
               )}
@@ -517,7 +486,6 @@ export default function WaypointsPanel({
               displayIndex={item.displayIndex}
               isLast={idx === routeList.length - 1}
               onPress={handleItemPress}
-              isEn={isEn}
               t={t}
             />
           ))}

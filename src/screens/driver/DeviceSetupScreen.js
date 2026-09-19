@@ -25,8 +25,24 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { WIFI_ERROR_MESSAGES } from "../../constants/config";
 import { deviceAPI, driverAPI, driverProvisionAPI } from "../../services/api";
 import { bleService } from "../../services/bleService";
+
+const WIFI_PROGRESS_KEYS = {
+  sending: "deviceSetup.wifi.sendingCredentials",
+  connecting: "deviceSetup.wifi.deviceConnecting",
+  status: "deviceSetup.status.wifiConnecting",
+  success: "deviceSetup.status.wifiProvisionOk",
+  error: "deviceSetup.wifi.connectionFailed",
+};
+
+function wifiErrorMessage(t, code) {
+  const key = WIFI_ERROR_MESSAGES[code];
+  if (key) return t(key);
+  if (code) return t("deviceSetup.wifi.errors.generic", { code });
+  return t("deviceSetup.wifi.connectionFailed");
+}
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -420,7 +436,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
     if (isGuided && !serial) {
       console.error("[DeviceSetup] ❌ Missing serial!");
-      Alert.alert(t("common.error"), "Seri numarası bulunamadı.", [
+      Alert.alert(t("common.error"), t("deviceSetup.serial.missing"), [
         { text: t("common.ok"), onPress: () => navigation.goBack() },
       ]);
       return;
@@ -459,7 +475,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
         if (__DEV__) console.log("[DeviceSetup] BLE initialized");
       } catch (error) {
         console.error("[DeviceSetup] BLE init error:", error);
-        setError("Bluetooth başlatılamadı: " + error.message);
+        setError(
+          t("deviceSetup.bluetooth.initFailed", { detail: error.message })
+        );
       }
     };
     initBLE();
@@ -565,7 +583,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
     if (__DEV__) console.log("[Setup] Starting BLE scan...");
     setDevices([]);
     devicesRef.current = [];
-    setStatus("Cihazlar aranıyor...");
+    setStatus(t("deviceSetup.ble.searchingDevices"));
 
     scanCleanupRef.current = bleService.startScan(
       (device) => {
@@ -583,16 +601,18 @@ export default function DeviceSetupScreen({ navigation, route }) {
       },
       (e) => {
         console.error("[Setup] Scan error:", e.message);
-        setError("Tarama hatası: " + e.message);
+        setError(t("deviceSetup.ble.scanError", { detail: e.message }));
         setStep(STEPS.ERROR);
       },
       () => {
         if (devicesRef.current.length === 0) {
-          setStatus(
-            "Cihaz bulunamadı.\n\nCihazın açık ve yakında olduğundan emin olun."
-          );
+          setStatus(t("deviceSetup.ble.deviceNotFound"));
         } else {
-          setStatus(`${devicesRef.current.length} cihaz bulundu`);
+          setStatus(
+            t("deviceSetup.ble.devicesFound", {
+              count: devicesRef.current.length,
+            })
+          );
         }
       }
     );
@@ -605,7 +625,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
   const proceedWithConnection = async (device) => {
     await bleService.connect(device.id);
-    setStatus("Bağlandı!");
+    setStatus(t("deviceSetup.connection.connected"));
     if (__DEV__) console.log("[DeviceSetup] BLE Connected");
 
     if (isGuided) {
@@ -647,7 +667,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
     setBusy(true);
     setSelectedDevice(device);
     setStep(STEPS.CONNECTING);
-    setStatus("Bağlanıyor...");
+    setStatus(t("deviceSetup.connecting"));
 
     try {
       const bleChipId = device.name?.replace("TulipFleet-", "") || "";
@@ -724,7 +744,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       await proceedWithConnection(device);
     } catch (e) {
       console.error("[DeviceSetup] Connection error:", e);
-      setError("Bağlantı hatası: " + e.message);
+      setError(t("deviceSetup.connectionError", { error: e.message }));
       setStep(STEPS.ERROR);
     } finally {
       if (!isGuided && isMountedRef.current) {
@@ -753,14 +773,14 @@ export default function DeviceSetupScreen({ navigation, route }) {
     }
 
     if (typeof bleService.provisionWifi !== "function") {
-      setError("BLE servisinde WiFi provisioning fonksiyonu yok.");
+      setError(t("deviceSetup.wifi.provisionMissing"));
       setStep(STEPS.ERROR);
       return;
     }
 
     setBusy(true);
     setStep(STEPS.WIFI_PROVISIONING);
-    setWifiStatus("WiFi bilgileri gönderiliyor...");
+    setWifiStatus(t("deviceSetup.wifi.sendingCredentials"));
     activationStartedRef.current = false;
 
     try {
@@ -770,8 +790,9 @@ export default function DeviceSetupScreen({ navigation, route }) {
       const result = await bleService.provisionWifi(
         wifiSsid.trim(),
         wifiPassword,
-        (_phase, msg) => {
-          setWifiStatus(msg);
+        (phase) => {
+          const key = WIFI_PROGRESS_KEYS[phase];
+          if (key) setWifiStatus(t(key));
         }
       );
 
@@ -783,7 +804,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
             "[WiFi] BLE disconnect after credentials — normal, continuing..."
           );
         } else {
-          setError(result.message || "WiFi bağlantısı başarısız");
+          setError(wifiErrorMessage(t, result.error));
           setStep(STEPS.ERROR);
           return;
         }
@@ -797,7 +818,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       } catch {}
 
       setStep(STEPS.ACTIVATING);
-      setStatus("Cihaz aktive ediliyor...");
+      setStatus(t("deviceSetup.activation.activating"));
 
       try {
         await performActivation();
@@ -829,7 +850,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
       if (isDisconnectError) {
         if (__DEV__) console.log("[WiFi] BLE disconnect (ESP32 restart)");
         setStep(STEPS.ACTIVATING);
-        setStatus("Cihaz yeniden başlatılıyor...");
+        setStatus(t("wifi.espRestarting"));
         await new Promise((r) => setTimeout(r, 3000));
 
         if (!activationStartedRef.current) {
@@ -844,7 +865,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
           }
         }
       } else {
-        setError("WiFi kurulumu sırasında hata: " + e.message);
+        setError(t("deviceSetup.wifi.setupError", { detail: e.message }));
         setStep(STEPS.ERROR);
       }
     } finally {
@@ -877,7 +898,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
         return;
       }
 
-      setError(activationResult.message || "Aktivasyon başarısız");
+      setError(activationResult.message || t("deviceSetup.activation.failed"));
       setStep(STEPS.ERROR);
     } catch (e) {
       if (__DEV__) console.log("[ACT] SUCCESS_PENDING:", e.message);
@@ -986,7 +1007,7 @@ export default function DeviceSetupScreen({ navigation, route }) {
 
     if (__DEV__) console.log("[QR] Valid serial:", scannedSerial);
     setSerial(scannedSerial);
-    setStatus(`Serial: ${scannedSerial}`);
+    setStatus(t("deviceSetup.serial.scanned", { serial: scannedSerial }));
 
     // Backend validation — company + device kontrolü
     try {
