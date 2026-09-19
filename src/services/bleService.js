@@ -1,7 +1,7 @@
 // src/services/bleService.js
 // TulipFleet BLE Service - FAZ 4 Device Activation + WiFi Provisioning
 // Created: 02 Ocak 2026
-// Updated: 02 Şubat 2026 - WiFi scan v3.1 HARDENED (writeWithoutResponse + re-entrancy guard + no double base64)
+// Updated: 02 Feb 2026 - WiFi scan v3.1 HARDENED (writeWithoutResponse + re-entrancy guard + no double base64)
 
 import { Buffer } from "buffer";
 import { PermissionsAndroid, Platform } from "react-native";
@@ -74,7 +74,7 @@ class BLEService {
 
   async requestAndroidPermissions() {
     if (Platform.Version < 31) {
-      // Android 11 ve altı için sadece lokasyon
+      // Android 11 and below: location only
       const locationGranted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
       );
@@ -84,7 +84,7 @@ class BLEService {
       return;
     }
 
-    // Android 12+ için BLE permissions
+    // Android 12+ BLE permissions
     const permissions = [
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
@@ -204,10 +204,10 @@ class BLEService {
       );
     };
 
-    // Önce service UUID ile filtered scan
+    // Filtered scan by service UUID first
     scanWithFilter([BLE_CONFIG.SERVICE_UUID]);
 
-    // 3sn sonra hiç cihaz yoksa unfiltered'a geç
+    // After 3s with no devices, switch to unfiltered
     unfilteredTimeout = setTimeout(() => {
       if (foundDevices.size === 0 && !useUnfiltered && this.isScanning) {
         console.log(
@@ -215,7 +215,7 @@ class BLEService {
         );
         useUnfiltered = true;
         this.manager?.stopDeviceScan();
-        scanWithFilter(null); // Unfiltered - name prefix ile filtrelenir
+        scanWithFilter(null); // Unfiltered - filtered by name prefix
       }
     }, BLE_CONFIG.TIMEOUTS.SCAN_UNFILTERED);
 
@@ -271,7 +271,7 @@ class BLEService {
 
     this.stopScan();
 
-    // Önceki subscription'ları temizle
+    // Clear previous subscriptions
     this.cleanupSubscriptions();
 
     try {
@@ -282,7 +282,7 @@ class BLEService {
         autoConnect: false,
       });
 
-      // ✅ Connection priority: High (connection'ı stabil tut)
+      // Connection priority: High (keep the link stable)
       try {
         await this.device.requestConnectionPriority(1); // 1 = High priority
         console.log("[BLE] Connection priority set to HIGH");
@@ -427,7 +427,7 @@ class BLEService {
         }
       );
 
-      // Kısa bekleme (subscription'ların aktif olması için)
+      // Short wait so subscriptions are active
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       console.log("[BLE] Subscriptions active");
@@ -447,7 +447,7 @@ class BLEService {
     const base64Value = Buffer.from(serial, "utf8").toString("base64");
     console.log("[BLE] Writing serial:", serial);
 
-    // Önce writeWithoutResponse dene (daha hızlı)
+    // Try writeWithoutResponse first (faster)
     try {
       await this.device.writeCharacteristicWithoutResponseForService(
         BLE_CONFIG.SERVICE_UUID,
@@ -834,7 +834,7 @@ class BLEService {
   }
 
   /**
-   * WiFi credentials'ı ESP32'ye gönder (Phase 4 - WiFiPassword için)
+   * Send WiFi credentials to the ESP32 (Phase 4 - WiFiPassword)
    * Payload: JSON {"ssid":"xxx","password":"yyy"}
    */
   async writeWifiCredentials(ssid, password) {
@@ -848,12 +848,12 @@ class BLEService {
       throw new Error("INVALID_PASSWORD");
     }
 
-    // config.js'de WIFI_CREDENTIALS tanımlı mı kontrol et
+    // Check WIFI_CREDENTIALS is defined in config.js
     if (!BLE_CONFIG.CHARACTERISTICS.WIFI_CREDENTIALS) {
       throw new Error("WIFI_CREDENTIALS_UUID_NOT_DEFINED");
     }
 
-    // JSON payload oluştur
+    // Build JSON payload
     const payload = JSON.stringify({
       ssid: ssid.trim(),
       password: password,
@@ -869,7 +869,7 @@ class BLEService {
       payload.length
     );
 
-    // Önce writeWithResponse dene (daha güvenilir)
+    // Try writeWithResponse first (more reliable)
     try {
       await this.device.writeCharacteristicWithResponseForService(
         BLE_CONFIG.SERVICE_UUID,
@@ -902,7 +902,7 @@ class BLEService {
   }
 
   /**
-   * WiFi bağlantı durumunu dinle (subscribe)
+   * Subscribe to WiFi connection status
    */
   subscribeToWifiStatus(onStatus) {
     if (!this.device) throw new Error("NOT_CONNECTED");
@@ -979,50 +979,33 @@ class BLEService {
   }
 
   /**
-   * Tam WiFi provisioning akışı
+   * Full WiFi provisioning flow
    */
   async provisionWifi(ssid, password, onProgress) {
     try {
-      onProgress?.("sending", "WiFi bilgileri gönderiliyor...");
+      onProgress?.("sending");
       await this.writeWifiCredentials(ssid, password);
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      onProgress?.("connecting", "ESP32 WiFi'ye bağlanıyor...");
+      onProgress?.("connecting");
       const result = await this.subscribeToWifiStatus((status) => {
         if (status === "CONNECTING") {
-          onProgress?.("status", "Bağlantı kuruluyor...");
+          onProgress?.("status");
         }
       });
 
       if (result === "OK") {
-        onProgress?.("success", "WiFi bağlantısı başarılı!");
+        onProgress?.("success");
         return { success: true };
       } else {
-        const errorMessages = {
-          ERR_AUTH: "WiFi şifresi yanlış",
-          ERR_TIMEOUT: "WiFi ağına bağlanılamadı (zaman aşımı)",
-          ERR_NOT_FOUND: "WiFi ağı bulunamadı (5GHz desteklenmez)",
-          ERR_UNKNOWN: "Bilinmeyen bir hata oluştu",
-        };
-        const message = errorMessages[result] || `Hata: ${result}`;
-        onProgress?.("error", message);
-        return { success: false, error: result, message };
+        onProgress?.("error", result);
+        return { success: false, error: result };
       }
     } catch (error) {
       console.error("[BLE] provisionWifi error:", error.message);
-
-      let message = error.message;
-      if (error.message === "WIFI_TIMEOUT") {
-        message = "WiFi bağlantısı zaman aşımına uğradı";
-      } else if (error.message === "INVALID_SSID") {
-        message = "Geçersiz WiFi ağ adı";
-      } else if (error.message === "INVALID_PASSWORD") {
-        message = "Şifre en az 8 karakter olmalı";
-      }
-
-      onProgress?.("error", message);
-      return { success: false, error: error.message, message };
+      onProgress?.("error", error.message);
+      return { success: false, error: error.message };
     } finally {
       this.cleanupWifiSubscription();
     }
