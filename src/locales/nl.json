@@ -108,49 +108,21 @@
     "editProfileSubtitle": "Naam, achternaam, telefoon",
     "changePassword": "Wachtwoord Wijzigen",
     "changePasswordSubtitle": "Accountbeveiliging",
-    "error": {
-      "distSource": {
-        "title": "Afstandsbron",
-        "gps": "GPS (Haversine)",
-        "route": "Route Schatting",
-        "manual": "Handmatig",
-        "unknown": "Onbekend",
-        "tasks": "taken"
-      },
-      "title": "Fout",
-      "loadFailed": "Laden van voertuiginfo mislukt",
-      "saveFailed": "Opslaan van registratie mislukt",
-      "noVehicle": "Geen voertuig toegewezen",
-      "vehicleUpdateFailed": "Bijwerken van voertuiginfo mislukt"
-    },
     "notifications": "MELDINGEN",
     "notificationsTitle": "Meldingen",
     "notificationsSubtitle": "Taakmeldingen",
     "locationSharing": "Locatie Delen",
     "locationSubtitle": "Vereist voor tracking",
     "support": "ONDERSTEUNING",
-    "notFullTankWarning": {
-      "title": "Waarschuwing",
-      "message": "Als de tank niet vol is, wordt deze registratie niet opgenomen in de verbruiksanalyse. Toch doorgaan?",
-      "cancel": "Annuleren",
-      "saveAnyway": "Toch opslaan"
-    },
     "help": "Help",
     "helpSubtitle": "FAQ en handleiding",
     "contactUs": "Neem Contact Op",
     "about": "Over",
     "version": "Versie",
-    "message": "Opgeslagen!",
     "logout": "Uitloggen",
     "logoutSubtitle": "Afmelden van uw account",
     "logoutConfirm": "Weet u zeker dat u wilt uitloggen?",
     "cancel": "Annuleren",
-    "fuelTypes": {
-      "diesel": "Diesel",
-      "gasoline": "Benzine",
-      "lpg": "LPG",
-      "electric": "Elektrisch"
-    },
     "supportTitle": "Ondersteuning",
     "supportMessage": "Heeft u hulp nodig?",
     "sendEmail": "E-mail Versturen",
@@ -752,22 +724,12 @@
       "missing": "Serienummer is niet gevonden.",
       "scanned": "Serie: {{serial}}"
     },
-    "scan": {
-      "scanning": "Zoeken naar apparaat...",
-      "notFound": "Apparaat Niet Gevonden",
-      "notFoundMessage": "Zorg ervoor dat het apparaat is ingeschakeld en binnen bereik is.",
-      "found": "Apparaat Gevonden",
-      "rescan": "Opnieuw Scannen"
-    },
     "wifi": {
       "title": "WiFi Configuratie",
       "ssidPlaceholder": "WiFi-netwerknaam",
       "passwordPlaceholder": "WiFi-wachtwoord",
       "connect": "Verbinden",
       "connecting": "Verbinding maken met WiFi...",
-      "success": "WiFi Verbonden",
-      "failed": "WiFi Verbinding Mislukt",
-      "failedMessage": "Controleer de netwerknaam en het wachtwoord.",
       "warning5GHz": "Dit SSID kan een 5GHz-netwerk zijn. ESP32 ondersteunt alleen 2.4GHz. Gebruik uw 2.4GHz-netwerk.",
       "connectionFailed": "WiFi connection failed",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
@@ -805,11 +767,6 @@
       "verifyFailed": "Activering kon nog niet worden geverifieerd. Start het apparaat opnieuw of controleer de internetverbinding.",
       "serverCommunication": "Device communicating with server..."
     },
-    "complete": {
-      "title": "Installatie Voltooid!",
-      "message": "Uw apparaat is succesvol geïnstalleerd en geactiveerd.",
-      "done": "Voltooien"
-    },
     "activeWarning": {
       "title": "⚠️ Apparaat Reeds Actief",
       "message": "Apparaat {{serial}} is al actief en verbonden via WiFi{{vehicle}}.\n\nWilt u opnieuw installeren?",
@@ -818,11 +775,7 @@
     },
     "checkingDeviceStatus": "Apparaatstatus controleren...",
     "buttons": {
-      "retry": "Opnieuw",
       "cancel": "Annuleren",
-      "back": "Terug",
-      "next": "Volgende",
-      "done": "Klaar",
       "continue": "Continue",
       "ok": "OK",
       "settings": "Settings"
@@ -888,14 +841,10 @@
     "connectionError": "Verbindingsfout: {{error}}"
   },
   "editProfile": {
-    "title": "Profiel Bewerken",
     "firstName": "Voornaam",
     "lastName": "Achternaam",
     "email": "E-mail",
     "phone": "Telefoon",
-    "save": "Wijzigingen Opslaan",
-    "success": "Profiel succesvol bijgewerkt",
-    "error": "Fout bij bijwerken van profiel",
     "changePhoto": "Foto wijzigen",
     "emailReadonly": "E-mail kan niet worden gewijzigd",
     "firstNamePlaceholder": "Voer uw voornaam in",
@@ -905,13 +854,9 @@
     "updated": "Profiel bijgewerkt"
   },
   "changePassword": {
-    "title": "Wachtwoord Wijzigen",
     "currentPassword": "Huidig Wachtwoord",
     "newPassword": "Nieuw Wachtwoord",
     "confirmPassword": "Bevestig Nieuw Wachtwoord",
-    "save": "Wachtwoord Wijzigen",
-    "success": "Wachtwoord succesvol gewijzigd",
-    "error": "Fout bij wijzigen van wachtwoord",
     "mismatch": "Wachtwoorden komen niet overeen",
     "allFieldsRequired": "Vul alle velden in",
     "confirmPlaceholder": "Voer uw nieuwe wachtwoord opnieuw in",
@@ -925,29 +870,7 @@
     "successMessage": "Uw wachtwoord is succesvol gewijzigd.",
     "successTitle": "Gelukt"
   },
-  "map": {
-    "title": "Navigatie",
-    "myLocation": "Mijn Locatie",
-    "follow": "Volgen",
-    "recenter": "Hercentreren",
-    "traffic": "Verkeer",
-    "satellite": "Satelliet",
-    "loadingRoute": "Route laden...",
-    "routeNotFound": "Route niet gevonden",
-    "arrived": "U bent gearriveerd",
-    "eta": "Aankomsttijd",
-    "distance": "Afstand",
-    "completeTask": "Taak Voltooien",
-    "completeConfirm": "Wilt u deze taak als voltooid markeren?",
-    "taskCompleted": "Taak voltooid!",
-    "couldNotComplete": "Kon taak niet voltooien"
-  },
   "time": {
-    "hours": "uur",
-    "minutes": "minuten",
-    "seconds": "seconden",
-    "h": "u",
-    "min": "min",
     "ago": {
       "seconds": "{{count}} sec geleden",
       "minutes": "{{count}} min geleden",
@@ -1160,59 +1083,6 @@
     "min": "min",
     "sec": "sec",
     "kmh": "km/u"
-  },
-  "schedule": {
-    "schedule": "Planning",
-    "start": "Start",
-    "end": "Einde",
-    "date": "Datum",
-    "time": "Tijd",
-    "duration": "Duur",
-    "select_start_date": "Startdatum",
-    "select_start_time": "Starttijd",
-    "select_end_date": "Einddatum",
-    "select_end_time": "Eindtijd",
-    "end_time_before_start": "Eindtijd moet na starttijd zijn",
-    "end_after_start": "Einddatum/-tijd moet na startdatum/-tijd zijn",
-    "scheduled_start": "Geplande start",
-    "scheduled_end": "Gepland einde",
-    "actual_start": "Werkelijke start",
-    "actual_end": "Werkelijk einde",
-    "hours": "uren",
-    "minutes": "minuten",
-    "hours_short": "u",
-    "minutes_short": "min"
-  },
-  "assignment": {
-    "assignment": "Toewijzing",
-    "driver": "Chauffeur",
-    "vehicle": "Voertuig",
-    "select_driver": "Selecteer chauffeur",
-    "select_vehicle": "Selecteer voertuig",
-    "unassigned": "Niet toegewezen",
-    "assign": "Toewijzen",
-    "reassign": "Opnieuw toewijzen"
-  },
-  "route": {
-    "route": "Route",
-    "start_location": "Startlocatie",
-    "end_location": "Eindlocatie",
-    "destination": "Bestemming",
-    "enter_start_address": "Voer startadres in",
-    "enter_destination_address": "Voer bestemmingsadres in",
-    "enter_start_location": "Voer startlocatie in",
-    "enter_destination": "Voer bestemming in",
-    "distance": "Afstand",
-    "estimated_time": "Geschatte tijd",
-    "via": "via"
-  },
-  "validation": {
-    "required_field": "Dit veld is verplicht",
-    "invalid_date": "Ongeldige datum",
-    "invalid_time": "Ongeldige tijd",
-    "invalid_location": "Ongeldige locatie",
-    "min_length": "Minimaal {{min}} tekens",
-    "max_length": "Maximaal {{max}} tekens"
   },
   "fuel": {
     "menuTitle": "Brandstof Invoer",

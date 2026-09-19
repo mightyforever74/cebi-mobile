@@ -33,6 +33,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, fuelAPI } from "../../services/api";
+import { formatDate, formatNumber } from "../../utils/helpers";
 
 // Para birimi haritası (dil koduna göre)
 const CURRENCY_MAP = {
@@ -482,7 +483,7 @@ const FuelEntryScreen = ({ navigation }) => {
   const formatKm = (value) => {
     const numericValue = value.replace(/[^0-9]/g, "");
     if (!numericValue) return "";
-    return Number(numericValue).toLocaleString("tr-TR");
+    return formatNumber(Number(numericValue));
   };
 
   // KM input handler
@@ -498,10 +499,10 @@ const FuelEntryScreen = ({ navigation }) => {
       if (newKm <= lastKm) {
         setError(
           t("fuel.validation.odometerMustBeHigher", {
-            lastKm: Number(lastKm).toLocaleString("tr-TR"),
-            defaultValue: `KM değeri önceki kayıttan (${Number(
-              lastKm
-            ).toLocaleString("tr-TR")}) büyük olmalı`,
+            lastKm: formatNumber(Number(lastKm)),
+            defaultValue: `KM değeri önceki kayıttan (${formatNumber(
+              Number(lastKm)
+            )}) büyük olmalı`,
           })
         );
       }
@@ -525,10 +526,10 @@ const FuelEntryScreen = ({ navigation }) => {
     if (lastRecord && km <= lastRecord.odometer_km) {
       setError(
         t("fuel.validation.odometerMustBeHigher", {
-          lastKm: Number(lastRecord.odometer_km).toLocaleString("tr-TR"),
-          defaultValue: `KM değeri önceki kayıttan (${Number(
-            lastRecord.odometer_km
-          ).toLocaleString("tr-TR")}) büyük olmalı`,
+          lastKm: formatNumber(Number(lastRecord.odometer_km)),
+          defaultValue: `KM değeri önceki kayıttan (${formatNumber(
+            Number(lastRecord.odometer_km)
+          )}) büyük olmalı`,
         })
       );
       return false;
@@ -565,9 +566,9 @@ const FuelEntryScreen = ({ navigation }) => {
       if (kmTraveled > 2000) {
         setError(
           t("fuel.validation.kmTooHigh", {
-            km: kmTraveled.toLocaleString("tr-TR"),
-            defaultValue: `Tek dolumda ${kmTraveled.toLocaleString(
-              "tr-TR"
+            km: formatNumber(kmTraveled),
+            defaultValue: `Tek dolumda ${formatNumber(
+              kmTraveled
             )} km çok yüksek görünüyor`,
           })
         );
@@ -626,7 +627,7 @@ const FuelEntryScreen = ({ navigation }) => {
 
         let message = t("fuel.success.message", "Kaydedildi!");
         if (result.km_traveled && result.consumption_per_100km) {
-          message += `\n\n• ${Number(result.km_traveled).toLocaleString("tr-TR")} km`;
+          message += `\n\n• ${formatNumber(Number(result.km_traveled))} km`;
           message += `\n• ${parseFloat(result.consumption_per_100km).toFixed(1)} L/100km`;
           if (result.cost_per_km) {
             message += `\n• ${currency.symbol}${parseFloat(result.cost_per_km).toFixed(2)}/km`;
@@ -776,10 +777,8 @@ const FuelEntryScreen = ({ navigation }) => {
             {lastRecord && (
               <Text style={styles.hint}>
                 💡 {t("fuel.lastOdometer", "Son")}:{" "}
-                {Number(lastRecord.odometer_km).toLocaleString("tr-TR")} km (
-                {new Date(lastRecord.record_date).toLocaleDateString(
-                  currentLang === "tr" ? "tr-TR" : "en-GB"
-                )}
+                {formatNumber(Number(lastRecord.odometer_km))} km (
+                {formatDate(lastRecord.record_date)}
                 )
               </Text>
             )}
@@ -867,9 +866,9 @@ const FuelEntryScreen = ({ navigation }) => {
                   {t("fuel.kmTraveled", "Gidilen KM")}:
                 </Text>
                 <Text style={styles.calculationValue}>
-                  {Number(
+                  {formatNumber(
                     parseInt(odometerKm) - lastRecord.odometer_km
-                  ).toLocaleString("tr-TR")}{" "}
+                  )}{" "}
                   km
                 </Text>
               </View>
@@ -963,7 +962,7 @@ const FuelEntryScreen = ({ navigation }) => {
                   🛣️ {t("fuelEntry.km")}
                 </Text>
                 <Text style={styles.lastRecordValue}>
-                  {Number(lastRecord.odometer_km).toLocaleString("tr-TR")}
+                  {formatNumber(Number(lastRecord.odometer_km))}
                 </Text>
               </View>
               <View style={styles.lastRecordItem}>
@@ -986,9 +985,7 @@ const FuelEntryScreen = ({ navigation }) => {
               )}
             </View>
             <Text style={styles.lastRecordDate}>
-              {new Date(lastRecord.record_date).toLocaleDateString(
-                currentLang === "tr" ? "tr-TR" : "en-GB"
-              )}
+              {formatDate(lastRecord.record_date)}
             </Text>
           </Card>
         )}

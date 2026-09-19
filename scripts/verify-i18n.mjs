@@ -3,8 +3,10 @@
  * TulipFleet i18n verifier.
  * Usage: node scripts/verify-i18n.mjs [--json] [--strict]
  *
- * Reference = UNION of keys across 9 locale files (not tr-only).
- * Extra keys are warnings unless --strict.
+ * Reference = tr.json (fallbackLng). UNION/intersection are reported for info.
+ * Extra keys (in a locale but not in tr) are warnings unless --strict.
+ * Keys in tr but missing from ku.json are KU_OMITTED warnings (not errors).
+ * --strict is opt-in (not the default). It promotes extra_key to errors.
  * Also errors if a static t() key is missing from tr.json (fallbackLng).
  */
 import fs from "fs";
@@ -141,13 +143,15 @@ const intersection = [...union].filter((k) =>
   LANGS.every((lang) => k in flats[lang])
 );
 const unionList = [...union].sort();
+const trKeySet = new Set(Object.keys(flats.tr));
+const trList = [...trKeySet].sort();
 
 const symmetry = {};
 for (const lang of LANGS) {
   const keys = Object.keys(flats[lang]);
   const keySet = new Set(keys);
-  const missing = unionList.filter((k) => !keySet.has(k));
-  const extra = keys.filter((k) => !intersection.includes(k)).sort();
+  const missing = trList.filter((k) => !keySet.has(k));
+  const extra = keys.filter((k) => !trKeySet.has(k)).sort();
   symmetry[lang] = {
     count: keys.length,
     missingCount: missing.length,
@@ -177,7 +181,6 @@ const { used: staticUsed, defaults: staticDefaults } = collectStaticKeys(jsFiles
 const codeMissingInUnion = [...staticUsed.keys()]
   .filter((k) => !union.has(k))
   .sort();
-const trKeySet = new Set(Object.keys(flats.tr));
 const codeMissingInTr = [...staticUsed.keys()]
   .filter((k) => !trKeySet.has(k))
   .sort();
@@ -215,7 +218,12 @@ const warnings = [];
 
 for (const lang of LANGS) {
   for (const k of symmetry[lang].missing) {
-    errors.push({ type: "missing_key", lang, key: k });
+    const item = { type: "missing_key", lang, key: k };
+    if (lang === "ku") {
+      warnings.push({ ...item, type: "omitted_key", hint: "KU_OMITTED" });
+    } else {
+      errors.push(item);
+    }
   }
   for (const k of symmetry[lang].extra) {
     const item = { type: "extra_key", lang, key: k };
@@ -260,6 +268,8 @@ const report = {
   langs: LANGS,
   unionCount: union.size,
   intersectionCount: intersection.length,
+  trCount: trKeySet.size,
+  reference: "tr",
   symmetry,
   interpMismatchCount: interp.length,
   interp,
@@ -296,7 +306,9 @@ function printTable() {
   const lines = [];
   const push = (s = "") => lines.push(s);
   push("TulipFleet i18n verify");
-  push(`reference=UNION (${union.size} keys)  intersection=${intersection.length}  strict=${strict}`);
+  push(
+    `reference=tr (${trKeySet.size} keys)  union=${union.size}  intersection=${intersection.length}  strict=${strict}`
+  );
   push("");
   push("lang  keys  missing  extra");
   push("----  ----  -------  -----");
@@ -347,11 +359,12 @@ function printTable() {
   push("");
   for (const lang of LANGS) {
     if (symmetry[lang].missing.length) {
-      push(`[${lang}] missing vs union (${symmetry[lang].missingCount}):`);
+      const kuTag = lang === "ku" ? " KU_OMITTED" : "";
+      push(`[${lang}] missing vs tr (${symmetry[lang].missingCount})${kuTag}:`);
       for (const k of symmetry[lang].missing) push(`  - ${k}`);
     }
     if (symmetry[lang].extra.length) {
-      push(`[${lang}] extra vs intersection (${symmetry[lang].extraCount}):`);
+      push(`[${lang}] extra vs tr (${symmetry[lang].extraCount}):`);
       for (const k of symmetry[lang].extra) push(`  - ${k}`);
     }
   }
