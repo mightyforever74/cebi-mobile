@@ -92,7 +92,8 @@
     "optional": "(optional)",
     "vehicle": "Vehicle",
     "copyright": "© {{year}} TulipFleet",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "csv": "CSV"
   },
   "auth": {
     "login": "Sign In",
@@ -363,7 +364,7 @@
     "notifications": "Notifications",
     "darkMode": "Dark Mode",
     "about": "About",
-    "version": "Version",
+    "version": "TulipFleet v{{version}}",
     "changePassword": "Change Password",
     "privacy": "Privacy",
     "terms": "Terms of Service",
@@ -1612,7 +1613,17 @@
     "statusCancelled": "Cancelled",
     "startLocation": "Start address",
     "endLocation": "End address",
-    "dataLoadError": "Failed to load data"
+    "dataLoadError": "Failed to load data",
+    "taskCode": "Task Code",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Task title",
+    "descPlaceholder": "Task details...",
+    "loading": "Loading...",
+    "priority": "Priority",
+    "driver": "Driver",
+    "vehicle": "Vehicle",
+    "route": "Route",
+    "description": "Description"
   },
   "waypointEditor": {
     "title": "Stops",
@@ -1914,7 +1925,14 @@
     "passwordRequired": "Password is required",
     "passwordMinLength": "Password must be at least 6 characters",
     "licenseRequired": "License number is required",
-    "createFailed": "Failed to create driver"
+    "createFailed": "Failed to create driver",
+    "updated": "Driver updated successfully",
+    "updateFailed": "Could not update driver",
+    "updateButton": "Update",
+    "statusIdle": "Idle",
+    "statusActive": "Active",
+    "statusPaused": "Paused",
+    "statusLabel": "Status"
   },
   "camera": {
     "permissionDenied": "Camera permission denied",
@@ -2333,5 +2351,65 @@
       "months": "{{count}} mo ago",
       "years": "{{count}} yr ago"
     }
+  },
+  "vehicleInfo": {
+    "historyRoute": "Route history"
+  },
+  "createVehicle": {
+    "plateRequired": "License plate is required",
+    "deviceIdRequired": "ESP32 device ID is required",
+    "brandRequired": "Brand is required",
+    "modelRequired": "Model is required",
+    "added": "Vehicle added successfully",
+    "addFailed": "Could not add vehicle",
+    "updated": "Vehicle updated successfully",
+    "updateFailed": "Could not update vehicle",
+    "addButton": "Add Vehicle",
+    "updateButton": "Update",
+    "plate": "Plate *",
+    "deviceId": "ESP32 Device ID *",
+    "brand": "Brand *",
+    "brandOptional": "Brand",
+    "model": "Model *",
+    "modelOptional": "Model",
+    "year": "Year",
+    "fuelType": "Fuel Type",
+    "status": "Status"
+  },
+  "deviceInventory": {
+    "title": "Device Inventory",
+    "fetchFailed": "Failed to fetch devices",
+    "invalidSerialTitle": "Invalid Serial",
+    "invalidSerialMessage": "QR code must contain a valid serial number (TF-XXXX-XXXXX-X)",
+    "addToStockTitle": "Add to Stock",
+    "addToStockConfirm": "Serial: {{serial}}\n\nAdd this device to stock?",
+    "addToStock": "Add to Stock",
+    "scanFailed": "Failed to scan QR code",
+    "addedToStock": "Device {{serial}} added to stock!",
+    "addedToStockSimple": "Device added to stock!",
+    "addFailed": "Failed to add device",
+    "addFailedStock": "Failed to add device to stock",
+    "enterSerial": "Enter a serial number",
+    "notFoundTitle": "Not Found",
+    "notFound": "Device not found",
+    "serialNotFound": "Device serial not found",
+    "allDevices": "All Devices",
+    "assigned": "Assigned",
+    "unassigned": "Unassigned",
+    "scanQr": "Scan QR",
+    "empty": "No devices found",
+    "vehicle": "Vehicle:",
+    "driver": "Driver:",
+    "qrStatus": "QR Status:",
+    "qrUsed": "Used",
+    "qrActive": "Active",
+    "qrNone": "None",
+    "searchBySerial": "Search Device by Serial",
+    "serialPlaceholder": "Enter serial number (TF-XXXX-XXXXX-X)",
+    "statusLine": "Status: {{status}}",
+    "add": "Add",
+    "cannotClaim": "Cannot claim (assigned)",
+    "online": "Online ({{count}})",
+    "offline": "Offline ({{count}})"
   }
 }

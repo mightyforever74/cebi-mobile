@@ -92,7 +92,8 @@
     "optional": "(по избор)",
     "vehicle": "Превозно средство",
     "copyright": "© {{year}} TulipFleet",
-    "unknown": "Неизвестно"
+    "unknown": "Неизвестно",
+    "csv": "CSV"
   },
   "auth": {
     "login": "Вход",
@@ -236,7 +237,7 @@
     "notifications": "Известия",
     "darkMode": "Тъмен режим",
     "about": "Относно",
-    "version": "Версия",
+    "version": "TulipFleet v{{version}}",
     "changePassword": "Смени парола",
     "privacy": "Поверителност",
     "terms": "Условия за ползване",
@@ -1494,7 +1495,17 @@
     "statusCancelled": "Отменена",
     "startLocation": "Начален адрес",
     "endLocation": "Краен адрес",
-    "dataLoadError": "Грешка при зареждане на данните"
+    "dataLoadError": "Грешка при зареждане на данните",
+    "taskCode": "Код на задачата",
+    "titleLabel": "Заглавие",
+    "titlePlaceholder": "Заглавие на задачата",
+    "descPlaceholder": "Подробности за задачата...",
+    "loading": "Зареждане...",
+    "priority": "Приоритет",
+    "driver": "Шофьор",
+    "vehicle": "Превозно средство",
+    "route": "Маршрут",
+    "description": "Описание"
   },
   "waypointEditor": {
     "title": "Спирки",
@@ -1914,7 +1925,14 @@
     "passwordRequired": "Паролата е задължителна",
     "passwordMinLength": "Паролата трябва да е поне 6 символа",
     "licenseRequired": "Номерът на лиценза е задължителен",
-    "createFailed": "Неуспешно създаване на шофьор"
+    "createFailed": "Неуспешно създаване на шофьор",
+    "updated": "Шофьорът е обновен",
+    "updateFailed": "Шофьорът не можа да бъде обновен",
+    "updateButton": "Обнови",
+    "statusIdle": "Празен ход",
+    "statusActive": "Активен",
+    "statusPaused": "На пауза",
+    "statusLabel": "Статус"
   },
   "camera": {
     "permissionDenied": "Достъпът до камерата е отказан",
@@ -2325,5 +2343,65 @@
       "months": "преди {{count}} мес",
       "years": "преди {{count}} год"
     }
+  },
+  "vehicleInfo": {
+    "historyRoute": "История на маршрута"
+  },
+  "createVehicle": {
+    "plateRequired": "Регистрационният номер е задължителен",
+    "deviceIdRequired": "ESP32 ID на устройството е задължителен",
+    "brandRequired": "Марката е задължителна",
+    "modelRequired": "Моделът е задължителен",
+    "added": "Превозното средство е добавено",
+    "addFailed": "Превозното средство не можа да бъде добавено",
+    "updated": "Превозното средство е обновено",
+    "updateFailed": "Превозното средство не можа да бъде обновено",
+    "addButton": "Добави превозно средство",
+    "updateButton": "Обнови",
+    "plate": "Номер *",
+    "deviceId": "ESP32 ID *",
+    "brand": "Марка *",
+    "brandOptional": "Марка",
+    "model": "Модел *",
+    "modelOptional": "Модел",
+    "year": "Година",
+    "fuelType": "Тип гориво",
+    "status": "Статус"
+  },
+  "deviceInventory": {
+    "title": "Инвентар на устройства",
+    "fetchFailed": "Устройствата не можаха да бъдат заредени",
+    "invalidSerialTitle": "Невалиден сериен номер",
+    "invalidSerialMessage": "QR кодът трябва да съдържа валиден сериен номер (TF-XXXX-XXXXX-X)",
+    "addToStockTitle": "Добави към склада",
+    "addToStockConfirm": "Сериен №: {{serial}}\n\nДа се добави ли към склада?",
+    "addToStock": "Добави към склада",
+    "scanFailed": "QR кодът не можа да бъде сканиран",
+    "addedToStock": "Устройство {{serial}} е добавено към склада!",
+    "addedToStockSimple": "Устройството е добавено към склада!",
+    "addFailed": "Устройството не можа да бъде добавено",
+    "addFailedStock": "Устройството не можа да бъде добавено към склада",
+    "enterSerial": "Въведете сериен номер",
+    "notFoundTitle": "Не е намерено",
+    "notFound": "Устройството не е намерено",
+    "serialNotFound": "Серийният номер не е намерен",
+    "allDevices": "Всички устройства",
+    "assigned": "Присвоено",
+    "unassigned": "Неприсвоено",
+    "scanQr": "Сканирай QR",
+    "empty": "Няма намерени устройства",
+    "vehicle": "Превозно средство:",
+    "driver": "Шофьор:",
+    "qrStatus": "QR статус:",
+    "qrUsed": "Използван",
+    "qrActive": "Активен",
+    "qrNone": "Няма",
+    "searchBySerial": "Търсене по сериен номер",
+    "serialPlaceholder": "Въведете сериен номер (TF-XXXX-XXXXX-X)",
+    "statusLine": "Статус: {{status}}",
+    "add": "Добави",
+    "cannotClaim": "Не може да се заяви (присвоено)",
+    "online": "На линия ({{count}})",
+    "offline": "Офлайн ({{count}})"
   }
 }

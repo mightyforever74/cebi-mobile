@@ -1,0 +1,342 @@
+{
+  "deviceInventory.title": {
+    "tr": "Cihaz Envanteri",
+    "en": "Device Inventory",
+    "nl": "Apparaatinventaris",
+    "de": "Gerätebestand",
+    "fr": "Inventaire des appareils",
+    "es": "Inventario de dispositivos",
+    "it": "Inventario dispositivi",
+    "bg": "Инвентар на устройства"
+  },
+  "deviceInventory.fetchFailed": {
+    "tr": "Cihazlar yüklenemedi",
+    "en": "Failed to fetch devices",
+    "nl": "Apparaten konden niet worden geladen",
+    "de": "Geräte konnten nicht geladen werden",
+    "fr": "Impossible de charger les appareils",
+    "es": "No se pudieron cargar los dispositivos",
+    "it": "Impossibile caricare i dispositivi",
+    "bg": "Устройствата не можаха да бъдат заредени"
+  },
+  "deviceInventory.invalidSerialTitle": {
+    "tr": "Geçersiz seri no",
+    "en": "Invalid Serial",
+    "nl": "Ongeldig serienummer",
+    "de": "Ungültige Seriennummer",
+    "fr": "Numéro de série invalide",
+    "es": "Número de serie no válido",
+    "it": "Seriale non valido",
+    "bg": "Невалиден сериен номер"
+  },
+  "deviceInventory.invalidSerialMessage": {
+    "tr": "QR kod geçerli bir seri numarası içermelidir (TF-XXXX-XXXXX-X)",
+    "en": "QR code must contain a valid serial number (TF-XXXX-XXXXX-X)",
+    "nl": "QR-code moet een geldig serienummer bevatten (TF-XXXX-XXXXX-X)",
+    "de": "QR-Code muss eine gültige Seriennummer enthalten (TF-XXXX-XXXXX-X)",
+    "fr": "Le QR doit contenir un numéro de série valide (TF-XXXX-XXXXX-X)",
+    "es": "El código QR debe contener un número de serie válido (TF-XXXX-XXXXX-X)",
+    "it": "Il QR deve contenere un seriale valido (TF-XXXX-XXXXX-X)",
+    "bg": "QR кодът трябва да съдържа валиден сериен номер (TF-XXXX-XXXXX-X)"
+  },
+  "deviceInventory.addToStockTitle": {
+    "tr": "Stoka ekle",
+    "en": "Add to Stock",
+    "nl": "Aan voorraad toevoegen",
+    "de": "Zum Bestand hinzufügen",
+    "fr": "Ajouter au stock",
+    "es": "Añadir a existencias",
+    "it": "Aggiungi a magazzino",
+    "bg": "Добави към склада"
+  },
+  "deviceInventory.addToStockConfirm": {
+    "tr": "Seri: {{serial}}\n\nBu cihazı stoka eklemek istiyor musunuz?",
+    "en": "Serial: {{serial}}\n\nAdd this device to stock?",
+    "nl": "Serie: {{serial}}\n\nDit apparaat aan de voorraad toevoegen?",
+    "de": "Serie: {{serial}}\n\nDieses Gerät zum Bestand hinzufügen?",
+    "fr": "Série : {{serial}}\n\nAjouter cet appareil au stock ?",
+    "es": "Serie: {{serial}}\n\n¿Añadir este dispositivo a existencias?",
+    "it": "Seriale: {{serial}}\n\nAggiungere questo dispositivo a magazzino?",
+    "bg": "Сериен №: {{serial}}\n\nДа се добави ли към склада?"
+  },
+  "deviceInventory.addToStock": {
+    "tr": "Stoka ekle",
+    "en": "Add to Stock",
+    "nl": "Aan voorraad toevoegen",
+    "de": "Zum Bestand hinzufügen",
+    "fr": "Ajouter au stock",
+    "es": "Añadir a existencias",
+    "it": "Aggiungi a magazzino",
+    "bg": "Добави към склада"
+  },
+  "deviceInventory.scanFailed": {
+    "tr": "QR kod okunamadı",
+    "en": "Failed to scan QR code",
+    "nl": "QR-code kon niet worden gescand",
+    "de": "QR-Code konnte nicht gelesen werden",
+    "fr": "Échec de la lecture du QR",
+    "es": "No se pudo escanear el código QR",
+    "it": "Scansione QR non riuscita",
+    "bg": "QR кодът не можа да бъде сканиран"
+  },
+  "deviceInventory.addedToStock": {
+    "tr": "Cihaz {{serial}} stoka eklendi!",
+    "en": "Device {{serial}} added to stock!",
+    "nl": "Apparaat {{serial}} aan voorraad toegevoegd!",
+    "de": "Gerät {{serial}} zum Bestand hinzugefügt!",
+    "fr": "Appareil {{serial}} ajouté au stock !",
+    "es": "Dispositivo {{serial}} añadido a existencias.",
+    "it": "Dispositivo {{serial}} aggiunto a magazzino!",
+    "bg": "Устройство {{serial}} е добавено към склада!"
+  },
+  "deviceInventory.addedToStockSimple": {
+    "tr": "Cihaz stoka eklendi!",
+    "en": "Device added to stock!",
+    "nl": "Apparaat aan voorraad toegevoegd!",
+    "de": "Gerät zum Bestand hinzugefügt!",
+    "fr": "Appareil ajouté au stock !",
+    "es": "Dispositivo añadido a existencias.",
+    "it": "Dispositivo aggiunto a magazzino!",
+    "bg": "Устройството е добавено към склада!"
+  },
+  "deviceInventory.addFailed": {
+    "tr": "Cihaz eklenemedi",
+    "en": "Failed to add device",
+    "nl": "Apparaat kon niet worden toegevoegd",
+    "de": "Gerät konnte nicht hinzugefügt werden",
+    "fr": "Impossible d'ajouter l'appareil",
+    "es": "No se pudo añadir el dispositivo",
+    "it": "Impossibile aggiungere il dispositivo",
+    "bg": "Устройството не можа да бъде добавено"
+  },
+  "deviceInventory.addFailedStock": {
+    "tr": "Cihaz stoka eklenemedi",
+    "en": "Failed to add device to stock",
+    "nl": "Apparaat kon niet aan voorraad worden toegevoegd",
+    "de": "Gerät konnte nicht zum Bestand hinzugefügt werden",
+    "fr": "Impossible d'ajouter l'appareil au stock",
+    "es": "No se pudo añadir el dispositivo a existencias",
+    "it": "Impossibile aggiungere il dispositivo a magazzino",
+    "bg": "Устройството не можа да бъде добавено към склада"
+  },
+  "deviceInventory.enterSerial": {
+    "tr": "Seri numarası girin",
+    "en": "Enter a serial number",
+    "nl": "Voer een serienummer in",
+    "de": "Seriennummer eingeben",
+    "fr": "Saisissez un numéro de série",
+    "es": "Introduzca un número de serie",
+    "it": "Inserisci un numero di serie",
+    "bg": "Въведете сериен номер"
+  },
+  "deviceInventory.notFoundTitle": {
+    "tr": "Bulunamadı",
+    "en": "Not Found",
+    "nl": "Niet gevonden",
+    "de": "Nicht gefunden",
+    "fr": "Introuvable",
+    "es": "No encontrado",
+    "it": "Non trovato",
+    "bg": "Не е намерено"
+  },
+  "deviceInventory.notFound": {
+    "tr": "Cihaz bulunamadı",
+    "en": "Device not found",
+    "nl": "Apparaat niet gevonden",
+    "de": "Gerät nicht gefunden",
+    "fr": "Appareil introuvable",
+    "es": "Dispositivo no encontrado",
+    "it": "Dispositivo non trovato",
+    "bg": "Устройството не е намерено"
+  },
+  "deviceInventory.serialNotFound": {
+    "tr": "Cihaz seri numarası bulunamadı",
+    "en": "Device serial not found",
+    "nl": "Serienummer van apparaat niet gevonden",
+    "de": "Geräteseriennummer nicht gefunden",
+    "fr": "Numéro de série introuvable",
+    "es": "Número de serie no encontrado",
+    "it": "Seriale dispositivo non trovato",
+    "bg": "Серийният номер не е намерен"
+  },
+  "deviceInventory.allDevices": {
+    "tr": "Tüm cihazlar",
+    "en": "All Devices",
+    "nl": "Alle apparaten",
+    "de": "Alle Geräte",
+    "fr": "Tous les appareils",
+    "es": "Todos los dispositivos",
+    "it": "Tutti i dispositivi",
+    "bg": "Всички устройства"
+  },
+  "deviceInventory.assigned": {
+    "tr": "Atanmış",
+    "en": "Assigned",
+    "nl": "Toegewezen",
+    "de": "Zugewiesen",
+    "fr": "Attribué",
+    "es": "Asignado",
+    "it": "Assegnato",
+    "bg": "Присвоено"
+  },
+  "deviceInventory.unassigned": {
+    "tr": "Atanmamış",
+    "en": "Unassigned",
+    "nl": "Niet toegewezen",
+    "de": "Nicht zugewiesen",
+    "fr": "Non attribué",
+    "es": "Sin asignar",
+    "it": "Non assegnato",
+    "bg": "Неприсвоено"
+  },
+  "deviceInventory.scanQr": {
+    "tr": "QR tara",
+    "en": "Scan QR",
+    "nl": "QR scannen",
+    "de": "QR scannen",
+    "fr": "Scanner le QR",
+    "es": "Escanear QR",
+    "it": "Scansiona QR",
+    "bg": "Сканирай QR"
+  },
+  "deviceInventory.empty": {
+    "tr": "Cihaz bulunamadı",
+    "en": "No devices found",
+    "nl": "Geen apparaten gevonden",
+    "de": "Keine Geräte gefunden",
+    "fr": "Aucun appareil trouvé",
+    "es": "No se encontraron dispositivos",
+    "it": "Nessun dispositivo trovato",
+    "bg": "Няма намерени устройства"
+  },
+  "deviceInventory.vehicle": {
+    "tr": "Araç:",
+    "en": "Vehicle:",
+    "nl": "Voertuig:",
+    "de": "Fahrzeug:",
+    "fr": "Véhicule :",
+    "es": "Vehículo:",
+    "it": "Veicolo:",
+    "bg": "Превозно средство:"
+  },
+  "deviceInventory.driver": {
+    "tr": "Sürücü:",
+    "en": "Driver:",
+    "nl": "Chauffeur:",
+    "de": "Fahrer:",
+    "fr": "Conducteur :",
+    "es": "Conductor:",
+    "it": "Autista:",
+    "bg": "Шофьор:"
+  },
+  "deviceInventory.qrStatus": {
+    "tr": "QR durumu:",
+    "en": "QR Status:",
+    "nl": "QR-status:",
+    "de": "QR-Status:",
+    "fr": "État QR :",
+    "es": "Estado QR:",
+    "it": "Stato QR:",
+    "bg": "QR статус:"
+  },
+  "deviceInventory.qrUsed": {
+    "tr": "Kullanıldı",
+    "en": "Used",
+    "nl": "Gebruikt",
+    "de": "Verwendet",
+    "fr": "Utilisé",
+    "es": "Usado",
+    "it": "Usato",
+    "bg": "Използван"
+  },
+  "deviceInventory.qrActive": {
+    "tr": "Aktif",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Aktiv",
+    "fr": "Actif",
+    "es": "Activo",
+    "it": "Attivo",
+    "bg": "Активен"
+  },
+  "deviceInventory.qrNone": {
+    "tr": "Yok",
+    "en": "None",
+    "nl": "Geen",
+    "de": "Keine",
+    "fr": "Aucun",
+    "es": "Ninguno",
+    "it": "Nessuno",
+    "bg": "Няма"
+  },
+  "deviceInventory.searchBySerial": {
+    "tr": "Seri numarasıyla ara",
+    "en": "Search Device by Serial",
+    "nl": "Zoek apparaat op serienummer",
+    "de": "Gerät per Seriennummer suchen",
+    "fr": "Rechercher par numéro de série",
+    "es": "Buscar por número de serie",
+    "it": "Cerca per seriale",
+    "bg": "Търсене по сериен номер"
+  },
+  "deviceInventory.serialPlaceholder": {
+    "tr": "Seri numarası girin (TF-XXXX-XXXXX-X)",
+    "en": "Enter serial number (TF-XXXX-XXXXX-X)",
+    "nl": "Voer serienummer in (TF-XXXX-XXXXX-X)",
+    "de": "Seriennummer eingeben (TF-XXXX-XXXXX-X)",
+    "fr": "Saisissez le numéro de série (TF-XXXX-XXXXX-X)",
+    "es": "Introduzca el número de serie (TF-XXXX-XXXXX-X)",
+    "it": "Inserisci il seriale (TF-XXXX-XXXXX-X)",
+    "bg": "Въведете сериен номер (TF-XXXX-XXXXX-X)"
+  },
+  "deviceInventory.statusLine": {
+    "tr": "Durum: {{status}}",
+    "en": "Status: {{status}}",
+    "nl": "Status: {{status}}",
+    "de": "Status: {{status}}",
+    "fr": "État : {{status}}",
+    "es": "Estado: {{status}}",
+    "it": "Stato: {{status}}",
+    "bg": "Статус: {{status}}"
+  },
+  "deviceInventory.add": {
+    "tr": "Ekle",
+    "en": "Add",
+    "nl": "Toevoegen",
+    "de": "Hinzufügen",
+    "fr": "Ajouter",
+    "es": "Añadir",
+    "it": "Aggiungi",
+    "bg": "Добави"
+  },
+  "deviceInventory.cannotClaim": {
+    "tr": "Alınamaz (atanmış)",
+    "en": "Cannot claim (assigned)",
+    "nl": "Kan niet worden geclaimd (toegewezen)",
+    "de": "Kann nicht beansprucht werden (zugewiesen)",
+    "fr": "Impossible à réclamer (attribué)",
+    "es": "No se puede reclamar (asignado)",
+    "it": "Non reclamabile (assegnato)",
+    "bg": "Не може да се заяви (присвоено)"
+  },
+  "deviceInventory.online": {
+    "tr": "Çevrimiçi ({{count}})",
+    "en": "Online ({{count}})",
+    "nl": "Online ({{count}})",
+    "de": "Online ({{count}})",
+    "fr": "En ligne ({{count}})",
+    "es": "En línea ({{count}})",
+    "it": "Online ({{count}})",
+    "bg": "На линия ({{count}})"
+  },
+  "deviceInventory.offline": {
+    "tr": "Çevrimdışı ({{count}})",
+    "en": "Offline ({{count}})",
+    "nl": "Offline ({{count}})",
+    "de": "Offline ({{count}})",
+    "fr": "Hors ligne ({{count}})",
+    "es": "Fuera de línea ({{count}})",
+    "it": "Offline ({{count}})",
+    "bg": "Офлайн ({{count}})"
+  }
+}

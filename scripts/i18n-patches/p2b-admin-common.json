@@ -1,0 +1,33 @@
+{
+  "common.csv": {
+    "tr": "CSV",
+    "en": "CSV",
+    "nl": "CSV",
+    "de": "CSV",
+    "fr": "CSV",
+    "es": "CSV",
+    "it": "CSV",
+    "bg": "CSV"
+  },
+  "settings.version": {
+    "tr": "TulipFleet v{{version}}",
+    "en": "TulipFleet v{{version}}",
+    "nl": "TulipFleet v{{version}}",
+    "de": "TulipFleet v{{version}}",
+    "fr": "TulipFleet v{{version}}",
+    "es": "TulipFleet v{{version}}",
+    "it": "TulipFleet v{{version}}",
+    "bg": "TulipFleet v{{version}}",
+    "ku": "TulipFleet v{{version}}"
+  },
+  "vehicleInfo.historyRoute": {
+    "tr": "Geçmiş Rota",
+    "en": "Route history",
+    "nl": "Routegeschiedenis",
+    "de": "Routenverlauf",
+    "fr": "Historique d'itinéraire",
+    "es": "Historial de ruta",
+    "it": "Cronologia percorso",
+    "bg": "История на маршрута"
+  }
+}
