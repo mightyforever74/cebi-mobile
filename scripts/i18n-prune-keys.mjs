@@ -7,7 +7,7 @@
  * Delete a key only if ALL three hold:
  *   (a) absent from tr.json
  *   (b) no static t("key") / i18n.t("key") in src JS files
- *   (c) not under any scripts/i18n-dynamic-roots.json root
+ *   (c) not an allowlisted subkey of scripts/i18n-dynamic-roots.json
  * Otherwise the key is listed as protected (reason: tr'de var / kodda var / manifest altında).
  * Empty parent objects are removed. JSON: 2-space, key order kept, no BOM.
  */
@@ -100,9 +100,13 @@ function pruneEmpty(obj) {
   return Object.keys(obj).length === 0;
 }
 
-function underManifest(key, roots) {
-  for (const root of roots) {
-    if (key === root || key.startsWith(`${root}.`)) return root;
+function underManifest(key, manifest) {
+  for (const [root, subkeys] of Object.entries(manifest)) {
+    if (key === root) return root;
+    if (!key.startsWith(`${root}.`)) continue;
+    const rest = key.slice(root.length + 1);
+    const first = rest.split(".")[0];
+    if (Array.isArray(subkeys) && subkeys.includes(first)) return root;
   }
   return null;
 }
@@ -136,7 +140,6 @@ for (const lang of LANGS) {
 const trKeys = new Set(Object.keys(flats.tr));
 const staticUsed = collectStaticKeys(walkJs(SRC_DIR));
 const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
-const manifestRoots = Object.keys(manifest);
 
 const candidates = [...union].filter((k) => !trKeys.has(k)).sort();
 const protectedList = [];
@@ -147,7 +150,7 @@ for (const key of candidates) {
     protectedList.push({ key, reason: "kodda var" });
     continue;
   }
-  const root = underManifest(key, manifestRoots);
+  const root = underManifest(key, manifest);
   if (root) {
     protectedList.push({ key, reason: `manifest altında (${root})` });
     continue;
@@ -174,7 +177,11 @@ for (const lang of LANGS) {
   for (const key of toDelete) {
     if (deleteDotted(dicts[lang], key)) changed = true;
   }
-  if (changed) pruneEmpty(dicts[lang]);
+  if (!changed) {
+    afterCounts[lang] = beforeCounts[lang];
+    continue;
+  }
+  pruneEmpty(dicts[lang]);
   const outBody = JSON.stringify(dicts[lang], null, 2);
   const out = meta.trailingNl
     ? outBody + (meta.nl === "\r\n" ? "\r\n" : "\n")
