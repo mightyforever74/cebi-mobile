@@ -607,7 +607,8 @@
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
       "strong": "🟢 Forte",
-      "weak": "🔴 Debole"
+      "weak": "🔴 Debole",
+      "scanError": "Errore di scansione: {{detail}}"
     },
     "wifi": {
       "warning5GHz": "Questo SSID potrebbe essere una rete 5GHz. ESP32 supporta solo 2.4GHz. Utilizzare la rete 2.4GHz.",
@@ -633,8 +634,13 @@
         "ERR_TIMEOUT": "Impossibile connettersi al WiFi (timeout)",
         "ERR_NOT_FOUND": "Rete WiFi non trovata (il 5 GHz non è supportato)",
         "ERR_UNKNOWN": "Si è verificato un errore sconosciuto",
-        "WIFI_TIMEOUT": "Timeout della connessione WiFi"
-      }
+        "WIFI_TIMEOUT": "Timeout della connessione WiFi",
+        "INVALID_SSID": "Nome rete WiFi non valido",
+        "INVALID_PASSWORD": "La password deve avere almeno 8 caratteri",
+        "generic": "Errore: {{code}}"
+      },
+      "provisionMissing": "Il provisioning WiFi non è disponibile nel servizio BLE.",
+      "setupError": "Errore durante la configurazione WiFi: {{detail}}"
     },
     "bluetooth": {
       "error": "Bluetooth Error",
@@ -649,7 +655,8 @@
       "unauthorized": "Bluetooth Permission Required",
       "unauthorizedMessage": "Grant Bluetooth permission in settings",
       "unsupported": "Bluetooth Not Supported",
-      "unsupportedMessage": "This device does not support Bluetooth Low Energy"
+      "unsupportedMessage": "This device does not support Bluetooth Low Energy",
+      "initFailed": "Impossibile avviare Bluetooth: {{detail}}"
     },
     "buttons": {
       "cancel": "Cancel",
@@ -693,7 +700,9 @@
       "invalid": "Invalid Serial",
       "invalidFormat": "Serial format is incorrect. Example: TF-2025-00008-5",
       "notRegistered": "This serial is not registered in the system",
-      "validating": "Validating serial..."
+      "validating": "Validating serial...",
+      "missing": "Numero di serie non trovato.",
+      "scanned": "Seriale: {{serial}}"
     },
     "setupNotRequired": "Configurazione non necessaria ✅",
     "status": {
@@ -1719,7 +1728,8 @@
       "stop": "Fermata",
       "arrived": "Arrivato",
       "departed": "Partito",
-      "complete": "Completa"
+      "complete": "Completa",
+      "unnamed": "Fermata {{index}}"
     }
   },
   "reports": {

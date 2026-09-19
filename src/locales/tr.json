@@ -693,7 +693,8 @@
       "locationDeniedMessage": "Bluetooth taraması için konum izni gerekli",
       "error": "Bluetooth Hatası",
       "notReady": "Bluetooth Hazır Değil",
-      "notReadyMessage": "Bluetooth başlatılırken bekleyin..."
+      "notReadyMessage": "Bluetooth başlatılırken bekleyin...",
+      "initFailed": "Bluetooth başlatılamadı: {{detail}}"
     },
     "qr": {
       "invalidCode": "Geçersiz QR Kod",
@@ -707,7 +708,9 @@
       "invalidFormat": "Serial formatı hatalı. Örnek: TF-2025-00008-5",
       "notRegistered": "Bu serial sistemde kayıtlı değil",
       "enterSerial": "Serial Numarası Girin",
-      "example": "Örnek: TF-2025-00008-5"
+      "example": "Örnek: TF-2025-00008-5",
+      "missing": "Seri numarası bulunamadı.",
+      "scanned": "Serial: {{serial}}"
     },
     "ble": {
       "searchingDevices": "Cihazlar aranıyor...",
@@ -720,7 +723,8 @@
       "medium": "🟡 Orta",
       "weak": "🔴 Zayıf",
       "bootWindowHint": "ESP32 cihazının BLE modu açılıştan sonra 5 dakika aktiftir. Cihaz bulunamazsa USB'yi çıkarıp tekrar takarak cihazı yeniden başlatın.",
-      "deviceNameHint": "Cihaz adı \"TulipFleet-XXXX\" şeklinde görünür. 1-2 metre yaklaşın."
+      "deviceNameHint": "Cihaz adı \"TulipFleet-XXXX\" şeklinde görünür. 1-2 metre yaklaşın.",
+      "scanError": "Tarama hatası: {{detail}}"
     },
     "connection": {
       "connecting": "Bağlanıyor...",
@@ -752,8 +756,13 @@
         "ERR_TIMEOUT": "WiFi ağına bağlanılamadı (zaman aşımı)",
         "ERR_NOT_FOUND": "WiFi ağı bulunamadı (5GHz desteklenmez)",
         "ERR_UNKNOWN": "Bilinmeyen bir hata oluştu",
-        "WIFI_TIMEOUT": "WiFi bağlantısı zaman aşımına uğradı"
-      }
+        "WIFI_TIMEOUT": "WiFi bağlantısı zaman aşımına uğradı",
+        "INVALID_SSID": "Geçersiz WiFi ağ adı",
+        "INVALID_PASSWORD": "Şifre en az 8 karakter olmalı",
+        "generic": "Hata: {{code}}"
+      },
+      "provisionMissing": "BLE servisinde WiFi provisioning fonksiyonu yok.",
+      "setupError": "WiFi kurulumu sırasında hata: {{detail}}"
     },
     "activation": {
       "activating": "Cihaz aktive ediliyor...",
@@ -939,7 +948,8 @@
       "stop": "Durak",
       "arrived": "Varıldı",
       "departed": "Ayrıldı",
-      "complete": "Tamamla"
+      "complete": "Tamamla",
+      "unnamed": "Durak {{index}}"
     },
     "vehicleNotAssigned": "Bu göreve araç atanmamış. Lütfen admin ile iletişime geçin."
   },

@@ -1,0 +1,62 @@
+{
+  "deviceSetup.bluetooth.initFailed": {
+    "tr": "Bluetooth başlatılamadı: {{detail}}",
+    "en": "Could not start Bluetooth: {{detail}}",
+    "nl": "Bluetooth kon niet worden gestart: {{detail}}",
+    "de": "Bluetooth konnte nicht gestartet werden: {{detail}}",
+    "fr": "Impossible de démarrer Bluetooth : {{detail}}",
+    "es": "No se pudo iniciar Bluetooth: {{detail}}",
+    "it": "Impossibile avviare Bluetooth: {{detail}}",
+    "bg": "Bluetooth не можа да бъде стартиран: {{detail}}"
+  },
+  "deviceSetup.ble.scanError": {
+    "tr": "Tarama hatası: {{detail}}",
+    "en": "Scan error: {{detail}}",
+    "nl": "Scanfout: {{detail}}",
+    "de": "Scanfehler: {{detail}}",
+    "fr": "Erreur de scan : {{detail}}",
+    "es": "Error de escaneo: {{detail}}",
+    "it": "Errore di scansione: {{detail}}",
+    "bg": "Грешка при сканиране: {{detail}}"
+  },
+  "deviceSetup.serial.missing": {
+    "tr": "Seri numarası bulunamadı.",
+    "en": "Serial number was not found.",
+    "nl": "Serienummer is niet gevonden.",
+    "de": "Seriennummer wurde nicht gefunden.",
+    "fr": "Le numéro de série est introuvable.",
+    "es": "No se encontró el número de serie.",
+    "it": "Numero di serie non trovato.",
+    "bg": "Серийният номер не е намерен."
+  },
+  "deviceSetup.serial.scanned": {
+    "tr": "Serial: {{serial}}",
+    "en": "Serial: {{serial}}",
+    "nl": "Serie: {{serial}}",
+    "de": "Serie: {{serial}}",
+    "fr": "Série : {{serial}}",
+    "es": "Serie: {{serial}}",
+    "it": "Seriale: {{serial}}",
+    "bg": "Сериен: {{serial}}"
+  },
+  "deviceSetup.wifi.provisionMissing": {
+    "tr": "BLE servisinde WiFi provisioning fonksiyonu yok.",
+    "en": "WiFi provisioning is not available in the BLE service.",
+    "nl": "WiFi-provisioning ontbreekt in de BLE-service.",
+    "de": "WLAN-Provisioning ist im BLE-Dienst nicht verfügbar.",
+    "fr": "Le provisionnement WiFi n'est pas disponible dans le service BLE.",
+    "es": "El aprovisionamiento WiFi no está disponible en el servicio BLE.",
+    "it": "Il provisioning WiFi non è disponibile nel servizio BLE.",
+    "bg": "WiFi provisioning липсва в BLE услугата."
+  },
+  "deviceSetup.wifi.setupError": {
+    "tr": "WiFi kurulumu sırasında hata: {{detail}}",
+    "en": "WiFi setup error: {{detail}}",
+    "nl": "Fout tijdens WiFi-installatie: {{detail}}",
+    "de": "Fehler bei der WLAN-Einrichtung: {{detail}}",
+    "fr": "Erreur lors de la configuration WiFi : {{detail}}",
+    "es": "Error durante la configuración WiFi: {{detail}}",
+    "it": "Errore durante la configurazione WiFi: {{detail}}",
+    "bg": "Грешка при WiFi настройка: {{detail}}"
+  }
+}

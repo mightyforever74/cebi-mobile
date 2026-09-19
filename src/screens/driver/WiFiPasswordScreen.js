@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { WIFI_ERROR_MESSAGES, WIFI_PROGRESS_KEYS } from "../../constants/config";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 import bleService from "../../services/bleService";
 
@@ -85,15 +86,19 @@ const WiFiPasswordScreen = () => {
       const result = await bleService.provisionWifi(
         wifiSsid.trim(),
         password,
-        (phase, message) => {
-          setStatus(message);
+        (phase) => {
+          const key = WIFI_PROGRESS_KEYS[phase];
+          if (key) setStatus(t(key));
         }
       );
 
       if (!result.success) {
+        const errorKey = WIFI_ERROR_MESSAGES[result.error];
         Alert.alert(
           t("common.error"),
-          result.message || t("deviceSetup.wifi.connectionFailed")
+          errorKey
+            ? t(errorKey)
+            : t("deviceSetup.wifi.errors.generic", { code: result.error })
         );
         setConnecting(false);
         setStatus("");

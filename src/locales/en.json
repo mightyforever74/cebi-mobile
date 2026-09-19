@@ -697,7 +697,8 @@
       "locationDeniedMessage": "Location permission required for Bluetooth scanning",
       "error": "Bluetooth Error",
       "notReady": "Bluetooth Not Ready",
-      "notReadyMessage": "Wait while Bluetooth is starting..."
+      "notReadyMessage": "Wait while Bluetooth is starting...",
+      "initFailed": "Could not start Bluetooth: {{detail}}"
     },
     "qr": {
       "invalidCode": "Invalid QR Code",
@@ -711,7 +712,9 @@
       "invalidFormat": "Serial format is incorrect. Example: TF-2025-00008-5",
       "notRegistered": "This serial is not registered in the system",
       "enterSerial": "Enter Serial Number",
-      "example": "Example: TF-2025-00008-5"
+      "example": "Example: TF-2025-00008-5",
+      "missing": "Serial number was not found.",
+      "scanned": "Serial: {{serial}}"
     },
     "ble": {
       "searchingDevices": "Searching for devices...",
@@ -724,7 +727,8 @@
       "medium": "🟡 Medium",
       "weak": "🔴 Weak",
       "bootWindowHint": "The ESP32 device's BLE mode is active for 5 minutes after power on. If the device is not found, restart it by unplugging and replugging the USB cable.",
-      "deviceNameHint": "Device name appears as \"TulipFleet-XXXX\". Move within 1-2 meters."
+      "deviceNameHint": "Device name appears as \"TulipFleet-XXXX\". Move within 1-2 meters.",
+      "scanError": "Scan error: {{detail}}"
     },
     "connection": {
       "connecting": "Connecting...",
@@ -756,8 +760,13 @@
         "ERR_TIMEOUT": "Could not connect to the WiFi network (timeout)",
         "ERR_NOT_FOUND": "WiFi network not found (5GHz is not supported)",
         "ERR_UNKNOWN": "An unknown error occurred",
-        "WIFI_TIMEOUT": "WiFi connection timed out"
-      }
+        "WIFI_TIMEOUT": "WiFi connection timed out",
+        "INVALID_SSID": "Invalid WiFi network name",
+        "INVALID_PASSWORD": "Password must be at least 8 characters",
+        "generic": "Error: {{code}}"
+      },
+      "provisionMissing": "WiFi provisioning is not available in the BLE service.",
+      "setupError": "WiFi setup error: {{detail}}"
     },
     "activation": {
       "activating": "Activating device...",
@@ -943,7 +952,8 @@
       "stop": "Stop",
       "arrived": "Arrived",
       "departed": "Departed",
-      "complete": "Complete"
+      "complete": "Complete",
+      "unnamed": "Stop {{index}}"
     },
     "vehicleNotAssigned": "No vehicle is assigned to this task. Please contact an admin."
   },

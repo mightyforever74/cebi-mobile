@@ -642,7 +642,8 @@
       "searchingBluetooth": "Buscando dispositivos Bluetooth...",
       "searchingDevices": "Buscando dispositivos...",
       "strong": "🟢 Fuerte",
-      "weak": "🔴 Débil"
+      "weak": "🔴 Débil",
+      "scanError": "Error de escaneo: {{detail}}"
     },
     "wifi": {
       "warning5GHz": "Este SSID puede ser una red 5GHz. ESP32 solo soporta 2.4GHz. Por favor use su red 2.4GHz.",
@@ -668,8 +669,13 @@
         "ERR_TIMEOUT": "No se pudo conectar a la red WiFi (tiempo agotado)",
         "ERR_NOT_FOUND": "Red WiFi no encontrada (5 GHz no compatible)",
         "ERR_UNKNOWN": "Se produjo un error desconocido",
-        "WIFI_TIMEOUT": "Tiempo de conexión WiFi agotado"
-      }
+        "WIFI_TIMEOUT": "Tiempo de conexión WiFi agotado",
+        "INVALID_SSID": "Nombre de red WiFi no válido",
+        "INVALID_PASSWORD": "La contraseña debe tener al menos 8 caracteres",
+        "generic": "Error: {{code}}"
+      },
+      "provisionMissing": "El aprovisionamiento WiFi no está disponible en el servicio BLE.",
+      "setupError": "Error durante la configuración WiFi: {{detail}}"
     },
     "bluetooth": {
       "error": "Error de Bluetooth",
@@ -684,7 +690,8 @@
       "unauthorized": "Permiso de Bluetooth requerido",
       "unauthorizedMessage": "Concede permiso de Bluetooth en configuración",
       "unsupported": "Bluetooth no compatible",
-      "unsupportedMessage": "Este dispositivo no es compatible con Bluetooth Low Energy"
+      "unsupportedMessage": "Este dispositivo no es compatible con Bluetooth Low Energy",
+      "initFailed": "No se pudo iniciar Bluetooth: {{detail}}"
     },
     "buttons": {
       "cancel": "Cancelar",
@@ -728,7 +735,9 @@
       "invalid": "Invalid Serial",
       "invalidFormat": "Serial format is incorrect. Example: TF-2025-00008-5",
       "notRegistered": "This serial is not registered in the system",
-      "validating": "Validating serial..."
+      "validating": "Validating serial...",
+      "missing": "No se encontró el número de serie.",
+      "scanned": "Serie: {{serial}}"
     },
     "setupNotRequired": "Configuración no requerida ✅",
     "status": {
@@ -1877,7 +1886,8 @@
       "stop": "Parada",
       "arrived": "Llegado",
       "departed": "Salido",
-      "complete": "Completar"
+      "complete": "Completar",
+      "unnamed": "Parada {{index}}"
     }
   },
   "reports": {

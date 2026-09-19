@@ -130,6 +130,16 @@ export const WIFI_ERROR_MESSAGES = {
   ERR_NOT_FOUND: "deviceSetup.wifi.errors.ERR_NOT_FOUND",
   ERR_UNKNOWN: "deviceSetup.wifi.errors.ERR_UNKNOWN",
   WIFI_TIMEOUT: "deviceSetup.wifi.errors.WIFI_TIMEOUT",
+  INVALID_SSID: "deviceSetup.wifi.errors.INVALID_SSID",
+  INVALID_PASSWORD: "deviceSetup.wifi.errors.INVALID_PASSWORD",
+};
+
+export const WIFI_PROGRESS_KEYS = {
+  sending: "deviceSetup.wifi.sendingCredentials",
+  connecting: "deviceSetup.wifi.deviceConnecting",
+  status: "deviceSetup.status.wifiConnecting",
+  success: "deviceSetup.status.wifiProvisionOk",
+  error: "deviceSetup.wifi.connectionFailed",
 };
 
 // ═══════════════════════════════════════════════════════════════════
