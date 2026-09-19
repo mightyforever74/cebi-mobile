@@ -583,7 +583,9 @@ const DriverDashboard = () => {
       fetchDriveAssist(active, vehicleRes.vehicle || null);
     } catch (err) {
       console.error("[Dashboard] Fetch error:", err);
-      setError(`${t("common.error")}: ${err?.message || "Unknown error"}`);
+      setError(
+        `${t("common.error")}: ${err?.message || t("common.unknown")}`
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -649,13 +651,16 @@ const DriverDashboard = () => {
       if (!ok) {
         Alert.alert(
           t("common.error"),
-          t("common.cannotOpenLink", "Link aÃ§Ä±lamadÄ±")
+          t("common.cannotOpenLink")
         );
         return;
       }
       await Linking.openURL(url);
     } catch (e) {
-      Alert.alert(t("common.error"), e?.message || "Link error");
+      Alert.alert(
+        t("common.error"),
+        e?.message || t("common.cannotOpenLink")
+      );
     }
   };
 

@@ -7,6 +7,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -174,6 +175,7 @@ const VehiclePickerScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -184,7 +186,8 @@ const VehiclePickerScreen = () => {
   const [vehicles, setVehicles] = useState([]);
   const [assigning, setAssigning] = useState(false);
 
-  const displayName = user?.first_name || user?.name || user?.email || "Sürücü";
+  const displayName =
+    user?.first_name || user?.name || user?.email || t("common.user");
 
   useEffect(() => {
     fetchVehicles();
@@ -198,21 +201,21 @@ const VehiclePickerScreen = () => {
       setVehicles(response?.vehicles || []);
     } catch (error) {
       console.error("[VehiclePicker] Error:", error);
-      Alert.alert("Hata", "Araçlar yüklenemedi");
+      Alert.alert(t("common.error"), t("vehiclePicker.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleVehicleSelect = async (vehicle) => {
-    const plate = vehicle.plate || vehicle.plate_no || "Bilinmeyen";
+    const plate = vehicle.plate || vehicle.plate_no || t("common.unknown");
 
     Alert.alert(
-      "Cihaz Ataması",
-      `${plate} plakalı aracı seçtiniz. Devam etmek istiyor musunuz?`,
+      t("vehiclePicker.assignTitle"),
+      t("vehiclePicker.assignConfirm", { plate }),
       [
-        { text: "İptal", style: "cancel" },
-        { text: "Devam", onPress: () => assignDevice(vehicle) },
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("common.continue"), onPress: () => assignDevice(vehicle) },
       ]
     );
   };
@@ -221,12 +224,12 @@ const VehiclePickerScreen = () => {
     if (!deviceId) {
       console.error("[VehiclePicker] ❌ No deviceId - cannot proceed!");
       Alert.alert(
-        "BLE Bağlantısı Yok",
-        "WiFi kurulumu için BLE bağlantısı gerekli. Baştan başlatmak ister misiniz?",
+        t("vehiclePicker.noBleTitle"),
+        t("vehiclePicker.noBleMessage"),
         [
-          { text: "İptal", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Baştan Başlat",
+            text: t("vehiclePicker.restart"),
             onPress: () => {
               navigation.reset({
                 index: 0,
@@ -262,13 +265,18 @@ const VehiclePickerScreen = () => {
           deviceId,
         });
       } else {
-        Alert.alert("Hata", response?.message || "Atama başarısız");
+        Alert.alert(
+          t("common.error"),
+          response?.message || t("vehiclePicker.assignFailed")
+        );
       }
     } catch (error) {
       console.error("[VehiclePicker] Assign error:", error);
       Alert.alert(
-        "Hata",
-        "Cihaz ataması başarısız: " + (error.message || "Bilinmeyen hata")
+        t("common.error"),
+        t("vehiclePicker.assignFailedDetail", {
+          detail: error.message || t("common.unknown"),
+        })
       );
     } finally {
       setAssigning(false);
@@ -279,7 +287,7 @@ const VehiclePickerScreen = () => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Araçlar yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("vehiclePicker.loading")}</Text>
       </View>
     );
   }
@@ -287,13 +295,13 @@ const VehiclePickerScreen = () => {
   if (vehicles.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>Kullanılabilir araç bulunamadı</Text>
+        <Text style={styles.emptyText}>{t("vehiclePicker.empty")}</Text>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={fetchVehicles}
           activeOpacity={0.85}
         >
-          <Text style={styles.retryButtonText}>Yeniden Dene</Text>
+          <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -302,9 +310,9 @@ const VehiclePickerScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Araç Seçin</Text>
+        <Text style={styles.title}>{t("vehiclePicker.title")}</Text>
         <Text style={styles.subtitle}>
-          {displayName}, hangi aracı kullanacaksınız?
+          {t("vehiclePicker.subtitle", { name: displayName })}
         </Text>
       </View>
 
@@ -314,12 +322,9 @@ const VehiclePickerScreen = () => {
       >
         {vehicles.map((vehicle) => {
           const plate = vehicle.plate || vehicle.plate_no || "-";
-          const fuelLabel =
-            vehicle.fuel_type === "diesel"
-              ? "Dizel"
-              : vehicle.fuel_type === "gasoline"
-                ? "Benzin"
-                : vehicle.fuel_type || "-";
+          const fuelLabel = vehicle.fuel_type
+            ? t(`adminVehicles.fuelTypes.${vehicle.fuel_type}`, vehicle.fuel_type)
+            : "-";
 
           return (
             <TouchableOpacity
@@ -348,7 +353,9 @@ const VehiclePickerScreen = () => {
                     <Text style={styles.vehicleDetails}>
                       {vehicle.brand} {vehicle.model} {vehicle.year}
                     </Text>
-                    <Text style={styles.vehicleFuel}>Yakıt: {fuelLabel}</Text>
+                    <Text style={styles.vehicleFuel}>
+                      {t("vehiclePicker.fuelLine", { type: fuelLabel })}
+                    </Text>
                   </View>
 
                   <Ionicons
@@ -371,14 +378,16 @@ const VehiclePickerScreen = () => {
           disabled={assigning}
           activeOpacity={0.85}
         >
-          <Text style={styles.cancelButtonText}>İptal</Text>
+          <Text style={styles.cancelButtonText}>{t("common.cancel")}</Text>
         </TouchableOpacity>
       </View>
 
       {assigning && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={COLORS.WHITE} />
-          <Text style={styles.loadingOverlayText}>Atanıyor...</Text>
+          <Text style={styles.loadingOverlayText}>
+            {t("vehiclePicker.assigning")}
+          </Text>
         </View>
       )}
     </View>

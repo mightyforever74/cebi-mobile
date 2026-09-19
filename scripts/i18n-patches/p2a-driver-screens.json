@@ -399,6 +399,26 @@
     "it": "Password",
     "bg": "Парола"
   },
+  "wifi.fallbackMethod": {
+    "tr": "Alternatif yöntemle tamamlanıyor...",
+    "en": "Completing with an alternative method...",
+    "nl": "Afronden via een alternatieve methode...",
+    "de": "Abschluss über eine alternative Methode...",
+    "fr": "Finalisation par une méthode alternative...",
+    "es": "Completando con un método alternativo...",
+    "it": "Completamento con un metodo alternativo...",
+    "bg": "Завършване с алтернативен метод..."
+  },
+  "wifi.espRestarting": {
+    "tr": "ESP32 yeniden başlatılıyor...",
+    "en": "ESP32 is restarting...",
+    "nl": "ESP32 wordt opnieuw gestart...",
+    "de": "ESP32 wird neu gestartet...",
+    "fr": "L'ESP32 redémarre...",
+    "es": "ESP32 se está reiniciando...",
+    "it": "ESP32 si sta riavviando...",
+    "bg": "ESP32 се рестартира..."
+  },
   "fuelEntry.km": {
     "tr": "KM",
     "en": "KM",

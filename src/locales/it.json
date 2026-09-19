@@ -2152,7 +2152,9 @@
     "signalGood": "Buona",
     "signalFair": "Discreta",
     "signalWeak": "Debole",
-    "passwordField": "Password"
+    "passwordField": "Password",
+    "fallbackMethod": "Completamento con un metodo alternativo...",
+    "espRestarting": "ESP32 si sta riavviando..."
   },
   "vehicleList": {
     "title": "Lista veicoli",

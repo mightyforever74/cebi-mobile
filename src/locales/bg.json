@@ -1695,7 +1695,9 @@
     "signalGood": "Добър",
     "signalFair": "Среден",
     "signalWeak": "Слаб",
-    "passwordField": "Парола"
+    "passwordField": "Парола",
+    "fallbackMethod": "Завършване с алтернативен метод...",
+    "espRestarting": "ESP32 се рестартира..."
   },
   "ble": {
     "scanning": "Сканиране...",

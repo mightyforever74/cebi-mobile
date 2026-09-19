@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +23,7 @@ const STORAGE_KEY_WIFI_HISTORY = "@tulipfleet_wifi_history";
 const WiFiPasswordScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
 
   const { ssid, serial, vehicle, assignment_id, manual, rssi, deviceId } =
     route.params;
@@ -36,20 +38,20 @@ const WiFiPasswordScreen = () => {
   const handleConnect = async () => {
     // Validation
     if (!wifiSsid || wifiSsid.trim().length === 0) {
-      Alert.alert("Hata", "WiFi ağı adı boş olamaz");
+      Alert.alert(t("common.error"), t("deviceSetup.wifi.emptySSID"));
       return;
     }
 
     if (!password || password.length < 8) {
-      Alert.alert("Hata", "WiFi şifresi en az 8 karakter olmalıdır");
+      Alert.alert(t("common.error"), t("deviceSetup.wifi.shortPassword"));
       return;
     }
 
     // 🆕 BLE kontrolü EKLE
     if (!deviceId) {
-      Alert.alert("Hata", "ESP32 bağlantısı kesildi. Lütfen baştan başlayın.", [
+      Alert.alert(t("common.error"), t("wifi.bleDisconnected"), [
         {
-          text: "Tamam",
+          text: t("common.ok"),
           onPress: () => navigation.navigate("DriverDashboard"),
         },
       ]);
@@ -60,7 +62,7 @@ const WiFiPasswordScreen = () => {
       setConnecting(true);
 
       // 1️⃣ Serial number'ı ESP32'ye gönder (WiFi'den ÖNCE - KRİTİK!)
-      setStatus("Seri numara gönderiliyor...");
+      setStatus(t("wifi.sendingSerial"));
       console.log("[WiFiPassword] Serial gönderiliyor:", serial);
       try {
         await bleService.writeSerial(serial);
@@ -70,18 +72,16 @@ const WiFiPasswordScreen = () => {
           "[WiFiPassword] ❌ Serial gönderilemedi:",
           serialError.message
         );
-        Alert.alert(
-          "Hata",
-          "Seri numara ESP32'ye gönderilemedi. BLE bağlantısını kontrol edin.",
-          [{ text: "Tamam" }]
-        );
+        Alert.alert(t("common.error"), t("wifi.serialSendFailed"), [
+          { text: t("common.ok") },
+        ]);
         setConnecting(false);
         setStatus("");
         return;
       }
 
       // 2️⃣ BLE ile WiFi credentials gönder (serial zaten ESP32'de)
-      setStatus("WiFi bilgileri gönderiliyor...");
+      setStatus(t("deviceSetup.wifi.sendingCredentials"));
       const result = await bleService.provisionWifi(
         wifiSsid.trim(),
         password,
@@ -91,7 +91,10 @@ const WiFiPasswordScreen = () => {
       );
 
       if (!result.success) {
-        Alert.alert("Hata", result.message || "WiFi bağlantısı başarısız");
+        Alert.alert(
+          t("common.error"),
+          result.message || t("deviceSetup.wifi.connectionFailed")
+        );
         setConnecting(false);
         setStatus("");
         return;
@@ -103,18 +106,18 @@ const WiFiPasswordScreen = () => {
       }
 
       // ✅ 4️⃣ ESP32'nin WiFi'ye bağlanmasını BEKLE
-      setStatus("ESP32 WiFi'ye bağlanıyor...");
+      setStatus(t("wifi.connectingEsp"));
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // ✅ 5️⃣ ESP32'nin backend'e activation yapmasını BEKLE
-      setStatus("ESP32 backend'e kaydoluyor...");
+      setStatus(t("wifi.registeringBackend"));
       console.log(
         "[WiFiPassword] ESP32'nin backend activation yapması bekleniyor..."
       );
       await new Promise((resolve) => setTimeout(resolve, 5000)); // +5 saniye
 
       // ✅ 6️⃣ Backend'den setup_required kontrol et (ESP32 zaten yaptı mı?)
-      setStatus("Durum kontrol ediliyor...");
+      setStatus(t("wifi.checkingStatus"));
       console.log("[WiFiPassword] Backend durumu kontrol ediliyor...");
 
       try {
@@ -138,7 +141,7 @@ const WiFiPasswordScreen = () => {
         console.log(
           "[WiFiPassword] Setup hala gerekli, 3 saniye daha bekleniyor..."
         );
-        setStatus("ESP32 hala çalışıyor, bekleniyor...");
+        setStatus(t("wifi.stillWorking"));
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         const retryCheck = await driverAPI.getVehicle();
@@ -162,12 +165,12 @@ const WiFiPasswordScreen = () => {
         console.log(
           "[WiFiPassword] ⚠️ ESP32 backend'e ulaşamadı, mobil app fallback devreye giriyor"
         );
-        setStatus("Alternatif yöntemle tamamlanıyor...");
+        setStatus(t("wifi.fallbackMethod"));
         await completeSetup();
       } catch (checkError) {
         console.error("[WiFiPassword] Backend kontrol hatası:", checkError);
         // Backend kontrolünde hata, fallback dene
-        setStatus("Alternatif yöntemle tamamlanıyor...");
+        setStatus(t("wifi.fallbackMethod"));
         await completeSetup();
       }
     } catch (error) {
@@ -184,7 +187,7 @@ const WiFiPasswordScreen = () => {
         console.log(
           "[WiFiPassword] BLE disconnect algılandı (ESP32 restart), durum kontrol ediliyor..."
         );
-        setStatus("ESP32 yeniden başlatılıyor...");
+        setStatus(t("wifi.espRestarting"));
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         try {
@@ -216,7 +219,12 @@ const WiFiPasswordScreen = () => {
           showSuccess();
         }
       } else {
-        Alert.alert("Hata", "Bağlantı hatası: " + error.message);
+        Alert.alert(
+          t("common.error"),
+          t("wifi.connectionErrorDetail", {
+            detail: error.message || t("common.unknown"),
+          })
+        );
         setConnecting(false);
         setStatus("");
       }
@@ -233,7 +241,7 @@ const WiFiPasswordScreen = () => {
       if (response.success) {
         showSuccess();
       } else {
-        throw new Error(response.message || "Setup tamamlanamadı");
+        throw new Error(response.message || t("wifi.setupIncomplete"));
       }
     } catch (error) {
       throw error;
@@ -241,14 +249,16 @@ const WiFiPasswordScreen = () => {
   };
 
   const showSuccess = () => {
-    setStatus("Kurulum tamamlandı! ✅");
+    setStatus(t("wifi.completeStatus"));
 
     Alert.alert(
-      "Başarılı!",
-      `Cihaz ${vehicle.plate || vehicle.plate_no} aracına başarıyla atandı ve WiFi'ye bağlandı.`,
+      t("common.success"),
+      t("wifi.successAssigned", {
+        plate: vehicle.plate || vehicle.plate_no || t("common.unknown"),
+      }),
       [
         {
-          text: "Tamam",
+          text: t("common.ok"),
           onPress: async () => {
             // ✅ BLE disconnect - Provision tamamlandı
             try {
@@ -301,22 +311,24 @@ const WiFiPasswordScreen = () => {
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <Text style={styles.title}>WiFi Şifresi</Text>
+          <Text style={styles.title}>{t("wifi.password")}</Text>
           {manual ? (
-            <Text style={styles.subtitle}>Manuel WiFi bilgilerini girin</Text>
+            <Text style={styles.subtitle}>{t("wifi.manualSubtitle")}</Text>
           ) : (
             <Text style={styles.subtitle}>{wifiSsid}</Text>
           )}
           {rssi && (
             <Text style={styles.signalText}>
-              Sinyal Gücü:{" "}
-              {rssi >= -50
-                ? "Mükemmel"
-                : rssi >= -60
-                  ? "İyi"
-                  : rssi >= -70
-                    ? "Orta"
-                    : "Zayıf"}
+              {t("wifi.signalStrength", {
+                level:
+                  rssi >= -50
+                    ? t("wifi.signalExcellent")
+                    : rssi >= -60
+                      ? t("wifi.signalGood")
+                      : rssi >= -70
+                        ? t("wifi.signalFair")
+                        : t("wifi.signalWeak"),
+              })}
             </Text>
           )}
         </View>
@@ -324,12 +336,12 @@ const WiFiPasswordScreen = () => {
         <View style={styles.formContainer}>
           {manual && (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>WiFi Ağı Adı (SSID)</Text>
+              <Text style={styles.label}>{t("wifi.ssidLabel")}</Text>
               <TextInput
                 style={styles.input}
                 value={wifiSsid}
                 onChangeText={setWifiSsid}
-                placeholder="WiFi ağı adını girin"
+                placeholder={t("wifi.ssidPlaceholder")}
                 placeholderTextColor="#999"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -339,13 +351,13 @@ const WiFiPasswordScreen = () => {
           )}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Şifre</Text>
+            <Text style={styles.label}>{t("wifi.passwordField")}</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.passwordInput}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="WiFi şifresini girin"
+                placeholder={t("wifi.passwordPlaceholder")}
                 placeholderTextColor="#999"
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
@@ -360,7 +372,7 @@ const WiFiPasswordScreen = () => {
                 <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.hint}>En az 8 karakter</Text>
+            <Text style={styles.hint}>{t("wifi.minLengthHint")}</Text>
           </View>
 
           <TouchableOpacity
@@ -373,7 +385,7 @@ const WiFiPasswordScreen = () => {
             >
               {savePassword && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Şifreyi kaydet</Text>
+            <Text style={styles.checkboxLabel}>{t("wifi.savePassword")}</Text>
           </TouchableOpacity>
 
           {status && (
@@ -393,7 +405,7 @@ const WiFiPasswordScreen = () => {
             {connecting ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
-              <Text style={styles.connectButtonText}>Bağlan</Text>
+              <Text style={styles.connectButtonText}>{t("wifi.connect")}</Text>
             )}
           </TouchableOpacity>
 
@@ -402,7 +414,7 @@ const WiFiPasswordScreen = () => {
             onPress={() => navigation.goBack()}
             disabled={connecting}
           >
-            <Text style={styles.cancelButtonText}>İptal</Text>
+            <Text style={styles.cancelButtonText}>{t("common.cancel")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

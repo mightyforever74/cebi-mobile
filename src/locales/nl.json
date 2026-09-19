@@ -542,7 +542,9 @@
     "signalGood": "Goed",
     "signalFair": "Redelijk",
     "signalWeak": "Zwak",
-    "passwordField": "Wachtwoord"
+    "passwordField": "Wachtwoord",
+    "fallbackMethod": "Afronden via een alternatieve methode...",
+    "espRestarting": "ESP32 wordt opnieuw gestart..."
   },
   "ble": {
     "scanning": "Apparaten zoeken...",

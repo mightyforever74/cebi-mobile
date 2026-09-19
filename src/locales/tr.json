@@ -514,7 +514,9 @@
     "signalGood": "İyi",
     "signalFair": "Orta",
     "signalWeak": "Zayıf",
-    "passwordField": "Şifre"
+    "passwordField": "Şifre",
+    "fallbackMethod": "Alternatif yöntemle tamamlanıyor...",
+    "espRestarting": "ESP32 yeniden başlatılıyor..."
   },
   "ble": {
     "scanning": "Cihazlar taranıyor...",

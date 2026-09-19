@@ -1575,7 +1575,9 @@
     "signalGood": "Gut",
     "signalFair": "Mittel",
     "signalWeak": "Schwach",
-    "passwordField": "Passwort"
+    "passwordField": "Passwort",
+    "fallbackMethod": "Abschluss über eine alternative Methode...",
+    "espRestarting": "ESP32 wird neu gestartet..."
   },
   "ble": {
     "scanning": "Geräte werden gesucht...",
