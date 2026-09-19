@@ -90,7 +90,9 @@
     "info": "Info",
     "invalidHour": "Gültiger Stundenbereich ist 0–23.",
     "optional": "(optional)",
-    "vehicle": "Fahrzeug"
+    "vehicle": "Fahrzeug",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Unbekannt"
   },
   "auth": {
     "login": "Anmelden",
@@ -1283,7 +1285,14 @@
       "connecting": "📶 WLAN-Verbindung",
       "network": "Netzwerk: {{ssid}}",
       "deviceConnecting": "Das ESP32-Gerät verbindet sich mit dem WLAN, bitte warten...",
-      "warning5GHz": "Diese SSID könnte zu einem 5-GHz-Netzwerk gehören. ESP32 unterstützt nur 2,4 GHz. Bitte verwenden Sie Ihr 2,4-GHz-Netzwerk."
+      "warning5GHz": "Diese SSID könnte zu einem 5-GHz-Netzwerk gehören. ESP32 unterstützt nur 2,4 GHz. Bitte verwenden Sie Ihr 2,4-GHz-Netzwerk.",
+      "errors": {
+        "ERR_AUTH": "Falsches WLAN-Passwort",
+        "ERR_TIMEOUT": "Keine Verbindung zum WLAN (Zeitüberschreitung)",
+        "ERR_NOT_FOUND": "WLAN-Netzwerk nicht gefunden (5 GHz wird nicht unterstützt)",
+        "ERR_UNKNOWN": "Ein unbekannter Fehler ist aufgetreten",
+        "WIFI_TIMEOUT": "WLAN-Verbindung Zeitüberschreitung"
+      }
     },
     "activation": {
       "activating": "Gerät wird aktiviert...",
@@ -1540,7 +1549,33 @@
     "scanningShort": "Scannen...",
     "selectNetwork": "WLAN wählen",
     "unsupported": "Nicht unterstützt",
-    "vehicle": "Fahrzeug"
+    "vehicle": "Fahrzeug",
+    "manualSubtitle": "WLAN-Daten manuell eingeben",
+    "ssidLabel": "WLAN-Name (SSID)",
+    "ssidPlaceholder": "WLAN-Namen eingeben",
+    "passwordPlaceholder": "WLAN-Passwort eingeben",
+    "minLengthHint": "Mindestens 8 Zeichen",
+    "savePassword": "Passwort speichern",
+    "ssidEmpty": "WLAN-Name darf nicht leer sein",
+    "passwordShort": "WLAN-Passwort muss mindestens 8 Zeichen haben",
+    "serialSendFailed": "Seriennummer konnte nicht an den ESP32 gesendet werden. BLE-Verbindung prüfen.",
+    "connectFailed": "WLAN-Verbindung fehlgeschlagen",
+    "connectionErrorDetail": "Verbindungsfehler: {{detail}}",
+    "sendingSerial": "Seriennummer wird gesendet...",
+    "sendingCredentials": "WLAN-Daten werden gesendet...",
+    "connectingEsp": "ESP32 verbindet sich mit WLAN...",
+    "registeringBackend": "ESP32 registriert sich beim Backend...",
+    "checkingStatus": "Status wird geprüft...",
+    "stillWorking": "ESP32 arbeitet noch, bitte warten...",
+    "setupIncomplete": "Einrichtung konnte nicht abgeschlossen werden",
+    "completeStatus": "Einrichtung abgeschlossen! ✅",
+    "successAssigned": "Das Gerät wurde {{plate}} zugewiesen und mit WLAN verbunden.",
+    "signalStrength": "Signalstärke: {{level}}",
+    "signalExcellent": "Ausgezeichnet",
+    "signalGood": "Gut",
+    "signalFair": "Mittel",
+    "signalWeak": "Schwach",
+    "passwordField": "Passwort"
   },
   "ble": {
     "scanning": "Geräte werden gesucht...",
@@ -2281,5 +2316,39 @@
     "shareError": "Teilfehler",
     "sharePdf": "PDF teilen",
     "title": "Bericht exportieren"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Fahrzeug wählen",
+    "subtitle": "{{name}}, welches Fahrzeug nutzen Sie?",
+    "loading": "Fahrzeuge werden geladen...",
+    "empty": "Keine verfügbaren Fahrzeuge gefunden",
+    "loadFailed": "Fahrzeuge konnten nicht geladen werden",
+    "assignTitle": "Gerätezuweisung",
+    "assignConfirm": "Sie haben das Fahrzeug mit Kennzeichen {{plate}} gewählt. Fortfahren?",
+    "noBleTitle": "Keine BLE-Verbindung",
+    "noBleMessage": "Für die WLAN-Einrichtung ist eine BLE-Verbindung erforderlich. Von vorn beginnen?",
+    "restart": "Von vorn beginnen",
+    "assignFailed": "Zuweisung fehlgeschlagen",
+    "assignFailedDetail": "Gerätezuweisung fehlgeschlagen: {{detail}}",
+    "fuelLine": "Kraftstoff: {{type}}",
+    "assigning": "Wird zugewiesen..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Liter",
+    "consumption": "Verbrauch"
+  },
+  "time": {
+    "ago": {
+      "seconds": "vor {{count}} Sek.",
+      "minutes": "vor {{count}} Min.",
+      "hours": "vor {{count}} Std.",
+      "days": "vor {{count}} Tagen",
+      "months": "vor {{count}} Mon.",
+      "years": "vor {{count}} J."
+    }
   }
 }

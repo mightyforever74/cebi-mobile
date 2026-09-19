@@ -90,7 +90,9 @@
     "info": "Bilgi",
     "invalidHour": "Geçerli saat aralığı 0–23 olmalıdır.",
     "optional": "(opsiyonel)",
-    "vehicle": "Araç"
+    "vehicle": "Araç",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Bilinmeyen"
   },
   "profile": {
     "title": "Profil",
@@ -486,7 +488,33 @@
     "scanningShort": "Taranıyor...",
     "selectNetwork": "WiFi Seçin",
     "unsupported": "Desteklenmiyor",
-    "vehicle": "Araç"
+    "vehicle": "Araç",
+    "manualSubtitle": "Manuel WiFi bilgilerini girin",
+    "ssidLabel": "WiFi Ağı Adı (SSID)",
+    "ssidPlaceholder": "WiFi ağı adını girin",
+    "passwordPlaceholder": "WiFi şifresini girin",
+    "minLengthHint": "En az 8 karakter",
+    "savePassword": "Şifreyi kaydet",
+    "ssidEmpty": "WiFi ağı adı boş olamaz",
+    "passwordShort": "WiFi şifresi en az 8 karakter olmalıdır",
+    "serialSendFailed": "Seri numara ESP32'ye gönderilemedi. BLE bağlantısını kontrol edin.",
+    "connectFailed": "WiFi bağlantısı başarısız",
+    "connectionErrorDetail": "Bağlantı hatası: {{detail}}",
+    "sendingSerial": "Seri numara gönderiliyor...",
+    "sendingCredentials": "WiFi bilgileri gönderiliyor...",
+    "connectingEsp": "ESP32 WiFi'ye bağlanıyor...",
+    "registeringBackend": "ESP32 backend'e kaydoluyor...",
+    "checkingStatus": "Durum kontrol ediliyor...",
+    "stillWorking": "ESP32 hala çalışıyor, bekleniyor...",
+    "setupIncomplete": "Setup tamamlanamadı",
+    "completeStatus": "Kurulum tamamlandı! ✅",
+    "successAssigned": "Cihaz {{plate}} aracına başarıyla atandı ve WiFi'ye bağlandı.",
+    "signalStrength": "Sinyal Gücü: {{level}}",
+    "signalExcellent": "Mükemmel",
+    "signalGood": "İyi",
+    "signalFair": "Orta",
+    "signalWeak": "Zayıf",
+    "passwordField": "Şifre"
   },
   "ble": {
     "scanning": "Cihazlar taranıyor...",
@@ -715,7 +743,14 @@
       "connecting": "📶 WiFi Bağlantısı",
       "network": "Ağ: {{ssid}}",
       "deviceConnecting": "ESP32 cihazı WiFi ağına bağlanıyor, lütfen bekleyin...",
-      "warning5GHz": "Bu SSID 5GHz ağa ait olabilir. ESP32 sadece 2.4GHz destekler. Lütfen 2.4GHz ağınızı kullanın."
+      "warning5GHz": "Bu SSID 5GHz ağa ait olabilir. ESP32 sadece 2.4GHz destekler. Lütfen 2.4GHz ağınızı kullanın.",
+      "errors": {
+        "ERR_AUTH": "WiFi şifresi yanlış",
+        "ERR_TIMEOUT": "WiFi ağına bağlanılamadı (zaman aşımı)",
+        "ERR_NOT_FOUND": "WiFi ağı bulunamadı (5GHz desteklenmez)",
+        "ERR_UNKNOWN": "Bilinmeyen bir hata oluştu",
+        "WIFI_TIMEOUT": "WiFi bağlantısı zaman aşımına uğradı"
+      }
     },
     "activation": {
       "activating": "Cihaz aktive ediliyor...",
@@ -2254,5 +2289,39 @@
     "shareError": "Paylaşım hatası",
     "sharePdf": "PDF Paylaş",
     "title": "Raporu Dışa Aktar"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Araç Seçin",
+    "subtitle": "{{name}}, hangi aracı kullanacaksınız?",
+    "loading": "Araçlar yükleniyor...",
+    "empty": "Kullanılabilir araç bulunamadı",
+    "loadFailed": "Araçlar yüklenemedi",
+    "assignTitle": "Cihaz Ataması",
+    "assignConfirm": "{{plate}} plakalı aracı seçtiniz. Devam etmek istiyor musunuz?",
+    "noBleTitle": "BLE Bağlantısı Yok",
+    "noBleMessage": "WiFi kurulumu için BLE bağlantısı gerekli. Baştan başlatmak ister misiniz?",
+    "restart": "Baştan Başlat",
+    "assignFailed": "Atama başarısız",
+    "assignFailedDetail": "Cihaz ataması başarısız: {{detail}}",
+    "fuelLine": "Yakıt: {{type}}",
+    "assigning": "Atanıyor..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Litre",
+    "consumption": "Tüketim"
+  },
+  "time": {
+    "ago": {
+      "seconds": "{{count}} sn önce",
+      "minutes": "{{count}} dk önce",
+      "hours": "{{count}} sa önce",
+      "days": "{{count}} gün önce",
+      "months": "{{count}} ay önce",
+      "years": "{{count}} yıl önce"
+    }
   }
 }
