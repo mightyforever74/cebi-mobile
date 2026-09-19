@@ -725,7 +725,8 @@
       "locationDeniedMessage": "Locatietoestemming vereist voor Bluetooth scannen",
       "error": "Bluetooth Fout",
       "notReady": "Bluetooth Niet Gereed",
-      "notReadyMessage": "Wacht terwijl Bluetooth start..."
+      "notReadyMessage": "Wacht terwijl Bluetooth start...",
+      "initFailed": "Bluetooth kon niet worden gestart: {{detail}}"
     },
     "qr": {
       "invalidCode": "Ongeldige QR Code",
@@ -739,7 +740,9 @@
       "invalidFormat": "Serienummerformaat is onjuist. Voorbeeld: TF-2025-00008-5",
       "notRegistered": "Dit serienummer is niet geregistreerd in het systeem",
       "enterSerial": "Enter Serial Number",
-      "example": "Example: TF-2025-00008-5"
+      "example": "Example: TF-2025-00008-5",
+      "missing": "Serienummer is niet gevonden.",
+      "scanned": "Serie: {{serial}}"
     },
     "scan": {
       "scanning": "Zoeken naar apparaat...",
@@ -775,8 +778,13 @@
         "ERR_TIMEOUT": "Kon niet verbinden met het WiFi-netwerk (time-out)",
         "ERR_NOT_FOUND": "WiFi-netwerk niet gevonden (5GHz wordt niet ondersteund)",
         "ERR_UNKNOWN": "Er is een onbekende fout opgetreden",
-        "WIFI_TIMEOUT": "WiFi-verbinding time-out"
-      }
+        "WIFI_TIMEOUT": "WiFi-verbinding time-out",
+        "INVALID_SSID": "Ongeldige WiFi-netwerknaam",
+        "INVALID_PASSWORD": "Wachtwoord moet minstens 8 tekens zijn",
+        "generic": "Fout: {{code}}"
+      },
+      "provisionMissing": "WiFi-provisioning ontbreekt in de BLE-service.",
+      "setupError": "Fout tijdens WiFi-installatie: {{detail}}"
     },
     "activation": {
       "activating": "Apparaat activeren...",
@@ -822,7 +830,8 @@
       "searchingBluetooth": "Searching for Bluetooth devices...",
       "searchingDevices": "Searching for devices...",
       "strong": "ğŸŸ¢ Strong",
-      "weak": "ğŸ”´ Weak"
+      "weak": "ğŸ”´ Weak",
+      "scanError": "Scanfout: {{detail}}"
     },
     "camera": {
       "grantPermission": "Grant Permission",
@@ -2070,7 +2079,8 @@
       "stop": "Stop",
       "arrived": "Aangekomen",
       "departed": "Vertrokken",
-      "complete": "Voltooien"
+      "complete": "Voltooien",
+      "unnamed": "Stop {{index}}"
     }
   },
   "reports": {

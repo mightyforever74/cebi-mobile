@@ -1,0 +1,12 @@
+{
+  "taskDetail.waypoints.unnamed": {
+    "tr": "Durak {{index}}",
+    "en": "Stop {{index}}",
+    "nl": "Stop {{index}}",
+    "de": "Halt {{index}}",
+    "fr": "Arrêt {{index}}",
+    "es": "Parada {{index}}",
+    "it": "Fermata {{index}}",
+    "bg": "Спирка {{index}}"
+  }
+}

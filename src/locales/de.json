@@ -1239,7 +1239,8 @@
       "locationDeniedMessage": "Für den Bluetooth-Scan ist die Standortberechtigung erforderlich",
       "error": "Bluetooth-Fehler",
       "notReady": "Bluetooth nicht bereit",
-      "notReadyMessage": "Bitte warten, Bluetooth wird initialisiert..."
+      "notReadyMessage": "Bitte warten, Bluetooth wird initialisiert...",
+      "initFailed": "Bluetooth konnte nicht gestartet werden: {{detail}}"
     },
     "serial": {
       "validating": "Seriennummer wird überprüft...",
@@ -1247,7 +1248,9 @@
       "invalidFormat": "Falsches Seriennummer-Format. Beispiel: TF-2025-00008-5",
       "notRegistered": "Diese Seriennummer ist nicht im System registriert",
       "enterSerial": "Seriennummer eingeben",
-      "example": "Beispiel: TF-2025-00008-5"
+      "example": "Beispiel: TF-2025-00008-5",
+      "missing": "Seriennummer wurde nicht gefunden.",
+      "scanned": "Serie: {{serial}}"
     },
     "ble": {
       "searchingDevices": "Geräte werden gesucht...",
@@ -1260,7 +1263,8 @@
       "medium": "🟡 Mittel",
       "weak": "🔴 Schwach",
       "bootWindowHint": "Der BLE-Modus des ESP32-Geräts ist nach dem Einschalten 5 Minuten lang aktiv. Falls das Gerät nicht gefunden wird, trennen Sie das USB-Kabel und verbinden Sie es erneut, um das Gerät neu zu starten.",
-      "deviceNameHint": "Der Gerätename erscheint als „TulipFleet-XXXX\". Nähern Sie sich auf 1-2 Meter."
+      "deviceNameHint": "Der Gerätename erscheint als „TulipFleet-XXXX\". Nähern Sie sich auf 1-2 Meter.",
+      "scanError": "Scanfehler: {{detail}}"
     },
     "connection": {
       "connecting": "Wird verbunden...",
@@ -1292,8 +1296,13 @@
         "ERR_TIMEOUT": "Keine Verbindung zum WLAN (Zeitüberschreitung)",
         "ERR_NOT_FOUND": "WLAN-Netzwerk nicht gefunden (5 GHz wird nicht unterstützt)",
         "ERR_UNKNOWN": "Ein unbekannter Fehler ist aufgetreten",
-        "WIFI_TIMEOUT": "WLAN-Verbindung Zeitüberschreitung"
-      }
+        "WIFI_TIMEOUT": "WLAN-Verbindung Zeitüberschreitung",
+        "INVALID_SSID": "Ungültiger WLAN-Netzwerkname",
+        "INVALID_PASSWORD": "Passwort muss mindestens 8 Zeichen haben",
+        "generic": "Fehler: {{code}}"
+      },
+      "provisionMissing": "WLAN-Provisioning ist im BLE-Dienst nicht verfügbar.",
+      "setupError": "Fehler bei der WLAN-Einrichtung: {{detail}}"
     },
     "activation": {
       "activating": "Gerät wird aktiviert...",
@@ -1708,7 +1717,8 @@
       "stop": "Halt",
       "arrived": "Angekommen",
       "departed": "Abgefahren",
-      "complete": "Abschließen"
+      "complete": "Abschließen",
+      "unnamed": "Halt {{index}}"
     },
     "vehicleNotAssigned": "Dieser Aufgabe ist kein Fahrzeug zugewiesen. Bitte kontaktieren Sie einen Admin."
   },

@@ -1239,7 +1239,8 @@
       "locationDeniedMessage": "L'autorisation de position est requise pour le scan Bluetooth",
       "error": "Erreur Bluetooth",
       "notReady": "Bluetooth non prêt",
-      "notReadyMessage": "Veuillez patienter, initialisation du Bluetooth..."
+      "notReadyMessage": "Veuillez patienter, initialisation du Bluetooth...",
+      "initFailed": "Impossible de démarrer Bluetooth : {{detail}}"
     },
     "serial": {
       "validating": "Vérification du numéro de série...",
@@ -1247,7 +1248,9 @@
       "invalidFormat": "Format de numéro de série incorrect. Exemple : TF-2025-00008-5",
       "notRegistered": "Ce numéro de série n'est pas enregistré dans le système",
       "enterSerial": "Saisir le numéro de série",
-      "example": "Exemple : TF-2025-00008-5"
+      "example": "Exemple : TF-2025-00008-5",
+      "missing": "Le numéro de série est introuvable.",
+      "scanned": "Série : {{serial}}"
     },
     "ble": {
       "searchingDevices": "Recherche d'appareils...",
@@ -1260,7 +1263,8 @@
       "medium": "🟡 Moyen",
       "weak": "🔴 Faible",
       "bootWindowHint": "Le mode BLE de l'ESP32 est actif 5 minutes après le démarrage. Si l'appareil n'est pas trouvé, débranchez et rebranchez le câble USB pour redémarrer l'appareil.",
-      "deviceNameHint": "Le nom de l'appareil apparaît comme « TulipFleet-XXXX ». Approchez-vous à 1-2 mètres."
+      "deviceNameHint": "Le nom de l'appareil apparaît comme « TulipFleet-XXXX ». Approchez-vous à 1-2 mètres.",
+      "scanError": "Erreur de scan : {{detail}}"
     },
     "connection": {
       "connecting": "Connexion en cours...",
@@ -1292,8 +1296,13 @@
         "ERR_TIMEOUT": "Impossible de se connecter au WiFi (délai dépassé)",
         "ERR_NOT_FOUND": "Réseau WiFi introuvable (le 5 GHz n'est pas pris en charge)",
         "ERR_UNKNOWN": "Une erreur inconnue s'est produite",
-        "WIFI_TIMEOUT": "Délai de connexion WiFi dépassé"
-      }
+        "WIFI_TIMEOUT": "Délai de connexion WiFi dépassé",
+        "INVALID_SSID": "Nom de réseau WiFi invalide",
+        "INVALID_PASSWORD": "Le mot de passe doit contenir au moins 8 caractères",
+        "generic": "Erreur : {{code}}"
+      },
+      "provisionMissing": "Le provisionnement WiFi n'est pas disponible dans le service BLE.",
+      "setupError": "Erreur lors de la configuration WiFi : {{detail}}"
     },
     "activation": {
       "activating": "Activation de l'appareil...",
@@ -1708,7 +1717,8 @@
       "stop": "Arrêt",
       "arrived": "Arrivé",
       "departed": "Parti",
-      "complete": "Terminer"
+      "complete": "Terminer",
+      "unnamed": "Arrêt {{index}}"
     },
     "vehicleNotAssigned": "Aucun véhicule n'est attribué à cette tâche. Veuillez contacter un administrateur."
   },

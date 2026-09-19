@@ -579,7 +579,8 @@
       "locationDeniedMessage": "Разрешение за местоположение е необходимо за Bluetooth сканиране",
       "error": "Bluetooth Грешка",
       "notReady": "Bluetooth Не Е Готов",
-      "notReadyMessage": "Изчакайте докато Bluetooth се стартира..."
+      "notReadyMessage": "Изчакайте докато Bluetooth се стартира...",
+      "initFailed": "Bluetooth не можа да бъде стартиран: {{detail}}"
     },
     "qr": {
       "invalidCode": "Невалиден QR Код",
@@ -593,7 +594,9 @@
       "invalidFormat": "Форматът на серийния номер е неправилен. Пример: TF-2025-00008-5",
       "notRegistered": "Този сериен номер не е регистриран в системата",
       "enterSerial": "Въведете Сериен Номер",
-      "example": "Пример: TF-2025-00008-5"
+      "example": "Пример: TF-2025-00008-5",
+      "missing": "Серийният номер не е намерен.",
+      "scanned": "Сериен: {{serial}}"
     },
     "ble": {
       "searchingDevices": "Търсене на устройства...",
@@ -606,7 +609,8 @@
       "medium": "🟡 Среден",
       "weak": "🔴 Слаб",
       "bootWindowHint": "BLE режимът на ESP32 устройството е активен 5 минути след включване. Ако устройството не бъде намерено, рестартирайте го чрез изваждане и повторно включване на USB кабела.",
-      "deviceNameHint": "Името на устройството се показва като \"TulipFleet-XXXX\". Приближете се на 1-2 метра."
+      "deviceNameHint": "Името на устройството се показва като \"TulipFleet-XXXX\". Приближете се на 1-2 метра.",
+      "scanError": "Грешка при сканиране: {{detail}}"
     },
     "connection": {
       "connecting": "Свързване...",
@@ -638,8 +642,13 @@
         "ERR_TIMEOUT": "Неуспешна връзка към WiFi (изтекло време)",
         "ERR_NOT_FOUND": "WiFi мрежата не е намерена (5 GHz не се поддържа)",
         "ERR_UNKNOWN": "Възникна неизвестна грешка",
-        "WIFI_TIMEOUT": "Времето за WiFi връзка изтече"
-      }
+        "WIFI_TIMEOUT": "Времето за WiFi връзка изтече",
+        "INVALID_SSID": "Невалидно име на WiFi мрежа",
+        "INVALID_PASSWORD": "Паролата трябва да е поне 8 символа",
+        "generic": "Грешка: {{code}}"
+      },
+      "provisionMissing": "WiFi provisioning липсва в BLE услугата.",
+      "setupError": "Грешка при WiFi настройка: {{detail}}"
     },
     "activation": {
       "activating": "Активиране на устройство...",
@@ -825,7 +834,8 @@
       "stop": "Спирка",
       "arrived": "Пристигнал",
       "departed": "Заминал",
-      "complete": "Завърши"
+      "complete": "Завърши",
+      "unnamed": "Спирка {{index}}"
     },
     "vehicleNotAssigned": "Към тази задача няма назначено превозно средство. Свържете се с администратор."
   },
