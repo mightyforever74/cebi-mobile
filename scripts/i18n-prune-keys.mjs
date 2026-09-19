@@ -6,7 +6,7 @@
  * Default: --dry-run (no writes).
  * Delete a key only if ALL three hold:
  *   (a) absent from tr.json
- *   (b) no static t("key") / i18n.t("key") in src/**/*.js
+ *   (b) no static t("key") / i18n.t("key") in src JS files
  *   (c) not under any scripts/i18n-dynamic-roots.json root
  * Otherwise the key is listed as protected (reason: tr'de var / kodda var / manifest altında).
  * Empty parent objects are removed. JSON: 2-space, key order kept, no BOM.
