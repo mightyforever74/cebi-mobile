@@ -90,7 +90,9 @@
     "info": "Info",
     "invalidHour": "El rango de hora válido es 0–23.",
     "optional": "(opcional)",
-    "vehicle": "Vehículo"
+    "vehicle": "Vehículo",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Desconocido"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -659,7 +661,14 @@
       "ssidLabel": "Nombre de la red WiFi (SSID)",
       "ssidPlaceholder": "p. ej. Casa_WiFi",
       "subtitle": "Introduce la información de la red WiFi a la que se conectará el dispositivo ESP32",
-      "title": "Conexión WiFi"
+      "title": "Conexión WiFi",
+      "errors": {
+        "ERR_AUTH": "Contraseña WiFi incorrecta",
+        "ERR_TIMEOUT": "No se pudo conectar a la red WiFi (tiempo agotado)",
+        "ERR_NOT_FOUND": "Red WiFi no encontrada (5 GHz no compatible)",
+        "ERR_UNKNOWN": "Se produjo un error desconocido",
+        "WIFI_TIMEOUT": "Tiempo de conexión WiFi agotado"
+      }
     },
     "bluetooth": {
       "error": "Error de Bluetooth",
@@ -2172,7 +2181,35 @@
     "scanningShort": "Escaneando...",
     "selectNetwork": "Seleccionar WiFi",
     "unsupported": "No compatible",
-    "vehicle": "Vehículo"
+    "vehicle": "Vehículo",
+    "manualSubtitle": "Introduzca los datos WiFi manualmente",
+    "ssidLabel": "Nombre de red WiFi (SSID)",
+    "ssidPlaceholder": "Introduzca el nombre de la red WiFi",
+    "passwordPlaceholder": "Introduzca la contraseña WiFi",
+    "minLengthHint": "Al menos 8 caracteres",
+    "savePassword": "Guardar contraseña",
+    "ssidEmpty": "El nombre de la red WiFi no puede estar vacío",
+    "passwordShort": "La contraseña WiFi debe tener al menos 8 caracteres",
+    "serialSendFailed": "No se pudo enviar el número de serie al ESP32. Compruebe la conexión BLE.",
+    "connectFailed": "Falló la conexión WiFi",
+    "connectionErrorDetail": "Error de conexión: {{detail}}",
+    "sendingSerial": "Enviando número de serie...",
+    "sendingCredentials": "Enviando datos WiFi...",
+    "connectingEsp": "ESP32 se está conectando al WiFi...",
+    "registeringBackend": "ESP32 se está registrando en el backend...",
+    "checkingStatus": "Comprobando estado...",
+    "stillWorking": "ESP32 sigue trabajando, espere...",
+    "setupIncomplete": "No se pudo completar la configuración",
+    "completeStatus": "¡Configuración completa! ✅",
+    "successAssigned": "El dispositivo se asignó a {{plate}} y se conectó al WiFi.",
+    "signalStrength": "Intensidad de señal: {{level}}",
+    "signalExcellent": "Excelente",
+    "signalGood": "Buena",
+    "signalFair": "Regular",
+    "signalWeak": "Débil",
+    "passwordField": "Contraseña",
+    "fallbackMethod": "Completando con un método alternativo...",
+    "espRestarting": "ESP32 se está reiniciando..."
   },
   "vehicleList": {
     "title": "Lista de vehículos",
@@ -2319,5 +2356,39 @@
     "shareError": "Error al compartir",
     "sharePdf": "Compartir PDF",
     "title": "Exportar informe"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Seleccionar vehículo",
+    "subtitle": "{{name}}, ¿qué vehículo va a usar?",
+    "loading": "Cargando vehículos...",
+    "empty": "No se encontraron vehículos disponibles",
+    "loadFailed": "No se pudieron cargar los vehículos",
+    "assignTitle": "Asignación de dispositivo",
+    "assignConfirm": "Seleccionó el vehículo con matrícula {{plate}}. ¿Continuar?",
+    "noBleTitle": "Sin conexión BLE",
+    "noBleMessage": "Se requiere conexión BLE para configurar el WiFi. ¿Reiniciar?",
+    "restart": "Empezar de nuevo",
+    "assignFailed": "Asignación fallida",
+    "assignFailedDetail": "Falló la asignación: {{detail}}",
+    "fuelLine": "Combustible: {{type}}",
+    "assigning": "Asignando..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Litros",
+    "consumption": "Consumo"
+  },
+  "time": {
+    "ago": {
+      "seconds": "hace {{count}} s",
+      "minutes": "hace {{count}} min",
+      "hours": "hace {{count}} h",
+      "days": "hace {{count}} d",
+      "months": "hace {{count}} mes",
+      "years": "hace {{count}} a"
+    }
   }
 }

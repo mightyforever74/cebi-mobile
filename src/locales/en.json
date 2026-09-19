@@ -90,7 +90,9 @@
     "info": "Info",
     "invalidHour": "Valid hour range is 0–23.",
     "optional": "(optional)",
-    "vehicle": "Vehicle"
+    "vehicle": "Vehicle",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Unknown"
   },
   "auth": {
     "login": "Sign In",
@@ -453,7 +455,35 @@
     "scanningShort": "Scanning...",
     "selectNetwork": "Select WiFi",
     "unsupported": "Unsupported",
-    "vehicle": "Vehicle"
+    "vehicle": "Vehicle",
+    "manualSubtitle": "Enter WiFi details manually",
+    "ssidLabel": "WiFi Network Name (SSID)",
+    "ssidPlaceholder": "Enter the WiFi network name",
+    "passwordPlaceholder": "Enter the WiFi password",
+    "minLengthHint": "At least 8 characters",
+    "savePassword": "Save password",
+    "ssidEmpty": "WiFi network name cannot be empty",
+    "passwordShort": "WiFi password must be at least 8 characters",
+    "serialSendFailed": "Could not send the serial number to the ESP32. Check the BLE connection.",
+    "connectFailed": "WiFi connection failed",
+    "connectionErrorDetail": "Connection error: {{detail}}",
+    "sendingSerial": "Sending serial number...",
+    "sendingCredentials": "Sending WiFi details...",
+    "connectingEsp": "ESP32 is connecting to WiFi...",
+    "registeringBackend": "ESP32 is registering with the backend...",
+    "checkingStatus": "Checking status...",
+    "stillWorking": "ESP32 is still working, please wait...",
+    "setupIncomplete": "Setup could not be completed",
+    "completeStatus": "Setup complete! ✅",
+    "successAssigned": "The device was assigned to {{plate}} and connected to WiFi.",
+    "signalStrength": "Signal strength: {{level}}",
+    "signalExcellent": "Excellent",
+    "signalGood": "Good",
+    "signalFair": "Fair",
+    "signalWeak": "Weak",
+    "passwordField": "Password",
+    "fallbackMethod": "Completing with an alternative method...",
+    "espRestarting": "ESP32 is restarting..."
   },
   "ble": {
     "scanning": "Scanning devices...",
@@ -719,7 +749,14 @@
       "connecting": "📶 WiFi Connection",
       "network": "Network: {{ssid}}",
       "deviceConnecting": "ESP32 device is connecting to WiFi, please wait...",
-      "warning5GHz": "This SSID may be a 5GHz network. ESP32 only supports 2.4GHz. Please use your 2.4GHz network."
+      "warning5GHz": "This SSID may be a 5GHz network. ESP32 only supports 2.4GHz. Please use your 2.4GHz network.",
+      "errors": {
+        "ERR_AUTH": "Wrong WiFi password",
+        "ERR_TIMEOUT": "Could not connect to the WiFi network (timeout)",
+        "ERR_NOT_FOUND": "WiFi network not found (5GHz is not supported)",
+        "ERR_UNKNOWN": "An unknown error occurred",
+        "WIFI_TIMEOUT": "WiFi connection timed out"
+      }
     },
     "activation": {
       "activating": "Activating device...",
@@ -2262,5 +2299,39 @@
     "shareError": "Share error",
     "sharePdf": "Share PDF",
     "title": "Export Report"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Select Vehicle",
+    "subtitle": "{{name}}, which vehicle will you use?",
+    "loading": "Loading vehicles...",
+    "empty": "No available vehicles found",
+    "loadFailed": "Could not load vehicles",
+    "assignTitle": "Device Assignment",
+    "assignConfirm": "You selected the vehicle with plate {{plate}}. Continue?",
+    "noBleTitle": "No BLE Connection",
+    "noBleMessage": "A BLE connection is required for WiFi setup. Restart from the beginning?",
+    "restart": "Start Over",
+    "assignFailed": "Assignment failed",
+    "assignFailedDetail": "Device assignment failed: {{detail}}",
+    "fuelLine": "Fuel: {{type}}",
+    "assigning": "Assigning..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Liters",
+    "consumption": "Consumption"
+  },
+  "time": {
+    "ago": {
+      "seconds": "{{count}} sec ago",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}} hr ago",
+      "days": "{{count}} days ago",
+      "months": "{{count}} mo ago",
+      "years": "{{count}} yr ago"
+    }
   }
 }

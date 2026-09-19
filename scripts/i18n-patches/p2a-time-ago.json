@@ -1,0 +1,62 @@
+{
+  "time.ago.seconds": {
+    "tr": "{{count}} sn önce",
+    "en": "{{count}} sec ago",
+    "nl": "{{count}} sec geleden",
+    "de": "vor {{count}} Sek.",
+    "fr": "il y a {{count}} s",
+    "es": "hace {{count}} s",
+    "it": "{{count}} sec fa",
+    "bg": "преди {{count}} сек"
+  },
+  "time.ago.minutes": {
+    "tr": "{{count}} dk önce",
+    "en": "{{count}} min ago",
+    "nl": "{{count}} min geleden",
+    "de": "vor {{count}} Min.",
+    "fr": "il y a {{count}} min",
+    "es": "hace {{count}} min",
+    "it": "{{count}} min fa",
+    "bg": "преди {{count}} мин"
+  },
+  "time.ago.hours": {
+    "tr": "{{count}} sa önce",
+    "en": "{{count}} hr ago",
+    "nl": "{{count}} uur geleden",
+    "de": "vor {{count}} Std.",
+    "fr": "il y a {{count}} h",
+    "es": "hace {{count}} h",
+    "it": "{{count}} h fa",
+    "bg": "преди {{count}} ч"
+  },
+  "time.ago.days": {
+    "tr": "{{count}} gün önce",
+    "en": "{{count}} days ago",
+    "nl": "{{count}} dagen geleden",
+    "de": "vor {{count}} Tagen",
+    "fr": "il y a {{count}} j",
+    "es": "hace {{count}} d",
+    "it": "{{count}} giorni fa",
+    "bg": "преди {{count}} дни"
+  },
+  "time.ago.months": {
+    "tr": "{{count}} ay önce",
+    "en": "{{count}} mo ago",
+    "nl": "{{count}} mnd geleden",
+    "de": "vor {{count}} Mon.",
+    "fr": "il y a {{count}} mois",
+    "es": "hace {{count}} mes",
+    "it": "{{count}} mesi fa",
+    "bg": "преди {{count}} мес"
+  },
+  "time.ago.years": {
+    "tr": "{{count}} yıl önce",
+    "en": "{{count}} yr ago",
+    "nl": "{{count}} jaar geleden",
+    "de": "vor {{count}} J.",
+    "fr": "il y a {{count}} ans",
+    "es": "hace {{count}} a",
+    "it": "{{count}} anni fa",
+    "bg": "преди {{count}} год"
+  }
+}

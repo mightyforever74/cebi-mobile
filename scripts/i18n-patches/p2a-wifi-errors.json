@@ -1,0 +1,52 @@
+{
+  "deviceSetup.wifi.errors.ERR_AUTH": {
+    "tr": "WiFi şifresi yanlış",
+    "en": "Wrong WiFi password",
+    "nl": "Onjuist WiFi-wachtwoord",
+    "de": "Falsches WLAN-Passwort",
+    "fr": "Mot de passe WiFi incorrect",
+    "es": "Contraseña WiFi incorrecta",
+    "it": "Password WiFi errata",
+    "bg": "Грешна WiFi парола"
+  },
+  "deviceSetup.wifi.errors.ERR_TIMEOUT": {
+    "tr": "WiFi ağına bağlanılamadı (zaman aşımı)",
+    "en": "Could not connect to the WiFi network (timeout)",
+    "nl": "Kon niet verbinden met het WiFi-netwerk (time-out)",
+    "de": "Keine Verbindung zum WLAN (Zeitüberschreitung)",
+    "fr": "Impossible de se connecter au WiFi (délai dépassé)",
+    "es": "No se pudo conectar a la red WiFi (tiempo agotado)",
+    "it": "Impossibile connettersi al WiFi (timeout)",
+    "bg": "Неуспешна връзка към WiFi (изтекло време)"
+  },
+  "deviceSetup.wifi.errors.ERR_NOT_FOUND": {
+    "tr": "WiFi ağı bulunamadı (5GHz desteklenmez)",
+    "en": "WiFi network not found (5GHz is not supported)",
+    "nl": "WiFi-netwerk niet gevonden (5GHz wordt niet ondersteund)",
+    "de": "WLAN-Netzwerk nicht gefunden (5 GHz wird nicht unterstützt)",
+    "fr": "Réseau WiFi introuvable (le 5 GHz n'est pas pris en charge)",
+    "es": "Red WiFi no encontrada (5 GHz no compatible)",
+    "it": "Rete WiFi non trovata (il 5 GHz non è supportato)",
+    "bg": "WiFi мрежата не е намерена (5 GHz не се поддържа)"
+  },
+  "deviceSetup.wifi.errors.ERR_UNKNOWN": {
+    "tr": "Bilinmeyen bir hata oluştu",
+    "en": "An unknown error occurred",
+    "nl": "Er is een onbekende fout opgetreden",
+    "de": "Ein unbekannter Fehler ist aufgetreten",
+    "fr": "Une erreur inconnue s'est produite",
+    "es": "Se produjo un error desconocido",
+    "it": "Si è verificato un errore sconosciuto",
+    "bg": "Възникна неизвестна грешка"
+  },
+  "deviceSetup.wifi.errors.WIFI_TIMEOUT": {
+    "tr": "WiFi bağlantısı zaman aşımına uğradı",
+    "en": "WiFi connection timed out",
+    "nl": "WiFi-verbinding time-out",
+    "de": "WLAN-Verbindung Zeitüberschreitung",
+    "fr": "Délai de connexion WiFi dépassé",
+    "es": "Tiempo de conexión WiFi agotado",
+    "it": "Timeout della connessione WiFi",
+    "bg": "Времето за WiFi връзка изтече"
+  }
+}

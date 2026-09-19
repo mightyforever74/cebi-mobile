@@ -3,6 +3,7 @@
 // Updated: 22 Ocak 2026 - Dark Mode Migration
 
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -420,7 +421,12 @@ const DriverProfile = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("profile.about")}
-          subtitle={`${t("profile.version")} 2.0.5`}
+          subtitle={t("driverSettings.version", {
+            version:
+              Constants.expoConfig?.version ??
+              Constants.manifest?.version ??
+              "",
+          })}
           onPress={handleAbout}
         />
       </View>
@@ -438,8 +444,17 @@ const DriverProfile = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v1.0.0</Text>
-        <Text style={styles.footerSubtext}>© 2025 TulipFleet</Text>
+        <Text style={styles.footerText}>
+          {t("driverSettings.version", {
+            version:
+              Constants.expoConfig?.version ??
+              Constants.manifest?.version ??
+              "",
+          })}
+        </Text>
+        <Text style={styles.footerSubtext}>
+          {t("common.copyright", { year: new Date().getFullYear() })}
+        </Text>
       </View>
     </ScrollView>
   );

@@ -90,7 +90,9 @@
     "info": "Info",
     "invalidHour": "Geldig uur ligt tussen 0 en 23.",
     "optional": "(optioneel)",
-    "vehicle": "Voertuig"
+    "vehicle": "Voertuig",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Onbekend"
   },
   "profile": {
     "title": "Profiel",
@@ -514,7 +516,35 @@
     "scanningShort": "Scannen...",
     "selectNetwork": "Selecteer WiFi",
     "unsupported": "Niet ondersteund",
-    "vehicle": "Voertuig"
+    "vehicle": "Voertuig",
+    "manualSubtitle": "Voer WiFi-gegevens handmatig in",
+    "ssidLabel": "WiFi-netwerknaam (SSID)",
+    "ssidPlaceholder": "Voer de WiFi-netwerknaam in",
+    "passwordPlaceholder": "Voer het WiFi-wachtwoord in",
+    "minLengthHint": "Minstens 8 tekens",
+    "savePassword": "Wachtwoord opslaan",
+    "ssidEmpty": "WiFi-netwerknaam mag niet leeg zijn",
+    "passwordShort": "WiFi-wachtwoord moet minstens 8 tekens zijn",
+    "serialSendFailed": "Serienummer kon niet naar de ESP32 worden gestuurd. Controleer de BLE-verbinding.",
+    "connectFailed": "WiFi-verbinding mislukt",
+    "connectionErrorDetail": "Verbindingsfout: {{detail}}",
+    "sendingSerial": "Serienummer wordt verzonden...",
+    "sendingCredentials": "WiFi-gegevens worden verzonden...",
+    "connectingEsp": "ESP32 maakt verbinding met WiFi...",
+    "registeringBackend": "ESP32 registreert zich bij de backend...",
+    "checkingStatus": "Status controleren...",
+    "stillWorking": "ESP32 is nog bezig, even geduld...",
+    "setupIncomplete": "Installatie kon niet worden voltooid",
+    "completeStatus": "Installatie voltooid! ✅",
+    "successAssigned": "Het apparaat is toegewezen aan {{plate}} en verbonden met WiFi.",
+    "signalStrength": "Signaalsterkte: {{level}}",
+    "signalExcellent": "Uitstekend",
+    "signalGood": "Goed",
+    "signalFair": "Redelijk",
+    "signalWeak": "Zwak",
+    "passwordField": "Wachtwoord",
+    "fallbackMethod": "Afronden via een alternatieve methode...",
+    "espRestarting": "ESP32 wordt opnieuw gestart..."
   },
   "ble": {
     "scanning": "Apparaten zoeken...",
@@ -738,7 +768,14 @@
       "sendingCredentials": "Sending WiFi credentials...",
       "shortPassword": "WiFi password must be at least 8 characters",
       "ssidLabel": "WiFi Network Name (SSID)",
-      "subtitle": "Enter the WiFi network information for the ESP32 device to connect"
+      "subtitle": "Enter the WiFi network information for the ESP32 device to connect",
+      "errors": {
+        "ERR_AUTH": "Onjuist WiFi-wachtwoord",
+        "ERR_TIMEOUT": "Kon niet verbinden met het WiFi-netwerk (time-out)",
+        "ERR_NOT_FOUND": "WiFi-netwerk niet gevonden (5GHz wordt niet ondersteund)",
+        "ERR_UNKNOWN": "Er is een onbekende fout opgetreden",
+        "WIFI_TIMEOUT": "WiFi-verbinding time-out"
+      }
     },
     "activation": {
       "activating": "Apparaat activeren...",
@@ -892,7 +929,15 @@
     "minutes": "minuten",
     "seconds": "seconden",
     "h": "u",
-    "min": "min"
+    "min": "min",
+    "ago": {
+      "seconds": "{{count}} sec geleden",
+      "minutes": "{{count}} min geleden",
+      "hours": "{{count}} uur geleden",
+      "days": "{{count}} dagen geleden",
+      "months": "{{count}} mnd geleden",
+      "years": "{{count}} jaar geleden"
+    }
   },
   "navigator": {
     "fuelManagement": "Brandstofbeheer",
@@ -2386,5 +2431,29 @@
     "shareError": "Deelfout",
     "sharePdf": "PDF delen",
     "title": "Rapport exporteren"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Selecteer voertuig",
+    "subtitle": "{{name}}, welk voertuig gaat u gebruiken?",
+    "loading": "Voertuigen laden...",
+    "empty": "Geen beschikbare voertuigen gevonden",
+    "loadFailed": "Voertuigen konden niet worden geladen",
+    "assignTitle": "Apparaat toewijzen",
+    "assignConfirm": "U hebt het voertuig met kenteken {{plate}} geselecteerd. Doorgaan?",
+    "noBleTitle": "Geen BLE-verbinding",
+    "noBleMessage": "Voor de WiFi-installatie is een BLE-verbinding vereist. Opnieuw beginnen?",
+    "restart": "Opnieuw beginnen",
+    "assignFailed": "Toewijzing mislukt",
+    "assignFailedDetail": "Apparaattoewijzing mislukt: {{detail}}",
+    "fuelLine": "Brandstof: {{type}}",
+    "assigning": "Toewijzen..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Liter",
+    "consumption": "Verbruik"
   }
 }

@@ -22,17 +22,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { taskOffersAPI } from "../../services/api";
-
-// Locale mapping for date formatting
-const localeMap = {
-  en: "en-US",
-  tr: "tr-TR",
-  ku: "ku",
-  nl: "nl-NL",
-  it: "it-IT",
-  bg: "bg-BG",
-  es: "es-ES",
-};
+import { formatDateTime as formatDate } from "../../utils/helpers";
 
 // ── Styles factory ──────────────────────────
 const makeStyles = (COLORS) =>
@@ -354,7 +344,7 @@ const makeStyles = (COLORS) =>
 
 // ── Component ───────────────────────────────
 const TaskOfferDetail = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
@@ -432,12 +422,6 @@ const TaskOfferDetail = () => {
       setSubmitting(false);
       setRejectReason("");
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const locale = localeMap[i18n.language] || "en-US";
-    return new Date(dateString).toLocaleString(locale);
   };
 
   const getTimeRemaining = (expiresAt) => {

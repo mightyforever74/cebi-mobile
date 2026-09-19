@@ -698,9 +698,8 @@ const FuelEntryScreen = ({ navigation }) => {
   };
 
   const getFuelTypeLabel = (fuelType) => {
-    const ft = FUEL_TYPES.find((f) => f.id === fuelType);
-    if (ft) return ft.label[currentLang] || ft.label.en || fuelType;
-    return fuelType || "Dizel";
+    const id = fuelType || "diesel";
+    return t(`adminVehicles.fuelTypes.${id}`, id);
   };
 
   // =========================
@@ -876,7 +875,7 @@ const FuelEntryScreen = ({ navigation }) => {
               </View>
               <View style={styles.calculationRow}>
                 <Text style={styles.calculationLabel}>
-                  {t("fuel.consumption", "Tüketim")}:
+                  {t("fuelEntry.consumption")}:
                 </Text>
                 <Text style={styles.calculationValue}>
                   {(
@@ -960,20 +959,26 @@ const FuelEntryScreen = ({ navigation }) => {
             </Text>
             <View style={styles.lastRecordRow}>
               <View style={styles.lastRecordItem}>
-                <Text style={styles.lastRecordLabel}>🛣️ KM</Text>
+                <Text style={styles.lastRecordLabel}>
+                  🛣️ {t("fuelEntry.km")}
+                </Text>
                 <Text style={styles.lastRecordValue}>
                   {Number(lastRecord.odometer_km).toLocaleString("tr-TR")}
                 </Text>
               </View>
               <View style={styles.lastRecordItem}>
-                <Text style={styles.lastRecordLabel}>⛽ Litre</Text>
+                <Text style={styles.lastRecordLabel}>
+                  ⛽ {t("fuelEntry.liters")}
+                </Text>
                 <Text style={styles.lastRecordValue}>
                   {lastRecord.liters_filled}L
                 </Text>
               </View>
               {lastRecord.consumption_per_100km && (
                 <View style={styles.lastRecordItem}>
-                  <Text style={styles.lastRecordLabel}>📊 Tüketim</Text>
+                  <Text style={styles.lastRecordLabel}>
+                    📊 {t("fuelEntry.consumption")}
+                  </Text>
                   <Text style={styles.lastRecordValue}>
                     {parseFloat(lastRecord.consumption_per_100km).toFixed(1)}
                   </Text>
@@ -1049,7 +1054,7 @@ const FuelEntryScreen = ({ navigation }) => {
                         editFuelType === ft.id && styles.fuelTypeTextActive,
                       ]}
                     >
-                      {ft.label[currentLang] || ft.label.en}
+                      {t(`adminVehicles.fuelTypes.${ft.id}`, ft.id)}
                     </Text>
                   </TouchableOpacity>
                 ))}

@@ -1,0 +1,452 @@
+{
+  "vehiclePicker.title": {
+    "tr": "Araç Seçin",
+    "en": "Select Vehicle",
+    "nl": "Selecteer voertuig",
+    "de": "Fahrzeug wählen",
+    "fr": "Choisir un véhicule",
+    "es": "Seleccionar vehículo",
+    "it": "Seleziona veicolo",
+    "bg": "Изберете превозно средство"
+  },
+  "vehiclePicker.subtitle": {
+    "tr": "{{name}}, hangi aracı kullanacaksınız?",
+    "en": "{{name}}, which vehicle will you use?",
+    "nl": "{{name}}, welk voertuig gaat u gebruiken?",
+    "de": "{{name}}, welches Fahrzeug nutzen Sie?",
+    "fr": "{{name}}, quel véhicule allez-vous utiliser ?",
+    "es": "{{name}}, ¿qué vehículo va a usar?",
+    "it": "{{name}}, quale veicolo userai?",
+    "bg": "{{name}}, кое превозно средство ще използвате?"
+  },
+  "vehiclePicker.loading": {
+    "tr": "Araçlar yükleniyor...",
+    "en": "Loading vehicles...",
+    "nl": "Voertuigen laden...",
+    "de": "Fahrzeuge werden geladen...",
+    "fr": "Chargement des véhicules...",
+    "es": "Cargando vehículos...",
+    "it": "Caricamento veicoli...",
+    "bg": "Зареждане на превозни средства..."
+  },
+  "vehiclePicker.empty": {
+    "tr": "Kullanılabilir araç bulunamadı",
+    "en": "No available vehicles found",
+    "nl": "Geen beschikbare voertuigen gevonden",
+    "de": "Keine verfügbaren Fahrzeuge gefunden",
+    "fr": "Aucun véhicule disponible",
+    "es": "No se encontraron vehículos disponibles",
+    "it": "Nessun veicolo disponibile",
+    "bg": "Няма налични превозни средства"
+  },
+  "vehiclePicker.loadFailed": {
+    "tr": "Araçlar yüklenemedi",
+    "en": "Could not load vehicles",
+    "nl": "Voertuigen konden niet worden geladen",
+    "de": "Fahrzeuge konnten nicht geladen werden",
+    "fr": "Impossible de charger les véhicules",
+    "es": "No se pudieron cargar los vehículos",
+    "it": "Impossibile caricare i veicoli",
+    "bg": "Превозните средства не можаха да бъдат заредени"
+  },
+  "vehiclePicker.assignTitle": {
+    "tr": "Cihaz Ataması",
+    "en": "Device Assignment",
+    "nl": "Apparaat toewijzen",
+    "de": "Gerätezuweisung",
+    "fr": "Attribution de l'appareil",
+    "es": "Asignación de dispositivo",
+    "it": "Assegnazione dispositivo",
+    "bg": "Присвояване на устройство"
+  },
+  "vehiclePicker.assignConfirm": {
+    "tr": "{{plate}} plakalı aracı seçtiniz. Devam etmek istiyor musunuz?",
+    "en": "You selected the vehicle with plate {{plate}}. Continue?",
+    "nl": "U hebt het voertuig met kenteken {{plate}} geselecteerd. Doorgaan?",
+    "de": "Sie haben das Fahrzeug mit Kennzeichen {{plate}} gewählt. Fortfahren?",
+    "fr": "Vous avez sélectionné le véhicule {{plate}}. Continuer ?",
+    "es": "Seleccionó el vehículo con matrícula {{plate}}. ¿Continuar?",
+    "it": "Hai selezionato il veicolo con targa {{plate}}. Continuare?",
+    "bg": "Избрахте превозното средство с номер {{plate}}. Продължавате ли?"
+  },
+  "vehiclePicker.noBleTitle": {
+    "tr": "BLE Bağlantısı Yok",
+    "en": "No BLE Connection",
+    "nl": "Geen BLE-verbinding",
+    "de": "Keine BLE-Verbindung",
+    "fr": "Pas de connexion BLE",
+    "es": "Sin conexión BLE",
+    "it": "Nessuna connessione BLE",
+    "bg": "Няма BLE връзка"
+  },
+  "vehiclePicker.noBleMessage": {
+    "tr": "WiFi kurulumu için BLE bağlantısı gerekli. Baştan başlatmak ister misiniz?",
+    "en": "A BLE connection is required for WiFi setup. Restart from the beginning?",
+    "nl": "Voor de WiFi-installatie is een BLE-verbinding vereist. Opnieuw beginnen?",
+    "de": "Für die WLAN-Einrichtung ist eine BLE-Verbindung erforderlich. Von vorn beginnen?",
+    "fr": "Une connexion BLE est requise pour le WiFi. Recommencer ?",
+    "es": "Se requiere conexión BLE para configurar el WiFi. ¿Reiniciar?",
+    "it": "Per il WiFi serve una connessione BLE. Ricominciare?",
+    "bg": "За WiFi настройката е нужна BLE връзка. Да започнем отначало?"
+  },
+  "vehiclePicker.restart": {
+    "tr": "Baştan Başlat",
+    "en": "Start Over",
+    "nl": "Opnieuw beginnen",
+    "de": "Von vorn beginnen",
+    "fr": "Recommencer",
+    "es": "Empezar de nuevo",
+    "it": "Ricomincia",
+    "bg": "Отначало"
+  },
+  "vehiclePicker.assignFailed": {
+    "tr": "Atama başarısız",
+    "en": "Assignment failed",
+    "nl": "Toewijzing mislukt",
+    "de": "Zuweisung fehlgeschlagen",
+    "fr": "Attribution échouée",
+    "es": "Asignación fallida",
+    "it": "Assegnazione non riuscita",
+    "bg": "Присвояването не успя"
+  },
+  "vehiclePicker.assignFailedDetail": {
+    "tr": "Cihaz ataması başarısız: {{detail}}",
+    "en": "Device assignment failed: {{detail}}",
+    "nl": "Apparaattoewijzing mislukt: {{detail}}",
+    "de": "Gerätezuweisung fehlgeschlagen: {{detail}}",
+    "fr": "Échec d'attribution : {{detail}}",
+    "es": "Falló la asignación: {{detail}}",
+    "it": "Assegnazione non riuscita: {{detail}}",
+    "bg": "Присвояването не успя: {{detail}}"
+  },
+  "vehiclePicker.fuelLine": {
+    "tr": "Yakıt: {{type}}",
+    "en": "Fuel: {{type}}",
+    "nl": "Brandstof: {{type}}",
+    "de": "Kraftstoff: {{type}}",
+    "fr": "Carburant : {{type}}",
+    "es": "Combustible: {{type}}",
+    "it": "Carburante: {{type}}",
+    "bg": "Гориво: {{type}}"
+  },
+  "vehiclePicker.assigning": {
+    "tr": "Atanıyor...",
+    "en": "Assigning...",
+    "nl": "Toewijzen...",
+    "de": "Wird zugewiesen...",
+    "fr": "Attribution...",
+    "es": "Asignando...",
+    "it": "Assegnazione...",
+    "bg": "Присвояване..."
+  },
+  "wifi.manualSubtitle": {
+    "tr": "Manuel WiFi bilgilerini girin",
+    "en": "Enter WiFi details manually",
+    "nl": "Voer WiFi-gegevens handmatig in",
+    "de": "WLAN-Daten manuell eingeben",
+    "fr": "Saisir les informations WiFi manuellement",
+    "es": "Introduzca los datos WiFi manualmente",
+    "it": "Inserisci i dati WiFi manualmente",
+    "bg": "Въведете WiFi данните ръчно"
+  },
+  "wifi.ssidLabel": {
+    "tr": "WiFi Ağı Adı (SSID)",
+    "en": "WiFi Network Name (SSID)",
+    "nl": "WiFi-netwerknaam (SSID)",
+    "de": "WLAN-Name (SSID)",
+    "fr": "Nom du réseau WiFi (SSID)",
+    "es": "Nombre de red WiFi (SSID)",
+    "it": "Nome rete WiFi (SSID)",
+    "bg": "Име на WiFi мрежа (SSID)"
+  },
+  "wifi.ssidPlaceholder": {
+    "tr": "WiFi ağı adını girin",
+    "en": "Enter the WiFi network name",
+    "nl": "Voer de WiFi-netwerknaam in",
+    "de": "WLAN-Namen eingeben",
+    "fr": "Saisissez le nom du réseau WiFi",
+    "es": "Introduzca el nombre de la red WiFi",
+    "it": "Inserisci il nome della rete WiFi",
+    "bg": "Въведете името на WiFi мрежата"
+  },
+  "wifi.passwordPlaceholder": {
+    "tr": "WiFi şifresini girin",
+    "en": "Enter the WiFi password",
+    "nl": "Voer het WiFi-wachtwoord in",
+    "de": "WLAN-Passwort eingeben",
+    "fr": "Saisissez le mot de passe WiFi",
+    "es": "Introduzca la contraseña WiFi",
+    "it": "Inserisci la password WiFi",
+    "bg": "Въведете WiFi паролата"
+  },
+  "wifi.minLengthHint": {
+    "tr": "En az 8 karakter",
+    "en": "At least 8 characters",
+    "nl": "Minstens 8 tekens",
+    "de": "Mindestens 8 Zeichen",
+    "fr": "Au moins 8 caractères",
+    "es": "Al menos 8 caracteres",
+    "it": "Almeno 8 caratteri",
+    "bg": "Поне 8 знака"
+  },
+  "wifi.savePassword": {
+    "tr": "Şifreyi kaydet",
+    "en": "Save password",
+    "nl": "Wachtwoord opslaan",
+    "de": "Passwort speichern",
+    "fr": "Enregistrer le mot de passe",
+    "es": "Guardar contraseña",
+    "it": "Salva password",
+    "bg": "Запази паролата"
+  },
+  "wifi.ssidEmpty": {
+    "tr": "WiFi ağı adı boş olamaz",
+    "en": "WiFi network name cannot be empty",
+    "nl": "WiFi-netwerknaam mag niet leeg zijn",
+    "de": "WLAN-Name darf nicht leer sein",
+    "fr": "Le nom du réseau WiFi ne peut pas être vide",
+    "es": "El nombre de la red WiFi no puede estar vacío",
+    "it": "Il nome della rete WiFi non può essere vuoto",
+    "bg": "Името на WiFi мрежата не може да е празно"
+  },
+  "wifi.passwordShort": {
+    "tr": "WiFi şifresi en az 8 karakter olmalıdır",
+    "en": "WiFi password must be at least 8 characters",
+    "nl": "WiFi-wachtwoord moet minstens 8 tekens zijn",
+    "de": "WLAN-Passwort muss mindestens 8 Zeichen haben",
+    "fr": "Le mot de passe WiFi doit contenir au moins 8 caractères",
+    "es": "La contraseña WiFi debe tener al menos 8 caracteres",
+    "it": "La password WiFi deve avere almeno 8 caratteri",
+    "bg": "WiFi паролата трябва да е поне 8 знака"
+  },
+  "wifi.serialSendFailed": {
+    "tr": "Seri numara ESP32'ye gönderilemedi. BLE bağlantısını kontrol edin.",
+    "en": "Could not send the serial number to the ESP32. Check the BLE connection.",
+    "nl": "Serienummer kon niet naar de ESP32 worden gestuurd. Controleer de BLE-verbinding.",
+    "de": "Seriennummer konnte nicht an den ESP32 gesendet werden. BLE-Verbindung prüfen.",
+    "fr": "Impossible d'envoyer le numéro de série à l'ESP32. Vérifiez la connexion BLE.",
+    "es": "No se pudo enviar el número de serie al ESP32. Compruebe la conexión BLE.",
+    "it": "Impossibile inviare il seriale all'ESP32. Controlla la connessione BLE.",
+    "bg": "Серийният номер не можа да бъде изпратен към ESP32. Проверете BLE връзката."
+  },
+  "wifi.connectFailed": {
+    "tr": "WiFi bağlantısı başarısız",
+    "en": "WiFi connection failed",
+    "nl": "WiFi-verbinding mislukt",
+    "de": "WLAN-Verbindung fehlgeschlagen",
+    "fr": "Échec de la connexion WiFi",
+    "es": "Falló la conexión WiFi",
+    "it": "Connessione WiFi non riuscita",
+    "bg": "WiFi връзката не успя"
+  },
+  "wifi.connectionErrorDetail": {
+    "tr": "Bağlantı hatası: {{detail}}",
+    "en": "Connection error: {{detail}}",
+    "nl": "Verbindingsfout: {{detail}}",
+    "de": "Verbindungsfehler: {{detail}}",
+    "fr": "Erreur de connexion : {{detail}}",
+    "es": "Error de conexión: {{detail}}",
+    "it": "Errore di connessione: {{detail}}",
+    "bg": "Грешка при връзка: {{detail}}"
+  },
+  "wifi.sendingSerial": {
+    "tr": "Seri numara gönderiliyor...",
+    "en": "Sending serial number...",
+    "nl": "Serienummer wordt verzonden...",
+    "de": "Seriennummer wird gesendet...",
+    "fr": "Envoi du numéro de série...",
+    "es": "Enviando número de serie...",
+    "it": "Invio del numero di serie...",
+    "bg": "Изпращане на сериен номер..."
+  },
+  "wifi.sendingCredentials": {
+    "tr": "WiFi bilgileri gönderiliyor...",
+    "en": "Sending WiFi details...",
+    "nl": "WiFi-gegevens worden verzonden...",
+    "de": "WLAN-Daten werden gesendet...",
+    "fr": "Envoi des informations WiFi...",
+    "es": "Enviando datos WiFi...",
+    "it": "Invio dei dati WiFi...",
+    "bg": "Изпращане на WiFi данни..."
+  },
+  "wifi.connectingEsp": {
+    "tr": "ESP32 WiFi'ye bağlanıyor...",
+    "en": "ESP32 is connecting to WiFi...",
+    "nl": "ESP32 maakt verbinding met WiFi...",
+    "de": "ESP32 verbindet sich mit WLAN...",
+    "fr": "L'ESP32 se connecte au WiFi...",
+    "es": "ESP32 se está conectando al WiFi...",
+    "it": "ESP32 si sta collegando al WiFi...",
+    "bg": "ESP32 се свързва към WiFi..."
+  },
+  "wifi.registeringBackend": {
+    "tr": "ESP32 backend'e kaydoluyor...",
+    "en": "ESP32 is registering with the backend...",
+    "nl": "ESP32 registreert zich bij de backend...",
+    "de": "ESP32 registriert sich beim Backend...",
+    "fr": "L'ESP32 s'enregistre auprès du backend...",
+    "es": "ESP32 se está registrando en el backend...",
+    "it": "ESP32 si sta registrando nel backend...",
+    "bg": "ESP32 се регистрира в бекенда..."
+  },
+  "wifi.checkingStatus": {
+    "tr": "Durum kontrol ediliyor...",
+    "en": "Checking status...",
+    "nl": "Status controleren...",
+    "de": "Status wird geprüft...",
+    "fr": "Vérification de l'état...",
+    "es": "Comprobando estado...",
+    "it": "Verifica dello stato...",
+    "bg": "Проверка на състоянието..."
+  },
+  "wifi.stillWorking": {
+    "tr": "ESP32 hala çalışıyor, bekleniyor...",
+    "en": "ESP32 is still working, please wait...",
+    "nl": "ESP32 is nog bezig, even geduld...",
+    "de": "ESP32 arbeitet noch, bitte warten...",
+    "fr": "L'ESP32 travaille encore, veuillez patienter...",
+    "es": "ESP32 sigue trabajando, espere...",
+    "it": "ESP32 sta ancora lavorando, attendere...",
+    "bg": "ESP32 все още работи, изчакайте..."
+  },
+  "wifi.setupIncomplete": {
+    "tr": "Setup tamamlanamadı",
+    "en": "Setup could not be completed",
+    "nl": "Installatie kon niet worden voltooid",
+    "de": "Einrichtung konnte nicht abgeschlossen werden",
+    "fr": "La configuration n'a pas pu aboutir",
+    "es": "No se pudo completar la configuración",
+    "it": "Impossibile completare la configurazione",
+    "bg": "Настройката не можа да бъде завършена"
+  },
+  "wifi.completeStatus": {
+    "tr": "Kurulum tamamlandı! ✅",
+    "en": "Setup complete! ✅",
+    "nl": "Installatie voltooid! ✅",
+    "de": "Einrichtung abgeschlossen! ✅",
+    "fr": "Configuration terminée ! ✅",
+    "es": "¡Configuración completa! ✅",
+    "it": "Configurazione completata! ✅",
+    "bg": "Настройката е завършена! ✅"
+  },
+  "wifi.successAssigned": {
+    "tr": "Cihaz {{plate}} aracına başarıyla atandı ve WiFi'ye bağlandı.",
+    "en": "The device was assigned to {{plate}} and connected to WiFi.",
+    "nl": "Het apparaat is toegewezen aan {{plate}} en verbonden met WiFi.",
+    "de": "Das Gerät wurde {{plate}} zugewiesen und mit WLAN verbunden.",
+    "fr": "L'appareil a été attribué à {{plate}} et connecté au WiFi.",
+    "es": "El dispositivo se asignó a {{plate}} y se conectó al WiFi.",
+    "it": "Il dispositivo è stato assegnato a {{plate}} e connesso al WiFi.",
+    "bg": "Устройството е присвоено към {{plate}} и свързано към WiFi."
+  },
+  "wifi.signalStrength": {
+    "tr": "Sinyal Gücü: {{level}}",
+    "en": "Signal strength: {{level}}",
+    "nl": "Signaalsterkte: {{level}}",
+    "de": "Signalstärke: {{level}}",
+    "fr": "Puissance du signal : {{level}}",
+    "es": "Intensidad de señal: {{level}}",
+    "it": "Potenza del segnale: {{level}}",
+    "bg": "Сила на сигнала: {{level}}"
+  },
+  "wifi.signalExcellent": {
+    "tr": "Mükemmel",
+    "en": "Excellent",
+    "nl": "Uitstekend",
+    "de": "Ausgezeichnet",
+    "fr": "Excellent",
+    "es": "Excelente",
+    "it": "Eccellente",
+    "bg": "Отличен"
+  },
+  "wifi.signalGood": {
+    "tr": "İyi",
+    "en": "Good",
+    "nl": "Goed",
+    "de": "Gut",
+    "fr": "Bon",
+    "es": "Buena",
+    "it": "Buona",
+    "bg": "Добър"
+  },
+  "wifi.signalFair": {
+    "tr": "Orta",
+    "en": "Fair",
+    "nl": "Redelijk",
+    "de": "Mittel",
+    "fr": "Moyen",
+    "es": "Regular",
+    "it": "Discreta",
+    "bg": "Среден"
+  },
+  "wifi.signalWeak": {
+    "tr": "Zayıf",
+    "en": "Weak",
+    "nl": "Zwak",
+    "de": "Schwach",
+    "fr": "Faible",
+    "es": "Débil",
+    "it": "Debole",
+    "bg": "Слаб"
+  },
+  "wifi.passwordField": {
+    "tr": "Şifre",
+    "en": "Password",
+    "nl": "Wachtwoord",
+    "de": "Passwort",
+    "fr": "Mot de passe",
+    "es": "Contraseña",
+    "it": "Password",
+    "bg": "Парола"
+  },
+  "wifi.fallbackMethod": {
+    "tr": "Alternatif yöntemle tamamlanıyor...",
+    "en": "Completing with an alternative method...",
+    "nl": "Afronden via een alternatieve methode...",
+    "de": "Abschluss über eine alternative Methode...",
+    "fr": "Finalisation par une méthode alternative...",
+    "es": "Completando con un método alternativo...",
+    "it": "Completamento con un metodo alternativo...",
+    "bg": "Завършване с алтернативен метод..."
+  },
+  "wifi.espRestarting": {
+    "tr": "ESP32 yeniden başlatılıyor...",
+    "en": "ESP32 is restarting...",
+    "nl": "ESP32 wordt opnieuw gestart...",
+    "de": "ESP32 wird neu gestartet...",
+    "fr": "L'ESP32 redémarre...",
+    "es": "ESP32 se está reiniciando...",
+    "it": "ESP32 si sta riavviando...",
+    "bg": "ESP32 се рестартира..."
+  },
+  "fuelEntry.km": {
+    "tr": "KM",
+    "en": "KM",
+    "nl": "KM",
+    "de": "KM",
+    "fr": "KM",
+    "es": "KM",
+    "it": "KM",
+    "bg": "КМ"
+  },
+  "fuelEntry.liters": {
+    "tr": "Litre",
+    "en": "Liters",
+    "nl": "Liter",
+    "de": "Liter",
+    "fr": "Litres",
+    "es": "Litros",
+    "it": "Litri",
+    "bg": "Литри"
+  },
+  "fuelEntry.consumption": {
+    "tr": "Tüketim",
+    "en": "Consumption",
+    "nl": "Verbruik",
+    "de": "Verbrauch",
+    "fr": "Consommation",
+    "es": "Consumo",
+    "it": "Consumo",
+    "bg": "Разход"
+  }
+}

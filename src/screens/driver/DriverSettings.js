@@ -6,6 +6,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
@@ -698,7 +699,12 @@ const DriverSettings = ({ navigation }) => {
           icon="information-circle-outline"
           iconColor={COLORS.TEXT_SECONDARY}
           title={t("settings.aboutApp")}
-          subtitle={t("settings.version") + " 2.1.0"}
+          subtitle={t("driverSettings.version", {
+            version:
+              Constants.expoConfig?.version ??
+              Constants.manifest?.version ??
+              "",
+          })}
           onPress={handleAbout}
         />
       </View>
@@ -723,8 +729,17 @@ const DriverSettings = ({ navigation }) => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet v2.1.0</Text>
-        <Text style={styles.footerSubtext}>© 2026 TulipFleet</Text>
+        <Text style={styles.footerText}>
+          {t("driverSettings.version", {
+            version:
+              Constants.expoConfig?.version ??
+              Constants.manifest?.version ??
+              "",
+          })}
+        </Text>
+        <Text style={styles.footerSubtext}>
+          {t("common.copyright", { year: new Date().getFullYear() })}
+        </Text>
         {user?.email && <Text style={styles.footerEmail}>{user.email}</Text>}
       </View>
 

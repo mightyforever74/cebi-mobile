@@ -1,20 +1,42 @@
+import i18n from "../locales/i18n";
+
 // Date & Time helpers
+const localeMap = {
+  tr: "tr-TR",
+  en: "en-GB",
+  nl: "nl-NL",
+  de: "de-DE",
+  fr: "fr-FR",
+  es: "es-ES",
+  it: "it-IT",
+  bg: "bg-BG",
+  ku: "tr-TR",
+};
+
+const getDateLocale = () => {
+  const lang = (i18n.language || "tr").split("-")[0];
+  return localeMap[lang] || "en-GB";
+};
+
 export const formatDate = (date) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleDateString("tr-TR");
+  return d.toLocaleDateString(getDateLocale());
 };
 
 export const formatDateTime = (date) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleString("tr-TR");
+  return d.toLocaleString(getDateLocale());
 };
 
 export const formatTime = (date) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(getDateLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export const getTimeAgo = (date) => {
@@ -22,21 +44,26 @@ export const getTimeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
 
   let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " yıl önce";
+  if (interval > 1)
+    return i18n.t("time.ago.years", { count: Math.floor(interval) });
 
   interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " ay önce";
+  if (interval > 1)
+    return i18n.t("time.ago.months", { count: Math.floor(interval) });
 
   interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + " gün önce";
+  if (interval > 1)
+    return i18n.t("time.ago.days", { count: Math.floor(interval) });
 
   interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + " saat önce";
+  if (interval > 1)
+    return i18n.t("time.ago.hours", { count: Math.floor(interval) });
 
   interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + " dakika önce";
+  if (interval > 1)
+    return i18n.t("time.ago.minutes", { count: Math.floor(interval) });
 
-  return Math.floor(seconds) + " saniye önce";
+  return i18n.t("time.ago.seconds", { count: Math.floor(seconds) });
 };
 
 // Number helpers

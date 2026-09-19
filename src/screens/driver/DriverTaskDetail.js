@@ -23,6 +23,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverTaskAPI } from "../../services/api";
+import { formatDateTime as formatDate } from "../../utils/helpers";
 
 // ── Event icon map ──────────────────────────
 const EVENT_ICON_MAP = {
@@ -425,7 +426,7 @@ const makeStyles = (COLORS) =>
 
 // ── Component ───────────────────────────────
 const DriverTaskDetail = ({ route, navigation }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const STATUS_CONFIG = getStatusConfig(COLORS);
@@ -460,25 +461,6 @@ const DriverTaskDetail = ({ route, navigation }) => {
   // Get status label from translations
   const getStatusLabel = (statusKey) => {
     return t(`taskDetail.statuses.${statusKey}`) || statusKey;
-  };
-
-  // Locale-aware date formatting
-  const getLocale = () => {
-    const localeMap = {
-      tr: "tr-TR",
-      en: "en-US",
-      ku: "ku",
-      nl: "nl-NL",
-      it: "it-IT",
-      bg: "bg-BG",
-      es: "es-ES",
-    };
-    return localeMap[i18n.language] || "en-US";
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleString(getLocale());
   };
 
   useEffect(() => {

@@ -90,7 +90,9 @@
     "info": "Информация",
     "invalidHour": "Валидният часов диапазон е 0–23.",
     "optional": "(по избор)",
-    "vehicle": "Превозно средство"
+    "vehicle": "Превозно средство",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Неизвестно"
   },
   "auth": {
     "login": "Вход",
@@ -629,7 +631,14 @@
       "connecting": "📶 WiFi Връзка",
       "network": "Мрежа: {{ssid}}",
       "deviceConnecting": "ESP32 устройството се свързва с WiFi, моля изчакайте...",
-      "warning5GHz": "Този SSID може да е 5GHz мрежа. ESP32 поддържа само 2.4GHz. Моля, използвайте 2.4GHz мрежата си."
+      "warning5GHz": "Този SSID може да е 5GHz мрежа. ESP32 поддържа само 2.4GHz. Моля, използвайте 2.4GHz мрежата си.",
+      "errors": {
+        "ERR_AUTH": "Грешна WiFi парола",
+        "ERR_TIMEOUT": "Неуспешна връзка към WiFi (изтекло време)",
+        "ERR_NOT_FOUND": "WiFi мрежата не е намерена (5 GHz не се поддържа)",
+        "ERR_UNKNOWN": "Възникна неизвестна грешка",
+        "WIFI_TIMEOUT": "Времето за WiFi връзка изтече"
+      }
     },
     "activation": {
       "activating": "Активиране на устройство...",
@@ -1660,7 +1669,35 @@
     "scanningShort": "Сканиране...",
     "selectNetwork": "Изберете WiFi",
     "unsupported": "Не се поддържа",
-    "vehicle": "Превозно средство"
+    "vehicle": "Превозно средство",
+    "manualSubtitle": "Въведете WiFi данните ръчно",
+    "ssidLabel": "Име на WiFi мрежа (SSID)",
+    "ssidPlaceholder": "Въведете името на WiFi мрежата",
+    "passwordPlaceholder": "Въведете WiFi паролата",
+    "minLengthHint": "Поне 8 знака",
+    "savePassword": "Запази паролата",
+    "ssidEmpty": "Името на WiFi мрежата не може да е празно",
+    "passwordShort": "WiFi паролата трябва да е поне 8 знака",
+    "serialSendFailed": "Серийният номер не можа да бъде изпратен към ESP32. Проверете BLE връзката.",
+    "connectFailed": "WiFi връзката не успя",
+    "connectionErrorDetail": "Грешка при връзка: {{detail}}",
+    "sendingSerial": "Изпращане на сериен номер...",
+    "sendingCredentials": "Изпращане на WiFi данни...",
+    "connectingEsp": "ESP32 се свързва към WiFi...",
+    "registeringBackend": "ESP32 се регистрира в бекенда...",
+    "checkingStatus": "Проверка на състоянието...",
+    "stillWorking": "ESP32 все още работи, изчакайте...",
+    "setupIncomplete": "Настройката не можа да бъде завършена",
+    "completeStatus": "Настройката е завършена! ✅",
+    "successAssigned": "Устройството е присвоено към {{plate}} и свързано към WiFi.",
+    "signalStrength": "Сила на сигнала: {{level}}",
+    "signalExcellent": "Отличен",
+    "signalGood": "Добър",
+    "signalFair": "Среден",
+    "signalWeak": "Слаб",
+    "passwordField": "Парола",
+    "fallbackMethod": "Завършване с алтернативен метод...",
+    "espRestarting": "ESP32 се рестартира..."
   },
   "ble": {
     "scanning": "Сканиране...",
@@ -2254,5 +2291,39 @@
     "shareError": "Грешка при споделяне",
     "sharePdf": "Сподели PDF",
     "title": "Експорт на отчет"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Изберете превозно средство",
+    "subtitle": "{{name}}, кое превозно средство ще използвате?",
+    "loading": "Зареждане на превозни средства...",
+    "empty": "Няма налични превозни средства",
+    "loadFailed": "Превозните средства не можаха да бъдат заредени",
+    "assignTitle": "Присвояване на устройство",
+    "assignConfirm": "Избрахте превозното средство с номер {{plate}}. Продължавате ли?",
+    "noBleTitle": "Няма BLE връзка",
+    "noBleMessage": "За WiFi настройката е нужна BLE връзка. Да започнем отначало?",
+    "restart": "Отначало",
+    "assignFailed": "Присвояването не успя",
+    "assignFailedDetail": "Присвояването не успя: {{detail}}",
+    "fuelLine": "Гориво: {{type}}",
+    "assigning": "Присвояване..."
+  },
+  "fuelEntry": {
+    "km": "КМ",
+    "liters": "Литри",
+    "consumption": "Разход"
+  },
+  "time": {
+    "ago": {
+      "seconds": "преди {{count}} сек",
+      "minutes": "преди {{count}} мин",
+      "hours": "преди {{count}} ч",
+      "days": "преди {{count}} дни",
+      "months": "преди {{count}} мес",
+      "years": "преди {{count}} год"
+    }
   }
 }

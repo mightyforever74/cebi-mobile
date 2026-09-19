@@ -53,7 +53,9 @@
     "info": "Info",
     "invalidHour": "L'intervallo orario valido è 0–23.",
     "optional": "(opzionale)",
-    "vehicle": "Veicolo"
+    "vehicle": "Veicolo",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Sconosciuto"
   },
   "auth": {
     "login": "Accedi",
@@ -624,7 +626,14 @@
       "ssidLabel": "WiFi Network Name (SSID)",
       "ssidPlaceholder": "e.g. Home_WiFi",
       "subtitle": "Enter the WiFi network information for the ESP32 device to connect",
-      "title": "WiFi Connection"
+      "title": "WiFi Connection",
+      "errors": {
+        "ERR_AUTH": "Password WiFi errata",
+        "ERR_TIMEOUT": "Impossibile connettersi al WiFi (timeout)",
+        "ERR_NOT_FOUND": "Rete WiFi non trovata (il 5 GHz non è supportato)",
+        "ERR_UNKNOWN": "Si è verificato un errore sconosciuto",
+        "WIFI_TIMEOUT": "Timeout della connessione WiFi"
+      }
     },
     "bluetooth": {
       "error": "Bluetooth Error",
@@ -2117,7 +2126,35 @@
     "scanningShort": "Scansione...",
     "selectNetwork": "Seleziona WiFi",
     "unsupported": "Non supportato",
-    "vehicle": "Veicolo"
+    "vehicle": "Veicolo",
+    "manualSubtitle": "Inserisci i dati WiFi manualmente",
+    "ssidLabel": "Nome rete WiFi (SSID)",
+    "ssidPlaceholder": "Inserisci il nome della rete WiFi",
+    "passwordPlaceholder": "Inserisci la password WiFi",
+    "minLengthHint": "Almeno 8 caratteri",
+    "savePassword": "Salva password",
+    "ssidEmpty": "Il nome della rete WiFi non può essere vuoto",
+    "passwordShort": "La password WiFi deve avere almeno 8 caratteri",
+    "serialSendFailed": "Impossibile inviare il seriale all'ESP32. Controlla la connessione BLE.",
+    "connectFailed": "Connessione WiFi non riuscita",
+    "connectionErrorDetail": "Errore di connessione: {{detail}}",
+    "sendingSerial": "Invio del numero di serie...",
+    "sendingCredentials": "Invio dei dati WiFi...",
+    "connectingEsp": "ESP32 si sta collegando al WiFi...",
+    "registeringBackend": "ESP32 si sta registrando nel backend...",
+    "checkingStatus": "Verifica dello stato...",
+    "stillWorking": "ESP32 sta ancora lavorando, attendere...",
+    "setupIncomplete": "Impossibile completare la configurazione",
+    "completeStatus": "Configurazione completata! ✅",
+    "successAssigned": "Il dispositivo è stato assegnato a {{plate}} e connesso al WiFi.",
+    "signalStrength": "Potenza del segnale: {{level}}",
+    "signalExcellent": "Eccellente",
+    "signalGood": "Buona",
+    "signalFair": "Discreta",
+    "signalWeak": "Debole",
+    "passwordField": "Password",
+    "fallbackMethod": "Completamento con un metodo alternativo...",
+    "espRestarting": "ESP32 si sta riavviando..."
   },
   "vehicleList": {
     "title": "Lista veicoli",
@@ -2301,5 +2338,39 @@
     "shareError": "Errore di condivisione",
     "sharePdf": "Condividi PDF",
     "title": "Esporta report"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Seleziona veicolo",
+    "subtitle": "{{name}}, quale veicolo userai?",
+    "loading": "Caricamento veicoli...",
+    "empty": "Nessun veicolo disponibile",
+    "loadFailed": "Impossibile caricare i veicoli",
+    "assignTitle": "Assegnazione dispositivo",
+    "assignConfirm": "Hai selezionato il veicolo con targa {{plate}}. Continuare?",
+    "noBleTitle": "Nessuna connessione BLE",
+    "noBleMessage": "Per il WiFi serve una connessione BLE. Ricominciare?",
+    "restart": "Ricomincia",
+    "assignFailed": "Assegnazione non riuscita",
+    "assignFailedDetail": "Assegnazione non riuscita: {{detail}}",
+    "fuelLine": "Carburante: {{type}}",
+    "assigning": "Assegnazione..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Litri",
+    "consumption": "Consumo"
+  },
+  "time": {
+    "ago": {
+      "seconds": "{{count}} sec fa",
+      "minutes": "{{count}} min fa",
+      "hours": "{{count}} h fa",
+      "days": "{{count}} giorni fa",
+      "months": "{{count}} mesi fa",
+      "years": "{{count}} anni fa"
+    }
   }
 }

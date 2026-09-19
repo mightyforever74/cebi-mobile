@@ -1,0 +1,32 @@
+{
+  "common.copyright": {
+    "tr": "© {{year}} TulipFleet",
+    "en": "© {{year}} TulipFleet",
+    "nl": "© {{year}} TulipFleet",
+    "de": "© {{year}} TulipFleet",
+    "fr": "© {{year}} TulipFleet",
+    "es": "© {{year}} TulipFleet",
+    "it": "© {{year}} TulipFleet",
+    "bg": "© {{year}} TulipFleet"
+  },
+  "common.unknown": {
+    "tr": "Bilinmeyen",
+    "en": "Unknown",
+    "nl": "Onbekend",
+    "de": "Unbekannt",
+    "fr": "Inconnu",
+    "es": "Desconocido",
+    "it": "Sconosciuto",
+    "bg": "Неизвестно"
+  },
+  "driverSettings.version": {
+    "tr": "TulipFleet v{{version}}",
+    "en": "TulipFleet v{{version}}",
+    "nl": "TulipFleet v{{version}}",
+    "de": "TulipFleet v{{version}}",
+    "fr": "TulipFleet v{{version}}",
+    "es": "TulipFleet v{{version}}",
+    "it": "TulipFleet v{{version}}",
+    "bg": "TulipFleet v{{version}}"
+  }
+}

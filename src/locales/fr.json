@@ -90,7 +90,9 @@
     "info": "Info",
     "invalidHour": "La plage horaire valide est 0–23.",
     "optional": "(facultatif)",
-    "vehicle": "Véhicule"
+    "vehicle": "Véhicule",
+    "copyright": "© {{year}} TulipFleet",
+    "unknown": "Inconnu"
   },
   "auth": {
     "login": "Se connecter",
@@ -1283,7 +1285,14 @@
       "connecting": "📶 Connexion WiFi",
       "network": "Réseau : {{ssid}}",
       "deviceConnecting": "L'appareil ESP32 se connecte au réseau WiFi, veuillez patienter...",
-      "warning5GHz": "Ce SSID pourrait appartenir à un réseau 5 GHz. L'ESP32 ne supporte que le 2,4 GHz. Veuillez utiliser votre réseau 2,4 GHz."
+      "warning5GHz": "Ce SSID pourrait appartenir à un réseau 5 GHz. L'ESP32 ne supporte que le 2,4 GHz. Veuillez utiliser votre réseau 2,4 GHz.",
+      "errors": {
+        "ERR_AUTH": "Mot de passe WiFi incorrect",
+        "ERR_TIMEOUT": "Impossible de se connecter au WiFi (délai dépassé)",
+        "ERR_NOT_FOUND": "Réseau WiFi introuvable (le 5 GHz n'est pas pris en charge)",
+        "ERR_UNKNOWN": "Une erreur inconnue s'est produite",
+        "WIFI_TIMEOUT": "Délai de connexion WiFi dépassé"
+      }
     },
     "activation": {
       "activating": "Activation de l'appareil...",
@@ -1540,7 +1549,35 @@
     "scanningShort": "Analyse...",
     "selectNetwork": "Sélectionner le WiFi",
     "unsupported": "Non pris en charge",
-    "vehicle": "Véhicule"
+    "vehicle": "Véhicule",
+    "manualSubtitle": "Saisir les informations WiFi manuellement",
+    "ssidLabel": "Nom du réseau WiFi (SSID)",
+    "ssidPlaceholder": "Saisissez le nom du réseau WiFi",
+    "passwordPlaceholder": "Saisissez le mot de passe WiFi",
+    "minLengthHint": "Au moins 8 caractères",
+    "savePassword": "Enregistrer le mot de passe",
+    "ssidEmpty": "Le nom du réseau WiFi ne peut pas être vide",
+    "passwordShort": "Le mot de passe WiFi doit contenir au moins 8 caractères",
+    "serialSendFailed": "Impossible d'envoyer le numéro de série à l'ESP32. Vérifiez la connexion BLE.",
+    "connectFailed": "Échec de la connexion WiFi",
+    "connectionErrorDetail": "Erreur de connexion : {{detail}}",
+    "sendingSerial": "Envoi du numéro de série...",
+    "sendingCredentials": "Envoi des informations WiFi...",
+    "connectingEsp": "L'ESP32 se connecte au WiFi...",
+    "registeringBackend": "L'ESP32 s'enregistre auprès du backend...",
+    "checkingStatus": "Vérification de l'état...",
+    "stillWorking": "L'ESP32 travaille encore, veuillez patienter...",
+    "setupIncomplete": "La configuration n'a pas pu aboutir",
+    "completeStatus": "Configuration terminée ! ✅",
+    "successAssigned": "L'appareil a été attribué à {{plate}} et connecté au WiFi.",
+    "signalStrength": "Puissance du signal : {{level}}",
+    "signalExcellent": "Excellent",
+    "signalGood": "Bon",
+    "signalFair": "Moyen",
+    "signalWeak": "Faible",
+    "passwordField": "Mot de passe",
+    "fallbackMethod": "Finalisation par une méthode alternative...",
+    "espRestarting": "L'ESP32 redémarre..."
   },
   "ble": {
     "scanning": "Recherche d'appareils...",
@@ -2281,5 +2318,39 @@
     "shareError": "Erreur de partage",
     "sharePdf": "Partager PDF",
     "title": "Exporter le rapport"
+  },
+  "driverSettings": {
+    "version": "TulipFleet v{{version}}"
+  },
+  "vehiclePicker": {
+    "title": "Choisir un véhicule",
+    "subtitle": "{{name}}, quel véhicule allez-vous utiliser ?",
+    "loading": "Chargement des véhicules...",
+    "empty": "Aucun véhicule disponible",
+    "loadFailed": "Impossible de charger les véhicules",
+    "assignTitle": "Attribution de l'appareil",
+    "assignConfirm": "Vous avez sélectionné le véhicule {{plate}}. Continuer ?",
+    "noBleTitle": "Pas de connexion BLE",
+    "noBleMessage": "Une connexion BLE est requise pour le WiFi. Recommencer ?",
+    "restart": "Recommencer",
+    "assignFailed": "Attribution échouée",
+    "assignFailedDetail": "Échec d'attribution : {{detail}}",
+    "fuelLine": "Carburant : {{type}}",
+    "assigning": "Attribution..."
+  },
+  "fuelEntry": {
+    "km": "KM",
+    "liters": "Litres",
+    "consumption": "Consommation"
+  },
+  "time": {
+    "ago": {
+      "seconds": "il y a {{count}} s",
+      "minutes": "il y a {{count}} min",
+      "hours": "il y a {{count}} h",
+      "days": "il y a {{count}} j",
+      "months": "il y a {{count}} mois",
+      "years": "il y a {{count}} ans"
+    }
   }
 }
