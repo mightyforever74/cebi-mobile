@@ -10,13 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-svg";
 import Card from "../../components/ui/Card";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { superAdminAPI } from "../../services/api";
+import { formatDateTime } from "../../utils/helpers";
 
 const DeviceQRManagement = () => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
@@ -38,7 +41,7 @@ const DeviceQRManagement = () => {
       const list = Array.isArray(data) ? data : data?.devices || [];
       setDevices(list);
     } catch (err) {
-      Alert.alert("Error", "Failed to fetch devices");
+      Alert.alert(t("common.error"), t("superadmin.qr.fetchFailed"));
       console.error(err);
     } finally {
       setLoadingList(false);
@@ -51,12 +54,12 @@ const DeviceQRManagement = () => {
       const data = await superAdminAPI.generateDeviceQR(deviceId);
       setQrData(data);
       setQrModal(true);
-      Alert.alert("Success", "QR Code generated");
+      Alert.alert(t("common.success"), t("superadmin.qr.generated"));
       fetchDevices();
     } catch (err) {
       Alert.alert(
-        "Error",
-        err.response?.data?.error || "Failed to generate QR"
+        t("common.error"),
+        err.response?.data?.error || t("superadmin.qr.generateFailed")
       );
     } finally {
       setLoadingActionDeviceId(null);
@@ -73,23 +76,27 @@ const DeviceQRManagement = () => {
         setQrData(data.qr_codes[0]);
         setQrModal(true);
       } else {
-        Alert.alert("Info", "No QR codes found for this device");
+        Alert.alert(t("common.info"), t("superadmin.qr.none"));
       }
     } catch (err) {
-      Alert.alert("Error", "Failed to fetch QR codes");
+      Alert.alert(t("common.error"), t("superadmin.qr.fetchCodesFailed"));
     } finally {
       setLoadingActionDeviceId(null);
     }
   };
 
   const handleRefreshQR = async (deviceId) => {
-    Alert.alert("Refresh QR", "Create new QR code for this device?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Yes",
-        onPress: () => handleGenerateQR(deviceId),
-      },
-    ]);
+    Alert.alert(
+      t("superadmin.qr.refreshTitle"),
+      t("superadmin.qr.refreshConfirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("superadmin.qr.yes"),
+          onPress: () => handleGenerateQR(deviceId),
+        },
+      ]
+    );
   };
 
   const renderDeviceCard = ({ item }) => (
@@ -103,23 +110,25 @@ const DeviceQRManagement = () => {
       </View>
 
       <View style={styles.cardBody}>
-        <Text style={styles.label}>Company:</Text>
-        <Text style={styles.value}>{item.company_name || "Unassigned"}</Text>
+        <Text style={styles.label}>{t("superadmin.qr.company")}</Text>
+        <Text style={styles.value}>
+          {item.company_name || t("superadmin.qr.unassigned")}
+        </Text>
 
         {item.vehicle_id && (
           <>
-            <Text style={styles.label}>Vehicle:</Text>
+            <Text style={styles.label}>{t("superadmin.qr.vehicle")}</Text>
             <Text style={styles.value}>{item.plate_no}</Text>
           </>
         )}
 
-        <Text style={styles.label}>QR Status:</Text>
+        <Text style={styles.label}>{t("superadmin.qr.qrStatus")}</Text>
         <Text style={styles.qrStatus}>
           {item.qr?.has_active
             ? item.qr?.used
-              ? "✅ Used"
-              : "🔓 Active"
-            : "⭕ None"}
+              ? `✅ ${t("superadmin.qr.used")}`
+              : `🔓 ${t("superadmin.qr.active")}`
+            : `⭕ ${t("superadmin.qr.noneStatus")}`}
         </Text>
       </View>
 
@@ -137,7 +146,9 @@ const DeviceQRManagement = () => {
             {loadingActionDeviceId === item.id ? (
               <ActivityIndicator size="small" color={COLORS.WHITE} />
             ) : (
-              <Text style={styles.btnText}>📱 Generate</Text>
+              <Text style={styles.btnText}>
+                📱 {t("superadmin.qr.generate")}
+              </Text>
             )}
           </TouchableOpacity>
         ) : !item.qr?.used ? (
@@ -146,17 +157,23 @@ const DeviceQRManagement = () => {
               style={[styles.btn, styles.btnPrimary]}
               onPress={() => handleShowQRCodes(item.id)}
             >
-              <Text style={styles.btnText}>👁 Show</Text>
+              <Text style={styles.btnText}>
+                👁 {t("superadmin.qr.show")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btn, styles.btnWarning]}
               onPress={() => handleRefreshQR(item.id)}
             >
-              <Text style={styles.btnText}>🔄 Refresh</Text>
+              <Text style={styles.btnText}>
+                🔄 {t("superadmin.qr.refresh")}
+              </Text>
             </TouchableOpacity>
           </>
         ) : (
-          <Text style={styles.usedText}>✅ Used</Text>
+          <Text style={styles.usedText}>
+            ✅ {t("superadmin.qr.used")}
+          </Text>
         )}
       </View>
     </Card>
@@ -173,7 +190,7 @@ const DeviceQRManagement = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Device QR Management</Text>
+        <Text style={styles.title}>{t("superadmin.qr.title")}</Text>
         <TouchableOpacity onPress={fetchDevices}>
           <Text style={styles.headerBtn}>🔄</Text>
         </TouchableOpacity>
@@ -190,7 +207,7 @@ const DeviceQRManagement = () => {
       <Modal visible={qrModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>QR Code</Text>
+            <Text style={styles.modalTitle}>{t("superadmin.qr.modalTitle")}</Text>
 
             {/* ✅ HIBRIT: Image varsa image, yoksa QRCode component */}
             <QRCode
@@ -201,26 +218,32 @@ const DeviceQRManagement = () => {
             />
 
             <View style={styles.qrInfo}>
-              <Text style={styles.infoLabel}>Device:</Text>
+              <Text style={styles.infoLabel}>{t("superadmin.qr.device")}</Text>
               <Text style={styles.infoValue}>{qrData?.device?.serial}</Text>
 
-              <Text style={styles.infoLabel}>Token:</Text>
+              <Text style={styles.infoLabel}>{t("superadmin.qr.token")}</Text>
               <Text style={styles.infoValue} numberOfLines={2}>
                 {qrData?.token}
               </Text>
 
-              <Text style={styles.infoLabel}>Expires In:</Text>
+              <Text style={styles.infoLabel}>{t("superadmin.qr.expiresIn")}</Text>
               <Text style={styles.infoValue}>
-                {Math.max(
-                  0,
-                  Math.ceil((new Date(qrData?.expires_at) - new Date()) / 60000)
-                )}{" "}
-                minutes
+                {t("superadmin.qr.expiresMinutes", {
+                  count: Math.max(
+                    0,
+                    Math.ceil(
+                      (new Date(qrData?.expires_at) - new Date()) / 60000
+                    )
+                  ),
+                })}
               </Text>
 
               {qrData?.used_at && (
                 <Text style={styles.usedLabel}>
-                  ✅ Used at {new Date(qrData.used_at).toLocaleString()}
+                  ✅{" "}
+                  {t("superadmin.qr.usedAt", {
+                    time: formatDateTime(qrData.used_at),
+                  })}
                 </Text>
               )}
             </View>
@@ -232,7 +255,7 @@ const DeviceQRManagement = () => {
                 setQrCodes([]);
               }}
             >
-              <Text style={styles.btnText}>Close</Text>
+              <Text style={styles.btnText}>{t("common.close")}</Text>
             </TouchableOpacity>
           </View>
         </View>

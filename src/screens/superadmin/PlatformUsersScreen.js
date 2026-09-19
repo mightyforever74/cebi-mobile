@@ -6,6 +6,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -21,6 +22,7 @@ import {
 import { API_URL } from "../../constants/config";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { formatDate } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
@@ -236,6 +238,7 @@ const makeStyles = (COLORS) =>
   });
 
 const PlatformUsersScreen = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -251,7 +254,7 @@ const PlatformUsersScreen = ({ navigation }) => {
       console.log("🔑 Token exists:", !!token);
 
       if (!token) {
-        Alert.alert("Hata", "Oturum süresi dolmuş. Lütfen tekrar giriş yapın.");
+        Alert.alert(t("common.error"), t("superadmin.sessionExpiredLong"));
         setLoading(false);
         return;
       }
@@ -274,11 +277,14 @@ const PlatformUsersScreen = ({ navigation }) => {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error("❌ API Error:", response.status, errorData);
-        Alert.alert("Hata", errorData.error || "Kullanıcılar yüklenemedi");
+        Alert.alert(
+          t("common.error"),
+          errorData.error || t("superadmin.users.loadFailed")
+        );
       }
     } catch (error) {
       console.error("❌ Fetch users error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -312,18 +318,21 @@ const PlatformUsersScreen = ({ navigation }) => {
   );
 
   // Rol etiketi
-  const getRoleLabel = useCallback((role) => {
-    switch (role) {
-      case "super_admin":
-        return "Super Admin";
-      case "company_admin":
-        return "Şirket Admin";
-      case "driver":
-        return "Sürücü";
-      default:
-        return role;
-    }
-  }, []);
+  const getRoleLabel = useCallback(
+    (role) => {
+      switch (role) {
+        case "super_admin":
+          return t("roles.superAdmin");
+        case "company_admin":
+          return t("superadmin.users.companyAdmin");
+        case "driver":
+          return t("superadmin.users.driver");
+        default:
+          return role;
+      }
+    },
+    [t, i18n.language]
+  );
 
   // Filtrelenmiş kullanıcılar
   const filteredUsers = useMemo(() => {
@@ -399,7 +408,9 @@ const PlatformUsersScreen = ({ navigation }) => {
           )}
 
           <Text style={styles.createdAt}>
-            Kayıt: {new Date(item.created_at).toLocaleDateString("tr-TR")}
+            {t("superadmin.users.registered", {
+              date: formatDate(item.created_at),
+            })}
           </Text>
         </View>
 
@@ -417,7 +428,7 @@ const PlatformUsersScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Kullanıcılar yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("superadmin.users.loading")}</Text>
       </View>
     );
   }
@@ -434,7 +445,7 @@ const PlatformUsersScreen = ({ navigation }) => {
           <Text style={[styles.statValue, { color: COLORS.PRIMARY }]}>
             {stats.total}
           </Text>
-          <Text style={styles.statLabel}>Toplam</Text>
+          <Text style={styles.statLabel}>{t("superadmin.users.total")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -448,7 +459,7 @@ const PlatformUsersScreen = ({ navigation }) => {
           <Text style={[styles.statValue, { color: COLORS.ERROR }]}>
             {stats.super_admin}
           </Text>
-          <Text style={styles.statLabel}>Super</Text>
+          <Text style={styles.statLabel}>{t("superadmin.users.super")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -462,7 +473,7 @@ const PlatformUsersScreen = ({ navigation }) => {
           <Text style={[styles.statValue, { color: COLORS.PRIMARY }]}>
             {stats.company_admin}
           </Text>
-          <Text style={styles.statLabel}>Admin</Text>
+          <Text style={styles.statLabel}>{t("superadmin.users.admin")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -476,7 +487,7 @@ const PlatformUsersScreen = ({ navigation }) => {
           <Text style={[styles.statValue, { color: COLORS.SUCCESS }]}>
             {stats.driver}
           </Text>
-          <Text style={styles.statLabel}>Sürücü</Text>
+          <Text style={styles.statLabel}>{t("superadmin.users.driver")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -485,7 +496,7 @@ const PlatformUsersScreen = ({ navigation }) => {
         <Ionicons name="search" size={18} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
-          placeholder="İsim, email veya şirket ara..."
+          placeholder={t("superadmin.users.searchPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.MUTED}
@@ -503,7 +514,7 @@ const PlatformUsersScreen = ({ navigation }) => {
       {/* Özet */}
       <View style={styles.summaryBar}>
         <Text style={styles.summaryText}>
-          {filteredUsers.length} kullanıcı
+          {t("superadmin.users.count", { count: filteredUsers.length })}
           {filter !== "all" && ` (${getRoleLabel(filter)})`}
         </Text>
       </View>
@@ -529,11 +540,11 @@ const PlatformUsersScreen = ({ navigation }) => {
               size={64}
               color={withAlpha(COLORS.MUTED, 0.35) || COLORS.MUTED}
             />
-            <Text style={styles.emptyTitle}>Kullanıcı Bulunamadı</Text>
+            <Text style={styles.emptyTitle}>{t("superadmin.users.empty")}</Text>
             <Text style={styles.emptyText}>
               {searchQuery
-                ? "Arama kriterlerine uygun kullanıcı yok"
-                : "Henüz kullanıcı eklenmemiş"}
+                ? t("superadmin.users.emptySearch")
+                : t("superadmin.users.emptyNone")}
             </Text>
           </View>
         }

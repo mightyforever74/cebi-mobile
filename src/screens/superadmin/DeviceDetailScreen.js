@@ -15,13 +15,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import Card from "../../components/ui/Card";
 import { API_URL } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { formatDate, formatDateTime, getTimeAgo } from "../../utils/helpers";
 
 const DeviceDetailScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { device: initialDevice } = route.params;
   const { token } = useAuth();
   const { COLORS } = useTheme();
@@ -106,7 +109,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
   const handleAssign = async () => {
     if (!selectedCompany) {
-      Alert.alert("Hata", "Lütfen bir şirket seçin");
+      Alert.alert(t("common.error"), t("superadmin.device.selectCompany"));
       return;
     }
     setActionLoading(true);
@@ -126,16 +129,16 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         }
       );
       if (response.ok) {
-        Alert.alert("Başarılı", "Cihaz atandı");
+        Alert.alert(t("common.success"), t("superadmin.device.assigned"));
         setAssignModalVisible(false);
         setSelectedCompany(null);
         setSelectedVehicle(null);
         fetchDeviceDetail();
       } else {
-        Alert.alert("Hata", "Atama başarısız");
+        Alert.alert(t("common.error"), t("superadmin.device.assignFailed"));
       }
     } catch (error) {
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setActionLoading(false);
     }
@@ -143,12 +146,12 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
   const handleUnassign = () => {
     Alert.alert(
-      "Atamayı Kaldır",
-      "Bu cihazın şirket atamasını kaldırmak istediğinize emin misiniz?",
+      t("superadmin.device.unassignTitle"),
+      t("superadmin.device.unassignConfirm"),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Kaldır",
+          text: t("superadmin.device.unassignAction"),
           style: "destructive",
           onPress: async () => {
             setActionLoading(true);
@@ -164,13 +167,19 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 }
               );
               if (response.ok) {
-                Alert.alert("Başarılı", "Atama kaldırıldı");
+                Alert.alert(
+                  t("common.success"),
+                  t("superadmin.device.unassigned")
+                );
                 fetchDeviceDetail();
               } else {
-                Alert.alert("Hata", "İşlem başarısız");
+                Alert.alert(
+                  t("common.error"),
+                  t("superadmin.device.actionFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             } finally {
               setActionLoading(false);
             }
@@ -182,17 +191,19 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
   const handleStatusChange = (newStatus) => {
     const statusLabels = {
-      active: "Aktif",
-      faulty: "Arızalı",
-      maintenance: "Bakımda",
+      active: t("superadmin.device.statusActive"),
+      faulty: t("superadmin.device.statusFaulty"),
+      maintenance: t("superadmin.device.statusMaintenance"),
     };
     Alert.alert(
-      "Durum Değiştir",
-      `Cihaz durumunu "${statusLabels[newStatus]}" olarak değiştirmek istiyor musunuz?`,
+      t("superadmin.device.changeStatus"),
+      t("superadmin.device.changeStatusConfirm", {
+        status: statusLabels[newStatus],
+      }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Değiştir",
+          text: t("superadmin.device.changeAction"),
           onPress: async () => {
             setActionLoading(true);
             try {
@@ -208,13 +219,19 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                 }
               );
               if (response.ok) {
-                Alert.alert("Başarılı", "Durum güncellendi");
+                Alert.alert(
+                  t("common.success"),
+                  t("superadmin.device.statusUpdated")
+                );
                 fetchDeviceDetail();
               } else {
-                Alert.alert("Hata", "Güncelleme başarısız");
+                Alert.alert(
+                  t("common.error"),
+                  t("superadmin.device.updateFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             } finally {
               setActionLoading(false);
             }
@@ -226,14 +243,14 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
   const handleSendCommand = (command, commandName, isDanger = false) => {
     Alert.alert(
-      "Uzaktan Komut",
+      t("superadmin.device.remoteCommand"),
       isDanger
-        ? `${commandName} komutu göndermek istediğinize emin misiniz? Bu işlem geri alınamaz.`
-        : `${commandName} komutu göndermek istiyor musunuz?`,
+        ? t("superadmin.device.commandDanger", { name: commandName })
+        : t("superadmin.device.commandConfirm", { name: commandName }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Gönder",
+          text: t("superadmin.device.send"),
           style: isDanger ? "destructive" : "default",
           onPress: async () => {
             setCommandLoading(command);
@@ -251,12 +268,18 @@ const DeviceDetailScreen = ({ route, navigation }) => {
               );
               const data = await response.json();
               if (response.ok) {
-                Alert.alert("Başarılı", data.message || "Komut gönderildi");
+                Alert.alert(
+                  t("common.success"),
+                  data.message || t("superadmin.device.commandSent")
+                );
               } else {
-                Alert.alert("Hata", data.error || "Komut gönderilemedi");
+                Alert.alert(
+                  t("common.error"),
+                  data.error || t("superadmin.device.commandFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             } finally {
               setCommandLoading(null);
             }
@@ -266,13 +289,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
     );
   };
 
-  const getTimeDifference = (dateStr) => {
-    if (!dateStr) return "Bilinmiyor";
-    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
-    if (diff < 60) return `${diff} sn önce`;
-    if (diff < 3600) return `${Math.floor(diff / 60)} dk önce`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} saat önce`;
-    return `${Math.floor(diff / 86400)} gün önce`;
+  const lastSeenText = (dateStr) => {
+    if (!dateStr) return t("common.unknown");
+    return getTimeAgo(dateStr);
   };
 
   const getStatusColor = (status) => {
@@ -332,7 +351,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                       size={10}
                       color={COLORS.WHITE}
                     />
-                    <Text style={styles.onlineText}>ONLINE</Text>
+                    <Text style={styles.onlineText}>
+                      {t("superadmin.device.online")}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -347,51 +368,65 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* Cihaz Bilgileri */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cihaz Bilgileri</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.device.info")}
+          </Text>
           <Card variant="flat">
-            <InfoRow label="MAC Adresi" value={device.mac_address} />
-            <InfoRow label="Chip Model" value={device.chip_model} />
-            <InfoRow label="Seri No" value={device.serial_number} />
             <InfoRow
-              label="WiFi Sinyal"
+              label={t("superadmin.device.macAddress")}
+              value={device.mac_address}
+            />
+            <InfoRow
+              label={t("superadmin.device.chipModel")}
+              value={device.chip_model}
+            />
+            <InfoRow
+              label={t("superadmin.device.serial")}
+              value={device.serial_number}
+            />
+            <InfoRow
+              label={t("superadmin.device.wifiSignal")}
               value={device.wifi_rssi ? `${device.wifi_rssi} dBm` : null}
             />
-            <InfoRow label="Son IP" value={device.last_ip_address} />
             <InfoRow
-              label="Son Görülme"
-              value={getTimeDifference(device.last_seen_at)}
+              label={t("superadmin.device.lastIp")}
+              value={device.last_ip_address}
+            />
+            <InfoRow
+              label={t("superadmin.device.lastSeen")}
+              value={lastSeenText(device.last_seen_at)}
             />
           </Card>
         </View>
 
         {/* Atama */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Atama Durumu</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.device.assignment")}
+          </Text>
           <Card variant="flat">
             {device.company_name ? (
               <>
                 <InfoRow
-                  label="Şirket"
+                  label={t("superadmin.device.company")}
                   value={device.company_name}
                   valueColor={COLORS.PRIMARY}
                 />
                 <InfoRow
-                  label="Araç"
+                  label={t("superadmin.device.vehicle")}
                   value={
                     device.vehicle_plate
                       ? `${device.vehicle_plate} (${device.vehicle_brand || ""} ${device.vehicle_model || ""})`
-                      : "Atanmamış"
+                      : t("superadmin.device.unassigned")
                   }
                   valueColor={
                     device.vehicle_plate ? COLORS.SUCCESS : COLORS.WARNING
                   }
                 />
                 <InfoRow
-                  label="Atanma Tarihi"
+                  label={t("superadmin.device.assignedAt")}
                   value={
-                    device.assigned_at
-                      ? new Date(device.assigned_at).toLocaleDateString("tr-TR")
-                      : null
+                    device.assigned_at ? formatDate(device.assigned_at) : null
                   }
                 />
                 <TouchableOpacity
@@ -404,7 +439,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                     size={18}
                     color={COLORS.ERROR}
                   />
-                  <Text style={styles.unassignText}>Atamayı Kaldır</Text>
+                  <Text style={styles.unassignText}>
+                    {t("superadmin.device.unassignTitle")}
+                  </Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -415,7 +452,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   color={COLORS.WARNING}
                 />
                 <Text style={styles.unassignedText}>
-                  Bu cihaz henüz atanmamış
+                  {t("superadmin.device.notAssignedYet")}
                 </Text>
                 <TouchableOpacity
                   style={styles.assignButton}
@@ -426,7 +463,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                     size={20}
                     color={COLORS.WHITE}
                   />
-                  <Text style={styles.assignButtonText}>Şirkete Ata</Text>
+                  <Text style={styles.assignButtonText}>
+                    {t("superadmin.device.assignToCompany")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -436,10 +475,12 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         {/* Son Konum */}
         {device.last_latitude && device.last_longitude && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Son Konum</Text>
+            <Text style={styles.sectionTitle}>
+              {t("superadmin.device.lastLocation")}
+            </Text>
             <Card variant="flat">
               <InfoRow
-                label="Koordinat"
+                label={t("superadmin.device.coordinate")}
                 value={`${device.last_latitude}, ${device.last_longitude}`}
               />
             </Card>
@@ -448,15 +489,17 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* İstatistikler */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>İstatistikler</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.device.stats")}
+          </Text>
           <View style={styles.statsRow}>
             {[
               {
                 value: device.total_uptime_minutes || 0,
-                label: "Çalışma (dk)",
+                label: t("superadmin.device.uptimeMin"),
               },
-              { value: device.total_alerts_sent || 0, label: "Alert" },
-              { value: device.error_count || 0, label: "Hata" },
+              { value: device.total_alerts_sent || 0, label: t("superadmin.device.alerts") },
+              { value: device.error_count || 0, label: t("superadmin.device.errors") },
             ].map((s, i) => (
               <Card key={i} variant="flat" style={styles.statBox}>
                 <Text style={styles.statNumber}>{s.value}</Text>
@@ -468,12 +511,26 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* Durum Değiştir */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Durum Değiştir</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.device.changeStatus")}
+          </Text>
           <View style={styles.statusButtons}>
             {[
-              { key: "active", label: "Aktif", color: COLORS.SUCCESS },
-              { key: "faulty", label: "Arızalı", color: COLORS.ERROR },
-              { key: "maintenance", label: "Bakımda", color: COLORS.INFO },
+              {
+                key: "active",
+                label: t("superadmin.device.statusActive"),
+                color: COLORS.SUCCESS,
+              },
+              {
+                key: "faulty",
+                label: t("superadmin.device.statusFaulty"),
+                color: COLORS.ERROR,
+              },
+              {
+                key: "maintenance",
+                label: t("superadmin.device.statusMaintenance"),
+                color: COLORS.INFO,
+              },
             ].map((s) => (
               <TouchableOpacity
                 key={s.key}
@@ -505,32 +562,34 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
         {/* Uzaktan Komutlar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Uzaktan Komutlar</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.device.commands")}
+          </Text>
           <Card variant="flat">
             <View style={styles.commandButtons}>
               {[
                 {
                   cmd: "STATUS",
-                  name: "Durum",
+                  name: t("superadmin.device.cmdStatus"),
                   icon: "pulse-outline",
                   style: styles.commandButtonSafe,
                 },
                 {
                   cmd: "RECALIBRATE",
-                  name: "Kalibre",
+                  name: t("superadmin.device.cmdCalibrate"),
                   icon: "compass-outline",
                   style: styles.commandButtonSafe,
                 },
                 {
                   cmd: "RESET",
-                  name: "Reset",
+                  name: t("superadmin.device.cmdReset"),
                   icon: "refresh-outline",
                   style: styles.commandButtonWarning,
                   danger: true,
                 },
                 {
                   cmd: "CLEAR_WIFI",
-                  name: "WiFi Sil",
+                  name: t("superadmin.device.cmdClearWifi"),
                   icon: "wifi-outline",
                   style: styles.commandButtonDanger,
                   danger: true,
@@ -559,7 +618,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         {/* Olay Geçmişi */}
         {logs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Olay Geçmişi</Text>
+            <Text style={styles.sectionTitle}>
+              {t("superadmin.device.history")}
+            </Text>
             <Card variant="flat">
               {logs.slice(0, 10).map((log, index) => (
                 <View key={log.id || index} style={styles.logItem}>
@@ -567,7 +628,7 @@ const DeviceDetailScreen = ({ route, navigation }) => {
                   <View style={styles.logContent}>
                     <Text style={styles.logMessage}>{log.message}</Text>
                     <Text style={styles.logTime}>
-                      {new Date(log.created_at).toLocaleString("tr-TR")}
+                      {formatDateTime(log.created_at)}
                     </Text>
                   </View>
                 </View>
@@ -587,12 +648,16 @@ const DeviceDetailScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Cihazı Ata</Text>
+              <Text style={styles.modalTitle}>
+                {t("superadmin.device.assignTitle")}
+              </Text>
               <TouchableOpacity onPress={() => setAssignModalVisible(false)}>
                 <Ionicons name="close" size={24} color={COLORS.MUTED} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalLabel}>Şirket Seç</Text>
+            <Text style={styles.modalLabel}>
+              {t("superadmin.device.selectCompanyLabel")}
+            </Text>
             <FlatList
               data={companies}
               keyExtractor={(item) => item.id}
@@ -625,7 +690,9 @@ const DeviceDetailScreen = ({ route, navigation }) => {
             />
             {selectedCompany && vehicles.length > 0 && (
               <>
-                <Text style={styles.modalLabel}>Araç Seç (Opsiyonel)</Text>
+                <Text style={styles.modalLabel}>
+                  {t("superadmin.device.selectVehicleOptional")}
+                </Text>
                 <FlatList
                   data={vehicles}
                   keyExtractor={(item) => item.id}
@@ -681,8 +748,10 @@ const DeviceDetailScreen = ({ route, navigation }) => {
               ) : (
                 <Text style={styles.assignModalButtonText}>
                   {selectedCompany
-                    ? `${selectedCompany.name}'e Ata`
-                    : "Şirket Seçin"}
+                    ? t("superadmin.device.assignToName", {
+                        name: selectedCompany.name,
+                      })
+                    : t("superadmin.device.selectCompanyPlaceholder")}
                 </Text>
               )}
             </TouchableOpacity>

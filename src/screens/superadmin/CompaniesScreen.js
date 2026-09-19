@@ -6,6 +6,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -23,6 +24,7 @@ import {
 import { API_URL } from "../../constants/config";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { formatDate, formatNumber } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA (rgba/hardcode olmadan) ---
 const withAlpha = (hex, alpha01) => {
@@ -571,37 +573,39 @@ const makeStyles = (COLORS) =>
 // ------------------------------------
 // TOKEN-BASED BADGE MAPS (no hex)
 // ------------------------------------
-const useStatusConfig = (COLORS) =>
-  useMemo(
+const useStatusConfig = (COLORS) => {
+  const { t } = useTranslation();
+  return useMemo(
     () => ({
       trial: {
         bg: withAlpha(COLORS.WARNING, 0.14),
         text: COLORS.WARNING,
-        label: "Trial",
+        label: t("superadmin.companies.trial"),
       },
       active: {
         bg: withAlpha(COLORS.SUCCESS, 0.14),
         text: COLORS.SUCCESS,
-        label: "Aktif",
+        label: t("superadmin.companies.active"),
       },
       suspended: {
         bg: withAlpha(COLORS.ERROR, 0.14),
         text: COLORS.ERROR,
-        label: "Askıda",
+        label: t("superadmin.companies.suspendedStatus"),
       },
       expired: {
         bg: withAlpha(COLORS.MUTED, 0.14),
         text: COLORS.MUTED,
-        label: "Süresi Doldu",
+        label: t("superadmin.companies.expired"),
       },
       cancelled: {
         bg: withAlpha(COLORS.MUTED, 0.14),
         text: COLORS.MUTED,
-        label: "İptal",
+        label: t("superadmin.companies.cancelled"),
       },
     }),
-    [COLORS]
+    [COLORS, t]
   );
+};
 
 const useTierConfig = (COLORS) =>
   useMemo(
@@ -638,6 +642,7 @@ const useTierConfig = (COLORS) =>
 // MAIN SCREEN
 // ------------------------------------
 const CompaniesScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -662,7 +667,7 @@ const CompaniesScreen = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
-        Alert.alert("Hata", "Oturum süresi dolmuş");
+        Alert.alert(t("common.error"), t("superadmin.sessionExpired"));
         setLoading(false);
         return;
       }
@@ -678,16 +683,16 @@ const CompaniesScreen = ({ navigation }) => {
         const result = await response.json();
         setData(result);
       } else {
-        Alert.alert("Hata", "Şirketler yüklenemedi");
+        Alert.alert(t("common.error"), t("superadmin.companies.loadFailed"));
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchCompanies();
@@ -722,12 +727,12 @@ const CompaniesScreen = ({ navigation }) => {
   // Askıya al
   const handleSuspend = async (company) => {
     Alert.alert(
-      "Askıya Al",
-      `${company.name} şirketini askıya almak istediğinize emin misiniz?`,
+      t("superadmin.companies.suspend"),
+      t("superadmin.companies.suspendConfirm", { name: company.name }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Askıya Al",
+          text: t("superadmin.companies.suspend"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -747,13 +752,19 @@ const CompaniesScreen = ({ navigation }) => {
                 }
               );
               if (response.ok) {
-                Alert.alert("Başarılı", "Şirket askıya alındı");
+                Alert.alert(
+                  t("common.success"),
+                  t("superadmin.companies.suspended")
+                );
                 fetchCompanies();
               } else {
-                Alert.alert("Hata", "Askıya alma başarısız");
+                Alert.alert(
+                  t("common.error"),
+                  t("superadmin.companies.suspendFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             }
           },
         },
@@ -764,12 +775,12 @@ const CompaniesScreen = ({ navigation }) => {
   // Trial uzat
   const handleExtendTrial = async (company) => {
     Alert.alert(
-      "Trial Uzat",
-      `${company.name} için trial süresini 7 gün uzatmak istiyor musunuz?`,
+      t("superadmin.companies.extendTitle"),
+      t("superadmin.companies.extendConfirm", { name: company.name }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Uzat",
+          text: t("superadmin.companies.extendAction"),
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem("accessToken");
@@ -785,13 +796,19 @@ const CompaniesScreen = ({ navigation }) => {
                 }
               );
               if (response.ok) {
-                Alert.alert("Başarılı", "Trial 7 gün uzatıldı");
+                Alert.alert(
+                  t("common.success"),
+                  t("superadmin.companies.trialExtended")
+                );
                 fetchCompanies();
               } else {
-                Alert.alert("Hata", "Trial uzatılamadı");
+                Alert.alert(
+                  t("common.error"),
+                  t("superadmin.companies.trialExtendFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             }
           },
         },
@@ -802,12 +819,14 @@ const CompaniesScreen = ({ navigation }) => {
   // Şirket sil
   const handleDeleteCompany = (company) => {
     Alert.alert(
-      "Şirketi Sil",
-      `"${company.name}" şirketini silmek istediğinize emin misiniz?`,
+      t("superadmin.companies.deleteTitle"),
+      t("superadmin.companies.deleteConfirmIrreversible", {
+        name: company.name,
+      }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Sil",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -820,13 +839,19 @@ const CompaniesScreen = ({ navigation }) => {
                 }
               );
               if (response.ok) {
-                Alert.alert("Başarılı", "Şirket silindi");
+                Alert.alert(
+                  t("common.success"),
+                  t("superadmin.companies.deleted")
+                );
                 fetchCompanies();
               } else {
-                Alert.alert("Hata", "Şirket silinemedi");
+                Alert.alert(
+                  t("common.error"),
+                  t("superadmin.companies.deleteFailed")
+                );
               }
             } catch (error) {
-              Alert.alert("Hata", "Bağlantı hatası");
+              Alert.alert(t("common.error"), t("superadmin.connectionError"));
             }
           },
         },
@@ -838,25 +863,25 @@ const CompaniesScreen = ({ navigation }) => {
     <View style={styles.summaryContainer}>
       <View style={styles.summaryRow}>
         <SummaryCard
-          label="Toplam"
+          label={t("superadmin.companies.total")}
           value={data.summary.total || 0}
           icon="business"
           color={COLORS.PRIMARY}
         />
         <SummaryCard
-          label="Aktif"
+          label={t("superadmin.companies.active")}
           value={data.summary.by_status?.active || 0}
           icon="checkmark-circle"
           color={COLORS.SUCCESS}
         />
         <SummaryCard
-          label="Trial"
+          label={t("superadmin.companies.trial")}
           value={data.summary.by_status?.trial || 0}
           icon="time"
           color={COLORS.WARNING}
         />
         <SummaryCard
-          label="Askıda"
+          label={t("superadmin.companies.suspendedStatus")}
           value={data.summary.by_status?.suspended || 0}
           icon="pause-circle"
           color={COLORS.ERROR}
@@ -865,9 +890,11 @@ const CompaniesScreen = ({ navigation }) => {
 
       <View style={styles.revenueCard}>
         <Ionicons name="wallet" size={24} color={COLORS.SUCCESS} />
-        <Text style={styles.revenueLabel}>Aylık Gelir</Text>
+        <Text style={styles.revenueLabel}>
+          {t("superadmin.companies.monthlyRevenue")}
+        </Text>
         <Text style={styles.revenueValue}>
-          €{(data.summary.monthly_revenue || 0).toLocaleString()}
+          €{formatNumber(data.summary.monthly_revenue || 0)}
         </Text>
       </View>
     </View>
@@ -888,7 +915,9 @@ const CompaniesScreen = ({ navigation }) => {
         >
           <View style={styles.urgentHeaderLeft}>
             <Ionicons name="warning" size={20} color={COLORS.ERROR} />
-            <Text style={styles.urgentTitle}>Acil Aksiyon ({totalUrgent})</Text>
+            <Text style={styles.urgentTitle}>
+              {t("superadmin.companies.urgentAction", { count: totalUrgent })}
+            </Text>
           </View>
           <Ionicons
             name={showUrgent ? "chevron-up" : "chevron-down"}
@@ -910,12 +939,16 @@ const CompaniesScreen = ({ navigation }) => {
                     ]}
                   >
                     <Text style={[styles.badgeText, { color: COLORS.ERROR }]}>
-                      {company.days_overdue} gün gecikmiş
+                      {t("superadmin.companies.overdueDays", {
+                        count: company.days_overdue,
+                      })}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.urgentInfo}>
-                  Tutar: €{company.amount_due}
+                  {t("superadmin.companies.amountDue", {
+                    amount: company.amount_due,
+                  })}
                 </Text>
 
                 <View style={styles.urgentActions}>
@@ -931,7 +964,9 @@ const CompaniesScreen = ({ navigation }) => {
                     activeOpacity={0.85}
                   >
                     <Ionicons name="checkmark" size={16} color={COLORS.WHITE} />
-                    <Text style={styles.actionBtnText}>Ödeme Geldi</Text>
+                    <Text style={styles.actionBtnText}>
+                      {t("superadmin.companies.paymentReceived")}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -940,7 +975,9 @@ const CompaniesScreen = ({ navigation }) => {
                     activeOpacity={0.85}
                   >
                     <Ionicons name="pause" size={16} color={COLORS.WHITE} />
-                    <Text style={styles.actionBtnText}>Askıya Al</Text>
+                    <Text style={styles.actionBtnText}>
+                      {t("superadmin.companies.suspend")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -957,12 +994,14 @@ const CompaniesScreen = ({ navigation }) => {
                     ]}
                   >
                     <Text style={[styles.badgeText, { color: COLORS.WARNING }]}>
-                      {company.days_left} gün kaldı
+                      {t("superadmin.companies.daysLeft", {
+                        count: company.days_left,
+                      })}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.urgentInfo}>
-                  {company.vehicle_count} araç
+                  {company.vehicle_count} {t("superadmin.companies.vehicle")}
                 </Text>
 
                 <View style={styles.urgentActions}>
@@ -978,7 +1017,9 @@ const CompaniesScreen = ({ navigation }) => {
                     activeOpacity={0.85}
                   >
                     <Ionicons name="checkmark" size={16} color={COLORS.WHITE} />
-                    <Text style={styles.actionBtnText}>Abonelik Başlat</Text>
+                    <Text style={styles.actionBtnText}>
+                      {t("superadmin.companies.startSubscription")}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -987,7 +1028,9 @@ const CompaniesScreen = ({ navigation }) => {
                     activeOpacity={0.85}
                   >
                     <Ionicons name="time" size={16} color={COLORS.WHITE} />
-                    <Text style={styles.actionBtnText}>Süre Uzat</Text>
+                    <Text style={styles.actionBtnText}>
+                      {t("superadmin.companies.extend")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1002,20 +1045,24 @@ const CompaniesScreen = ({ navigation }) => {
     <View style={styles.filtersContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {[
-          { key: "all", label: "Tümü", count: (data.companies || []).length },
+          {
+            key: "all",
+            label: t("superadmin.companies.filterAll"),
+            count: (data.companies || []).length,
+          },
           {
             key: "active",
-            label: "Aktif",
+            label: t("superadmin.companies.active"),
             count: data.summary.by_status?.active || 0,
           },
           {
             key: "trial",
-            label: "Trial",
+            label: t("superadmin.companies.trial"),
             count: data.summary.by_status?.trial || 0,
           },
           {
             key: "suspended",
-            label: "Askıda",
+            label: t("superadmin.companies.suspendedStatus"),
             count: data.summary.by_status?.suspended || 0,
           },
         ].map((filter) => (
@@ -1086,17 +1133,21 @@ const CompaniesScreen = ({ navigation }) => {
               </Text>
             </View>
             <Text style={styles.cardInfoText}>
-              {item.vehicle_count || 0} araç • €{item.monthly_fee || 0}/ay
+              {t("superadmin.companies.vehiclesFee", {
+                count: item.vehicle_count || 0,
+                fee: item.monthly_fee || 0,
+              })}
             </Text>
           </View>
 
           {item.subscription_status === "active" &&
             item.days_until_due !== null && (
               <Text style={styles.cardSubInfo}>
-                Sonraki ödeme:{" "}
                 {item.days_until_due > 0
-                  ? `${item.days_until_due} gün`
-                  : "Bugün"}
+                  ? t("superadmin.companies.nextPaymentDays", {
+                      count: item.days_until_due,
+                    })
+                  : t("superadmin.companies.nextPaymentToday")}
               </Text>
             )}
 
@@ -1111,7 +1162,9 @@ const CompaniesScreen = ({ navigation }) => {
                   },
                 ]}
               >
-                Trial: {item.trial_days_left} gün kaldı
+                {t("superadmin.companies.trialDaysLeft", {
+                  count: item.trial_days_left,
+                })}
               </Text>
             )}
         </View>
@@ -1119,19 +1172,27 @@ const CompaniesScreen = ({ navigation }) => {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{item.vehicle_count || 0}</Text>
-            <Text style={styles.statLabel}>Araç</Text>
+            <Text style={styles.statLabel}>
+              {t("superadmin.companies.vehicle")}
+            </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{item.driver_count || 0}</Text>
-            <Text style={styles.statLabel}>Sürücü</Text>
+            <Text style={styles.statLabel}>
+              {t("superadmin.companies.driver")}
+            </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{item.device_count || 0}</Text>
-            <Text style={styles.statLabel}>Cihaz</Text>
+            <Text style={styles.statLabel}>
+              {t("superadmin.companies.device")}
+            </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{tier.price}</Text>
-            <Text style={styles.statLabel}>/araç</Text>
+            <Text style={styles.statLabel}>
+              {t("superadmin.companies.perVehicle")}
+            </Text>
           </View>
         </View>
 
@@ -1149,7 +1210,7 @@ const CompaniesScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -1161,7 +1222,7 @@ const CompaniesScreen = ({ navigation }) => {
         <Ionicons name="search" size={20} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Şirket ara..."
+          placeholder={t("superadmin.companies.searchPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.MUTED}
@@ -1199,7 +1260,9 @@ const CompaniesScreen = ({ navigation }) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🏢</Text>
-            <Text style={styles.emptyText}>Şirket bulunamadı</Text>
+            <Text style={styles.emptyText}>
+              {t("superadmin.companies.empty")}
+            </Text>
           </View>
         }
         showsVerticalScrollIndicator={false}
@@ -1288,6 +1351,7 @@ const CompanyDetailModal = ({
   onDelete,
   onRefresh,
 }) => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -1358,10 +1422,13 @@ const CompanyDetailModal = ({
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           {[
-            { key: "general", label: "📋 Genel" },
-            { key: "subscription", label: "💰 Abonelik" },
-            { key: "devices", label: "📦 Cihazlar" },
-            { key: "history", label: "📜 Geçmiş" },
+            { key: "general", label: t("superadmin.companies.tabGeneral") },
+            {
+              key: "subscription",
+              label: t("superadmin.companies.tabSubscription"),
+            },
+            { key: "devices", label: t("superadmin.companies.tabDevices") },
+            { key: "history", label: t("superadmin.companies.tabHistory") },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
@@ -1396,41 +1463,64 @@ const CompanyDetailModal = ({
               {/* Genel Tab */}
               {activeTab === "general" && (
                 <View style={styles.tabContent}>
-                  <Text style={styles.sectionTitle}>Şirket Bilgileri</Text>
-                  <InfoRow label="Ad" value={company.name} />
-                  <InfoRow label="E-posta" value={company.email} />
-                  <InfoRow label="Telefon" value={company.phone} />
-                  <InfoRow label="Şehir" value={company.city} />
-                  <InfoRow label="Vergi No" value={company.tax_id} />
+                  <Text style={styles.sectionTitle}>
+                    {t("superadmin.companies.companyInfo")}
+                  </Text>
+                  <InfoRow
+                    label={t("superadmin.companies.companyName")}
+                    value={company.name}
+                  />
+                  <InfoRow
+                    label={t("auth.email")}
+                    value={company.email}
+                  />
+                  <InfoRow
+                    label={t("superadmin.create.phone")}
+                    value={company.phone}
+                  />
+                  <InfoRow
+                    label={t("superadmin.create.city")}
+                    value={company.city}
+                  />
+                  <InfoRow
+                    label={t("superadmin.create.taxId")}
+                    value={company.tax_id}
+                  />
 
                   {detail?.admin && (
                     <>
                       <Text style={[styles.sectionTitle, { marginTop: 20 }]}>
-                        Admin Bilgileri
+                        {t("superadmin.companies.adminInfo")}
                       </Text>
                       <InfoRow
-                        label="Ad"
+                        label={t("superadmin.create.firstName")}
                         value={
                           detail.admin.first_name
                             ? `${detail.admin.first_name} ${detail.admin.last_name || ""}`.trim()
                             : "-"
                         }
                       />
-                      <InfoRow label="E-posta" value={detail.admin.email} />
-                      <InfoRow label="Telefon" value={detail.admin.phone} />
+                      <InfoRow
+                        label={t("auth.email")}
+                        value={detail.admin.email}
+                      />
+                      <InfoRow
+                        label={t("superadmin.create.phone")}
+                        value={detail.admin.phone}
+                      />
                     </>
                   )}
 
                   <Text style={[styles.sectionTitle, { marginTop: 20 }]}>
-                    Kullanım
+                    {t("superadmin.companies.usage")}
                   </Text>
                   <UsageBar
-                    label="Araçlar"
+                    label={t("navigation.vehicles")}
                     current={detail?.usage?.vehicles?.current || 0}
                     max={detail?.usage?.vehicles?.max || 10}
                   />
                   <UsageBar
-                    label="Sürücüler"
+                    label={t("navigation.drivers")}
                     current={detail?.usage?.drivers?.current || 0}
                     max={detail?.usage?.drivers?.max || 15}
                   />
@@ -1440,10 +1530,14 @@ const CompanyDetailModal = ({
               {/* Abonelik Tab */}
               {activeTab === "subscription" && (
                 <View style={styles.tabContent}>
-                  <Text style={styles.sectionTitle}>Paket & Durum</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t("superadmin.companies.packageStatus")}
+                  </Text>
 
                   <View style={styles.infoRowWithBadge}>
-                    <Text style={styles.infoLabel}>Paket</Text>
+                    <Text style={styles.infoLabel}>
+                      {t("superadmin.companies.package")}
+                    </Text>
                     <View style={[styles.badge, { backgroundColor: tier.bg }]}>
                       <Text style={[styles.badgeText, { color: tier.text }]}>
                         {tier.label}
@@ -1452,7 +1546,9 @@ const CompanyDetailModal = ({
                   </View>
 
                   <View style={styles.infoRowWithBadge}>
-                    <Text style={styles.infoLabel}>Durum</Text>
+                    <Text style={styles.infoLabel}>
+                      {t("superadmin.companies.status")}
+                    </Text>
                     <View
                       style={[styles.badge, { backgroundColor: status.bg }]}
                     >
@@ -1463,34 +1559,34 @@ const CompanyDetailModal = ({
                   </View>
 
                   <InfoRow
-                    label="Araç Ücreti"
-                    value={`€${company.per_vehicle_fee || 0}/araç`}
+                    label={t("superadmin.companies.vehicleFee")}
+                    value={`€${company.per_vehicle_fee || 0}${t("superadmin.companies.perVehicle")}`}
                   />
                   <InfoRow
-                    label="Aylık Toplam"
+                    label={t("superadmin.companies.monthlyTotal")}
                     value={`€${company.monthly_fee || 0}`}
                   />
 
                   <Text style={[styles.sectionTitle, { marginTop: 20 }]}>
-                    Tarihler
+                    {t("superadmin.companies.dates")}
                   </Text>
                   <InfoRow
-                    label="Başlangıç"
+                    label={t("superadmin.companies.startDate")}
                     value={formatDate(company.subscription_starts_at)}
                   />
                   <InfoRow
-                    label="Son Ödeme"
+                    label={t("superadmin.companies.lastPayment")}
                     value={formatDate(company.last_payment_at)}
                   />
                   <InfoRow
-                    label="Sonraki Ödeme"
+                    label={t("superadmin.companies.nextPayment")}
                     value={formatDate(company.next_payment_due)}
                   />
 
                   {detail?.recent_payments?.length > 0 && (
                     <>
                       <Text style={[styles.sectionTitle, { marginTop: 20 }]}>
-                        Son Ödemeler
+                        {t("superadmin.companies.recentPayments")}
                       </Text>
                       {detail.recent_payments.map((payment) => (
                         <View key={payment.id} style={styles.paymentRow}>
@@ -1516,7 +1612,9 @@ const CompanyDetailModal = ({
               {activeTab === "devices" && (
                 <View style={styles.tabContent}>
                   <Text style={styles.sectionTitle}>
-                    Atanmış Cihazlar ({detail?.devices?.length || 0})
+                    {t("superadmin.companies.assignedDevices", {
+                      count: detail?.devices?.length || 0,
+                    })}
                   </Text>
 
                   {detail?.devices?.map((device) => {
@@ -1534,7 +1632,8 @@ const CompanyDetailModal = ({
                             {device.serial || device.device_code}
                           </Text>
                           <Text style={styles.devicePlate}>
-                            {device.plate_no || "Atanmamış"}
+                            {device.plate_no ||
+                              t("superadmin.devices.unassigned")}
                           </Text>
                         </View>
 
@@ -1542,7 +1641,9 @@ const CompanyDetailModal = ({
                           style={[styles.badge, { backgroundColor: chipBg }]}
                         >
                           <Text style={[styles.badgeText, { color: chipText }]}>
-                            {isActive ? "Online" : "Offline"}
+                            {isActive
+                              ? t("superadmin.devices.online")
+                              : t("superadmin.devices.offline")}
                           </Text>
                         </View>
                       </View>
@@ -1550,7 +1651,9 @@ const CompanyDetailModal = ({
                   })}
 
                   {(!detail?.devices || detail.devices.length === 0) && (
-                    <Text style={styles.emptyText}>Cihaz bulunamadı</Text>
+                    <Text style={styles.emptyText}>
+                      {t("superadmin.companies.deviceEmpty")}
+                    </Text>
                   )}
                 </View>
               )}
@@ -1558,18 +1661,21 @@ const CompanyDetailModal = ({
               {/* Geçmiş Tab */}
               {activeTab === "history" && (
                 <View style={styles.tabContent}>
-                  <Text style={styles.sectionTitle}>Değişiklik Geçmişi</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t("superadmin.companies.changeHistory")}
+                  </Text>
 
                   {detail?.audit_logs?.map((log) => (
                     <View key={log.id} style={styles.auditRow}>
                       <View style={styles.auditDot} />
                       <View style={styles.auditContent}>
                         <Text style={styles.auditAction}>
-                          {formatAction(log.action)}
+                          {formatAction(log.action, t)}
                         </Text>
                         <Text style={styles.auditMeta}>
                           {formatDate(log.created_at)} •{" "}
-                          {log.changed_by_name || "Sistem"}
+                          {log.changed_by_name ||
+                            t("superadmin.companies.system")}
                         </Text>
                         {log.reason ? (
                           <Text style={styles.auditReason}>{log.reason}</Text>
@@ -1579,7 +1685,9 @@ const CompanyDetailModal = ({
                   ))}
 
                   {(!detail?.audit_logs || detail.audit_logs.length === 0) && (
-                    <Text style={styles.emptyText}>Geçmiş bulunamadı</Text>
+                    <Text style={styles.emptyText}>
+                      {t("superadmin.companies.historyEmpty")}
+                    </Text>
                   )}
                 </View>
               )}
@@ -1595,7 +1703,9 @@ const CompanyDetailModal = ({
             activeOpacity={0.85}
           >
             <Ionicons name="card" size={18} color={COLORS.WHITE} />
-            <Text style={styles.modalBtnText}>Ödeme</Text>
+            <Text style={styles.modalBtnText}>
+              {t("superadmin.companies.payment")}
+            </Text>
           </TouchableOpacity>
 
           {company.subscription_status !== "suspended" ? (
@@ -1605,7 +1715,9 @@ const CompanyDetailModal = ({
               activeOpacity={0.85}
             >
               <Ionicons name="pause" size={18} color={COLORS.WHITE} />
-              <Text style={styles.modalBtnText}>Askıya Al</Text>
+              <Text style={styles.modalBtnText}>
+                {t("superadmin.companies.suspend")}
+              </Text>
             </TouchableOpacity>
           ) : (
             <View style={{ flex: 1 }} />
@@ -1617,7 +1729,7 @@ const CompanyDetailModal = ({
             activeOpacity={0.85}
           >
             <Ionicons name="trash" size={18} color={COLORS.WHITE} />
-            <Text style={styles.modalBtnText}>Sil</Text>
+            <Text style={styles.modalBtnText}>{t("common.delete")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1635,6 +1747,7 @@ const PaymentModal = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -1662,7 +1775,10 @@ const PaymentModal = ({
 
   const handleSubmit = async () => {
     if (!amount || !periodStart || !periodEnd) {
-      Alert.alert("Hata", "Tutar ve dönem bilgisi gerekli");
+      Alert.alert(
+        t("common.error"),
+        t("superadmin.companies.amountPeriodRequired")
+      );
       return;
     }
 
@@ -1689,14 +1805,17 @@ const PaymentModal = ({
       );
 
       if (response.ok) {
-        Alert.alert("Başarılı", "Ödeme kaydedildi, abonelik aktifleştirildi");
+        Alert.alert(t("common.success"), t("superadmin.companies.paymentSaved"));
         onSuccess();
       } else {
         const errorData = await response.json().catch(() => ({}));
-        Alert.alert("Hata", errorData.error || "Ödeme kaydedilemedi");
+        Alert.alert(
+          t("common.error"),
+          errorData.error || t("superadmin.companies.paymentSaveFailed")
+        );
       }
     } catch (error) {
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setLoading(false);
     }
@@ -1715,7 +1834,9 @@ const PaymentModal = ({
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>Ödeme Kaydet</Text>
+          <Text style={styles.modalTitle}>
+            {t("superadmin.companies.savePayment")}
+          </Text>
           <TouchableOpacity onPress={onClose} activeOpacity={0.85}>
             <Ionicons
               name="close"
@@ -1733,14 +1854,22 @@ const PaymentModal = ({
 
           <View style={styles.calculatedFee}>
             <Text style={styles.calculatedFeeText}>
-              {company.vehicle_count || 0} araç × €
-              {company.per_vehicle_fee || 0} = €
-              {(company.vehicle_count || 0) * (company.per_vehicle_fee || 0)}
+              {t("superadmin.companies.feeFormula", {
+                count: company.vehicle_count || 0,
+                unit: t("superadmin.companies.vehicle"),
+                fee: company.per_vehicle_fee || 0,
+                total:
+                  (company.vehicle_count || 0) * (company.per_vehicle_fee || 0),
+              })}
             </Text>
-            <Text style={styles.calculatedFeeTier}>({tier.label} paket)</Text>
+            <Text style={styles.calculatedFeeTier}>
+              {t("superadmin.companies.packageTag", { label: tier.label })}
+            </Text>
           </View>
 
-          <Text style={styles.inputLabel}>Tutar (€)</Text>
+          <Text style={styles.inputLabel}>
+            {t("superadmin.companies.amountEur")}
+          </Text>
           <TextInput
             style={styles.input}
             value={amount}
@@ -1750,12 +1879,17 @@ const PaymentModal = ({
             placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
-          <Text style={styles.inputLabel}>Ödeme Yöntemi</Text>
+          <Text style={styles.inputLabel}>
+            {t("superadmin.companies.paymentMethod")}
+          </Text>
           <View style={styles.methodContainer}>
             {[
-              { key: "bank_transfer", label: "Havale" },
-              { key: "credit_card", label: "Kart" },
-              { key: "invoice", label: "Fatura" },
+              {
+                key: "bank_transfer",
+                label: t("superadmin.companies.payHavale"),
+              },
+              { key: "credit_card", label: t("superadmin.companies.payCard") },
+              { key: "invoice", label: t("superadmin.companies.payInvoice") },
             ].map((method) => (
               <TouchableOpacity
                 key={method.key}
@@ -1780,7 +1914,9 @@ const PaymentModal = ({
 
           <View style={styles.periodContainer}>
             <View style={styles.periodField}>
-              <Text style={styles.inputLabel}>Dönem Başlangıç</Text>
+              <Text style={styles.inputLabel}>
+                {t("superadmin.companies.periodStart")}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={periodStart}
@@ -1790,7 +1926,9 @@ const PaymentModal = ({
               />
             </View>
             <View style={styles.periodField}>
-              <Text style={styles.inputLabel}>Dönem Bitiş</Text>
+              <Text style={styles.inputLabel}>
+                {t("superadmin.companies.periodEnd")}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={periodEnd}
@@ -1801,7 +1939,9 @@ const PaymentModal = ({
             </View>
           </View>
 
-          <Text style={styles.inputLabel}>Fatura No (Opsiyonel)</Text>
+          <Text style={styles.inputLabel}>
+            {t("superadmin.companies.invoiceNo")}
+          </Text>
           <TextInput
             style={styles.input}
             value={invoiceNumber}
@@ -1810,12 +1950,14 @@ const PaymentModal = ({
             placeholderTextColor={COLORS.PLACEHOLDER}
           />
 
-          <Text style={styles.inputLabel}>Not (Opsiyonel)</Text>
+          <Text style={styles.inputLabel}>
+            {t("superadmin.companies.noteOptional")}
+          </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={notes}
             onChangeText={setNotes}
-            placeholder="Ek notlar..."
+            placeholder={t("superadmin.companies.notePlaceholder")}
             placeholderTextColor={COLORS.PLACEHOLDER}
             multiline
             numberOfLines={3}
@@ -1828,7 +1970,7 @@ const PaymentModal = ({
             onPress={onClose}
             activeOpacity={0.85}
           >
-            <Text style={styles.cancelBtnText}>İptal</Text>
+            <Text style={styles.cancelBtnText}>{t("common.cancel")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -1846,7 +1988,7 @@ const PaymentModal = ({
             ) : (
               <>
                 <Ionicons name="checkmark" size={18} color={COLORS.WHITE} />
-                <Text style={styles.modalBtnText}>Kaydet</Text>
+                <Text style={styles.modalBtnText}>{t("common.save")}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -1900,24 +2042,20 @@ const UsageBar = ({ label, current, max }) => {
 };
 
 // Helper functions
-const formatDate = (dateString) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("tr-TR");
-};
-
 const formatDateISO = (date) => date.toISOString().split("T")[0];
 
-const formatAction = (action) => {
-  const actions = {
-    payment_received: "Ödeme kaydedildi",
-    suspended: "Askıya alındı",
-    tier_changed: "Paket değiştirildi",
-    trial_extended: "Trial uzatıldı",
-    company_created: "Şirket oluşturuldu",
-    activated: "Aktifleştirildi",
-  };
-  return actions[action] || action;
+const ACTION_I18N_KEYS = {
+  payment_received: "superadmin.companies.actionPaymentReceived",
+  suspended: "superadmin.companies.actionSuspended",
+  tier_changed: "superadmin.companies.actionTierChanged",
+  trial_extended: "superadmin.companies.actionTrialExtended",
+  company_created: "superadmin.companies.actionCreated",
+  activated: "superadmin.companies.actionActivated",
+};
+
+const formatAction = (action, t) => {
+  const key = ACTION_I18N_KEYS[action];
+  return key ? t(key) : action;
 };
 
 export default CompaniesScreen;

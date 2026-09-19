@@ -5,6 +5,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -23,6 +24,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const CompanyEditScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { companyId } = route.params || {};
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -41,7 +43,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (companyId) fetchCompany();
     else {
-      Alert.alert("Hata", "Şirket ID bulunamadı");
+      Alert.alert(t("common.error"), t("superadmin.edit.idMissing"));
       navigation.goBack();
     }
   }, [companyId]);
@@ -50,7 +52,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
-        Alert.alert("Hata", "Oturum süresi dolmuş");
+        Alert.alert(t("common.error"), t("superadmin.sessionExpired"));
         navigation.goBack();
         return;
       }
@@ -75,12 +77,12 @@ const CompanyEditScreen = ({ route, navigation }) => {
           is_active: cd.status === "active" || cd.is_active !== false,
         });
       } else {
-        Alert.alert("Hata", "Şirket bilgileri yüklenemedi");
+        Alert.alert(t("common.error"), t("superadmin.edit.loadFailed"));
         navigation.goBack();
       }
     } catch (error) {
       console.error("Fetch company error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -89,14 +91,14 @@ const CompanyEditScreen = ({ route, navigation }) => {
 
   const handleSave = async () => {
     if (!company.name.trim()) {
-      Alert.alert("Hata", "Şirket adı zorunludur");
+      Alert.alert(t("common.error"), t("superadmin.edit.nameRequired"));
       return;
     }
     setSaving(true);
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
-        Alert.alert("Hata", "Oturum süresi dolmuş");
+        Alert.alert(t("common.error"), t("superadmin.sessionExpired"));
         return;
       }
       const response = await fetch(
@@ -118,16 +120,19 @@ const CompanyEditScreen = ({ route, navigation }) => {
         }
       );
       if (response.ok) {
-        Alert.alert("Başarılı", "Şirket güncellendi", [
-          { text: "Tamam", onPress: () => navigation.goBack() },
+        Alert.alert(t("common.success"), t("superadmin.edit.updated"), [
+          { text: t("common.ok"), onPress: () => navigation.goBack() },
         ]);
       } else {
         const ed = await response.json().catch(() => ({}));
-        Alert.alert("Hata", ed.error || "Güncelleme başarısız");
+        Alert.alert(
+          t("common.error"),
+          ed.error || t("superadmin.edit.updateFailed")
+        );
       }
     } catch (error) {
       console.error("Save company error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setSaving(false);
     }
@@ -137,7 +142,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -152,20 +157,20 @@ const CompanyEditScreen = ({ route, navigation }) => {
           {[
             {
               key: "name",
-              label: "Şirket Adı *",
+              label: t("superadmin.edit.companyName"),
               icon: "business-outline",
-              placeholder: "Şirket adı",
+              placeholder: t("superadmin.edit.companyNamePlaceholder"),
             },
             {
               key: "slug",
-              label: "Slug",
+              label: t("superadmin.edit.slug"),
               icon: "link-outline",
               placeholder: "sirket-slug",
               autoCapitalize: "none",
             },
             {
               key: "email",
-              label: "Email",
+              label: t("superadmin.edit.email"),
               icon: "mail-outline",
               placeholder: "info@sirket.com",
               keyboardType: "email-address",
@@ -173,7 +178,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
             },
             {
               key: "phone",
-              label: "Telefon",
+              label: t("superadmin.edit.phone"),
               icon: "call-outline",
               placeholder: "+90 555 123 4567",
               keyboardType: "phone-pad",
@@ -206,7 +211,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
 
           {/* Adres */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Adres</Text>
+            <Text style={styles.label}>{t("superadmin.edit.address")}</Text>
             <View
               style={[
                 styles.inputContainer,
@@ -228,7 +233,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
                 onChangeText={(text) =>
                   setCompany({ ...company, address: text })
                 }
-                placeholder="Şirket adresi"
+                placeholder={t("superadmin.edit.addressPlaceholder")}
                 placeholderTextColor={COLORS.PLACEHOLDER}
                 multiline
               />
@@ -238,9 +243,13 @@ const CompanyEditScreen = ({ route, navigation }) => {
           {/* Aktif Durumu */}
           <View style={styles.switchGroup}>
             <View>
-              <Text style={styles.label}>Şirket Durumu</Text>
+              <Text style={styles.label}>
+                {t("superadmin.edit.companyStatus")}
+              </Text>
               <Text style={styles.switchDescription}>
-                {company.is_active ? "Şirket aktif" : "Şirket pasif"}
+                {company.is_active
+                  ? t("superadmin.edit.active")
+                  : t("superadmin.edit.inactive")}
               </Text>
             </View>
             <Switch
@@ -266,7 +275,9 @@ const CompanyEditScreen = ({ route, navigation }) => {
                 size={20}
                 color={COLORS.WHITE}
               />
-              <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
+              <Text style={styles.saveButtonText}>
+                {t("superadmin.edit.saveChanges")}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -274,7 +285,7 @@ const CompanyEditScreen = ({ route, navigation }) => {
           style={styles.cancelButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.cancelButtonText}>İptal</Text>
+          <Text style={styles.cancelButtonText}>{t("common.cancel")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

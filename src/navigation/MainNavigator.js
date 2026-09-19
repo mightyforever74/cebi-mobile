@@ -18,6 +18,7 @@ import {
 } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 
 // ============================================
@@ -139,6 +140,7 @@ const getStackScreenOptions = (title, color) => ({
 
 const CustomDrawerContent = (props) => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const getRoleColor = () => {
     switch (user?.role) {
@@ -156,21 +158,21 @@ const CustomDrawerContent = (props) => {
   const getRoleLabel = () => {
     switch (user?.role) {
       case "super_admin":
-        return "Super Admin";
+        return t("roles.superAdmin");
       case "company_admin":
-        return "Şirket Yöneticisi";
+        return t("roles.companyAdmin");
       case "driver":
-        return "Sürücü";
+        return t("roles.driver");
       default:
-        return "Kullanıcı";
+        return t("common.user");
     }
   };
 
   const handleLogout = () => {
-    Alert.alert("Çıkış Yap", "Çıkış yapmak istediğinize emin misiniz?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t("auth.logout"), t("auth.logoutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Çıkış Yap",
+        text: t("auth.logout"),
         style: "destructive",
         onPress: () => logout(),
       },
@@ -249,9 +251,11 @@ const CustomDrawerContent = (props) => {
       <View style={styles.drawerFooter}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={18} color={COLORS.white} />
-          <Text style={styles.logoutText}>Çıkış Yap</Text>
+          <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
-        <Text style={styles.versionText}>TulipFleet v1.0.0</Text>
+        <Text style={styles.versionText}>
+          {t("settings.version", { version: "1.0.0" })}
+        </Text>
       </View>
     </View>
   );
@@ -263,6 +267,7 @@ const CustomDrawerContent = (props) => {
 
 const DriverTasksStack = () => {
   const primaryColor = COLORS.driver;
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator>
@@ -274,17 +279,17 @@ const DriverTasksStack = () => {
       <Stack.Screen
         name="TaskDetail"
         component={DriverTaskDetail}
-        options={getStackScreenOptions("Görev Detayı", primaryColor)}
+        options={getStackScreenOptions(t("taskDetail.title"), primaryColor)}
       />
       <Stack.Screen
         name="TaskOffers"
         component={TaskOffers}
-        options={getStackScreenOptions("Görev Teklifleri", primaryColor)}
+        options={getStackScreenOptions(t("taskOffers.title"), primaryColor)}
       />
       <Stack.Screen
         name="TaskOfferDetail"
         component={TaskOfferDetail}
-        options={getStackScreenOptions("Teklif Detayı", primaryColor)}
+        options={getStackScreenOptions(t("offerDetail.navTitle"), primaryColor)}
       />
     </Stack.Navigator>
   );
@@ -310,6 +315,7 @@ const DriverMapStack = () => {
 
 const AdminVehiclesStack = () => {
   const primaryColor = COLORS.admin;
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator>
@@ -321,17 +327,17 @@ const AdminVehiclesStack = () => {
       <Stack.Screen
         name="CreateVehicle"
         component={CreateVehicleScreen}
-        options={getStackScreenOptions("Araç Ekle", primaryColor)}
+        options={getStackScreenOptions(t("createVehicle.navTitle"), primaryColor)}
       />
       <Stack.Screen
         name="EditVehicle"
         component={EditVehicleScreen}
-        options={getStackScreenOptions("Araç Düzenle", primaryColor)}
+        options={getStackScreenOptions(t("editVehicle.title"), primaryColor)}
       />
       <Stack.Screen
         name="VehicleTrack"
         component={VehicleTrackScreen}
-        options={getStackScreenOptions("Araç Takip", primaryColor)}
+        options={getStackScreenOptions(t("vehicleTrack.followTitle"), primaryColor)}
       />
     </Stack.Navigator>
   );
@@ -339,6 +345,7 @@ const AdminVehiclesStack = () => {
 
 const AdminDriversStack = () => {
   const primaryColor = COLORS.admin;
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator>
@@ -350,12 +357,12 @@ const AdminDriversStack = () => {
       <Stack.Screen
         name="CreateDriver"
         component={CreateDriverScreen}
-        options={getStackScreenOptions("Sürücü Ekle", primaryColor)}
+        options={getStackScreenOptions(t("createDriver.title"), primaryColor)}
       />
       <Stack.Screen
         name="EditDriver"
         component={EditDriverScreen}
-        options={getStackScreenOptions("Sürücü Düzenle", primaryColor)}
+        options={getStackScreenOptions(t("editDriver.title"), primaryColor)}
       />
     </Stack.Navigator>
   );
@@ -363,6 +370,7 @@ const AdminDriversStack = () => {
 
 const AdminTasksStack = () => {
   const primaryColor = COLORS.admin;
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator>
@@ -374,12 +382,12 @@ const AdminTasksStack = () => {
       <Stack.Screen
         name="CreateTask"
         component={CreateTaskScreen}
-        options={getStackScreenOptions("Görev Oluştur", primaryColor)}
+        options={getStackScreenOptions(t("createTask.navTitle"), primaryColor)}
       />
       <Stack.Screen
         name="EditTask"
         component={EditTaskScreen}
-        options={getStackScreenOptions("Görev Düzenle", primaryColor)}
+        options={getStackScreenOptions(t("editTask.title"), primaryColor)}
       />
     </Stack.Navigator>
   );
@@ -387,6 +395,7 @@ const AdminTasksStack = () => {
 
 const AdminMapStack = () => {
   const primaryColor = COLORS.admin;
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator>
@@ -398,7 +407,7 @@ const AdminMapStack = () => {
       <Stack.Screen
         name="VehicleTrack"
         component={VehicleTrackScreen}
-        options={getStackScreenOptions("Araç Geçmişi", primaryColor)}
+        options={getStackScreenOptions(t("vehicleTrack.historyTitle"), primaryColor)}
       />
     </Stack.Navigator>
   );
@@ -410,6 +419,7 @@ const AdminMapStack = () => {
 
 const SuperAdminNavigator = () => {
   const primaryColor = COLORS.superAdmin;
+  const { t } = useTranslation();
 
   return (
     <Drawer.Navigator
@@ -428,8 +438,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminHome"
         component={SuperAdminDashboard}
         options={{
-          ...getScreenOptions("TulipFleet Super Admin", primaryColor)(),
-          drawerLabel: "Ana Sayfa",
+          ...getScreenOptions(t("navigator.superAdmin.dashboard"), primaryColor)(),
+          drawerLabel: t("navigation.dashboard"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -439,8 +449,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminCompanies"
         component={SuperAdminCompaniesScreen}
         options={{
-          ...getScreenOptions("Şirket Yönetimi", primaryColor)(),
-          drawerLabel: "Şirketler",
+          ...getScreenOptions(t("navigator.superAdmin.companies"), primaryColor)(),
+          drawerLabel: t("navigation.companies"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="business-outline" size={size} color={color} />
           ),
@@ -450,8 +460,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminMap"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Canlı Harita", primaryColor)(),
-          drawerLabel: "Canlı Harita",
+          ...getScreenOptions(t("navigation.fleetMap"), primaryColor)(),
+          drawerLabel: t("navigation.fleetMap"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="map-outline" size={size} color={color} />
           ),
@@ -461,8 +471,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminVehicles"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Tüm Araçlar", primaryColor)(),
-          drawerLabel: "Tüm Araçlar",
+          ...getScreenOptions(t("navigation.allVehicles"), primaryColor)(),
+          drawerLabel: t("navigation.allVehicles"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="car-outline" size={size} color={color} />
           ),
@@ -472,8 +482,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminDrivers"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Tüm Sürücüler", primaryColor)(),
-          drawerLabel: "Tüm Sürücüler",
+          ...getScreenOptions(t("navigation.allDrivers"), primaryColor)(),
+          drawerLabel: t("navigation.allDrivers"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -483,8 +493,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminTasks"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Tüm Görevler", primaryColor)(),
-          drawerLabel: "Tüm Görevler",
+          ...getScreenOptions(t("navigation.allTasks"), primaryColor)(),
+          drawerLabel: t("navigation.allTasks"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="clipboard-outline" size={size} color={color} />
           ),
@@ -494,8 +504,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminAlerts"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Sistem Uyarıları", primaryColor)(),
-          drawerLabel: "Sistem Uyarıları",
+          ...getScreenOptions(t("navigation.systemAlerts"), primaryColor)(),
+          drawerLabel: t("navigation.systemAlerts"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="alert-circle-outline" size={size} color={color} />
           ),
@@ -505,8 +515,8 @@ const SuperAdminNavigator = () => {
         name="SuperAdminSettings"
         component={PlaceholderScreen}
         options={{
-          ...getScreenOptions("Ayarlar", primaryColor)(),
-          drawerLabel: "Ayarlar",
+          ...getScreenOptions(t("navigation.settings"), primaryColor)(),
+          drawerLabel: t("navigation.settings"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
@@ -522,6 +532,7 @@ const SuperAdminNavigator = () => {
 
 const AdminNavigator = () => {
   const primaryColor = COLORS.admin;
+  const { t } = useTranslation();
 
   return (
     <Drawer.Navigator
@@ -540,8 +551,8 @@ const AdminNavigator = () => {
         name="AdminHome"
         component={AdminDashboard}
         options={{
-          ...getScreenOptions("TulipFleet Admin", primaryColor)(),
-          drawerLabel: "Ana Sayfa",
+          ...getScreenOptions(t("navigator.companyAdmin.dashboard"), primaryColor)(),
+          drawerLabel: t("navigation.dashboard"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -551,8 +562,8 @@ const AdminNavigator = () => {
         name="AdminMap"
         component={AdminMapStack}
         options={{
-          ...getScreenOptions("Canlı Harita", primaryColor)(),
-          drawerLabel: "Canlı Harita",
+          ...getScreenOptions(t("navigation.fleetMap"), primaryColor)(),
+          drawerLabel: t("navigation.fleetMap"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="map-outline" size={size} color={color} />
           ),
@@ -562,8 +573,8 @@ const AdminNavigator = () => {
         name="AdminVehicles"
         component={AdminVehiclesStack}
         options={{
-          ...getScreenOptions("Araçlar", primaryColor)(),
-          drawerLabel: "Araçlar",
+          ...getScreenOptions(t("navigation.vehicles"), primaryColor)(),
+          drawerLabel: t("navigation.vehicles"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="car-outline" size={size} color={color} />
           ),
@@ -573,8 +584,8 @@ const AdminNavigator = () => {
         name="AdminDrivers"
         component={AdminDriversStack}
         options={{
-          ...getScreenOptions("Sürücüler", primaryColor)(),
-          drawerLabel: "Sürücüler",
+          ...getScreenOptions(t("navigation.drivers"), primaryColor)(),
+          drawerLabel: t("navigation.drivers"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -584,8 +595,8 @@ const AdminNavigator = () => {
         name="AdminTasks"
         component={AdminTasksStack}
         options={{
-          ...getScreenOptions("Görevler", primaryColor)(),
-          drawerLabel: "Görevler",
+          ...getScreenOptions(t("navigation.tasks"), primaryColor)(),
+          drawerLabel: t("navigation.tasks"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="clipboard-outline" size={size} color={color} />
           ),
@@ -595,8 +606,8 @@ const AdminNavigator = () => {
         name="AdminAlerts"
         component={AdminAlerts}
         options={{
-          ...getScreenOptions("Uyarılar", primaryColor)(),
-          drawerLabel: "Uyarılar",
+          ...getScreenOptions(t("navigation.alerts"), primaryColor)(),
+          drawerLabel: t("navigation.alerts"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="alert-circle-outline" size={size} color={color} />
           ),
@@ -606,8 +617,8 @@ const AdminNavigator = () => {
         name="AdminReports"
         component={AdminReportsScreen}
         options={{
-          ...getScreenOptions("Raporlar", primaryColor)(),
-          drawerLabel: "Raporlar",
+          ...getScreenOptions(t("navigation.reports"), primaryColor)(),
+          drawerLabel: t("navigation.reports"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="bar-chart-outline" size={size} color={color} />
           ),
@@ -617,8 +628,8 @@ const AdminNavigator = () => {
         name="AdminSettings"
         component={AdminSettings}
         options={{
-          ...getScreenOptions("Ayarlar", primaryColor)(),
-          drawerLabel: "Ayarlar",
+          ...getScreenOptions(t("navigation.settings"), primaryColor)(),
+          drawerLabel: t("navigation.settings"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
@@ -634,6 +645,7 @@ const AdminNavigator = () => {
 
 const DriverNavigator = () => {
   const primaryColor = COLORS.driver;
+  const { t } = useTranslation();
 
   return (
     <Drawer.Navigator
@@ -653,7 +665,7 @@ const DriverNavigator = () => {
         component={DriverDashboard}
         options={{
           ...getScreenOptions("TulipFleet", primaryColor)(),
-          drawerLabel: "Ana Sayfa",
+          drawerLabel: t("navigation.dashboard"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -663,8 +675,8 @@ const DriverNavigator = () => {
         name="DriverTasks"
         component={DriverTasksStack}
         options={{
-          ...getScreenOptions("Görevlerim", primaryColor)(),
-          drawerLabel: "Görevlerim",
+          ...getScreenOptions(t("navigation.myTasks"), primaryColor)(),
+          drawerLabel: t("navigation.myTasks"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="clipboard-outline" size={size} color={color} />
           ),
@@ -674,8 +686,8 @@ const DriverNavigator = () => {
         name="DriverMap"
         component={DriverMapStack}
         options={{
-          ...getScreenOptions("Harita", primaryColor)(),
-          drawerLabel: "Harita",
+          ...getScreenOptions(t("navigation.map"), primaryColor)(),
+          drawerLabel: t("navigation.map"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="map-outline" size={size} color={color} />
           ),
@@ -685,8 +697,8 @@ const DriverNavigator = () => {
         name="DriverVehicle"
         component={DriverVehicle}
         options={{
-          ...getScreenOptions("Aracım", primaryColor)(),
-          drawerLabel: "Aracım",
+          ...getScreenOptions(t("navigation.myVehicle"), primaryColor)(),
+          drawerLabel: t("navigation.myVehicle"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="car-outline" size={size} color={color} />
           ),
@@ -696,8 +708,8 @@ const DriverNavigator = () => {
         name="DriverProfile"
         component={DriverProfile}
         options={{
-          ...getScreenOptions("Profilim", primaryColor)(),
-          drawerLabel: "Profilim",
+          ...getScreenOptions(t("navigator.driver.profile"), primaryColor)(),
+          drawerLabel: t("navigator.driver.profile"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
@@ -707,8 +719,8 @@ const DriverNavigator = () => {
         name="DriverSettings"
         component={DriverSettings}
         options={{
-          ...getScreenOptions("Ayarlar", primaryColor)(),
-          drawerLabel: "Ayarlar",
+          ...getScreenOptions(t("navigation.settings"), primaryColor)(),
+          drawerLabel: t("navigation.settings"),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
@@ -763,14 +775,21 @@ const DriverNavigator = () => {
 // PLACEHOLDER SCREEN
 // ============================================
 
-const PlaceholderScreen = ({ route }) => (
-  <View style={styles.placeholderContainer}>
-    <Ionicons name="construct-outline" size={60} color={COLORS.muted} />
-    <Text style={styles.placeholderTitle}>Yapım Aşamasında</Text>
-    <Text style={styles.placeholderSubtitle}>{route.name}</Text>
-    <Text style={styles.placeholderText}>Bu özellik yakında eklenecek!</Text>
-  </View>
-);
+const PlaceholderScreen = ({ route }) => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.placeholderContainer}>
+      <Ionicons name="construct-outline" size={60} color={COLORS.muted} />
+      <Text style={styles.placeholderTitle}>
+        {t("superadmin.nav.comingSoonTitle")}
+      </Text>
+      <Text style={styles.placeholderSubtitle}>{route.name}</Text>
+      <Text style={styles.placeholderText}>
+        {t("superadmin.nav.comingSoonBody")}
+      </Text>
+    </View>
+  );
+};
 
 // ============================================
 // MAIN NAVIGATOR (Role-based routing)

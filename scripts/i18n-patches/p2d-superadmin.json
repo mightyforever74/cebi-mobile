@@ -1,0 +1,3842 @@
+{
+  "superadmin.connectionError": {
+    "tr": "Bağlantı hatası",
+    "en": "Connection error",
+    "nl": "Verbindingsfout",
+    "de": "Connection error",
+    "fr": "Connection error",
+    "es": "Connection error",
+    "it": "Connection error",
+    "bg": "Connection error"
+  },
+  "superadmin.sessionExpired": {
+    "tr": "Oturum süresi dolmuş",
+    "en": "Session expired",
+    "nl": "Sessie verlopen",
+    "de": "Session expired",
+    "fr": "Session expired",
+    "es": "Session expired",
+    "it": "Session expired",
+    "bg": "Session expired"
+  },
+  "superadmin.companies.loadFailed": {
+    "tr": "Şirketler yüklenemedi",
+    "en": "Could not load companies",
+    "nl": "Bedrijven konden niet worden geladen",
+    "de": "Could not load companies",
+    "fr": "Could not load companies",
+    "es": "Could not load companies",
+    "it": "Could not load companies",
+    "bg": "Could not load companies"
+  },
+  "superadmin.companies.searchPlaceholder": {
+    "tr": "Şirket ara...",
+    "en": "Search companies...",
+    "nl": "Bedrijven zoeken...",
+    "de": "Search companies...",
+    "fr": "Search companies...",
+    "es": "Search companies...",
+    "it": "Search companies...",
+    "bg": "Search companies..."
+  },
+  "superadmin.companies.empty": {
+    "tr": "Şirket bulunamadı",
+    "en": "No companies found",
+    "nl": "Geen bedrijven gevonden",
+    "de": "No companies found",
+    "fr": "No companies found",
+    "es": "No companies found",
+    "it": "No companies found",
+    "bg": "No companies found"
+  },
+  "superadmin.companies.companyInfo": {
+    "tr": "Şirket Bilgileri",
+    "en": "Company info",
+    "nl": "Bedrijfsgegevens",
+    "de": "Company info",
+    "fr": "Company info",
+    "es": "Company info",
+    "it": "Company info",
+    "bg": "Company info"
+  },
+  "superadmin.companies.monthlyRevenue": {
+    "tr": "Aylık Gelir",
+    "en": "Monthly revenue",
+    "nl": "Maandelijkse omzet",
+    "de": "Monthly revenue",
+    "fr": "Monthly revenue",
+    "es": "Monthly revenue",
+    "it": "Monthly revenue",
+    "bg": "Monthly revenue"
+  },
+  "superadmin.companies.urgentAction": {
+    "tr": "Acil Aksiyon ({{count}})",
+    "en": "Urgent ({{count}})",
+    "nl": "Urgent ({{count}})",
+    "de": "Urgent ({{count}})",
+    "fr": "Urgent ({{count}})",
+    "es": "Urgent ({{count}})",
+    "it": "Urgent ({{count}})",
+    "bg": "Urgent ({{count}})"
+  },
+  "superadmin.companies.paymentReceived": {
+    "tr": "Ödeme Geldi",
+    "en": "Payment received",
+    "nl": "Betaling ontvangen",
+    "de": "Payment received",
+    "fr": "Payment received",
+    "es": "Payment received",
+    "it": "Payment received",
+    "bg": "Payment received"
+  },
+  "superadmin.companies.suspend": {
+    "tr": "Askıya Al",
+    "en": "Suspend",
+    "nl": "Opschorten",
+    "de": "Suspend",
+    "fr": "Suspend",
+    "es": "Suspend",
+    "it": "Suspend",
+    "bg": "Suspend"
+  },
+  "superadmin.companies.suspendConfirm": {
+    "tr": "{{name}} şirketini askıya almak istediğinize emin misiniz?",
+    "en": "Suspend {{name}}?",
+    "nl": "{{name}} opschorten?",
+    "de": "Suspend {{name}}?",
+    "fr": "Suspend {{name}}?",
+    "es": "Suspend {{name}}?",
+    "it": "Suspend {{name}}?",
+    "bg": "Suspend {{name}}?"
+  },
+  "superadmin.companies.suspended": {
+    "tr": "Şirket askıya alındı",
+    "en": "Company suspended",
+    "nl": "Bedrijf opgeschort",
+    "de": "Company suspended",
+    "fr": "Company suspended",
+    "es": "Company suspended",
+    "it": "Company suspended",
+    "bg": "Company suspended"
+  },
+  "superadmin.companies.suspendFailed": {
+    "tr": "Askıya alma başarısız",
+    "en": "Could not suspend",
+    "nl": "Opschorten mislukt",
+    "de": "Could not suspend",
+    "fr": "Could not suspend",
+    "es": "Could not suspend",
+    "it": "Could not suspend",
+    "bg": "Could not suspend"
+  },
+  "superadmin.companies.startSubscription": {
+    "tr": "Abonelik Başlat",
+    "en": "Start subscription",
+    "nl": "Abonnement starten",
+    "de": "Start subscription",
+    "fr": "Start subscription",
+    "es": "Start subscription",
+    "it": "Start subscription",
+    "bg": "Start subscription"
+  },
+  "superadmin.companies.extend": {
+    "tr": "Süre Uzat",
+    "en": "Extend",
+    "nl": "Verlengen",
+    "de": "Extend",
+    "fr": "Extend",
+    "es": "Extend",
+    "it": "Extend",
+    "bg": "Extend"
+  },
+  "superadmin.companies.extendTitle": {
+    "tr": "Trial Uzat",
+    "en": "Extend trial",
+    "nl": "Proef verlengen",
+    "de": "Extend trial",
+    "fr": "Extend trial",
+    "es": "Extend trial",
+    "it": "Extend trial",
+    "bg": "Extend trial"
+  },
+  "superadmin.companies.extendConfirm": {
+    "tr": "{{name}} için trial süresini 7 gün uzatmak istiyor musunuz?",
+    "en": "Extend the trial for {{name}} by 7 days?",
+    "nl": "Proef van {{name}} 7 dagen verlengen?",
+    "de": "Extend the trial for {{name}} by 7 days?",
+    "fr": "Extend the trial for {{name}} by 7 days?",
+    "es": "Extend the trial for {{name}} by 7 days?",
+    "it": "Extend the trial for {{name}} by 7 days?",
+    "bg": "Extend the trial for {{name}} by 7 days?"
+  },
+  "superadmin.companies.trialExtended": {
+    "tr": "Trial 7 gün uzatıldı",
+    "en": "Trial extended by 7 days",
+    "nl": "Proef 7 dagen verlengd",
+    "de": "Trial extended by 7 days",
+    "fr": "Trial extended by 7 days",
+    "es": "Trial extended by 7 days",
+    "it": "Trial extended by 7 days",
+    "bg": "Trial extended by 7 days"
+  },
+  "superadmin.companies.trialExtendFailed": {
+    "tr": "Trial uzatılamadı",
+    "en": "Could not extend trial",
+    "nl": "Proef verlengen mislukt",
+    "de": "Could not extend trial",
+    "fr": "Could not extend trial",
+    "es": "Could not extend trial",
+    "it": "Could not extend trial",
+    "bg": "Could not extend trial"
+  },
+  "superadmin.companies.deleteTitle": {
+    "tr": "Şirketi Sil",
+    "en": "Delete company",
+    "nl": "Bedrijf verwijderen",
+    "de": "Delete company",
+    "fr": "Delete company",
+    "es": "Delete company",
+    "it": "Delete company",
+    "bg": "Delete company"
+  },
+  "superadmin.companies.deleteConfirm": {
+    "tr": "\"{{name}}\" şirketini silmek istediğinize emin misiniz?",
+    "en": "Delete \"{{name}}\"?",
+    "nl": "\"{{name}}\" verwijderen?",
+    "de": "Delete \"{{name}}\"?",
+    "fr": "Delete \"{{name}}\"?",
+    "es": "Delete \"{{name}}\"?",
+    "it": "Delete \"{{name}}\"?",
+    "bg": "Delete \"{{name}}\"?"
+  },
+  "superadmin.companies.deleteConfirmIrreversible": {
+    "tr": "\"{{name}}\" şirketini silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!",
+    "en": "Delete \"{{name}}\"?\n\nThis cannot be undone.",
+    "nl": "\"{{name}}\" verwijderen?\n\nDit kan niet ongedaan.",
+    "de": "Delete \"{{name}}\"?\n\nThis cannot be undone.",
+    "fr": "Delete \"{{name}}\"?\n\nThis cannot be undone.",
+    "es": "Delete \"{{name}}\"?\n\nThis cannot be undone.",
+    "it": "Delete \"{{name}}\"?\n\nThis cannot be undone.",
+    "bg": "Delete \"{{name}}\"?\n\nThis cannot be undone."
+  },
+  "superadmin.companies.deleted": {
+    "tr": "Şirket silindi",
+    "en": "Company deleted",
+    "nl": "Bedrijf verwijderd",
+    "de": "Company deleted",
+    "fr": "Company deleted",
+    "es": "Company deleted",
+    "it": "Company deleted",
+    "bg": "Company deleted"
+  },
+  "superadmin.companies.deleteFailed": {
+    "tr": "Şirket silinemedi",
+    "en": "Could not delete company",
+    "nl": "Bedrijf verwijderen mislukt",
+    "de": "Could not delete company",
+    "fr": "Could not delete company",
+    "es": "Could not delete company",
+    "it": "Could not delete company",
+    "bg": "Could not delete company"
+  },
+  "superadmin.companies.packageStatus": {
+    "tr": "Paket & Durum",
+    "en": "Plan & status",
+    "nl": "Pakket & status",
+    "de": "Plan & status",
+    "fr": "Plan & status",
+    "es": "Plan & status",
+    "it": "Plan & status",
+    "bg": "Plan & status"
+  },
+  "superadmin.companies.package": {
+    "tr": "Paket",
+    "en": "Plan",
+    "nl": "Pakket",
+    "de": "Plan",
+    "fr": "Plan",
+    "es": "Plan",
+    "it": "Plan",
+    "bg": "Plan"
+  },
+  "superadmin.companies.status": {
+    "tr": "Durum",
+    "en": "Status",
+    "nl": "Status",
+    "de": "Status",
+    "fr": "Status",
+    "es": "Status",
+    "it": "Status",
+    "bg": "Status"
+  },
+  "superadmin.companies.perVehicle": {
+    "tr": "/araç",
+    "en": "/vehicle",
+    "nl": "/voertuig",
+    "de": "/vehicle",
+    "fr": "/vehicle",
+    "es": "/vehicle",
+    "it": "/vehicle",
+    "bg": "/vehicle"
+  },
+  "superadmin.companies.changeHistory": {
+    "tr": "Değişiklik Geçmişi",
+    "en": "Change history",
+    "nl": "Wijzigingsgeschiedenis",
+    "de": "Change history",
+    "fr": "Change history",
+    "es": "Change history",
+    "it": "Change history",
+    "bg": "Change history"
+  },
+  "superadmin.companies.historyEmpty": {
+    "tr": "Geçmiş bulunamadı",
+    "en": "No history",
+    "nl": "Geen geschiedenis",
+    "de": "No history",
+    "fr": "No history",
+    "es": "No history",
+    "it": "No history",
+    "bg": "No history"
+  },
+  "superadmin.companies.deviceEmpty": {
+    "tr": "Cihaz bulunamadı",
+    "en": "No devices found",
+    "nl": "Geen apparaten gevonden",
+    "de": "No devices found",
+    "fr": "No devices found",
+    "es": "No devices found",
+    "it": "No devices found",
+    "bg": "No devices found"
+  },
+  "superadmin.companies.payment": {
+    "tr": "Ödeme",
+    "en": "Payment",
+    "nl": "Betaling",
+    "de": "Payment",
+    "fr": "Payment",
+    "es": "Payment",
+    "it": "Payment",
+    "bg": "Payment"
+  },
+  "superadmin.companies.amountPeriodRequired": {
+    "tr": "Tutar ve dönem bilgisi gerekli",
+    "en": "Amount and period are required",
+    "nl": "Bedrag en periode zijn verplicht",
+    "de": "Amount and period are required",
+    "fr": "Amount and period are required",
+    "es": "Amount and period are required",
+    "it": "Amount and period are required",
+    "bg": "Amount and period are required"
+  },
+  "superadmin.companies.paymentSaved": {
+    "tr": "Ödeme kaydedildi, abonelik aktifleştirildi",
+    "en": "Payment saved, subscription activated",
+    "nl": "Betaling opgeslagen, abonnement actief",
+    "de": "Payment saved, subscription activated",
+    "fr": "Payment saved, subscription activated",
+    "es": "Payment saved, subscription activated",
+    "it": "Payment saved, subscription activated",
+    "bg": "Payment saved, subscription activated"
+  },
+  "superadmin.companies.paymentSaveFailed": {
+    "tr": "Ödeme kaydedilemedi",
+    "en": "Could not save payment",
+    "nl": "Betaling opslaan mislukt",
+    "de": "Could not save payment",
+    "fr": "Could not save payment",
+    "es": "Could not save payment",
+    "it": "Could not save payment",
+    "bg": "Could not save payment"
+  },
+  "superadmin.companies.savePayment": {
+    "tr": "Ödeme Kaydet",
+    "en": "Save payment",
+    "nl": "Betaling opslaan",
+    "de": "Save payment",
+    "fr": "Save payment",
+    "es": "Save payment",
+    "it": "Save payment",
+    "bg": "Save payment"
+  },
+  "superadmin.companies.packageTag": {
+    "tr": "({{label}} paket)",
+    "en": "({{label}} plan)",
+    "nl": "({{label}} pakket)",
+    "de": "({{label}} plan)",
+    "fr": "({{label}} plan)",
+    "es": "({{label}} plan)",
+    "it": "({{label}} plan)",
+    "bg": "({{label}} plan)"
+  },
+  "superadmin.companies.amountEur": {
+    "tr": "Tutar (€)",
+    "en": "Amount (€)",
+    "nl": "Bedrag (€)",
+    "de": "Amount (€)",
+    "fr": "Amount (€)",
+    "es": "Amount (€)",
+    "it": "Amount (€)",
+    "bg": "Amount (€)"
+  },
+  "superadmin.companies.paymentMethod": {
+    "tr": "Ödeme Yöntemi",
+    "en": "Payment method",
+    "nl": "Betaalmethode",
+    "de": "Payment method",
+    "fr": "Payment method",
+    "es": "Payment method",
+    "it": "Payment method",
+    "bg": "Payment method"
+  },
+  "superadmin.companies.periodStart": {
+    "tr": "Dönem Başlangıç",
+    "en": "Period start",
+    "nl": "Periode start",
+    "de": "Period start",
+    "fr": "Period start",
+    "es": "Period start",
+    "it": "Period start",
+    "bg": "Period start"
+  },
+  "superadmin.companies.periodEnd": {
+    "tr": "Dönem Bitiş",
+    "en": "Period end",
+    "nl": "Periode einde",
+    "de": "Period end",
+    "fr": "Period end",
+    "es": "Period end",
+    "it": "Period end",
+    "bg": "Period end"
+  },
+  "superadmin.companies.invoiceNo": {
+    "tr": "Fatura No (Opsiyonel)",
+    "en": "Invoice no. (optional)",
+    "nl": "Factuurnr (optioneel)",
+    "de": "Invoice no. (optional)",
+    "fr": "Invoice no. (optional)",
+    "es": "Invoice no. (optional)",
+    "it": "Invoice no. (optional)",
+    "bg": "Invoice no. (optional)"
+  },
+  "superadmin.companies.noteOptional": {
+    "tr": "Not (Opsiyonel)",
+    "en": "Note (optional)",
+    "nl": "Notitie (optioneel)",
+    "de": "Note (optional)",
+    "fr": "Note (optional)",
+    "es": "Note (optional)",
+    "it": "Note (optional)",
+    "bg": "Note (optional)"
+  },
+  "superadmin.companies.notePlaceholder": {
+    "tr": "Ek notlar...",
+    "en": "Extra notes...",
+    "nl": "Extra notities...",
+    "de": "Extra notes...",
+    "fr": "Extra notes...",
+    "es": "Extra notes...",
+    "it": "Extra notes...",
+    "bg": "Extra notes..."
+  },
+  "superadmin.companies.created": {
+    "tr": "\"{{name}}\" şirketi oluşturuldu.\n\nAdmin: {{email}}",
+    "en": "Company \"{{name}}\" created.\n\nAdmin: {{email}}",
+    "nl": "Bedrijf \"{{name}}\" aangemaakt.\n\nAdmin: {{email}}",
+    "de": "Company \"{{name}}\" created.\n\nAdmin: {{email}}",
+    "fr": "Company \"{{name}}\" created.\n\nAdmin: {{email}}",
+    "es": "Company \"{{name}}\" created.\n\nAdmin: {{email}}",
+    "it": "Company \"{{name}}\" created.\n\nAdmin: {{email}}",
+    "bg": "Company \"{{name}}\" created.\n\nAdmin: {{email}}"
+  },
+  "superadmin.companies.createFailed": {
+    "tr": "Şirket oluşturulurken bir hata oluştu",
+    "en": "Could not create company",
+    "nl": "Bedrijf aanmaken mislukt",
+    "de": "Could not create company",
+    "fr": "Could not create company",
+    "es": "Could not create company",
+    "it": "Could not create company",
+    "bg": "Could not create company"
+  },
+  "superadmin.companies.loadDetailsFailed": {
+    "tr": "Şirket detayları yüklenemedi",
+    "en": "Could not load company details",
+    "nl": "Bedrijfsdetails laden mislukt",
+    "de": "Could not load company details",
+    "fr": "Could not load company details",
+    "es": "Could not load company details",
+    "it": "Could not load company details",
+    "bg": "Could not load company details"
+  },
+  "superadmin.companies.listLoadFailed": {
+    "tr": "Şirketler yüklenirken bir hata oluştu",
+    "en": "Error loading companies",
+    "nl": "Fout bij laden van bedrijven",
+    "de": "Error loading companies",
+    "fr": "Error loading companies",
+    "es": "Error loading companies",
+    "it": "Error loading companies",
+    "bg": "Error loading companies"
+  },
+  "superadmin.companies.createNew": {
+    "tr": "Yeni Şirket Oluştur",
+    "en": "Create company",
+    "nl": "Bedrijf aanmaken",
+    "de": "Create company",
+    "fr": "Create company",
+    "es": "Create company",
+    "it": "Create company",
+    "bg": "Create company"
+  },
+  "superadmin.companies.slug": {
+    "tr": "Slug *",
+    "en": "Slug *",
+    "nl": "Slug *",
+    "de": "Slug *",
+    "fr": "Slug *",
+    "es": "Slug *",
+    "it": "Slug *",
+    "bg": "Slug *"
+  },
+  "superadmin.companies.planSelect": {
+    "tr": "Paket Seçimi",
+    "en": "Select plan",
+    "nl": "Pakket kiezen",
+    "de": "Select plan",
+    "fr": "Select plan",
+    "es": "Select plan",
+    "it": "Select plan",
+    "bg": "Select plan"
+  },
+  "superadmin.companies.maxVehicles": {
+    "tr": "Max Araç",
+    "en": "Max vehicles",
+    "nl": "Max voertuigen",
+    "de": "Max vehicles",
+    "fr": "Max vehicles",
+    "es": "Max vehicles",
+    "it": "Max vehicles",
+    "bg": "Max vehicles"
+  },
+  "superadmin.companies.maxDrivers": {
+    "tr": "Max Sürücü",
+    "en": "Max drivers",
+    "nl": "Max chauffeurs",
+    "de": "Max drivers",
+    "fr": "Max drivers",
+    "es": "Max drivers",
+    "it": "Max drivers",
+    "bg": "Max drivers"
+  },
+  "superadmin.companies.firstAdmin": {
+    "tr": "İlk Admin Kullanıcı",
+    "en": "First admin user",
+    "nl": "Eerste admin",
+    "de": "First admin user",
+    "fr": "First admin user",
+    "es": "First admin user",
+    "it": "First admin user",
+    "bg": "First admin user"
+  },
+  "superadmin.companies.stats": {
+    "tr": "İstatistikler",
+    "en": "Statistics",
+    "nl": "Statistieken",
+    "de": "Statistics",
+    "fr": "Statistics",
+    "es": "Statistics",
+    "it": "Statistics",
+    "bg": "Statistics"
+  },
+  "superadmin.companies.noUsers": {
+    "tr": "Henüz kullanıcı yok",
+    "en": "No users yet",
+    "nl": "Nog geen gebruikers",
+    "de": "No users yet",
+    "fr": "No users yet",
+    "es": "No users yet",
+    "it": "No users yet",
+    "bg": "No users yet"
+  },
+  "superadmin.companies.title": {
+    "tr": "Şirket Yönetimi",
+    "en": "Company management",
+    "nl": "Bedrijfsbeheer",
+    "de": "Company management",
+    "fr": "Company management",
+    "es": "Company management",
+    "it": "Company management",
+    "bg": "Company management"
+  },
+  "superadmin.companies.loadingList": {
+    "tr": "Şirketler yükleniyor...",
+    "en": "Loading companies...",
+    "nl": "Bedrijven laden...",
+    "de": "Loading companies...",
+    "fr": "Loading companies...",
+    "es": "Loading companies...",
+    "it": "Loading companies...",
+    "bg": "Loading companies..."
+  },
+  "superadmin.companies.emptyList": {
+    "tr": "Henüz şirket yok",
+    "en": "No companies yet",
+    "nl": "Nog geen bedrijven",
+    "de": "No companies yet",
+    "fr": "No companies yet",
+    "es": "No companies yet",
+    "it": "No companies yet",
+    "bg": "No companies yet"
+  },
+  "superadmin.create.nameRequired": {
+    "tr": "Şirket adı gerekli",
+    "en": "Company name is required",
+    "nl": "Bedrijfsnaam is verplicht",
+    "de": "Company name is required",
+    "fr": "Company name is required",
+    "es": "Company name is required",
+    "it": "Company name is required",
+    "bg": "Company name is required"
+  },
+  "superadmin.create.slugRequired": {
+    "tr": "Şirket slug gerekli",
+    "en": "Company slug is required",
+    "nl": "Bedrijfsslug is verplicht",
+    "de": "Company slug is required",
+    "fr": "Company slug is required",
+    "es": "Company slug is required",
+    "it": "Company slug is required",
+    "bg": "Company slug is required"
+  },
+  "superadmin.create.adminEmailRequired": {
+    "tr": "Admin email gerekli",
+    "en": "Admin email is required",
+    "nl": "Admin-e-mail is verplicht",
+    "de": "Admin email is required",
+    "fr": "Admin email is required",
+    "es": "Admin email is required",
+    "it": "Admin email is required",
+    "bg": "Admin email is required"
+  },
+  "superadmin.create.emailInvalid": {
+    "tr": "Geçerli bir email adresi girin",
+    "en": "Enter a valid email address",
+    "nl": "Voer een geldig e-mailadres in",
+    "de": "Enter a valid email address",
+    "fr": "Enter a valid email address",
+    "es": "Enter a valid email address",
+    "it": "Enter a valid email address",
+    "bg": "Enter a valid email address"
+  },
+  "superadmin.create.passwordShort": {
+    "tr": "Şifre en az 6 karakter olmalı",
+    "en": "Password must be at least 6 characters",
+    "nl": "Wachtwoord minstens 6 tekens",
+    "de": "Password must be at least 6 characters",
+    "fr": "Password must be at least 6 characters",
+    "es": "Password must be at least 6 characters",
+    "it": "Password must be at least 6 characters",
+    "bg": "Password must be at least 6 characters"
+  },
+  "superadmin.create.failed": {
+    "tr": "Şirket oluşturulamadı",
+    "en": "Could not create company",
+    "nl": "Bedrijf aanmaken mislukt",
+    "de": "Could not create company",
+    "fr": "Could not create company",
+    "es": "Could not create company",
+    "it": "Could not create company",
+    "bg": "Could not create company"
+  },
+  "superadmin.create.success": {
+    "tr": "\"{{name}}\" şirketi ve admin hesabı oluşturuldu.\n\nAdmin: {{email}}",
+    "en": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}",
+    "nl": "Bedrijf \"{{name}}\" en admin-account aangemaakt.\n\nAdmin: {{email}}",
+    "de": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}",
+    "fr": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}",
+    "es": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}",
+    "it": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}",
+    "bg": "Company \"{{name}}\" and admin account created.\n\nAdmin: {{email}}"
+  },
+  "superadmin.create.namePlaceholder": {
+    "tr": "Örn: ABC Lojistik",
+    "en": "e.g. ABC Logistics",
+    "nl": "bijv. ABC Logistics",
+    "de": "e.g. ABC Logistics",
+    "fr": "e.g. ABC Logistics",
+    "es": "e.g. ABC Logistics",
+    "it": "e.g. ABC Logistics",
+    "bg": "e.g. ABC Logistics"
+  },
+  "superadmin.create.taxPlaceholder": {
+    "tr": "Vergi numarası",
+    "en": "Tax number",
+    "nl": "Btw-nummer",
+    "de": "Tax number",
+    "fr": "Tax number",
+    "es": "Tax number",
+    "it": "Tax number",
+    "bg": "Tax number"
+  },
+  "superadmin.create.cityPlaceholder": {
+    "tr": "İstanbul",
+    "en": "City",
+    "nl": "Stad",
+    "de": "City",
+    "fr": "City",
+    "es": "City",
+    "it": "City",
+    "bg": "City"
+  },
+  "superadmin.create.addressPlaceholder": {
+    "tr": "Tam adres",
+    "en": "Full address",
+    "nl": "Volledig adres",
+    "de": "Full address",
+    "fr": "Full address",
+    "es": "Full address",
+    "it": "Full address",
+    "bg": "Full address"
+  },
+  "superadmin.create.companyInfo": {
+    "tr": "Şirket Bilgileri",
+    "en": "Company info",
+    "nl": "Bedrijfsgegevens",
+    "de": "Company info",
+    "fr": "Company info",
+    "es": "Company info",
+    "it": "Company info",
+    "bg": "Company info"
+  },
+  "superadmin.edit.idMissing": {
+    "tr": "Şirket ID bulunamadı",
+    "en": "Company ID not found",
+    "nl": "Bedrijfs-ID niet gevonden",
+    "de": "Company ID not found",
+    "fr": "Company ID not found",
+    "es": "Company ID not found",
+    "it": "Company ID not found",
+    "bg": "Company ID not found"
+  },
+  "superadmin.edit.loadFailed": {
+    "tr": "Şirket bilgileri yüklenemedi",
+    "en": "Could not load company",
+    "nl": "Bedrijf laden mislukt",
+    "de": "Could not load company",
+    "fr": "Could not load company",
+    "es": "Could not load company",
+    "it": "Could not load company",
+    "bg": "Could not load company"
+  },
+  "superadmin.edit.nameRequired": {
+    "tr": "Şirket adı zorunludur",
+    "en": "Company name is required",
+    "nl": "Bedrijfsnaam is verplicht",
+    "de": "Company name is required",
+    "fr": "Company name is required",
+    "es": "Company name is required",
+    "it": "Company name is required",
+    "bg": "Company name is required"
+  },
+  "superadmin.edit.updated": {
+    "tr": "Şirket güncellendi",
+    "en": "Company updated",
+    "nl": "Bedrijf bijgewerkt",
+    "de": "Company updated",
+    "fr": "Company updated",
+    "es": "Company updated",
+    "it": "Company updated",
+    "bg": "Company updated"
+  },
+  "superadmin.edit.updateFailed": {
+    "tr": "Güncelleme başarısız",
+    "en": "Update failed",
+    "nl": "Bijwerken mislukt",
+    "de": "Update failed",
+    "fr": "Update failed",
+    "es": "Update failed",
+    "it": "Update failed",
+    "bg": "Update failed"
+  },
+  "superadmin.edit.address": {
+    "tr": "Adres",
+    "en": "Address",
+    "nl": "Adres",
+    "de": "Address",
+    "fr": "Address",
+    "es": "Address",
+    "it": "Address",
+    "bg": "Address"
+  },
+  "superadmin.edit.addressPlaceholder": {
+    "tr": "Şirket adresi",
+    "en": "Company address",
+    "nl": "Bedrijfsadres",
+    "de": "Company address",
+    "fr": "Company address",
+    "es": "Company address",
+    "it": "Company address",
+    "bg": "Company address"
+  },
+  "superadmin.edit.companyStatus": {
+    "tr": "Şirket Durumu",
+    "en": "Company status",
+    "nl": "Bedrijfsstatus",
+    "de": "Company status",
+    "fr": "Company status",
+    "es": "Company status",
+    "it": "Company status",
+    "bg": "Company status"
+  },
+  "superadmin.edit.saveChanges": {
+    "tr": "Değişiklikleri Kaydet",
+    "en": "Save changes",
+    "nl": "Wijzigingen opslaan",
+    "de": "Save changes",
+    "fr": "Save changes",
+    "es": "Save changes",
+    "it": "Save changes",
+    "bg": "Save changes"
+  },
+  "superadmin.devices.loadFailed": {
+    "tr": "Cihazlar yüklenemedi",
+    "en": "Could not load devices",
+    "nl": "Apparaten laden mislukt",
+    "de": "Could not load devices",
+    "fr": "Could not load devices",
+    "es": "Could not load devices",
+    "it": "Could not load devices",
+    "bg": "Could not load devices"
+  },
+  "superadmin.devices.codeRequired": {
+    "tr": "Device Code zorunlu",
+    "en": "Device code is required",
+    "nl": "Apparaatcode is verplicht",
+    "de": "Device code is required",
+    "fr": "Device code is required",
+    "es": "Device code is required",
+    "it": "Device code is required",
+    "bg": "Device code is required"
+  },
+  "superadmin.devices.macInvalid": {
+    "tr": "Geçerli MAC adresi girin (XX:XX:XX:XX:XX:XX)",
+    "en": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+    "nl": "Voer een geldig MAC-adres in (XX:XX:XX:XX:XX:XX)",
+    "de": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+    "fr": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+    "es": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+    "it": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+    "bg": "Enter a valid MAC address (XX:XX:XX:XX:XX:XX)"
+  },
+  "superadmin.devices.chipRequired": {
+    "tr": "ESP Chip ID zorunlu",
+    "en": "ESP chip ID is required",
+    "nl": "ESP-chip-ID is verplicht",
+    "de": "ESP chip ID is required",
+    "fr": "ESP chip ID is required",
+    "es": "ESP chip ID is required",
+    "it": "ESP chip ID is required",
+    "bg": "ESP chip ID is required"
+  },
+  "superadmin.devices.registerError": {
+    "tr": "Kayıt Hatası",
+    "en": "Registration error",
+    "nl": "Registratiefout",
+    "de": "Registration error",
+    "fr": "Registration error",
+    "es": "Registration error",
+    "it": "Registration error",
+    "bg": "Registration error"
+  },
+  "superadmin.devices.registerFailed": {
+    "tr": "Cihaz kaydedilemedi",
+    "en": "Could not register device",
+    "nl": "Apparaat registreren mislukt",
+    "de": "Could not register device",
+    "fr": "Could not register device",
+    "es": "Could not register device",
+    "it": "Could not register device",
+    "bg": "Could not register device"
+  },
+  "superadmin.devices.shortCodeHint": {
+    "tr": "Kısa tanımlayıcı kod",
+    "en": "Short identifier",
+    "nl": "Korte code",
+    "de": "Short identifier",
+    "fr": "Short identifier",
+    "es": "Short identifier",
+    "it": "Short identifier",
+    "bg": "Short identifier"
+  },
+  "superadmin.devices.macAddress": {
+    "tr": "MAC Address *",
+    "en": "MAC address *",
+    "nl": "MAC-adres *",
+    "de": "MAC address *",
+    "fr": "MAC address *",
+    "es": "MAC address *",
+    "it": "MAC address *",
+    "bg": "MAC address *"
+  },
+  "superadmin.devices.espChipId": {
+    "tr": "ESP Chip ID *",
+    "en": "ESP chip ID *",
+    "nl": "ESP-chip-ID *",
+    "de": "ESP chip ID *",
+    "fr": "ESP chip ID *",
+    "es": "ESP chip ID *",
+    "it": "ESP chip ID *",
+    "bg": "ESP chip ID *"
+  },
+  "superadmin.devices.hardware": {
+    "tr": "Donanım",
+    "en": "Hardware",
+    "nl": "Hardware",
+    "de": "Hardware",
+    "fr": "Hardware",
+    "es": "Hardware",
+    "it": "Hardware",
+    "bg": "Hardware"
+  },
+  "superadmin.devices.chipModel": {
+    "tr": "Chip Model",
+    "en": "Chip model",
+    "nl": "Chipmodel",
+    "de": "Chip model",
+    "fr": "Chip model",
+    "es": "Chip model",
+    "it": "Chip model",
+    "bg": "Chip model"
+  },
+  "superadmin.devices.hardwareVersion": {
+    "tr": "Hardware Version",
+    "en": "Hardware version",
+    "nl": "Hardwareversie",
+    "de": "Hardware version",
+    "fr": "Hardware version",
+    "es": "Hardware version",
+    "it": "Hardware version",
+    "bg": "Hardware version"
+  },
+  "superadmin.devices.firmware": {
+    "tr": "Firmware",
+    "en": "Firmware",
+    "nl": "Firmware",
+    "de": "Firmware",
+    "fr": "Firmware",
+    "es": "Firmware",
+    "it": "Firmware",
+    "bg": "Firmware"
+  },
+  "superadmin.devices.extra": {
+    "tr": "Ek Bilgi",
+    "en": "Extra info",
+    "nl": "Extra info",
+    "de": "Extra info",
+    "fr": "Extra info",
+    "es": "Extra info",
+    "it": "Extra info",
+    "bg": "Extra info"
+  },
+  "superadmin.devices.notes": {
+    "tr": "Notlar",
+    "en": "Notes",
+    "nl": "Notities",
+    "de": "Notes",
+    "fr": "Notes",
+    "es": "Notes",
+    "it": "Notes",
+    "bg": "Notes"
+  },
+  "superadmin.devices.notesPlaceholder": {
+    "tr": "3D baskı kasa v2, harici GPS anten...",
+    "en": "e.g. printed case v2, external GPS...",
+    "nl": "bijv. behuizing v2, externe GPS...",
+    "de": "e.g. printed case v2, external GPS...",
+    "fr": "e.g. printed case v2, external GPS...",
+    "es": "e.g. printed case v2, external GPS...",
+    "it": "e.g. printed case v2, external GPS...",
+    "bg": "e.g. printed case v2, external GPS..."
+  },
+  "superadmin.devices.addAnother": {
+    "tr": "Başka Cihaz Ekle",
+    "en": "Add another device",
+    "nl": "Nog een apparaat",
+    "de": "Add another device",
+    "fr": "Add another device",
+    "es": "Add another device",
+    "it": "Add another device",
+    "bg": "Add another device"
+  },
+  "superadmin.device.selectCompany": {
+    "tr": "Lütfen bir şirket seçin",
+    "en": "Please select a company",
+    "nl": "Selecteer een bedrijf",
+    "de": "Please select a company",
+    "fr": "Please select a company",
+    "es": "Please select a company",
+    "it": "Please select a company",
+    "bg": "Please select a company"
+  },
+  "superadmin.device.assigned": {
+    "tr": "Cihaz atandı",
+    "en": "Device assigned",
+    "nl": "Apparaat toegewezen",
+    "de": "Device assigned",
+    "fr": "Device assigned",
+    "es": "Device assigned",
+    "it": "Device assigned",
+    "bg": "Device assigned"
+  },
+  "superadmin.device.assignFailed": {
+    "tr": "Atama başarısız",
+    "en": "Assignment failed",
+    "nl": "Toewijzen mislukt",
+    "de": "Assignment failed",
+    "fr": "Assignment failed",
+    "es": "Assignment failed",
+    "it": "Assignment failed",
+    "bg": "Assignment failed"
+  },
+  "superadmin.device.unassignTitle": {
+    "tr": "Atamayı Kaldır",
+    "en": "Remove assignment",
+    "nl": "Toewijzing verwijderen",
+    "de": "Remove assignment",
+    "fr": "Remove assignment",
+    "es": "Remove assignment",
+    "it": "Remove assignment",
+    "bg": "Remove assignment"
+  },
+  "superadmin.device.unassignConfirm": {
+    "tr": "Bu cihazın şirket atamasını kaldırmak istediğinize emin misiniz?",
+    "en": "Remove this device's company assignment?",
+    "nl": "Bedrijfstoewijzing van dit apparaat verwijderen?",
+    "de": "Remove this device's company assignment?",
+    "fr": "Remove this device's company assignment?",
+    "es": "Remove this device's company assignment?",
+    "it": "Remove this device's company assignment?",
+    "bg": "Remove this device's company assignment?"
+  },
+  "superadmin.device.unassignAction": {
+    "tr": "Kaldır",
+    "en": "Remove",
+    "nl": "Verwijderen",
+    "de": "Remove",
+    "fr": "Remove",
+    "es": "Remove",
+    "it": "Remove",
+    "bg": "Remove"
+  },
+  "superadmin.device.unassigned": {
+    "tr": "Atanmamış",
+    "en": "Unassigned",
+    "nl": "Niet toegewezen",
+    "de": "Unassigned",
+    "fr": "Unassigned",
+    "es": "Unassigned",
+    "it": "Unassigned",
+    "bg": "Unassigned"
+  },
+  "superadmin.device.actionFailed": {
+    "tr": "İşlem başarısız",
+    "en": "Action failed",
+    "nl": "Actie mislukt",
+    "de": "Action failed",
+    "fr": "Action failed",
+    "es": "Action failed",
+    "it": "Action failed",
+    "bg": "Action failed"
+  },
+  "superadmin.device.statusActive": {
+    "tr": "Aktif",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Active",
+    "fr": "Active",
+    "es": "Active",
+    "it": "Active",
+    "bg": "Active"
+  },
+  "superadmin.device.statusFaulty": {
+    "tr": "Arızalı",
+    "en": "Faulty",
+    "nl": "Defect",
+    "de": "Faulty",
+    "fr": "Faulty",
+    "es": "Faulty",
+    "it": "Faulty",
+    "bg": "Faulty"
+  },
+  "superadmin.device.statusMaintenance": {
+    "tr": "Bakımda",
+    "en": "Maintenance",
+    "nl": "Onderhoud",
+    "de": "Maintenance",
+    "fr": "Maintenance",
+    "es": "Maintenance",
+    "it": "Maintenance",
+    "bg": "Maintenance"
+  },
+  "superadmin.device.changeStatus": {
+    "tr": "Durum Değiştir",
+    "en": "Change status",
+    "nl": "Status wijzigen",
+    "de": "Change status",
+    "fr": "Change status",
+    "es": "Change status",
+    "it": "Change status",
+    "bg": "Change status"
+  },
+  "superadmin.device.changeStatusConfirm": {
+    "tr": "Cihaz durumunu \"{{status}}\" olarak değiştirmek istiyor musunuz?",
+    "en": "Change device status to \"{{status}}\"?",
+    "nl": "Apparaatstatus wijzigen naar \"{{status}}\"?",
+    "de": "Change device status to \"{{status}}\"?",
+    "fr": "Change device status to \"{{status}}\"?",
+    "es": "Change device status to \"{{status}}\"?",
+    "it": "Change device status to \"{{status}}\"?",
+    "bg": "Change device status to \"{{status}}\"?"
+  },
+  "superadmin.device.statusUpdated": {
+    "tr": "Durum güncellendi",
+    "en": "Status updated",
+    "nl": "Status bijgewerkt",
+    "de": "Status updated",
+    "fr": "Status updated",
+    "es": "Status updated",
+    "it": "Status updated",
+    "bg": "Status updated"
+  },
+  "superadmin.device.remoteCommand": {
+    "tr": "Uzaktan Komut",
+    "en": "Remote command",
+    "nl": "Extern commando",
+    "de": "Remote command",
+    "fr": "Remote command",
+    "es": "Remote command",
+    "it": "Remote command",
+    "bg": "Remote command"
+  },
+  "superadmin.device.commandDanger": {
+    "tr": "{{name}} komutu göndermek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+    "en": "Send {{name}}? This cannot be undone.",
+    "nl": "{{name}} versturen? Dit kan niet ongedaan.",
+    "de": "Send {{name}}? This cannot be undone.",
+    "fr": "Send {{name}}? This cannot be undone.",
+    "es": "Send {{name}}? This cannot be undone.",
+    "it": "Send {{name}}? This cannot be undone.",
+    "bg": "Send {{name}}? This cannot be undone."
+  },
+  "superadmin.device.commandConfirm": {
+    "tr": "{{name}} komutu göndermek istiyor musunuz?",
+    "en": "Send {{name}}?",
+    "nl": "{{name}} versturen?",
+    "de": "Send {{name}}?",
+    "fr": "Send {{name}}?",
+    "es": "Send {{name}}?",
+    "it": "Send {{name}}?",
+    "bg": "Send {{name}}?"
+  },
+  "superadmin.device.commandSent": {
+    "tr": "Komut gönderildi",
+    "en": "Command sent",
+    "nl": "Commando verzonden",
+    "de": "Command sent",
+    "fr": "Command sent",
+    "es": "Command sent",
+    "it": "Command sent",
+    "bg": "Command sent"
+  },
+  "superadmin.device.commandFailed": {
+    "tr": "Komut gönderilemedi",
+    "en": "Could not send command",
+    "nl": "Commando versturen mislukt",
+    "de": "Could not send command",
+    "fr": "Could not send command",
+    "es": "Could not send command",
+    "it": "Could not send command",
+    "bg": "Could not send command"
+  },
+  "superadmin.qr.fetchFailed": {
+    "tr": "Cihazlar yüklenemedi",
+    "en": "Failed to fetch devices",
+    "nl": "Apparaten laden mislukt",
+    "de": "Failed to fetch devices",
+    "fr": "Failed to fetch devices",
+    "es": "Failed to fetch devices",
+    "it": "Failed to fetch devices",
+    "bg": "Failed to fetch devices"
+  },
+  "superadmin.qr.generated": {
+    "tr": "QR kod oluşturuldu",
+    "en": "QR code generated",
+    "nl": "QR-code gegenereerd",
+    "de": "QR code generated",
+    "fr": "QR code generated",
+    "es": "QR code generated",
+    "it": "QR code generated",
+    "bg": "QR code generated"
+  },
+  "superadmin.qr.generateFailed": {
+    "tr": "QR oluşturulamadı",
+    "en": "Failed to generate QR",
+    "nl": "QR genereren mislukt",
+    "de": "Failed to generate QR",
+    "fr": "Failed to generate QR",
+    "es": "Failed to generate QR",
+    "it": "Failed to generate QR",
+    "bg": "Failed to generate QR"
+  },
+  "superadmin.qr.none": {
+    "tr": "Bu cihaz için QR kod yok",
+    "en": "No QR codes found for this device",
+    "nl": "Geen QR-codes voor dit apparaat",
+    "de": "No QR codes found for this device",
+    "fr": "No QR codes found for this device",
+    "es": "No QR codes found for this device",
+    "it": "No QR codes found for this device",
+    "bg": "No QR codes found for this device"
+  },
+  "superadmin.qr.fetchCodesFailed": {
+    "tr": "QR kodlar yüklenemedi",
+    "en": "Failed to fetch QR codes",
+    "nl": "QR-codes laden mislukt",
+    "de": "Failed to fetch QR codes",
+    "fr": "Failed to fetch QR codes",
+    "es": "Failed to fetch QR codes",
+    "it": "Failed to fetch QR codes",
+    "bg": "Failed to fetch QR codes"
+  },
+  "superadmin.qr.refreshTitle": {
+    "tr": "QR Yenile",
+    "en": "Refresh QR",
+    "nl": "QR vernieuwen",
+    "de": "Refresh QR",
+    "fr": "Refresh QR",
+    "es": "Refresh QR",
+    "it": "Refresh QR",
+    "bg": "Refresh QR"
+  },
+  "superadmin.qr.refreshConfirm": {
+    "tr": "Bu cihaz için yeni QR kod oluşturulsun mu?",
+    "en": "Create a new QR code for this device?",
+    "nl": "Nieuwe QR-code voor dit apparaat?",
+    "de": "Create a new QR code for this device?",
+    "fr": "Create a new QR code for this device?",
+    "es": "Create a new QR code for this device?",
+    "it": "Create a new QR code for this device?",
+    "bg": "Create a new QR code for this device?"
+  },
+  "superadmin.qr.usedAt": {
+    "tr": "Kullanıldı: {{time}}",
+    "en": "Used at {{time}}",
+    "nl": "Gebruikt om {{time}}",
+    "de": "Used at {{time}}",
+    "fr": "Used at {{time}}",
+    "es": "Used at {{time}}",
+    "it": "Used at {{time}}",
+    "bg": "Used at {{time}}"
+  },
+  "superadmin.users.loadFailed": {
+    "tr": "Kullanıcılar yüklenemedi",
+    "en": "Could not load users",
+    "nl": "Gebruikers laden mislukt",
+    "de": "Could not load users",
+    "fr": "Could not load users",
+    "es": "Could not load users",
+    "it": "Could not load users",
+    "bg": "Could not load users"
+  },
+  "superadmin.users.loading": {
+    "tr": "Kullanıcılar yükleniyor...",
+    "en": "Loading users...",
+    "nl": "Gebruikers laden...",
+    "de": "Loading users...",
+    "fr": "Loading users...",
+    "es": "Loading users...",
+    "it": "Loading users...",
+    "bg": "Loading users..."
+  },
+  "superadmin.users.total": {
+    "tr": "Toplam",
+    "en": "Total",
+    "nl": "Totaal",
+    "de": "Total",
+    "fr": "Total",
+    "es": "Total",
+    "it": "Total",
+    "bg": "Total"
+  },
+  "superadmin.users.super": {
+    "tr": "Super",
+    "en": "Super",
+    "nl": "Super",
+    "de": "Super",
+    "fr": "Super",
+    "es": "Super",
+    "it": "Super",
+    "bg": "Super"
+  },
+  "superadmin.users.admin": {
+    "tr": "Admin",
+    "en": "Admin",
+    "nl": "Admin",
+    "de": "Admin",
+    "fr": "Admin",
+    "es": "Admin",
+    "it": "Admin",
+    "bg": "Admin"
+  },
+  "superadmin.users.searchPlaceholder": {
+    "tr": "İsim, email veya şirket ara...",
+    "en": "Search name, email or company...",
+    "nl": "Zoek naam, e-mail of bedrijf...",
+    "de": "Search name, email or company...",
+    "fr": "Search name, email or company...",
+    "es": "Search name, email or company...",
+    "it": "Search name, email or company...",
+    "bg": "Search name, email or company..."
+  },
+  "superadmin.users.empty": {
+    "tr": "Kullanıcı Bulunamadı",
+    "en": "No users found",
+    "nl": "Geen gebruikers gevonden",
+    "de": "No users found",
+    "fr": "No users found",
+    "es": "No users found",
+    "it": "No users found",
+    "bg": "No users found"
+  },
+  "superadmin.users.registered": {
+    "tr": "Kayıt: {{date}}",
+    "en": "Registered: {{date}}",
+    "nl": "Geregistreerd: {{date}}",
+    "de": "Registered: {{date}}",
+    "fr": "Registered: {{date}}",
+    "es": "Registered: {{date}}",
+    "it": "Registered: {{date}}",
+    "bg": "Registered: {{date}}"
+  },
+  "superadmin.dashboard.loadFailed": {
+    "tr": "Veriler yüklenemedi",
+    "en": "Could not load data",
+    "nl": "Gegevens laden mislukt",
+    "de": "Could not load data",
+    "fr": "Could not load data",
+    "es": "Could not load data",
+    "it": "Could not load data",
+    "bg": "Could not load data"
+  },
+  "superadmin.dashboard.welcome": {
+    "tr": "Hoş Geldiniz,",
+    "en": "Welcome,",
+    "nl": "Welkom,",
+    "de": "Welcome,",
+    "fr": "Welcome,",
+    "es": "Welcome,",
+    "it": "Welcome,",
+    "bg": "Welcome,"
+  },
+  "superadmin.dashboard.esp32": {
+    "tr": "ESP32 Cihazlar",
+    "en": "ESP32 devices",
+    "nl": "ESP32-apparaten",
+    "de": "ESP32 devices",
+    "fr": "ESP32 devices",
+    "es": "ESP32 devices",
+    "it": "ESP32 devices",
+    "bg": "ESP32 devices"
+  },
+  "superadmin.dashboard.quickActions": {
+    "tr": "Hızlı İşlemler",
+    "en": "Quick actions",
+    "nl": "Snelle acties",
+    "de": "Quick actions",
+    "fr": "Quick actions",
+    "es": "Quick actions",
+    "it": "Quick actions",
+    "bg": "Quick actions"
+  },
+  "superadmin.dashboard.recentCompanies": {
+    "tr": "Son Şirketler",
+    "en": "Recent companies",
+    "nl": "Recente bedrijven",
+    "de": "Recent companies",
+    "fr": "Recent companies",
+    "es": "Recent companies",
+    "it": "Recent companies",
+    "bg": "Recent companies"
+  },
+  "superadmin.dashboard.seeAll": {
+    "tr": "Tümünü Gör →",
+    "en": "See all →",
+    "nl": "Alles bekijken →",
+    "de": "See all →",
+    "fr": "See all →",
+    "es": "See all →",
+    "it": "See all →",
+    "bg": "See all →"
+  },
+  "superadmin.dashboard.emptyCompanies": {
+    "tr": "Henüz şirket yok",
+    "en": "No companies yet",
+    "nl": "Nog geen bedrijven",
+    "de": "No companies yet",
+    "fr": "No companies yet",
+    "es": "No companies yet",
+    "it": "No companies yet",
+    "bg": "No companies yet"
+  },
+  "superadmin.dashboard.createFirst": {
+    "tr": "İlk Şirketi Oluştur",
+    "en": "Create first company",
+    "nl": "Eerste bedrijf aanmaken",
+    "de": "Create first company",
+    "fr": "Create first company",
+    "es": "Create first company",
+    "it": "Create first company",
+    "bg": "Create first company"
+  },
+  "superadmin.dashboard.footer": {
+    "tr": "TulipFleet Super Admin Panel",
+    "en": "TulipFleet Super Admin Panel",
+    "nl": "TulipFleet Super Admin Panel",
+    "de": "TulipFleet Super Admin Panel",
+    "fr": "TulipFleet Super Admin Panel",
+    "es": "TulipFleet Super Admin Panel",
+    "it": "TulipFleet Super Admin Panel",
+    "bg": "TulipFleet Super Admin Panel"
+  },
+  "superadmin.health.lastCheck": {
+    "tr": "Son kontrol: {{time}}",
+    "en": "Last check: {{time}}",
+    "nl": "Laatste check: {{time}}",
+    "de": "Last check: {{time}}",
+    "fr": "Last check: {{time}}",
+    "es": "Last check: {{time}}",
+    "it": "Last check: {{time}}",
+    "bg": "Last check: {{time}}"
+  },
+  "superadmin.health.systemInfo": {
+    "tr": "Sistem Bilgileri",
+    "en": "System info",
+    "nl": "Systeeminformatie",
+    "de": "System info",
+    "fr": "System info",
+    "es": "System info",
+    "it": "System info",
+    "bg": "System info"
+  },
+  "superadmin.health.iot": {
+    "tr": "IoT Cihazları",
+    "en": "IoT devices",
+    "nl": "IoT-apparaten",
+    "de": "IoT devices",
+    "fr": "IoT devices",
+    "es": "IoT devices",
+    "it": "IoT devices",
+    "bg": "IoT devices"
+  },
+  "superadmin.health.esp32": {
+    "tr": "ESP32 Cihazları",
+    "en": "ESP32 devices",
+    "nl": "ESP32-apparaten",
+    "de": "ESP32 devices",
+    "fr": "ESP32 devices",
+    "es": "ESP32 devices",
+    "it": "ESP32 devices",
+    "bg": "ESP32 devices"
+  },
+  "superadmin.health.mqtt": {
+    "tr": "MQTT üzerinden bağlı",
+    "en": "Connected via MQTT",
+    "nl": "Verbonden via MQTT",
+    "de": "Connected via MQTT",
+    "fr": "Connected via MQTT",
+    "es": "Connected via MQTT",
+    "it": "Connected via MQTT",
+    "bg": "Connected via MQTT"
+  },
+  "superadmin.health.onlineCount": {
+    "tr": "{{count}} Online",
+    "en": "{{count}} online",
+    "nl": "{{count}} online",
+    "de": "{{count}} online",
+    "fr": "{{count}} online",
+    "es": "{{count}} online",
+    "it": "{{count}} online",
+    "bg": "{{count}} online"
+  },
+  "superadmin.settings.title": {
+    "tr": "Platform Ayarları",
+    "en": "Platform settings",
+    "nl": "Platforminstellingen",
+    "de": "Platform settings",
+    "fr": "Platform settings",
+    "es": "Platform settings",
+    "it": "Platform settings",
+    "bg": "Platform settings"
+  },
+  "superadmin.nav.comingSoonTitle": {
+    "tr": "Yapım Aşamasında",
+    "en": "Coming soon",
+    "nl": "Binnenkort",
+    "de": "Coming soon",
+    "fr": "Coming soon",
+    "es": "Coming soon",
+    "it": "Coming soon",
+    "bg": "Coming soon"
+  },
+  "superadmin.nav.comingSoonBody": {
+    "tr": "Bu özellik yakında eklenecek!",
+    "en": "This feature is coming soon.",
+    "nl": "Deze functie komt binnenkort.",
+    "de": "This feature is coming soon.",
+    "fr": "This feature is coming soon.",
+    "es": "This feature is coming soon.",
+    "it": "This feature is coming soon.",
+    "bg": "This feature is coming soon."
+  },
+  "superadmin.nav.newCompany": {
+    "tr": "Yeni Şirket",
+    "en": "New company",
+    "nl": "Nieuw bedrijf",
+    "de": "New company",
+    "fr": "New company",
+    "es": "New company",
+    "it": "New company",
+    "bg": "New company"
+  },
+  "superadmin.nav.deviceDetail": {
+    "tr": "Cihaz Detayı",
+    "en": "Device detail",
+    "nl": "Apparaatdetail",
+    "de": "Device detail",
+    "fr": "Device detail",
+    "es": "Device detail",
+    "it": "Device detail",
+    "bg": "Device detail"
+  },
+  "superadmin.companies.trial": {
+    "tr": "Trial",
+    "en": "Trial",
+    "nl": "Proef",
+    "de": "Trial",
+    "fr": "Trial",
+    "es": "Trial",
+    "it": "Trial",
+    "bg": "Trial"
+  },
+  "superadmin.companies.suspendedStatus": {
+    "tr": "Askıda",
+    "en": "Suspended",
+    "nl": "Opgeschort",
+    "de": "Suspended",
+    "fr": "Suspended",
+    "es": "Suspended",
+    "it": "Suspended",
+    "bg": "Suspended"
+  },
+  "superadmin.companies.expired": {
+    "tr": "Süresi Doldu",
+    "en": "Expired",
+    "nl": "Verlopen",
+    "de": "Expired",
+    "fr": "Expired",
+    "es": "Expired",
+    "it": "Expired",
+    "bg": "Expired"
+  },
+  "superadmin.companies.filterAll": {
+    "tr": "Tümü",
+    "en": "All",
+    "nl": "Alle",
+    "de": "All",
+    "fr": "All",
+    "es": "All",
+    "it": "All",
+    "bg": "All"
+  },
+  "superadmin.companies.overdueDays": {
+    "tr": "{{count}} gün gecikmiş",
+    "en": "{{count}} days overdue",
+    "nl": "{{count}} dagen te laat",
+    "de": "{{count}} days overdue",
+    "fr": "{{count}} days overdue",
+    "es": "{{count}} days overdue",
+    "it": "{{count}} days overdue",
+    "bg": "{{count}} days overdue"
+  },
+  "superadmin.companies.amountDue": {
+    "tr": "Tutar: €{{amount}}",
+    "en": "Amount: €{{amount}}",
+    "nl": "Bedrag: €{{amount}}",
+    "de": "Amount: €{{amount}}",
+    "fr": "Amount: €{{amount}}",
+    "es": "Amount: €{{amount}}",
+    "it": "Amount: €{{amount}}",
+    "bg": "Amount: €{{amount}}"
+  },
+  "superadmin.companies.vehiclesFee": {
+    "tr": "{{count}} araç • €{{fee}}/ay",
+    "en": "{{count}} vehicles • €{{fee}}/mo",
+    "nl": "{{count}} voertuigen • €{{fee}}/mnd",
+    "de": "{{count}} vehicles • €{{fee}}/mo",
+    "fr": "{{count}} vehicles • €{{fee}}/mo",
+    "es": "{{count}} vehicles • €{{fee}}/mo",
+    "it": "{{count}} vehicles • €{{fee}}/mo",
+    "bg": "{{count}} vehicles • €{{fee}}/mo"
+  },
+  "superadmin.companies.nextPaymentDays": {
+    "tr": "Sonraki ödeme: {{count}} gün",
+    "en": "Next payment: {{count}} days",
+    "nl": "Volgende betaling: {{count}} dagen",
+    "de": "Next payment: {{count}} days",
+    "fr": "Next payment: {{count}} days",
+    "es": "Next payment: {{count}} days",
+    "it": "Next payment: {{count}} days",
+    "bg": "Next payment: {{count}} days"
+  },
+  "superadmin.companies.nextPaymentToday": {
+    "tr": "Sonraki ödeme: Bugün",
+    "en": "Next payment: today",
+    "nl": "Volgende betaling: vandaag",
+    "de": "Next payment: today",
+    "fr": "Next payment: today",
+    "es": "Next payment: today",
+    "it": "Next payment: today",
+    "bg": "Next payment: today"
+  },
+  "superadmin.companies.trialDaysLeft": {
+    "tr": "Trial: {{count}} gün kaldı",
+    "en": "Trial: {{count}} days left",
+    "nl": "Proef: nog {{count}} dagen",
+    "de": "Trial: {{count}} days left",
+    "fr": "Trial: {{count}} days left",
+    "es": "Trial: {{count}} days left",
+    "it": "Trial: {{count}} days left",
+    "bg": "Trial: {{count}} days left"
+  },
+  "superadmin.companies.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Vehicle",
+    "fr": "Vehicle",
+    "es": "Vehicle",
+    "it": "Vehicle",
+    "bg": "Vehicle"
+  },
+  "superadmin.companies.driver": {
+    "tr": "Sürücü",
+    "en": "Driver",
+    "nl": "Chauffeur",
+    "de": "Driver",
+    "fr": "Driver",
+    "es": "Driver",
+    "it": "Driver",
+    "bg": "Driver"
+  },
+  "superadmin.companies.device": {
+    "tr": "Cihaz",
+    "en": "Device",
+    "nl": "Apparaat",
+    "de": "Device",
+    "fr": "Device",
+    "es": "Device",
+    "it": "Device",
+    "bg": "Device"
+  },
+  "superadmin.companies.extendAction": {
+    "tr": "Uzat",
+    "en": "Extend",
+    "nl": "Verlengen",
+    "de": "Extend",
+    "fr": "Extend",
+    "es": "Extend",
+    "it": "Extend",
+    "bg": "Extend"
+  },
+  "superadmin.companies.slugInvalid": {
+    "tr": "Slug sadece küçük harf, rakam ve tire içerebilir",
+    "en": "Slug may only contain lowercase letters, numbers and hyphens",
+    "nl": "Slug mag alleen kleine letters, cijfers en koppeltekens",
+    "de": "Slug may only contain lowercase letters, numbers and hyphens",
+    "fr": "Slug may only contain lowercase letters, numbers and hyphens",
+    "es": "Slug may only contain lowercase letters, numbers and hyphens",
+    "it": "Slug may only contain lowercase letters, numbers and hyphens",
+    "bg": "Slug may only contain lowercase letters, numbers and hyphens"
+  },
+  "superadmin.companies.adminPasswordRequired": {
+    "tr": "Admin şifre gerekli",
+    "en": "Admin password is required",
+    "nl": "Admin-wachtwoord is verplicht",
+    "de": "Admin password is required",
+    "fr": "Admin password is required",
+    "es": "Admin password is required",
+    "it": "Admin password is required",
+    "bg": "Admin password is required"
+  },
+  "superadmin.companies.adminNameRequired": {
+    "tr": "Admin adı gerekli",
+    "en": "Admin first name is required",
+    "nl": "Admin-voornaam is verplicht",
+    "de": "Admin first name is required",
+    "fr": "Admin first name is required",
+    "es": "Admin first name is required",
+    "it": "Admin first name is required",
+    "bg": "Admin first name is required"
+  },
+  "superadmin.companies.slugUrl": {
+    "tr": "URL'de kullanılacak: @{{slug}}",
+    "en": "Used in URL: @{{slug}}",
+    "nl": "In URL: @{{slug}}",
+    "de": "Used in URL: @{{slug}}",
+    "fr": "Used in URL: @{{slug}}",
+    "es": "Used in URL: @{{slug}}",
+    "it": "Used in URL: @{{slug}}",
+    "bg": "Used in URL: @{{slug}}"
+  },
+  "superadmin.companies.inactive": {
+    "tr": "Pasif",
+    "en": "Inactive",
+    "nl": "Inactief",
+    "de": "Inactive",
+    "fr": "Inactive",
+    "es": "Inactive",
+    "it": "Inactive",
+    "bg": "Inactive"
+  },
+  "superadmin.companies.task": {
+    "tr": "Görev",
+    "en": "Task",
+    "nl": "Taak",
+    "de": "Task",
+    "fr": "Task",
+    "es": "Task",
+    "it": "Task",
+    "bg": "Task"
+  },
+  "superadmin.companies.firstName": {
+    "tr": "Ad *",
+    "en": "First name *",
+    "nl": "Voornaam *",
+    "de": "First name *",
+    "fr": "First name *",
+    "es": "First name *",
+    "it": "First name *",
+    "bg": "First name *"
+  },
+  "superadmin.companies.lastName": {
+    "tr": "Soyad",
+    "en": "Last name",
+    "nl": "Achternaam",
+    "de": "Last name",
+    "fr": "Last name",
+    "es": "Last name",
+    "it": "Last name",
+    "bg": "Last name"
+  },
+  "superadmin.companies.emailRequired": {
+    "tr": "Email *",
+    "en": "Email *",
+    "nl": "E-mail *",
+    "de": "Email *",
+    "fr": "Email *",
+    "es": "Email *",
+    "it": "Email *",
+    "bg": "Email *"
+  },
+  "superadmin.companies.passwordRequired": {
+    "tr": "Şifre *",
+    "en": "Password *",
+    "nl": "Wachtwoord *",
+    "de": "Password *",
+    "fr": "Password *",
+    "es": "Password *",
+    "it": "Password *",
+    "bg": "Password *"
+  },
+  "superadmin.companies.companyName": {
+    "tr": "Şirket Adı *",
+    "en": "Company name *",
+    "nl": "Bedrijfsnaam *",
+    "de": "Company name *",
+    "fr": "Company name *",
+    "es": "Company name *",
+    "it": "Company name *",
+    "bg": "Company name *"
+  },
+  "superadmin.companies.create": {
+    "tr": "Oluştur",
+    "en": "Create",
+    "nl": "Aanmaken",
+    "de": "Create",
+    "fr": "Create",
+    "es": "Create",
+    "it": "Create",
+    "bg": "Create"
+  },
+  "superadmin.companies.usersTitle": {
+    "tr": "Kullanıcılar",
+    "en": "Users",
+    "nl": "Gebruikers",
+    "de": "Users",
+    "fr": "Users",
+    "es": "Users",
+    "it": "Users",
+    "bg": "Users"
+  },
+  "superadmin.companies.tabGeneral": {
+    "tr": "Genel",
+    "en": "General",
+    "nl": "Algemeen",
+    "de": "General",
+    "fr": "General",
+    "es": "General",
+    "it": "General",
+    "bg": "General"
+  },
+  "superadmin.companies.tabSubscription": {
+    "tr": "Abonelik",
+    "en": "Subscription",
+    "nl": "Abonnement",
+    "de": "Subscription",
+    "fr": "Subscription",
+    "es": "Subscription",
+    "it": "Subscription",
+    "bg": "Subscription"
+  },
+  "superadmin.companies.tabDevices": {
+    "tr": "Cihazlar",
+    "en": "Devices",
+    "nl": "Apparaten",
+    "de": "Devices",
+    "fr": "Devices",
+    "es": "Devices",
+    "it": "Devices",
+    "bg": "Devices"
+  },
+  "superadmin.companies.tabHistory": {
+    "tr": "Geçmiş",
+    "en": "History",
+    "nl": "Geschiedenis",
+    "de": "History",
+    "fr": "History",
+    "es": "History",
+    "it": "History",
+    "bg": "History"
+  },
+  "superadmin.companies.payHavale": {
+    "tr": "Havale",
+    "en": "Transfer",
+    "nl": "Overschrijving",
+    "de": "Transfer",
+    "fr": "Transfer",
+    "es": "Transfer",
+    "it": "Transfer",
+    "bg": "Transfer"
+  },
+  "superadmin.companies.payCard": {
+    "tr": "Kart",
+    "en": "Card",
+    "nl": "Kaart",
+    "de": "Card",
+    "fr": "Card",
+    "es": "Card",
+    "it": "Card",
+    "bg": "Card"
+  },
+  "superadmin.companies.payInvoice": {
+    "tr": "Fatura",
+    "en": "Invoice",
+    "nl": "Factuur",
+    "de": "Invoice",
+    "fr": "Invoice",
+    "es": "Invoice",
+    "it": "Invoice",
+    "bg": "Invoice"
+  },
+  "superadmin.companies.slugLabel": {
+    "tr": "Slug:",
+    "en": "Slug:",
+    "nl": "Slug:",
+    "de": "Slug:",
+    "fr": "Slug:",
+    "es": "Slug:",
+    "it": "Slug:",
+    "bg": "Slug:"
+  },
+  "superadmin.companies.packageLabel": {
+    "tr": "Paket:",
+    "en": "Plan:",
+    "nl": "Pakket:",
+    "de": "Plan:",
+    "fr": "Plan:",
+    "es": "Plan:",
+    "it": "Plan:",
+    "bg": "Plan:"
+  },
+  "superadmin.companies.statusLabel": {
+    "tr": "Durum:",
+    "en": "Status:",
+    "nl": "Status:",
+    "de": "Status:",
+    "fr": "Status:",
+    "es": "Status:",
+    "it": "Status:",
+    "bg": "Status:"
+  },
+  "superadmin.companies.maxVehiclesLabel": {
+    "tr": "Max Araç:",
+    "en": "Max vehicles:",
+    "nl": "Max voertuigen:",
+    "de": "Max vehicles:",
+    "fr": "Max vehicles:",
+    "es": "Max vehicles:",
+    "it": "Max vehicles:",
+    "bg": "Max vehicles:"
+  },
+  "superadmin.companies.maxDriversLabel": {
+    "tr": "Max sürücü:",
+    "en": "Max drivers:",
+    "nl": "Max chauffeurs:",
+    "de": "Max drivers:",
+    "fr": "Max drivers:",
+    "es": "Max drivers:",
+    "it": "Max drivers:",
+    "bg": "Max drivers:"
+  },
+  "superadmin.companies.createdAt": {
+    "tr": "Oluşturulma",
+    "en": "Created",
+    "nl": "Aangemaakt",
+    "de": "Created",
+    "fr": "Created",
+    "es": "Created",
+    "it": "Created",
+    "bg": "Created"
+  },
+  "superadmin.companies.total": {
+    "tr": "Toplam",
+    "en": "Total",
+    "nl": "Totaal",
+    "de": "Total",
+    "fr": "Total",
+    "es": "Total",
+    "it": "Total",
+    "bg": "Total"
+  },
+  "superadmin.companies.active": {
+    "tr": "Aktif",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Active",
+    "fr": "Active",
+    "es": "Active",
+    "it": "Active",
+    "bg": "Active"
+  },
+  "superadmin.create.step1desc": {
+    "tr": "Yeni şirketin temel bilgilerini girin",
+    "en": "Enter the new company's basic details",
+    "nl": "Voer de basisgegevens van het bedrijf in",
+    "de": "Enter the new company's basic details",
+    "fr": "Enter the new company's basic details",
+    "es": "Enter the new company's basic details",
+    "it": "Enter the new company's basic details",
+    "bg": "Enter the new company's basic details"
+  },
+  "superadmin.create.adminAccount": {
+    "tr": "Admin Hesabı",
+    "en": "Admin account",
+    "nl": "Admin-account",
+    "de": "Admin account",
+    "fr": "Admin account",
+    "es": "Admin account",
+    "it": "Admin account",
+    "bg": "Admin account"
+  },
+  "superadmin.create.adminAccountDesc": {
+    "tr": "Şirket yöneticisinin giriş bilgilerini oluşturun",
+    "en": "Create the company admin login",
+    "nl": "Maak de admin-login aan",
+    "de": "Create the company admin login",
+    "fr": "Create the company admin login",
+    "es": "Create the company admin login",
+    "it": "Create the company admin login",
+    "bg": "Create the company admin login"
+  },
+  "superadmin.create.packageLimits": {
+    "tr": "Paket Limitleri",
+    "en": "Plan limits",
+    "nl": "Pakketlimieten",
+    "de": "Plan limits",
+    "fr": "Plan limits",
+    "es": "Plan limits",
+    "it": "Plan limits",
+    "bg": "Plan limits"
+  },
+  "superadmin.create.packageLimitsDesc": {
+    "tr": "Şirketin kullanabileceği kaynak limitlerini belirleyin",
+    "en": "Set resource limits for the company",
+    "nl": "Stel resourcelimieten in",
+    "de": "Set resource limits for the company",
+    "fr": "Set resource limits for the company",
+    "es": "Set resource limits for the company",
+    "it": "Set resource limits for the company",
+    "bg": "Set resource limits for the company"
+  },
+  "superadmin.create.companyName": {
+    "tr": "Şirket Adı *",
+    "en": "Company name *",
+    "nl": "Bedrijfsnaam *",
+    "de": "Company name *",
+    "fr": "Company name *",
+    "es": "Company name *",
+    "it": "Company name *",
+    "bg": "Company name *"
+  },
+  "superadmin.create.slugUrl": {
+    "tr": "Slug (URL) *",
+    "en": "Slug (URL) *",
+    "nl": "Slug (URL) *",
+    "de": "Slug (URL) *",
+    "fr": "Slug (URL) *",
+    "es": "Slug (URL) *",
+    "it": "Slug (URL) *",
+    "bg": "Slug (URL) *"
+  },
+  "superadmin.create.taxId": {
+    "tr": "Vergi No",
+    "en": "Tax ID",
+    "nl": "Btw-nr",
+    "de": "Tax ID",
+    "fr": "Tax ID",
+    "es": "Tax ID",
+    "it": "Tax ID",
+    "bg": "Tax ID"
+  },
+  "superadmin.create.city": {
+    "tr": "Şehir",
+    "en": "City",
+    "nl": "Stad",
+    "de": "City",
+    "fr": "City",
+    "es": "City",
+    "it": "City",
+    "bg": "City"
+  },
+  "superadmin.create.address": {
+    "tr": "Adres",
+    "en": "Address",
+    "nl": "Adres",
+    "de": "Address",
+    "fr": "Address",
+    "es": "Address",
+    "it": "Address",
+    "bg": "Address"
+  },
+  "superadmin.create.phone": {
+    "tr": "Telefon",
+    "en": "Phone",
+    "nl": "Telefoon",
+    "de": "Phone",
+    "fr": "Phone",
+    "es": "Phone",
+    "it": "Phone",
+    "bg": "Phone"
+  },
+  "superadmin.create.email": {
+    "tr": "Email *",
+    "en": "Email *",
+    "nl": "E-mail *",
+    "de": "Email *",
+    "fr": "Email *",
+    "es": "Email *",
+    "it": "Email *",
+    "bg": "Email *"
+  },
+  "superadmin.create.password": {
+    "tr": "Şifre *",
+    "en": "Password *",
+    "nl": "Wachtwoord *",
+    "de": "Password *",
+    "fr": "Password *",
+    "es": "Password *",
+    "it": "Password *",
+    "bg": "Password *"
+  },
+  "superadmin.create.firstName": {
+    "tr": "Ad",
+    "en": "First name",
+    "nl": "Voornaam",
+    "de": "First name",
+    "fr": "First name",
+    "es": "First name",
+    "it": "First name",
+    "bg": "First name"
+  },
+  "superadmin.create.lastName": {
+    "tr": "Soyad",
+    "en": "Last name",
+    "nl": "Achternaam",
+    "de": "Last name",
+    "fr": "Last name",
+    "es": "Last name",
+    "it": "Last name",
+    "bg": "Last name"
+  },
+  "superadmin.create.firstNamePlaceholder": {
+    "tr": "Admin adı",
+    "en": "Admin first name",
+    "nl": "Admin-voornaam",
+    "de": "Admin first name",
+    "fr": "Admin first name",
+    "es": "Admin first name",
+    "it": "Admin first name",
+    "bg": "Admin first name"
+  },
+  "superadmin.create.lastNamePlaceholder": {
+    "tr": "Admin soyadı",
+    "en": "Admin last name",
+    "nl": "Admin-achternaam",
+    "de": "Admin last name",
+    "fr": "Admin last name",
+    "es": "Admin last name",
+    "it": "Admin last name",
+    "bg": "Admin last name"
+  },
+  "superadmin.create.next": {
+    "tr": "İleri →",
+    "en": "Next →",
+    "nl": "Volgende →",
+    "de": "Next →",
+    "fr": "Next →",
+    "es": "Next →",
+    "it": "Next →",
+    "bg": "Next →"
+  },
+  "superadmin.create.back": {
+    "tr": "← Geri",
+    "en": "← Back",
+    "nl": "← Terug",
+    "de": "← Back",
+    "fr": "← Back",
+    "es": "← Back",
+    "it": "← Back",
+    "bg": "← Back"
+  },
+  "superadmin.create.maxVehiclesCount": {
+    "tr": "Maksimum Araç Sayısı",
+    "en": "Maximum vehicles",
+    "nl": "Maximum voertuigen",
+    "de": "Maximum vehicles",
+    "fr": "Maximum vehicles",
+    "es": "Maximum vehicles",
+    "it": "Maximum vehicles",
+    "bg": "Maximum vehicles"
+  },
+  "superadmin.create.maxDriversCount": {
+    "tr": "Maksimum Sürücü Sayısı",
+    "en": "Maximum drivers",
+    "nl": "Maximum chauffeurs",
+    "de": "Maximum drivers",
+    "fr": "Maximum drivers",
+    "es": "Maximum drivers",
+    "it": "Maximum drivers",
+    "bg": "Maximum drivers"
+  },
+  "superadmin.create.summary": {
+    "tr": "Özet",
+    "en": "Summary",
+    "nl": "Overzicht",
+    "de": "Summary",
+    "fr": "Summary",
+    "es": "Summary",
+    "it": "Summary",
+    "bg": "Summary"
+  },
+  "superadmin.create.summaryCompany": {
+    "tr": "Şirket:",
+    "en": "Company:",
+    "nl": "Bedrijf:",
+    "de": "Company:",
+    "fr": "Company:",
+    "es": "Company:",
+    "it": "Company:",
+    "bg": "Company:"
+  },
+  "superadmin.create.summaryAdmin": {
+    "tr": "Admin:",
+    "en": "Admin:",
+    "nl": "Admin:",
+    "de": "Admin:",
+    "fr": "Admin:",
+    "es": "Admin:",
+    "it": "Admin:",
+    "bg": "Admin:"
+  },
+  "superadmin.create.summaryLimits": {
+    "tr": "{{vehicles}} araç, {{drivers}} sürücü",
+    "en": "{{vehicles}} vehicles, {{drivers}} drivers",
+    "nl": "{{vehicles}} voertuigen, {{drivers}} chauffeurs",
+    "de": "{{vehicles}} vehicles, {{drivers}} drivers",
+    "fr": "{{vehicles}} vehicles, {{drivers}} drivers",
+    "es": "{{vehicles}} vehicles, {{drivers}} drivers",
+    "it": "{{vehicles}} vehicles, {{drivers}} drivers",
+    "bg": "{{vehicles}} vehicles, {{drivers}} drivers"
+  },
+  "superadmin.create.summaryLimitsLabel": {
+    "tr": "Limitler:",
+    "en": "Limits:",
+    "nl": "Limieten:",
+    "de": "Limits:",
+    "fr": "Limits:",
+    "es": "Limits:",
+    "it": "Limits:",
+    "bg": "Limits:"
+  },
+  "superadmin.create.submit": {
+    "tr": "✓ Oluştur",
+    "en": "✓ Create",
+    "nl": "✓ Aanmaken",
+    "de": "✓ Create",
+    "fr": "✓ Create",
+    "es": "✓ Create",
+    "it": "✓ Create",
+    "bg": "✓ Create"
+  },
+  "superadmin.edit.companyName": {
+    "tr": "Şirket Adı *",
+    "en": "Company name *",
+    "nl": "Bedrijfsnaam *",
+    "de": "Company name *",
+    "fr": "Company name *",
+    "es": "Company name *",
+    "it": "Company name *",
+    "bg": "Company name *"
+  },
+  "superadmin.edit.companyNamePlaceholder": {
+    "tr": "Şirket adı",
+    "en": "Company name",
+    "nl": "Bedrijfsnaam",
+    "de": "Company name",
+    "fr": "Company name",
+    "es": "Company name",
+    "it": "Company name",
+    "bg": "Company name"
+  },
+  "superadmin.edit.slug": {
+    "tr": "Slug",
+    "en": "Slug",
+    "nl": "Slug",
+    "de": "Slug",
+    "fr": "Slug",
+    "es": "Slug",
+    "it": "Slug",
+    "bg": "Slug"
+  },
+  "superadmin.edit.email": {
+    "tr": "Email",
+    "en": "Email",
+    "nl": "E-mail",
+    "de": "Email",
+    "fr": "Email",
+    "es": "Email",
+    "it": "Email",
+    "bg": "Email"
+  },
+  "superadmin.edit.phone": {
+    "tr": "Telefon",
+    "en": "Phone",
+    "nl": "Telefoon",
+    "de": "Phone",
+    "fr": "Phone",
+    "es": "Phone",
+    "it": "Phone",
+    "bg": "Phone"
+  },
+  "superadmin.edit.active": {
+    "tr": "Şirket aktif",
+    "en": "Company active",
+    "nl": "Bedrijf actief",
+    "de": "Company active",
+    "fr": "Company active",
+    "es": "Company active",
+    "it": "Company active",
+    "bg": "Company active"
+  },
+  "superadmin.edit.inactive": {
+    "tr": "Şirket pasif",
+    "en": "Company inactive",
+    "nl": "Bedrijf inactief",
+    "de": "Company inactive",
+    "fr": "Company inactive",
+    "es": "Company inactive",
+    "it": "Company inactive",
+    "bg": "Company inactive"
+  },
+  "superadmin.devices.searchPlaceholder": {
+    "tr": "Cihaz kodu, MAC, şirket ara...",
+    "en": "Search code, MAC, company...",
+    "nl": "Zoek code, MAC, bedrijf...",
+    "de": "Search code, MAC, company...",
+    "fr": "Search code, MAC, company...",
+    "es": "Search code, MAC, company...",
+    "it": "Search code, MAC, company...",
+    "bg": "Search code, MAC, company..."
+  },
+  "superadmin.devices.loading": {
+    "tr": "Cihazlar yükleniyor...",
+    "en": "Loading devices...",
+    "nl": "Apparaten laden...",
+    "de": "Loading devices...",
+    "fr": "Loading devices...",
+    "es": "Loading devices...",
+    "it": "Loading devices...",
+    "bg": "Loading devices..."
+  },
+  "superadmin.devices.empty": {
+    "tr": "Cihaz Bulunamadı",
+    "en": "No devices found",
+    "nl": "Geen apparaten",
+    "de": "No devices found",
+    "fr": "No devices found",
+    "es": "No devices found",
+    "it": "No devices found",
+    "bg": "No devices found"
+  },
+  "superadmin.devices.emptySearch": {
+    "tr": "Arama kriterlerine uygun cihaz yok",
+    "en": "No devices match the search",
+    "nl": "Geen apparaten voor deze zoekopdracht",
+    "de": "No devices match the search",
+    "fr": "No devices match the search",
+    "es": "No devices match the search",
+    "it": "No devices match the search",
+    "bg": "No devices match the search"
+  },
+  "superadmin.devices.emptyFilter": {
+    "tr": "{{filter}} durumunda cihaz yok",
+    "en": "No devices in {{filter}}",
+    "nl": "Geen apparaten in {{filter}}",
+    "de": "No devices in {{filter}}",
+    "fr": "No devices in {{filter}}",
+    "es": "No devices in {{filter}}",
+    "it": "No devices in {{filter}}",
+    "bg": "No devices in {{filter}}"
+  },
+  "superadmin.devices.emptyNone": {
+    "tr": "Henüz cihaz kaydedilmemiş",
+    "en": "No devices registered yet",
+    "nl": "Nog geen apparaten",
+    "de": "No devices registered yet",
+    "fr": "No devices registered yet",
+    "es": "No devices registered yet",
+    "it": "No devices registered yet",
+    "bg": "No devices registered yet"
+  },
+  "superadmin.devices.newDevice": {
+    "tr": "Yeni Cihaz",
+    "en": "New device",
+    "nl": "Nieuw apparaat",
+    "de": "New device",
+    "fr": "New device",
+    "es": "New device",
+    "it": "New device",
+    "bg": "New device"
+  },
+  "superadmin.devices.mac": {
+    "tr": "MAC:",
+    "en": "MAC:",
+    "nl": "MAC:",
+    "de": "MAC:",
+    "fr": "MAC:",
+    "es": "MAC:",
+    "it": "MAC:",
+    "bg": "MAC:"
+  },
+  "superadmin.devices.company": {
+    "tr": "Şirket:",
+    "en": "Company:",
+    "nl": "Bedrijf:",
+    "de": "Company:",
+    "fr": "Company:",
+    "es": "Company:",
+    "it": "Company:",
+    "bg": "Company:"
+  },
+  "superadmin.devices.vehicle": {
+    "tr": "Araç:",
+    "en": "Vehicle:",
+    "nl": "Voertuig:",
+    "de": "Vehicle:",
+    "fr": "Vehicle:",
+    "es": "Vehicle:",
+    "it": "Vehicle:",
+    "bg": "Vehicle:"
+  },
+  "superadmin.devices.lastSeen": {
+    "tr": "Son görülme:",
+    "en": "Last seen:",
+    "nl": "Laatst gezien:",
+    "de": "Last seen:",
+    "fr": "Last seen:",
+    "es": "Last seen:",
+    "it": "Last seen:",
+    "bg": "Last seen:"
+  },
+  "superadmin.devices.unassigned": {
+    "tr": "Atanmamış",
+    "en": "Unassigned",
+    "nl": "Niet toegewezen",
+    "de": "Unassigned",
+    "fr": "Unassigned",
+    "es": "Unassigned",
+    "it": "Unassigned",
+    "bg": "Unassigned"
+  },
+  "superadmin.devices.neverSeen": {
+    "tr": "Hiç görülmedi",
+    "en": "Never seen",
+    "nl": "Nooit gezien",
+    "de": "Never seen",
+    "fr": "Never seen",
+    "es": "Never seen",
+    "it": "Never seen",
+    "bg": "Never seen"
+  },
+  "superadmin.devices.online": {
+    "tr": "ONLINE",
+    "en": "ONLINE",
+    "nl": "ONLINE",
+    "de": "ONLINE",
+    "fr": "ONLINE",
+    "es": "ONLINE",
+    "it": "ONLINE",
+    "bg": "ONLINE"
+  },
+  "superadmin.devices.registered": {
+    "tr": "Cihaz Kaydedildi!",
+    "en": "Device registered!",
+    "nl": "Apparaat geregistreerd!",
+    "de": "Device registered!",
+    "fr": "Device registered!",
+    "es": "Device registered!",
+    "it": "Device registered!",
+    "bg": "Device registered!"
+  },
+  "superadmin.devices.identity": {
+    "tr": "Cihaz Kimlik",
+    "en": "Device identity",
+    "nl": "Apparaatidentiteit",
+    "de": "Device identity",
+    "fr": "Device identity",
+    "es": "Device identity",
+    "it": "Device identity",
+    "bg": "Device identity"
+  },
+  "superadmin.devices.deviceCode": {
+    "tr": "Device Code *",
+    "en": "Device code *",
+    "nl": "Apparaatcode *",
+    "de": "Device code *",
+    "fr": "Device code *",
+    "es": "Device code *",
+    "it": "Device code *",
+    "bg": "Device code *"
+  },
+  "superadmin.devices.serial": {
+    "tr": "Serial",
+    "en": "Serial",
+    "nl": "Serie",
+    "de": "Serial",
+    "fr": "Serial",
+    "es": "Serial",
+    "it": "Serial",
+    "bg": "Serial"
+  },
+  "superadmin.devices.chipId": {
+    "tr": "Chip ID",
+    "en": "Chip ID",
+    "nl": "Chip-ID",
+    "de": "Chip ID",
+    "fr": "Chip ID",
+    "es": "Chip ID",
+    "it": "Chip ID",
+    "bg": "Chip ID"
+  },
+  "superadmin.devices.deviceToken": {
+    "tr": "Device Token",
+    "en": "Device token",
+    "nl": "Apparaattoken",
+    "de": "Device token",
+    "fr": "Device token",
+    "es": "Device token",
+    "it": "Device token",
+    "bg": "Device token"
+  },
+  "superadmin.devices.qrToken": {
+    "tr": "QR Token",
+    "en": "QR token",
+    "nl": "QR-token",
+    "de": "QR token",
+    "fr": "QR token",
+    "es": "QR token",
+    "it": "QR token",
+    "bg": "QR token"
+  },
+  "superadmin.devices.saving": {
+    "tr": "Kaydediliyor...",
+    "en": "Saving...",
+    "nl": "Opslaan...",
+    "de": "Saving...",
+    "fr": "Saving...",
+    "es": "Saving...",
+    "it": "Saving...",
+    "bg": "Saving..."
+  },
+  "superadmin.devices.saveDevice": {
+    "tr": "Cihazı Kaydet",
+    "en": "Save device",
+    "nl": "Apparaat opslaan",
+    "de": "Save device",
+    "fr": "Save device",
+    "es": "Save device",
+    "it": "Save device",
+    "bg": "Save device"
+  },
+  "superadmin.devices.total": {
+    "tr": "Toplam",
+    "en": "Total",
+    "nl": "Totaal",
+    "de": "Total",
+    "fr": "Total",
+    "es": "Total",
+    "it": "Total",
+    "bg": "Total"
+  },
+  "superadmin.devices.pending": {
+    "tr": "Bekleyen",
+    "en": "Pending",
+    "nl": "In afwachting",
+    "de": "Pending",
+    "fr": "Pending",
+    "es": "Pending",
+    "it": "Pending",
+    "bg": "Pending"
+  },
+  "superadmin.devices.offline": {
+    "tr": "Offline",
+    "en": "Offline",
+    "nl": "Offline",
+    "de": "Offline",
+    "fr": "Offline",
+    "es": "Offline",
+    "it": "Offline",
+    "bg": "Offline"
+  },
+  "superadmin.devices.hwNew": {
+    "tr": "v2.0 (Yeni Kasa)",
+    "en": "v2.0 (new case)",
+    "nl": "v2.0 (nieuwe behuizing)",
+    "de": "v2.0 (new case)",
+    "fr": "v2.0 (new case)",
+    "es": "v2.0 (new case)",
+    "it": "v2.0 (new case)",
+    "bg": "v2.0 (new case)"
+  },
+  "superadmin.devices.hwOld": {
+    "tr": "v1.0 (Eski)",
+    "en": "v1.0 (legacy)",
+    "nl": "v1.0 (oud)",
+    "de": "v1.0 (legacy)",
+    "fr": "v1.0 (legacy)",
+    "es": "v1.0 (legacy)",
+    "it": "v1.0 (legacy)",
+    "bg": "v1.0 (legacy)"
+  },
+  "superadmin.devices.fwCurrent": {
+    "tr": "v4.4.1 (Güncel)",
+    "en": "v4.4.1 (current)",
+    "nl": "v4.4.1 (actueel)",
+    "de": "v4.4.1 (current)",
+    "fr": "v4.4.1 (current)",
+    "es": "v4.4.1 (current)",
+    "it": "v4.4.1 (current)",
+    "bg": "v4.4.1 (current)"
+  },
+  "superadmin.device.info": {
+    "tr": "Cihaz Bilgileri",
+    "en": "Device info",
+    "nl": "Apparaatgegevens",
+    "de": "Device info",
+    "fr": "Device info",
+    "es": "Device info",
+    "it": "Device info",
+    "bg": "Device info"
+  },
+  "superadmin.device.assignment": {
+    "tr": "Atama Durumu",
+    "en": "Assignment",
+    "nl": "Toewijzing",
+    "de": "Assignment",
+    "fr": "Assignment",
+    "es": "Assignment",
+    "it": "Assignment",
+    "bg": "Assignment"
+  },
+  "superadmin.device.lastLocation": {
+    "tr": "Son Konum",
+    "en": "Last location",
+    "nl": "Laatste locatie",
+    "de": "Last location",
+    "fr": "Last location",
+    "es": "Last location",
+    "it": "Last location",
+    "bg": "Last location"
+  },
+  "superadmin.device.stats": {
+    "tr": "İstatistikler",
+    "en": "Statistics",
+    "nl": "Statistieken",
+    "de": "Statistics",
+    "fr": "Statistics",
+    "es": "Statistics",
+    "it": "Statistics",
+    "bg": "Statistics"
+  },
+  "superadmin.device.macAddress": {
+    "tr": "MAC Adresi",
+    "en": "MAC address",
+    "nl": "MAC-adres",
+    "de": "MAC address",
+    "fr": "MAC address",
+    "es": "MAC address",
+    "it": "MAC address",
+    "bg": "MAC address"
+  },
+  "superadmin.device.chipModel": {
+    "tr": "Chip Model",
+    "en": "Chip model",
+    "nl": "Chipmodel",
+    "de": "Chip model",
+    "fr": "Chip model",
+    "es": "Chip model",
+    "it": "Chip model",
+    "bg": "Chip model"
+  },
+  "superadmin.device.serial": {
+    "tr": "Seri No",
+    "en": "Serial",
+    "nl": "Serienr",
+    "de": "Serial",
+    "fr": "Serial",
+    "es": "Serial",
+    "it": "Serial",
+    "bg": "Serial"
+  },
+  "superadmin.device.wifiSignal": {
+    "tr": "WiFi Sinyal",
+    "en": "WiFi signal",
+    "nl": "WiFi-signaal",
+    "de": "WiFi signal",
+    "fr": "WiFi signal",
+    "es": "WiFi signal",
+    "it": "WiFi signal",
+    "bg": "WiFi signal"
+  },
+  "superadmin.device.lastIp": {
+    "tr": "Son IP",
+    "en": "Last IP",
+    "nl": "Laatste IP",
+    "de": "Last IP",
+    "fr": "Last IP",
+    "es": "Last IP",
+    "it": "Last IP",
+    "bg": "Last IP"
+  },
+  "superadmin.device.lastSeen": {
+    "tr": "Son Görülme",
+    "en": "Last seen",
+    "nl": "Laatst gezien",
+    "de": "Last seen",
+    "fr": "Last seen",
+    "es": "Last seen",
+    "it": "Last seen",
+    "bg": "Last seen"
+  },
+  "superadmin.device.company": {
+    "tr": "Şirket",
+    "en": "Company",
+    "nl": "Bedrijf",
+    "de": "Company",
+    "fr": "Company",
+    "es": "Company",
+    "it": "Company",
+    "bg": "Company"
+  },
+  "superadmin.device.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Vehicle",
+    "fr": "Vehicle",
+    "es": "Vehicle",
+    "it": "Vehicle",
+    "bg": "Vehicle"
+  },
+  "superadmin.device.assignedAt": {
+    "tr": "Atanma Tarihi",
+    "en": "Assigned at",
+    "nl": "Toegewezen op",
+    "de": "Assigned at",
+    "fr": "Assigned at",
+    "es": "Assigned at",
+    "it": "Assigned at",
+    "bg": "Assigned at"
+  },
+  "superadmin.device.notAssignedYet": {
+    "tr": "Bu cihaz henüz atanmamış",
+    "en": "This device is not assigned yet",
+    "nl": "Dit apparaat is nog niet toegewezen",
+    "de": "This device is not assigned yet",
+    "fr": "This device is not assigned yet",
+    "es": "This device is not assigned yet",
+    "it": "This device is not assigned yet",
+    "bg": "This device is not assigned yet"
+  },
+  "superadmin.device.assignToCompany": {
+    "tr": "Şirkete Ata",
+    "en": "Assign to company",
+    "nl": "Aan bedrijf toewijzen",
+    "de": "Assign to company",
+    "fr": "Assign to company",
+    "es": "Assign to company",
+    "it": "Assign to company",
+    "bg": "Assign to company"
+  },
+  "superadmin.device.coordinate": {
+    "tr": "Koordinat",
+    "en": "Coordinates",
+    "nl": "Coördinaten",
+    "de": "Coordinates",
+    "fr": "Coordinates",
+    "es": "Coordinates",
+    "it": "Coordinates",
+    "bg": "Coordinates"
+  },
+  "superadmin.device.uptimeMin": {
+    "tr": "Çalışma (dk)",
+    "en": "Uptime (min)",
+    "nl": "Uptime (min)",
+    "de": "Uptime (min)",
+    "fr": "Uptime (min)",
+    "es": "Uptime (min)",
+    "it": "Uptime (min)",
+    "bg": "Uptime (min)"
+  },
+  "superadmin.device.alerts": {
+    "tr": "Alert",
+    "en": "Alerts",
+    "nl": "Meldingen",
+    "de": "Alerts",
+    "fr": "Alerts",
+    "es": "Alerts",
+    "it": "Alerts",
+    "bg": "Alerts"
+  },
+  "superadmin.device.errors": {
+    "tr": "Hata",
+    "en": "Errors",
+    "nl": "Fouten",
+    "de": "Errors",
+    "fr": "Errors",
+    "es": "Errors",
+    "it": "Errors",
+    "bg": "Errors"
+  },
+  "superadmin.device.commands": {
+    "tr": "Uzaktan Komutlar",
+    "en": "Remote commands",
+    "nl": "Externe commando's",
+    "de": "Remote commands",
+    "fr": "Remote commands",
+    "es": "Remote commands",
+    "it": "Remote commands",
+    "bg": "Remote commands"
+  },
+  "superadmin.device.history": {
+    "tr": "Olay Geçmişi",
+    "en": "Event history",
+    "nl": "Gebeurtenissen",
+    "de": "Event history",
+    "fr": "Event history",
+    "es": "Event history",
+    "it": "Event history",
+    "bg": "Event history"
+  },
+  "superadmin.device.assignTitle": {
+    "tr": "Cihazı Ata",
+    "en": "Assign device",
+    "nl": "Apparaat toewijzen",
+    "de": "Assign device",
+    "fr": "Assign device",
+    "es": "Assign device",
+    "it": "Assign device",
+    "bg": "Assign device"
+  },
+  "superadmin.device.selectCompanyLabel": {
+    "tr": "Şirket Seç",
+    "en": "Select company",
+    "nl": "Bedrijf kiezen",
+    "de": "Select company",
+    "fr": "Select company",
+    "es": "Select company",
+    "it": "Select company",
+    "bg": "Select company"
+  },
+  "superadmin.device.selectVehicleOptional": {
+    "tr": "Araç Seç (Opsiyonel)",
+    "en": "Select vehicle (optional)",
+    "nl": "Voertuig kiezen (optioneel)",
+    "de": "Select vehicle (optional)",
+    "fr": "Select vehicle (optional)",
+    "es": "Select vehicle (optional)",
+    "it": "Select vehicle (optional)",
+    "bg": "Select vehicle (optional)"
+  },
+  "superadmin.device.online": {
+    "tr": "ONLINE",
+    "en": "ONLINE",
+    "nl": "ONLINE",
+    "de": "ONLINE",
+    "fr": "ONLINE",
+    "es": "ONLINE",
+    "it": "ONLINE",
+    "bg": "ONLINE"
+  },
+  "superadmin.device.changeAction": {
+    "tr": "Değiştir",
+    "en": "Change",
+    "nl": "Wijzigen",
+    "de": "Change",
+    "fr": "Change",
+    "es": "Change",
+    "it": "Change",
+    "bg": "Change"
+  },
+  "superadmin.device.updateFailed": {
+    "tr": "Güncelleme başarısız",
+    "en": "Update failed",
+    "nl": "Bijwerken mislukt",
+    "de": "Update failed",
+    "fr": "Update failed",
+    "es": "Update failed",
+    "it": "Update failed",
+    "bg": "Update failed"
+  },
+  "superadmin.device.cmdStatus": {
+    "tr": "Durum",
+    "en": "Status",
+    "nl": "Status",
+    "de": "Status",
+    "fr": "Status",
+    "es": "Status",
+    "it": "Status",
+    "bg": "Status"
+  },
+  "superadmin.device.cmdCalibrate": {
+    "tr": "Kalibre",
+    "en": "Calibrate",
+    "nl": "Kalibreren",
+    "de": "Calibrate",
+    "fr": "Calibrate",
+    "es": "Calibrate",
+    "it": "Calibrate",
+    "bg": "Calibrate"
+  },
+  "superadmin.device.cmdReset": {
+    "tr": "Reset",
+    "en": "Reset",
+    "nl": "Reset",
+    "de": "Reset",
+    "fr": "Reset",
+    "es": "Reset",
+    "it": "Reset",
+    "bg": "Reset"
+  },
+  "superadmin.device.cmdClearWifi": {
+    "tr": "WiFi Sil",
+    "en": "Clear WiFi",
+    "nl": "WiFi wissen",
+    "de": "Clear WiFi",
+    "fr": "Clear WiFi",
+    "es": "Clear WiFi",
+    "it": "Clear WiFi",
+    "bg": "Clear WiFi"
+  },
+  "superadmin.qr.company": {
+    "tr": "Company:",
+    "en": "Company:",
+    "nl": "Bedrijf:",
+    "de": "Company:",
+    "fr": "Company:",
+    "es": "Company:",
+    "it": "Company:",
+    "bg": "Company:"
+  },
+  "superadmin.qr.vehicle": {
+    "tr": "Vehicle:",
+    "en": "Vehicle:",
+    "nl": "Voertuig:",
+    "de": "Vehicle:",
+    "fr": "Vehicle:",
+    "es": "Vehicle:",
+    "it": "Vehicle:",
+    "bg": "Vehicle:"
+  },
+  "superadmin.qr.qrStatus": {
+    "tr": "QR Status:",
+    "en": "QR status:",
+    "nl": "QR-status:",
+    "de": "QR status:",
+    "fr": "QR status:",
+    "es": "QR status:",
+    "it": "QR status:",
+    "bg": "QR status:"
+  },
+  "superadmin.qr.unassigned": {
+    "tr": "Unassigned",
+    "en": "Unassigned",
+    "nl": "Niet toegewezen",
+    "de": "Unassigned",
+    "fr": "Unassigned",
+    "es": "Unassigned",
+    "it": "Unassigned",
+    "bg": "Unassigned"
+  },
+  "superadmin.qr.used": {
+    "tr": "Used",
+    "en": "Used",
+    "nl": "Gebruikt",
+    "de": "Used",
+    "fr": "Used",
+    "es": "Used",
+    "it": "Used",
+    "bg": "Used"
+  },
+  "superadmin.qr.active": {
+    "tr": "Active",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Active",
+    "fr": "Active",
+    "es": "Active",
+    "it": "Active",
+    "bg": "Active"
+  },
+  "superadmin.qr.noneStatus": {
+    "tr": "None",
+    "en": "None",
+    "nl": "Geen",
+    "de": "None",
+    "fr": "None",
+    "es": "None",
+    "it": "None",
+    "bg": "None"
+  },
+  "superadmin.qr.generate": {
+    "tr": "Generate",
+    "en": "Generate",
+    "nl": "Genereren",
+    "de": "Generate",
+    "fr": "Generate",
+    "es": "Generate",
+    "it": "Generate",
+    "bg": "Generate"
+  },
+  "superadmin.qr.show": {
+    "tr": "Show",
+    "en": "Show",
+    "nl": "Tonen",
+    "de": "Show",
+    "fr": "Show",
+    "es": "Show",
+    "it": "Show",
+    "bg": "Show"
+  },
+  "superadmin.qr.refresh": {
+    "tr": "Refresh",
+    "en": "Refresh",
+    "nl": "Vernieuwen",
+    "de": "Refresh",
+    "fr": "Refresh",
+    "es": "Refresh",
+    "it": "Refresh",
+    "bg": "Refresh"
+  },
+  "superadmin.qr.yes": {
+    "tr": "Yes",
+    "en": "Yes",
+    "nl": "Ja",
+    "de": "Yes",
+    "fr": "Yes",
+    "es": "Yes",
+    "it": "Yes",
+    "bg": "Yes"
+  },
+  "superadmin.qr.title": {
+    "tr": "Device QR Management",
+    "en": "Device QR management",
+    "nl": "QR-beheer",
+    "de": "Device QR management",
+    "fr": "Device QR management",
+    "es": "Device QR management",
+    "it": "Device QR management",
+    "bg": "Device QR management"
+  },
+  "superadmin.qr.modalTitle": {
+    "tr": "QR Code",
+    "en": "QR code",
+    "nl": "QR-code",
+    "de": "QR code",
+    "fr": "QR code",
+    "es": "QR code",
+    "it": "QR code",
+    "bg": "QR code"
+  },
+  "superadmin.qr.device": {
+    "tr": "Device:",
+    "en": "Device:",
+    "nl": "Apparaat:",
+    "de": "Device:",
+    "fr": "Device:",
+    "es": "Device:",
+    "it": "Device:",
+    "bg": "Device:"
+  },
+  "superadmin.qr.token": {
+    "tr": "Token:",
+    "en": "Token:",
+    "nl": "Token:",
+    "de": "Token:",
+    "fr": "Token:",
+    "es": "Token:",
+    "it": "Token:",
+    "bg": "Token:"
+  },
+  "superadmin.qr.expiresIn": {
+    "tr": "Expires In:",
+    "en": "Expires in:",
+    "nl": "Verloopt over:",
+    "de": "Expires in:",
+    "fr": "Expires in:",
+    "es": "Expires in:",
+    "it": "Expires in:",
+    "bg": "Expires in:"
+  },
+  "superadmin.users.driver": {
+    "tr": "Sürücü",
+    "en": "Driver",
+    "nl": "Chauffeur",
+    "de": "Driver",
+    "fr": "Driver",
+    "es": "Driver",
+    "it": "Driver",
+    "bg": "Driver"
+  },
+  "superadmin.users.companyAdmin": {
+    "tr": "Şirket Admin",
+    "en": "Company admin",
+    "nl": "Bedrijfsadmin",
+    "de": "Company admin",
+    "fr": "Company admin",
+    "es": "Company admin",
+    "it": "Company admin",
+    "bg": "Company admin"
+  },
+  "superadmin.users.count": {
+    "tr": "{{count}} kullanıcı",
+    "en": "{{count}} users",
+    "nl": "{{count}} gebruikers",
+    "de": "{{count}} users",
+    "fr": "{{count}} users",
+    "es": "{{count}} users",
+    "it": "{{count}} users",
+    "bg": "{{count}} users"
+  },
+  "superadmin.users.emptySearch": {
+    "tr": "Arama kriterlerine uygun kullanıcı yok",
+    "en": "No users match the search",
+    "nl": "Geen gebruikers voor deze zoekopdracht",
+    "de": "No users match the search",
+    "fr": "No users match the search",
+    "es": "No users match the search",
+    "it": "No users match the search",
+    "bg": "No users match the search"
+  },
+  "superadmin.users.emptyNone": {
+    "tr": "Henüz kullanıcı eklenmemiş",
+    "en": "No users yet",
+    "nl": "Nog geen gebruikers",
+    "de": "No users yet",
+    "fr": "No users yet",
+    "es": "No users yet",
+    "it": "No users yet",
+    "bg": "No users yet"
+  },
+  "superadmin.users.filterAll": {
+    "tr": "Tümü",
+    "en": "All",
+    "nl": "Alle",
+    "de": "All",
+    "fr": "All",
+    "es": "All",
+    "it": "All",
+    "bg": "All"
+  },
+  "superadmin.dashboard.company": {
+    "tr": "Şirket",
+    "en": "Company",
+    "nl": "Bedrijf",
+    "de": "Company",
+    "fr": "Company",
+    "es": "Company",
+    "it": "Company",
+    "bg": "Company"
+  },
+  "superadmin.dashboard.user": {
+    "tr": "Kullanıcı",
+    "en": "User",
+    "nl": "Gebruiker",
+    "de": "User",
+    "fr": "User",
+    "es": "User",
+    "it": "User",
+    "bg": "User"
+  },
+  "superadmin.dashboard.vehicle": {
+    "tr": "Araç",
+    "en": "Vehicle",
+    "nl": "Voertuig",
+    "de": "Vehicle",
+    "fr": "Vehicle",
+    "es": "Vehicle",
+    "it": "Vehicle",
+    "bg": "Vehicle"
+  },
+  "superadmin.dashboard.driver": {
+    "tr": "Sürücü",
+    "en": "Driver",
+    "nl": "Chauffeur",
+    "de": "Driver",
+    "fr": "Driver",
+    "es": "Driver",
+    "it": "Driver",
+    "bg": "Driver"
+  },
+  "superadmin.dashboard.companies": {
+    "tr": "Şirketler",
+    "en": "Companies",
+    "nl": "Bedrijven",
+    "de": "Companies",
+    "fr": "Companies",
+    "es": "Companies",
+    "it": "Companies",
+    "bg": "Companies"
+  },
+  "superadmin.dashboard.newCompany": {
+    "tr": "Yeni Şirket",
+    "en": "New company",
+    "nl": "Nieuw bedrijf",
+    "de": "New company",
+    "fr": "New company",
+    "es": "New company",
+    "it": "New company",
+    "bg": "New company"
+  },
+  "superadmin.dashboard.devices": {
+    "tr": "Cihazlar",
+    "en": "Devices",
+    "nl": "Apparaten",
+    "de": "Devices",
+    "fr": "Devices",
+    "es": "Devices",
+    "it": "Devices",
+    "bg": "Devices"
+  },
+  "superadmin.dashboard.users": {
+    "tr": "Kullanıcılar",
+    "en": "Users",
+    "nl": "Gebruikers",
+    "de": "Users",
+    "fr": "Users",
+    "es": "Users",
+    "it": "Users",
+    "bg": "Users"
+  },
+  "superadmin.dashboard.onlineOf": {
+    "tr": "{{online}} / {{total}} online",
+    "en": "{{online}} / {{total}} online",
+    "nl": "{{online}} / {{total}} online",
+    "de": "{{online}} / {{total}} online",
+    "fr": "{{online}} / {{total}} online",
+    "es": "{{online}} / {{total}} online",
+    "it": "{{online}} / {{total}} online",
+    "bg": "{{online}} / {{total}} online"
+  },
+  "superadmin.dashboard.onlineCount": {
+    "tr": "{{count}} Online",
+    "en": "{{count}} online",
+    "nl": "{{count}} online",
+    "de": "{{count}} online",
+    "fr": "{{count}} online",
+    "es": "{{count}} online",
+    "it": "{{count}} online",
+    "bg": "{{count}} online"
+  },
+  "superadmin.dashboard.footerVersion": {
+    "tr": "TulipFleet Super Admin Panel v{{version}}",
+    "en": "TulipFleet Super Admin Panel v{{version}}",
+    "nl": "TulipFleet Super Admin Panel v{{version}}",
+    "de": "TulipFleet Super Admin Panel v{{version}}",
+    "fr": "TulipFleet Super Admin Panel v{{version}}",
+    "es": "TulipFleet Super Admin Panel v{{version}}",
+    "it": "TulipFleet Super Admin Panel v{{version}}",
+    "bg": "TulipFleet Super Admin Panel v{{version}}"
+  },
+  "superadmin.health.apiOnline": {
+    "tr": "API sunucusu çalışıyor",
+    "en": "API server is running",
+    "nl": "API-server is actief",
+    "de": "API server is running",
+    "fr": "API server is running",
+    "es": "API server is running",
+    "it": "API server is running",
+    "bg": "API server is running"
+  },
+  "superadmin.health.dbConnected": {
+    "tr": "PostgreSQL bağlantısı aktif",
+    "en": "PostgreSQL connected",
+    "nl": "PostgreSQL verbonden",
+    "de": "PostgreSQL connected",
+    "fr": "PostgreSQL connected",
+    "es": "PostgreSQL connected",
+    "it": "PostgreSQL connected",
+    "bg": "PostgreSQL connected"
+  },
+  "superadmin.health.dbError": {
+    "tr": "Veritabanı bağlantı sorunu",
+    "en": "Database connection issue",
+    "nl": "Databaseverbinding mislukt",
+    "de": "Database connection issue",
+    "fr": "Database connection issue",
+    "es": "Database connection issue",
+    "it": "Database connection issue",
+    "bg": "Database connection issue"
+  },
+  "superadmin.health.mqttConnected": {
+    "tr": "EMQX broker bağlantısı aktif",
+    "en": "EMQX broker connected",
+    "nl": "EMQX-broker verbonden",
+    "de": "EMQX broker connected",
+    "fr": "EMQX broker connected",
+    "es": "EMQX broker connected",
+    "it": "EMQX broker connected",
+    "bg": "EMQX broker connected"
+  },
+  "superadmin.health.mqttError": {
+    "tr": "MQTT bağlantı sorunu",
+    "en": "MQTT connection issue",
+    "nl": "MQTT-verbinding mislukt",
+    "de": "MQTT connection issue",
+    "fr": "MQTT connection issue",
+    "es": "MQTT connection issue",
+    "it": "MQTT connection issue",
+    "bg": "MQTT connection issue"
+  },
+  "superadmin.health.redisOnline": {
+    "tr": "Redis cache aktif",
+    "en": "Redis cache active",
+    "nl": "Redis-cache actief",
+    "de": "Redis cache active",
+    "fr": "Redis cache active",
+    "es": "Redis cache active",
+    "it": "Redis cache active",
+    "bg": "Redis cache active"
+  },
+  "superadmin.health.redisError": {
+    "tr": "Redis bağlantı sorunu",
+    "en": "Redis connection issue",
+    "nl": "Redis-verbinding mislukt",
+    "de": "Redis connection issue",
+    "fr": "Redis connection issue",
+    "es": "Redis connection issue",
+    "it": "Redis connection issue",
+    "bg": "Redis connection issue"
+  },
+  "superadmin.health.apiOffline": {
+    "tr": "API yanıt vermiyor",
+    "en": "API is not responding",
+    "nl": "API reageert niet",
+    "de": "API is not responding",
+    "fr": "API is not responding",
+    "es": "API is not responding",
+    "it": "API is not responding",
+    "bg": "API is not responding"
+  },
+  "superadmin.health.unchecked": {
+    "tr": "Kontrol edilemedi",
+    "en": "Could not check",
+    "nl": "Niet gecontroleerd",
+    "de": "Could not check",
+    "fr": "Could not check",
+    "es": "Could not check",
+    "it": "Could not check",
+    "bg": "Could not check"
+  },
+  "superadmin.health.connectionError": {
+    "tr": "Bağlantı hatası: {{detail}}",
+    "en": "Connection error: {{detail}}",
+    "nl": "Verbindingsfout: {{detail}}",
+    "de": "Connection error: {{detail}}",
+    "fr": "Connection error: {{detail}}",
+    "es": "Connection error: {{detail}}",
+    "it": "Connection error: {{detail}}",
+    "bg": "Connection error: {{detail}}"
+  },
+  "superadmin.health.uptimeDays": {
+    "tr": "{{days}} gün {{hours}} saat",
+    "en": "{{days}}d {{hours}}h",
+    "nl": "{{days}}d {{hours}}u",
+    "de": "{{days}}d {{hours}}h",
+    "fr": "{{days}}d {{hours}}h",
+    "es": "{{days}}d {{hours}}h",
+    "it": "{{days}}d {{hours}}h",
+    "bg": "{{days}}d {{hours}}h"
+  },
+  "superadmin.health.uptimeHours": {
+    "tr": "{{hours}} saat {{minutes}} dk",
+    "en": "{{hours}}h {{minutes}}m",
+    "nl": "{{hours}}u {{minutes}}m",
+    "de": "{{hours}}h {{minutes}}m",
+    "fr": "{{hours}}h {{minutes}}m",
+    "es": "{{hours}}h {{minutes}}m",
+    "it": "{{hours}}h {{minutes}}m",
+    "bg": "{{hours}}h {{minutes}}m"
+  },
+  "superadmin.health.uptimeMinutes": {
+    "tr": "{{minutes}} dakika",
+    "en": "{{minutes}} min",
+    "nl": "{{minutes}} min",
+    "de": "{{minutes}} min",
+    "fr": "{{minutes}} min",
+    "es": "{{minutes}} min",
+    "it": "{{minutes}} min",
+    "bg": "{{minutes}} min"
+  },
+  "superadmin.health.statusActive": {
+    "tr": "Aktif",
+    "en": "Active",
+    "nl": "Actief",
+    "de": "Active",
+    "fr": "Active",
+    "es": "Active",
+    "it": "Active",
+    "bg": "Active"
+  },
+  "superadmin.health.statusOffline": {
+    "tr": "Kapalı",
+    "en": "Down",
+    "nl": "Uit",
+    "de": "Down",
+    "fr": "Down",
+    "es": "Down",
+    "it": "Down",
+    "bg": "Down"
+  },
+  "superadmin.health.statusUnknown": {
+    "tr": "?",
+    "en": "?",
+    "nl": "?",
+    "de": "?",
+    "fr": "?",
+    "es": "?",
+    "it": "?",
+    "bg": "?"
+  },
+  "superadmin.health.checking": {
+    "tr": "Sistem durumu kontrol ediliyor...",
+    "en": "Checking system status...",
+    "nl": "Systeemstatus controleren...",
+    "de": "Checking system status...",
+    "fr": "Checking system status...",
+    "es": "Checking system status...",
+    "it": "Checking system status...",
+    "bg": "Checking system status..."
+  },
+  "superadmin.health.allOk": {
+    "tr": "Tüm Sistemler Çalışıyor",
+    "en": "All systems operational",
+    "nl": "Alle systemen OK",
+    "de": "All systems operational",
+    "fr": "All systems operational",
+    "es": "All systems operational",
+    "it": "All systems operational",
+    "bg": "All systems operational"
+  },
+  "superadmin.health.systemIssue": {
+    "tr": "Sistem Sorunu Tespit Edildi",
+    "en": "System issue detected",
+    "nl": "Systeemprobleem gedetecteerd",
+    "de": "System issue detected",
+    "fr": "System issue detected",
+    "es": "System issue detected",
+    "it": "System issue detected",
+    "bg": "System issue detected"
+  },
+  "superadmin.health.responseTime": {
+    "tr": "Yanıt süresi: {{ms}}ms",
+    "en": "Response time: {{ms}}ms",
+    "nl": "Responstijd: {{ms}}ms",
+    "de": "Response time: {{ms}}ms",
+    "fr": "Response time: {{ms}}ms",
+    "es": "Response time: {{ms}}ms",
+    "it": "Response time: {{ms}}ms",
+    "bg": "Response time: {{ms}}ms"
+  },
+  "superadmin.health.apiServer": {
+    "tr": "API Sunucusu",
+    "en": "API server",
+    "nl": "API-server",
+    "de": "API server",
+    "fr": "API server",
+    "es": "API server",
+    "it": "API server",
+    "bg": "API server"
+  },
+  "superadmin.health.postgres": {
+    "tr": "PostgreSQL Veritabanı",
+    "en": "PostgreSQL database",
+    "nl": "PostgreSQL-database",
+    "de": "PostgreSQL database",
+    "fr": "PostgreSQL database",
+    "es": "PostgreSQL database",
+    "it": "PostgreSQL database",
+    "bg": "PostgreSQL database"
+  },
+  "superadmin.health.mqttBroker": {
+    "tr": "MQTT Broker (EMQX)",
+    "en": "MQTT broker (EMQX)",
+    "nl": "MQTT-broker (EMQX)",
+    "de": "MQTT broker (EMQX)",
+    "fr": "MQTT broker (EMQX)",
+    "es": "MQTT broker (EMQX)",
+    "it": "MQTT broker (EMQX)",
+    "bg": "MQTT broker (EMQX)"
+  },
+  "superadmin.health.redis": {
+    "tr": "Redis Cache",
+    "en": "Redis cache",
+    "nl": "Redis-cache",
+    "de": "Redis cache",
+    "fr": "Redis cache",
+    "es": "Redis cache",
+    "it": "Redis cache",
+    "bg": "Redis cache"
+  },
+  "superadmin.health.apiVersion": {
+    "tr": "API Versiyonu",
+    "en": "API version",
+    "nl": "API-versie",
+    "de": "API version",
+    "fr": "API version",
+    "es": "API version",
+    "it": "API version",
+    "bg": "API version"
+  },
+  "superadmin.health.uptime": {
+    "tr": "Uptime",
+    "en": "Uptime",
+    "nl": "Uptime",
+    "de": "Uptime",
+    "fr": "Uptime",
+    "es": "Uptime",
+    "it": "Uptime",
+    "bg": "Uptime"
+  },
+  "superadmin.health.apiUrl": {
+    "tr": "API URL",
+    "en": "API URL",
+    "nl": "API-URL",
+    "de": "API URL",
+    "fr": "API URL",
+    "es": "API URL",
+    "it": "API URL",
+    "bg": "API URL"
+  },
+  "superadmin.health.autoRefresh": {
+    "tr": "Sayfa her 30 saniyede otomatik güncellenir",
+    "en": "This page refreshes every 30 seconds",
+    "nl": "Deze pagina vernieuwt elke 30 seconden",
+    "de": "This page refreshes every 30 seconds",
+    "fr": "This page refreshes every 30 seconds",
+    "es": "This page refreshes every 30 seconds",
+    "it": "This page refreshes every 30 seconds",
+    "bg": "This page refreshes every 30 seconds"
+  },
+  "superadmin.settings.subtitle": {
+    "tr": "Bu alan yakında yapılandırılabilir platform ayarlarıyla güncellenecek.",
+    "en": "Configurable platform settings will be added here soon.",
+    "nl": "Configureerbare platforminstellingen volgen hier binnenkort.",
+    "de": "Configurable platform settings will be added here soon.",
+    "fr": "Configurable platform settings will be added here soon.",
+    "es": "Configurable platform settings will be added here soon.",
+    "it": "Configurable platform settings will be added here soon.",
+    "bg": "Configurable platform settings will be added here soon."
+  },
+  "superadmin.sessionExpiredLong": {
+    "tr": "Oturum süresi dolmuş. Lütfen tekrar giriş yapın.",
+    "en": "Session expired. Please sign in again.",
+    "nl": "Sessie verlopen. Log opnieuw in.",
+    "de": "Session expired. Please sign in again.",
+    "fr": "Session expired. Please sign in again.",
+    "es": "Session expired. Please sign in again.",
+    "it": "Session expired. Please sign in again.",
+    "bg": "Session expired. Please sign in again."
+  },
+  "superadmin.companies.usersCount": {
+    "tr": "Kullanıcılar ({{count}})",
+    "en": "Users ({{count}})",
+    "nl": "Gebruikers ({{count}})",
+    "de": "Users ({{count}})",
+    "fr": "Users ({{count}})",
+    "es": "Users ({{count}})",
+    "it": "Users ({{count}})",
+    "bg": "Users ({{count}})"
+  },
+  "superadmin.companies.slugRequired": {
+    "tr": "Slug gerekli",
+    "en": "Slug is required",
+    "nl": "Slug is verplicht",
+    "de": "Slug is required",
+    "fr": "Slug is required",
+    "es": "Slug is required",
+    "it": "Slug is required",
+    "bg": "Slug is required"
+  },
+  "superadmin.companies.actionPaymentReceived": {
+    "tr": "Ödeme kaydedildi",
+    "en": "Payment recorded",
+    "nl": "Betaling vastgelegd",
+    "de": "Payment recorded",
+    "fr": "Payment recorded",
+    "es": "Payment recorded",
+    "it": "Payment recorded",
+    "bg": "Payment recorded"
+  },
+  "superadmin.companies.actionSuspended": {
+    "tr": "Askıya alındı",
+    "en": "Suspended",
+    "nl": "Opgeschort",
+    "de": "Suspended",
+    "fr": "Suspended",
+    "es": "Suspended",
+    "it": "Suspended",
+    "bg": "Suspended"
+  },
+  "superadmin.companies.actionTierChanged": {
+    "tr": "Paket değiştirildi",
+    "en": "Plan changed",
+    "nl": "Pakket gewijzigd",
+    "de": "Plan changed",
+    "fr": "Plan changed",
+    "es": "Plan changed",
+    "it": "Plan changed",
+    "bg": "Plan changed"
+  },
+  "superadmin.companies.actionTrialExtended": {
+    "tr": "Trial uzatıldı",
+    "en": "Trial extended",
+    "nl": "Proef verlengd",
+    "de": "Trial extended",
+    "fr": "Trial extended",
+    "es": "Trial extended",
+    "it": "Trial extended",
+    "bg": "Trial extended"
+  },
+  "superadmin.companies.actionCreated": {
+    "tr": "Şirket oluşturuldu",
+    "en": "Company created",
+    "nl": "Bedrijf aangemaakt",
+    "de": "Company created",
+    "fr": "Company created",
+    "es": "Company created",
+    "it": "Company created",
+    "bg": "Company created"
+  },
+  "superadmin.companies.actionActivated": {
+    "tr": "Aktifleştirildi",
+    "en": "Activated",
+    "nl": "Geactiveerd",
+    "de": "Activated",
+    "fr": "Activated",
+    "es": "Activated",
+    "it": "Activated",
+    "bg": "Activated"
+  },
+  "superadmin.devices.registerSuccessTitle": {
+    "tr": "Kayıt Başarılı",
+    "en": "Registration successful",
+    "nl": "Registratie gelukt",
+    "de": "Registration successful",
+    "fr": "Registration successful",
+    "es": "Registration successful",
+    "it": "Registration successful",
+    "bg": "Registration successful"
+  },
+  "superadmin.devices.registerModalTitle": {
+    "tr": "Yeni Cihaz Kayıt",
+    "en": "Register new device",
+    "nl": "Nieuw apparaat registreren",
+    "de": "Register new device",
+    "fr": "Register new device",
+    "es": "Register new device",
+    "it": "Register new device",
+    "bg": "Register new device"
+  },
+  "superadmin.qr.expiresMinutes": {
+    "tr": "{{count}} dakika",
+    "en": "{{count}} minutes",
+    "nl": "{{count}} minuten",
+    "de": "{{count}} minutes",
+    "fr": "{{count}} minutes",
+    "es": "{{count}} minutes",
+    "it": "{{count}} minutes",
+    "bg": "{{count}} minutes"
+  },
+  "superadmin.devices.listCount": {
+    "tr": "{{count}} cihaz",
+    "en": "{{count}} devices",
+    "nl": "{{count}} apparaten",
+    "de": "{{count}} devices",
+    "fr": "{{count}} devices",
+    "es": "{{count}} devices",
+    "it": "{{count}} devices",
+    "bg": "{{count}} devices"
+  },
+  "superadmin.devices.tokenHint": {
+    "tr": "Serial ve Device Token bilgilerini not edin.",
+    "en": "Note the serial and device token.",
+    "nl": "Noteer serial en apparaat-token.",
+    "de": "Note the serial and device token.",
+    "fr": "Note the serial and device token.",
+    "es": "Note the serial and device token.",
+    "it": "Note the serial and device token.",
+    "bg": "Note the serial and device token."
+  },
+  "superadmin.devices.provisionHint": {
+    "tr": "ESP32 provisioning sırasında otomatik kullanılacak.",
+    "en": "Used automatically during ESP32 provisioning.",
+    "nl": "Wordt automatisch gebruikt bij ESP32-provisioning.",
+    "de": "Used automatically during ESP32 provisioning.",
+    "fr": "Used automatically during ESP32 provisioning.",
+    "es": "Used automatically during ESP32 provisioning.",
+    "it": "Used automatically during ESP32 provisioning.",
+    "bg": "Used automatically during ESP32 provisioning."
+  },
+  "superadmin.devices.serialMonitor": {
+    "tr": "ESP32 Serial Monitor'dan",
+    "en": "From ESP32 serial monitor",
+    "nl": "Van ESP32 serial monitor",
+    "de": "From ESP32 serial monitor",
+    "fr": "From ESP32 serial monitor",
+    "es": "From ESP32 serial monitor",
+    "it": "From ESP32 serial monitor",
+    "bg": "From ESP32 serial monitor"
+  },
+  "superadmin.device.send": {
+    "tr": "Gönder",
+    "en": "Send",
+    "nl": "Versturen",
+    "de": "Send",
+    "fr": "Send",
+    "es": "Send",
+    "it": "Send",
+    "bg": "Send"
+  },
+  "superadmin.device.assignToName": {
+    "tr": "{{name}}'e Ata",
+    "en": "Assign to {{name}}",
+    "nl": "Toewijzen aan {{name}}",
+    "de": "Assign to {{name}}",
+    "fr": "Assign to {{name}}",
+    "es": "Assign to {{name}}",
+    "it": "Assign to {{name}}",
+    "bg": "Assign to {{name}}"
+  },
+  "superadmin.device.selectCompanyPlaceholder": {
+    "tr": "Şirket Seçin",
+    "en": "Select a company",
+    "nl": "Selecteer een bedrijf",
+    "de": "Select a company",
+    "fr": "Select a company",
+    "es": "Select a company",
+    "it": "Select a company",
+    "bg": "Select a company"
+  },
+  "superadmin.companies.adminInfo": {
+    "tr": "Admin Bilgileri",
+    "en": "Admin details",
+    "nl": "Admin-gegevens",
+    "de": "Admin details",
+    "fr": "Admin details",
+    "es": "Admin details",
+    "it": "Admin details",
+    "bg": "Admin details"
+  },
+  "superadmin.companies.usage": {
+    "tr": "Kullanım",
+    "en": "Usage",
+    "nl": "Gebruik",
+    "de": "Usage",
+    "fr": "Usage",
+    "es": "Usage",
+    "it": "Usage",
+    "bg": "Usage"
+  },
+  "superadmin.companies.dates": {
+    "tr": "Tarihler",
+    "en": "Dates",
+    "nl": "Datums",
+    "de": "Dates",
+    "fr": "Dates",
+    "es": "Dates",
+    "it": "Dates",
+    "bg": "Dates"
+  },
+  "superadmin.companies.vehicleFee": {
+    "tr": "Araç Ücreti",
+    "en": "Per-vehicle fee",
+    "nl": "Prijs per voertuig",
+    "de": "Per-vehicle fee",
+    "fr": "Per-vehicle fee",
+    "es": "Per-vehicle fee",
+    "it": "Per-vehicle fee",
+    "bg": "Per-vehicle fee"
+  },
+  "superadmin.companies.monthlyTotal": {
+    "tr": "Aylık Toplam",
+    "en": "Monthly total",
+    "nl": "Maandtotal",
+    "de": "Monthly total",
+    "fr": "Monthly total",
+    "es": "Monthly total",
+    "it": "Monthly total",
+    "bg": "Monthly total"
+  },
+  "superadmin.companies.startDate": {
+    "tr": "Başlangıç",
+    "en": "Start",
+    "nl": "Start",
+    "de": "Start",
+    "fr": "Start",
+    "es": "Start",
+    "it": "Start",
+    "bg": "Start"
+  },
+  "superadmin.companies.lastPayment": {
+    "tr": "Son Ödeme",
+    "en": "Last payment",
+    "nl": "Laatste betaling",
+    "de": "Last payment",
+    "fr": "Last payment",
+    "es": "Last payment",
+    "it": "Last payment",
+    "bg": "Last payment"
+  },
+  "superadmin.companies.nextPayment": {
+    "tr": "Sonraki Ödeme",
+    "en": "Next payment",
+    "nl": "Volgende betaling",
+    "de": "Next payment",
+    "fr": "Next payment",
+    "es": "Next payment",
+    "it": "Next payment",
+    "bg": "Next payment"
+  },
+  "superadmin.companies.recentPayments": {
+    "tr": "Son Ödemeler",
+    "en": "Recent payments",
+    "nl": "Recente betalingen",
+    "de": "Recent payments",
+    "fr": "Recent payments",
+    "es": "Recent payments",
+    "it": "Recent payments",
+    "bg": "Recent payments"
+  },
+  "superadmin.companies.daysLeft": {
+    "tr": "{{count}} gün kaldı",
+    "en": "{{count}} days left",
+    "nl": "nog {{count}} dagen",
+    "de": "{{count}} days left",
+    "fr": "{{count}} days left",
+    "es": "{{count}} days left",
+    "it": "{{count}} days left",
+    "bg": "{{count}} days left"
+  },
+  "superadmin.companies.assignedDevices": {
+    "tr": "Atanmış Cihazlar ({{count}})",
+    "en": "Assigned devices ({{count}})",
+    "nl": "Toegewezen apparaten ({{count}})",
+    "de": "Assigned devices ({{count}})",
+    "fr": "Assigned devices ({{count}})",
+    "es": "Assigned devices ({{count}})",
+    "it": "Assigned devices ({{count}})",
+    "bg": "Assigned devices ({{count}})"
+  },
+  "superadmin.companies.system": {
+    "tr": "Sistem",
+    "en": "System",
+    "nl": "Systeem",
+    "de": "System",
+    "fr": "System",
+    "es": "System",
+    "it": "System",
+    "bg": "System"
+  },
+  "superadmin.companies.emptyHint": {
+    "tr": "+ butonuna basarak yeni şirket oluşturun",
+    "en": "Tap + to create a company",
+    "nl": "Tik op + om een bedrijf aan te maken",
+    "de": "Tap + to create a company",
+    "fr": "Tap + to create a company",
+    "es": "Tap + to create a company",
+    "it": "Tap + to create a company",
+    "bg": "Tap + to create a company"
+  },
+  "superadmin.companies.cancelled": {
+    "tr": "İptal",
+    "en": "Cancelled",
+    "nl": "Geannuleerd",
+    "de": "Cancelled",
+    "fr": "Cancelled",
+    "es": "Cancelled",
+    "it": "Cancelled",
+    "bg": "Cancelled"
+  },
+  "superadmin.companies.feeFormula": {
+    "tr": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "en": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "nl": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "de": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "fr": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "es": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "it": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "bg": "{{count}} {{unit}} × €{{fee}} = €{{total}}"
+  }
+}

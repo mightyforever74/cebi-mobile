@@ -3,6 +3,7 @@
 // Updated: UI System Guide v3 uyumlu
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -21,6 +22,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import api from "../../services/api";
+import { formatDate } from "../../utils/helpers";
 
 // ============================================
 // PAKET TİPLERİ - runtime COLORS ile
@@ -59,6 +61,7 @@ const CreateCompanyModal = ({
   COLORS,
   styles,
 }) => {
+  const { t } = useTranslation();
   const PACKAGE_TYPES = getPackageTypes(COLORS);
   const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -120,20 +123,21 @@ const CreateCompanyModal = ({
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.name.trim()) errors.name = "Şirket adı gerekli";
-    if (!formData.slug.trim()) errors.slug = "Slug gerekli";
+    if (!formData.name.trim()) errors.name = t("superadmin.create.nameRequired");
+    if (!formData.slug.trim())
+      errors.slug = t("superadmin.companies.slugRequired");
     else if (!/^[a-z0-9-]+$/.test(formData.slug))
-      errors.slug = "Slug sadece küçük harf, rakam ve tire içerebilir";
+      errors.slug = t("superadmin.companies.slugInvalid");
     if (!formData.admin_email.trim())
-      errors.admin_email = "Admin email gerekli";
+      errors.admin_email = t("superadmin.create.adminEmailRequired");
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.admin_email))
-      errors.admin_email = "Geçerli bir email adresi girin";
+      errors.admin_email = t("superadmin.create.emailInvalid");
     if (!formData.admin_password.trim())
-      errors.admin_password = "Admin şifre gerekli";
+      errors.admin_password = t("superadmin.companies.adminPasswordRequired");
     else if (formData.admin_password.length < 6)
-      errors.admin_password = "Şifre en az 6 karakter olmalı";
+      errors.admin_password = t("superadmin.create.passwordShort");
     if (!formData.admin_first_name.trim())
-      errors.admin_first_name = "Admin adı gerekli";
+      errors.admin_first_name = t("superadmin.companies.adminNameRequired");
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -154,11 +158,14 @@ const CreateCompanyModal = ({
         admin_last_name: formData.admin_last_name.trim(),
       });
       Alert.alert(
-        "Başarılı!",
-        `"${formData.name}" şirketi oluşturuldu.\n\nAdmin: ${formData.admin_email}`,
+        t("common.success"),
+        t("superadmin.companies.created", {
+          name: formData.name,
+          email: formData.admin_email,
+        }),
         [
           {
-            text: "Tamam",
+            text: t("common.ok"),
             onPress: () => {
               onClose();
               onSuccess();
@@ -168,8 +175,8 @@ const CreateCompanyModal = ({
       );
     } catch (error) {
       Alert.alert(
-        "Hata",
-        error.response?.data?.message || "Şirket oluşturulurken bir hata oluştu"
+        t("common.error"),
+        error.response?.data?.message || t("superadmin.companies.createFailed")
       );
     } finally {
       setCreating(false);
@@ -192,19 +199,25 @@ const CreateCompanyModal = ({
             bounces={false}
           >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Yeni Şirket Oluştur</Text>
+              <Text style={styles.modalTitle}>
+                {t("superadmin.companies.createNew")}
+              </Text>
               <TouchableOpacity onPress={onClose}>
                 <Text style={styles.closeButton}>✕</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>Şirket Bilgileri</Text>
+              <Text style={styles.formSectionTitle}>
+                {t("superadmin.companies.companyInfo")}
+              </Text>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Şirket Adı *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("superadmin.companies.companyName")}
+                </Text>
                 <TextInput
                   style={[styles.input, formErrors.name && styles.inputError]}
-                  placeholder="Örn: ABC Lojistik"
+                  placeholder={t("superadmin.create.namePlaceholder")}
                   placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.name}
                   onChangeText={handleNameChange}
@@ -215,7 +228,9 @@ const CreateCompanyModal = ({
                 )}
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Slug *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("superadmin.companies.slug")}
+                </Text>
                 <TextInput
                   style={[styles.input, formErrors.slug && styles.inputError]}
                   placeholder="abc-lojistik"
@@ -230,13 +245,17 @@ const CreateCompanyModal = ({
                   <Text style={styles.errorText}>{formErrors.slug}</Text>
                 )}
                 <Text style={styles.inputHint}>
-                  URL'de kullanılacak: @{formData.slug || "slug"}
+                  {t("superadmin.companies.slugUrl", {
+                    slug: formData.slug || "slug",
+                  })}
                 </Text>
               </View>
             </View>
 
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>Paket Seçimi</Text>
+              <Text style={styles.formSectionTitle}>
+                {t("superadmin.companies.planSelect")}
+              </Text>
               <View style={styles.packageOptions}>
                 {PACKAGE_TYPES.map((pkg) => (
                   <TouchableOpacity
@@ -262,14 +281,16 @@ const CreateCompanyModal = ({
                       {pkg.name}
                     </Text>
                     <Text style={styles.packageLimit}>
-                      {pkg.maxVehicles} araç
+                      {pkg.maxVehicles} {t("superadmin.companies.vehicle")}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
               <View style={styles.limitInputs}>
                 <View style={styles.limitInputGroup}>
-                  <Text style={styles.inputLabel}>Max Araç</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("superadmin.companies.maxVehicles")}
+                  </Text>
                   <TextInput
                     style={styles.limitInput}
                     value={formData.max_vehicles}
@@ -279,7 +300,9 @@ const CreateCompanyModal = ({
                   />
                 </View>
                 <View style={styles.limitInputGroup}>
-                  <Text style={styles.inputLabel}>Max Sürücü</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("superadmin.companies.maxDrivers")}
+                  </Text>
                   <TextInput
                     style={styles.limitInput}
                     value={formData.max_drivers}
@@ -292,16 +315,20 @@ const CreateCompanyModal = ({
             </View>
 
             <View style={styles.formSection}>
-              <Text style={styles.formSectionTitle}>İlk Admin Kullanıcı</Text>
+              <Text style={styles.formSectionTitle}>
+                {t("superadmin.companies.firstAdmin")}
+              </Text>
               <View style={styles.nameInputs}>
                 <View style={styles.nameInputGroup}>
-                  <Text style={styles.inputLabel}>Ad *</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("superadmin.companies.firstName")}
+                  </Text>
                   <TextInput
                     style={[
                       styles.input,
                       formErrors.admin_first_name && styles.inputError,
                     ]}
-                    placeholder="Ad"
+                    placeholder={t("createDriver.firstName")}
                     placeholderTextColor={COLORS.PLACEHOLDER}
                     value={formData.admin_first_name}
                     onChangeText={(text) =>
@@ -311,10 +338,12 @@ const CreateCompanyModal = ({
                   />
                 </View>
                 <View style={styles.nameInputGroup}>
-                  <Text style={styles.inputLabel}>Soyad</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("superadmin.companies.lastName")}
+                  </Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Soyad"
+                    placeholder={t("createDriver.lastName")}
                     placeholderTextColor={COLORS.PLACEHOLDER}
                     value={formData.admin_last_name}
                     onChangeText={(text) =>
@@ -330,7 +359,9 @@ const CreateCompanyModal = ({
                 </Text>
               )}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("superadmin.companies.emailRequired")}
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -348,13 +379,15 @@ const CreateCompanyModal = ({
                 )}
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Şifre *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("superadmin.companies.passwordRequired")}
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
                     formErrors.admin_password && styles.inputError,
                   ]}
-                  placeholder="Min 6 karakter"
+                  placeholder={t("createDriver.passwordPlaceholder")}
                   placeholderTextColor={COLORS.PLACEHOLDER}
                   value={formData.admin_password}
                   onChangeText={(text) => updateField("admin_password", text)}
@@ -374,7 +407,7 @@ const CreateCompanyModal = ({
                 onPress={onClose}
                 disabled={creating}
               >
-                <Text style={styles.cancelBtnText}>İptal</Text>
+                <Text style={styles.cancelBtnText}>{t("common.cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.createBtn, creating && styles.createBtnDisabled]}
@@ -384,7 +417,9 @@ const CreateCompanyModal = ({
                 {creating ? (
                   <ActivityIndicator size="small" color={COLORS.WHITE} />
                 ) : (
-                  <Text style={styles.createBtnText}>Oluştur</Text>
+                  <Text style={styles.createBtnText}>
+                    {t("superadmin.companies.create")}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -399,6 +434,7 @@ const CreateCompanyModal = ({
 // MAIN COMPONENT
 // ============================================
 const SuperAdminCompaniesScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -416,12 +452,12 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
       const response = await api.get("/api/superadmin/companies");
       setCompanies(response.data.companies || []);
     } catch (error) {
-      Alert.alert("Hata", "Şirketler yüklenirken bir hata oluştu");
+      Alert.alert(t("common.error"), t("superadmin.companies.listLoadFailed"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchCompanies();
@@ -438,7 +474,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
       const response = await api.get(`/api/superadmin/companies/${companyId}`);
       setCompanyDetails(response.data);
     } catch (error) {
-      Alert.alert("Hata", "Şirket detayları yüklenemedi");
+      Alert.alert(t("common.error"), t("superadmin.companies.loadDetailsFailed"));
       setDetailsModalVisible(false);
     } finally {
       setLoadingDetails(false);
@@ -447,20 +483,23 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
 
   const handleDeleteCompany = (company) => {
     Alert.alert(
-      "Şirketi Sil",
-      `"${company.name}" şirketini silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!`,
+      t("superadmin.companies.deleteTitle"),
+      t("superadmin.companies.deleteConfirm", { name: company.name }),
       [
-        { text: "İptal", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Sil",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await api.delete(`/api/superadmin/companies/${company.id}`);
-              Alert.alert("Başarılı", "Şirket silindi");
+              Alert.alert(t("common.success"), t("superadmin.companies.deleted"));
               fetchCompanies();
             } catch (error) {
-              Alert.alert("Hata", "Şirket silinemedi");
+              Alert.alert(
+                t("common.error"),
+                t("superadmin.companies.deleteFailed")
+              );
             }
           },
         },
@@ -481,9 +520,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
   const getRoleLabel = (role) => {
     switch (role) {
       case "company_admin":
-        return "Admin";
+        return t("superadmin.users.admin");
       case "driver":
-        return "Sürücü";
+        return t("superadmin.users.driver");
       default:
         return role;
     }
@@ -511,7 +550,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
             ]}
           >
             <Text style={styles.statusText}>
-              {company.status === "active" ? "Aktif" : "Pasif"}
+              {company.status === "active"
+                ? t("superadmin.companies.active")
+                : t("superadmin.companies.inactive")}
             </Text>
           </View>
         </View>
@@ -520,17 +561,17 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
           {[
             {
               value: company.vehicle_count || 0,
-              label: "Araç",
+              label: t("superadmin.companies.vehicle"),
               color: COLORS.PRIMARY,
             },
             {
               value: company.driver_count || 0,
-              label: "Sürücü",
+              label: t("superadmin.companies.driver"),
               color: COLORS.SUCCESS,
             },
             {
               value: company.user_count || 0,
-              label: "Kullanıcı",
+              label: t("superadmin.dashboard.user"),
               color: COLORS.INFO,
             },
           ].map((s, i) => (
@@ -549,9 +590,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
             {company.package_type?.toUpperCase() || "BASIC"}
           </Text>
           <Text style={styles.metaText}>
-            {company.created_at
-              ? new Date(company.created_at).toLocaleDateString("tr-TR")
-              : ""}
+            {company.created_at ? formatDate(company.created_at) : ""}
           </Text>
         </View>
       </TouchableOpacity>
@@ -564,7 +603,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
           style={styles.cardActionBtn}
         >
           <Text style={[styles.cardActionText, { color: COLORS.PRIMARY }]}>
-            Düzenle
+            {t("common.edit")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -572,7 +611,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
           style={styles.cardActionBtn}
         >
           <Text style={[styles.cardActionText, { color: COLORS.ERROR }]}>
-            Sil
+            {t("common.delete")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -605,24 +644,26 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>İstatistikler</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("superadmin.companies.stats")}
+                </Text>
                 <View style={styles.statsGrid}>
                   {[
                     {
                       value: companyDetails.company?.vehicle_count || 0,
-                      label: "Araç",
+                      label: t("superadmin.companies.vehicle"),
                     },
                     {
                       value: companyDetails.company?.driver_count || 0,
-                      label: "Sürücü",
+                      label: t("superadmin.companies.driver"),
                     },
                     {
                       value: companyDetails.company?.user_count || 0,
-                      label: "Kullanıcı",
+                      label: t("superadmin.dashboard.user"),
                     },
                     {
                       value: companyDetails.company?.task_count || 0,
-                      label: "Görev",
+                      label: t("superadmin.companies.task"),
                     },
                   ].map((s, i) => (
                     <View key={i} style={styles.detailStatCard}>
@@ -634,27 +675,32 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>Şirket Bilgileri</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("superadmin.companies.companyInfo")}
+                </Text>
                 {[
-                  { label: "Slug:", value: `@${companyDetails.company?.slug}` },
                   {
-                    label: "Paket:",
+                    label: t("superadmin.companies.slugLabel"),
+                    value: `@${companyDetails.company?.slug}`,
+                  },
+                  {
+                    label: t("superadmin.companies.packageLabel"),
                     value: companyDetails.company?.package_type?.toUpperCase(),
                   },
                   {
-                    label: "Max Araç:",
+                    label: t("superadmin.companies.maxVehiclesLabel"),
                     value: companyDetails.company?.max_vehicles,
                   },
                   {
-                    label: "Max Sürücü:",
+                    label: t("superadmin.companies.maxDriversLabel"),
                     value: companyDetails.company?.max_drivers,
                   },
                   {
-                    label: "Durum:",
+                    label: t("superadmin.companies.statusLabel"),
                     value:
                       companyDetails.company?.status === "active"
-                        ? "Aktif"
-                        : "Pasif",
+                        ? t("superadmin.companies.active")
+                        : t("superadmin.companies.inactive"),
                     color:
                       companyDetails.company?.status === "active"
                         ? COLORS.SUCCESS
@@ -677,7 +723,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
 
               <View style={styles.detailSection}>
                 <Text style={styles.sectionTitle}>
-                  Kullanıcılar ({companyDetails.users?.length || 0})
+                  {t("superadmin.companies.usersCount", {
+                    count: companyDetails.users?.length || 0,
+                  })}
                 </Text>
                 {companyDetails.users?.length > 0 ? (
                   companyDetails.users.map((u, i) => (
@@ -701,7 +749,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.emptySubtext}>Henüz kullanıcı yok</Text>
+                  <Text style={styles.emptySubtext}>
+                    {t("superadmin.companies.noUsers")}
+                  </Text>
                 )}
               </View>
 
@@ -709,7 +759,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
                 style={styles.closeModalButton}
                 onPress={() => setDetailsModalVisible(false)}
               >
-                <Text style={styles.closeModalButtonText}>Kapat</Text>
+                <Text style={styles.closeModalButtonText}>
+                  {t("common.close")}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           ) : null}
@@ -733,13 +785,24 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     ).length;
     return (
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryTitle}>Şirket Yönetimi</Text>
+        <Text style={styles.summaryTitle}>
+          {t("superadmin.companies.title")}
+        </Text>
         <View style={styles.summaryStats}>
           {[
-            { value: companies.length, label: "Toplam" },
-            { value: activeCompanies, label: "Aktif" },
-            { value: totalVehicles, label: "Araç" },
-            { value: totalDrivers, label: "Sürücü" },
+            {
+              value: companies.length,
+              label: t("superadmin.companies.total"),
+            },
+            { value: activeCompanies, label: t("superadmin.companies.active") },
+            {
+              value: totalVehicles,
+              label: t("superadmin.companies.vehicle"),
+            },
+            {
+              value: totalDrivers,
+              label: t("superadmin.companies.driver"),
+            },
           ].map((s, i) => (
             <View key={i} style={styles.summaryItem}>
               <Text style={styles.summaryValue}>{s.value}</Text>
@@ -755,7 +818,9 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Şirketler yükleniyor...</Text>
+        <Text style={styles.loadingText}>
+          {t("superadmin.companies.loadingList")}
+        </Text>
       </View>
     );
   }
@@ -779,9 +844,11 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🏢</Text>
-            <Text style={styles.emptyText}>Henüz şirket yok</Text>
+            <Text style={styles.emptyText}>
+              {t("superadmin.companies.emptyList")}
+            </Text>
             <Text style={styles.emptySubtext}>
-              + butonuna basarak yeni şirket oluşturun
+              {t("superadmin.companies.emptyHint")}
             </Text>
           </View>
         }
