@@ -1,0 +1,162 @@
+{
+  "auth.loginTitle": {
+    "tr": "Giriş",
+    "en": "Sign in",
+    "nl": "Inloggen",
+    "de": "Sign in",
+    "fr": "Sign in",
+    "es": "Sign in",
+    "it": "Sign in",
+    "bg": "Sign in"
+  },
+  "auth.forgotPasswordTitle": {
+    "tr": "Şifremi Unuttum",
+    "en": "Forgot password",
+    "nl": "Wachtwoord vergeten",
+    "de": "Forgot password",
+    "fr": "Forgot password",
+    "es": "Forgot password",
+    "it": "Forgot password",
+    "bg": "Forgot password"
+  },
+  "auth.contactTitle": {
+    "tr": "Bize Ulaşın",
+    "en": "Contact us",
+    "nl": "Contact",
+    "de": "Contact us",
+    "fr": "Contact us",
+    "es": "Contact us",
+    "it": "Contact us",
+    "bg": "Contact us"
+  },
+  "navigation.allVehicles": {
+    "tr": "Tüm Araçlar",
+    "en": "All vehicles",
+    "nl": "Alle voertuigen",
+    "de": "All vehicles",
+    "fr": "All vehicles",
+    "es": "All vehicles",
+    "it": "All vehicles",
+    "bg": "All vehicles"
+  },
+  "navigation.allDrivers": {
+    "tr": "Tüm Sürücüler",
+    "en": "All drivers",
+    "nl": "Alle chauffeurs",
+    "de": "All drivers",
+    "fr": "All drivers",
+    "es": "All drivers",
+    "it": "All drivers",
+    "bg": "All drivers"
+  },
+  "navigation.allTasks": {
+    "tr": "Tüm Görevler",
+    "en": "All tasks",
+    "nl": "Alle taken",
+    "de": "All tasks",
+    "fr": "All tasks",
+    "es": "All tasks",
+    "it": "All tasks",
+    "bg": "All tasks"
+  },
+  "navigation.systemAlerts": {
+    "tr": "Sistem Uyarıları",
+    "en": "System alerts",
+    "nl": "Systeemwaarschuwingen",
+    "de": "System alerts",
+    "fr": "System alerts",
+    "es": "System alerts",
+    "it": "System alerts",
+    "bg": "System alerts"
+  },
+  "navigation.map": {
+    "tr": "Harita",
+    "en": "Map",
+    "nl": "Kaart",
+    "de": "Map",
+    "fr": "Map",
+    "es": "Map",
+    "it": "Map",
+    "bg": "Map"
+  },
+  "offerDetail.navTitle": {
+    "tr": "Teklif Detayı",
+    "en": "Offer detail",
+    "nl": "Aanbieding",
+    "de": "Offer detail",
+    "fr": "Offer detail",
+    "es": "Offer detail",
+    "it": "Offer detail",
+    "bg": "Offer detail"
+  },
+  "createVehicle.navTitle": {
+    "tr": "Araç Ekle",
+    "en": "Add vehicle",
+    "nl": "Voertuig toevoegen",
+    "de": "Add vehicle",
+    "fr": "Add vehicle",
+    "es": "Add vehicle",
+    "it": "Add vehicle",
+    "bg": "Add vehicle"
+  },
+  "editVehicle.title": {
+    "tr": "Araç Düzenle",
+    "en": "Edit vehicle",
+    "nl": "Voertuig bewerken",
+    "de": "Edit vehicle",
+    "fr": "Edit vehicle",
+    "es": "Edit vehicle",
+    "it": "Edit vehicle",
+    "bg": "Edit vehicle"
+  },
+  "vehicleTrack.followTitle": {
+    "tr": "Araç Takip",
+    "en": "Vehicle track",
+    "nl": "Voertuig volgen",
+    "de": "Vehicle track",
+    "fr": "Vehicle track",
+    "es": "Vehicle track",
+    "it": "Vehicle track",
+    "bg": "Vehicle track"
+  },
+  "createDriver.title": {
+    "tr": "Sürücü Ekle",
+    "en": "Add driver",
+    "nl": "Chauffeur toevoegen",
+    "de": "Add driver",
+    "fr": "Add driver",
+    "es": "Add driver",
+    "it": "Add driver",
+    "bg": "Add driver"
+  },
+  "editDriver.title": {
+    "tr": "Sürücü Düzenle",
+    "en": "Edit driver",
+    "nl": "Chauffeur bewerken",
+    "de": "Edit driver",
+    "fr": "Edit driver",
+    "es": "Edit driver",
+    "it": "Edit driver",
+    "bg": "Edit driver"
+  },
+  "createTask.navTitle": {
+    "tr": "Görev Oluştur",
+    "en": "Create task",
+    "nl": "Taak aanmaken",
+    "de": "Create task",
+    "fr": "Create task",
+    "es": "Create task",
+    "it": "Create task",
+    "bg": "Create task"
+  },
+  "vehicleTrack.historyTitle": {
+    "tr": "Araç Geçmişi",
+    "en": "Vehicle history",
+    "nl": "Voertuiggeschiedenis",
+    "de": "Vehicle history",
+    "fr": "Vehicle history",
+    "es": "Vehicle history",
+    "it": "Vehicle history",
+    "bg": "Vehicle history"
+  }
+}
