@@ -123,13 +123,13 @@ export const WIFI_STATUS = {
   ERR_UNKNOWN: "ERR_UNKNOWN",
 };
 
-// 🆕 WiFi hata mesajları (UI için Türkçe)
+// WiFi error keys (UI copy lives in locales: deviceSetup.wifi.errors.*)
 export const WIFI_ERROR_MESSAGES = {
-  ERR_AUTH: "WiFi şifresi yanlış",
-  ERR_TIMEOUT: "WiFi ağına bağlanılamadı (zaman aşımı)",
-  ERR_NOT_FOUND: "WiFi ağı bulunamadı (5GHz desteklenmez)",
-  ERR_UNKNOWN: "Bilinmeyen bir hata oluştu",
-  WIFI_TIMEOUT: "WiFi bağlantısı zaman aşımına uğradı",
+  ERR_AUTH: "deviceSetup.wifi.errors.ERR_AUTH",
+  ERR_TIMEOUT: "deviceSetup.wifi.errors.ERR_TIMEOUT",
+  ERR_NOT_FOUND: "deviceSetup.wifi.errors.ERR_NOT_FOUND",
+  ERR_UNKNOWN: "deviceSetup.wifi.errors.ERR_UNKNOWN",
+  WIFI_TIMEOUT: "deviceSetup.wifi.errors.WIFI_TIMEOUT",
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -326,21 +326,6 @@ export const DEVICE_STATUS = {
   SUSPENDED: "SUSPENDED",
   RETIRED: "RETIRED",
   LOST: "LOST",
-};
-
-// ═══════════════════════════════════════════════════════════════════
-// Alert Types
-// ═══════════════════════════════════════════════════════════════════
-
-export const ALERT_TYPES = {
-  HARSH_BRAKE: "HARD_BRAKE",
-  HARSH_ACCEL: "HARD_ACCEL",
-  HARSH_TURN: "HARD_TURN",
-  IMPACT: "IMPACT",
-  SPEEDING: "speeding",
-  IDLE: "idle_too_long",
-  GEOFENCE_ENTER: "geofence_enter",
-  GEOFENCE_EXIT: "geofence_exit",
 };
 
 // ═══════════════════════════════════════════════════════════════════
