@@ -38,6 +38,7 @@ import WaypointEditor from "../../components/admin/WaypointEditor";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI, taskAPI, vehicleAPI } from "../../services/api";
+import { formatDate, formatTime } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA (soft bg/overlay icin) ---
 const withAlpha = (hex, alpha01) => {
@@ -644,22 +645,6 @@ export default function CreateTaskScreen({ navigation }) {
     combined.setMilliseconds(0);
     return combined;
   };
-
-  // Format date for display
-  const formatDate = (date) =>
-    date.toLocaleDateString(isEn ? "en-GB" : "tr-TR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
-  // Format time for display
-  const formatTime = (time) =>
-    time.toLocaleTimeString(isEn ? "en-GB" : "tr-TR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
 
   // Android: Direct selection closes picker
   // iOS: Modal wrapper + Done button

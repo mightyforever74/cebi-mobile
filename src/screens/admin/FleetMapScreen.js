@@ -33,6 +33,7 @@ import VehicleListModal from "../../components/map/VehicleListModal";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { geofenceAPI, vehicleAPI } from "../../services/api";
+import { formatTime } from "../../utils/helpers";
 import {
   createFollowRegion,
   FOLLOW_CONFIG,
@@ -226,7 +227,7 @@ const mStyles = StyleSheet.create({
 const FleetMapScreen = ({ navigation }) => {
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Geofence renklerini COLORS token'larından çözer
   // MapView Circle/Polygon string renk beklediği için burada string üretiyoruz
@@ -692,13 +693,7 @@ const FleetMapScreen = ({ navigation }) => {
           {lastUpdate && (
             <Text style={styles.updateText}>
               {t("fleetMap.lastUpdate")}:{" "}
-              {lastUpdate.toLocaleTimeString(
-                i18n.language === "tr"
-                  ? "tr-TR"
-                  : i18n.language === "nl"
-                    ? "nl-NL"
-                    : "en-US"
-              )}
+              {formatTime(lastUpdate)}
             </Text>
           )}
           <View style={styles.statsHint}>

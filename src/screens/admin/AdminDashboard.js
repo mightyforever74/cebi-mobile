@@ -25,6 +25,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI, taskAPI } from "../../services/api";
+import { formatDate, formatNumber, formatTime } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
@@ -168,7 +169,7 @@ const getRelativeTime = (timestamp, t) => {
   if (diffHours < 24)
     return `${diffHours} ${t("admin.time.hourAgo", "saat önce")}`;
   if (diffDays < 7) return `${diffDays} ${t("admin.time.dayAgo", "gün önce")}`;
-  return time.toLocaleDateString();
+  return formatDate(time);
 };
 
 // ============================================
@@ -919,9 +920,9 @@ const AdminDashboard = () => {
     } catch (e) {
       try {
         await Clipboard.setStringAsync(csv);
-        Alert.alert("CSV", t("admin.csvCopied", "CSV panoya kopyalandı"));
+        Alert.alert(t("common.csv"), t("admin.csvCopied"));
       } catch (err) {
-        Alert.alert("Error", err.message);
+        Alert.alert(t("common.error"), err.message);
       }
     }
   };
@@ -1683,7 +1684,7 @@ const AdminDashboard = () => {
                     <View style={styles.vehicleStat}>
                       <Text style={styles.vehicleStatIcon}>🛣️</Text>
                       <Text style={styles.vehicleStatValue}>
-                        {Math.round(vehicle.odometer).toLocaleString()} km
+                        {formatNumber(Math.round(vehicle.odometer))} km
                       </Text>
                     </View>
                   )}
@@ -2022,13 +2023,7 @@ const AdminDashboard = () => {
                             )}
                             {item.timestamp && (
                               <Text style={styles.detailDelayTime}>
-                                {new Date(item.timestamp).toLocaleTimeString(
-                                  [],
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
+                                {formatTime(item.timestamp)}
                               </Text>
                             )}
                           </View>
@@ -2074,12 +2069,9 @@ const AdminDashboard = () => {
                       );
                       try {
                         await Clipboard.setStringAsync(csv);
-                        Alert.alert(
-                          "CSV",
-                          t("admin.csvCopied", "CSV panoya kopyalandı")
-                        );
+                        Alert.alert(t("common.csv"), t("admin.csvCopied"));
                       } catch (e) {
-                        Alert.alert("Error", e.message);
+                        Alert.alert(t("common.error"), e.message);
                       }
                     }}
                     style={styles.detailCopyBtn}

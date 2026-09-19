@@ -28,7 +28,6 @@ import { GOOGLE_MAPS_API_KEY } from "@env";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -42,6 +41,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { formatDateTime } from "../../utils/helpers";
 
 // ─────────────────────────────────────────────────────────
 // PLACES AUTOCOMPLETE HELPERS
@@ -111,8 +111,6 @@ const WaypointEditor = ({
   readOnly = false,
   inputStyle = {},
 }) => {
-  const { i18n } = useTranslation();
-
   // Places autocomplete state (per waypoint id)
   const [suggestions, setSuggestions] = useState({}); // { [wpId]: prediction[] }
   const [loadingSug, setLoadingSug] = useState({}); // { [wpId]: boolean }
@@ -318,15 +316,8 @@ const WaypointEditor = ({
   const formatPlanned = (isoStr) => {
     if (!isoStr) return null;
     try {
-      const d = new Date(isoStr);
-      if (isNaN(d.getTime())) return null;
-      return d.toLocaleString(i18n.language || "tr-TR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      if (isNaN(new Date(isoStr).getTime())) return null;
+      return formatDateTime(isoStr);
     } catch {
       return null;
     }

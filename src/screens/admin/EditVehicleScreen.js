@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -20,6 +21,7 @@ import { vehicleAPI } from "../../services/api";
 
 const EditVehicleScreen = ({ navigation, route }) => {
   const { vehicle } = route.params;
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -35,18 +37,18 @@ const EditVehicleScreen = ({ navigation, route }) => {
   });
 
   const fuelTypes = [
-    { value: "diesel", label: "Dizel" },
-    { value: "gasoline", label: "Benzin" },
-    { value: "electric", label: "Elektrik" },
-    { value: "hybrid", label: "Hibrit" },
-    { value: "lpg", label: "LPG" },
+    { value: "diesel" },
+    { value: "gasoline" },
+    { value: "electric" },
+    { value: "hybrid" },
+    { value: "lpg" },
   ];
 
   const statusTypes = [
-    { value: "available", label: "Musait" },
-    { value: "in_use", label: "Kullanimda" },
-    { value: "maintenance", label: "Bakimda" },
-    { value: "retired", label: "Emekli" },
+    { value: "available" },
+    { value: "in_use" },
+    { value: "maintenance" },
+    { value: "retired" },
   ];
 
   const handleChange = (field, value) => {
@@ -55,11 +57,11 @@ const EditVehicleScreen = ({ navigation, route }) => {
 
   const handleSave = async () => {
     if (!formData.plate_no.trim()) {
-      Alert.alert("Hata", "Plaka zorunludur");
+      Alert.alert(t("common.error"), t("createVehicle.plateRequired"));
       return;
     }
     if (!formData.esp32_device_id.trim()) {
-      Alert.alert("Hata", "ESP32 Cihaz ID zorunludur");
+      Alert.alert(t("common.error"), t("createVehicle.deviceIdRequired"));
       return;
     }
 
@@ -79,15 +81,18 @@ const EditVehicleScreen = ({ navigation, route }) => {
 
       setTimeout(() => {
         Alert.alert(
-          "Basarili",
-          "Arac basariyla guncellendi",
-          [{ text: "Tamam", onPress: () => navigation.goBack() }],
+          t("common.success"),
+          t("createVehicle.updated"),
+          [{ text: t("common.ok"), onPress: () => navigation.goBack() }],
           { cancelable: false }
         );
       }, 100);
     } catch (error) {
       console.error("Update vehicle error:", error);
-      Alert.alert("Hata", error.response?.data?.error || "Arac guncellenemedi");
+      Alert.alert(
+        t("common.error"),
+        error.response?.data?.error || t("createVehicle.updateFailed")
+      );
     } finally {
       setLoading(false);
     }
@@ -108,7 +113,7 @@ const EditVehicleScreen = ({ navigation, route }) => {
     </View>
   );
 
-  const renderSelector = (label, field, options) => (
+  const renderSelector = (label, field, options, keyPrefix) => (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.selectorContainer}>
@@ -127,7 +132,7 @@ const EditVehicleScreen = ({ navigation, route }) => {
                 formData[field] === option.value && styles.selectorTextActive,
               ]}
             >
-              {option.label}
+              {t(`${keyPrefix}.${option.value}`)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -143,23 +148,45 @@ const EditVehicleScreen = ({ navigation, route }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Card variant="flat">
-            {renderInput("Plaka *", "plate_no", "34ABC123")}
-            {renderInput("ESP32 Cihaz ID *", "esp32_device_id", "ESP32-001")}
+            {renderInput(t("createVehicle.plate"), "plate_no", "34ABC123")}
+            {renderInput(
+              t("createVehicle.deviceId"),
+              "esp32_device_id",
+              "ESP32-001"
+            )}
 
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                {renderInput("Marka", "brand", "Ford")}
+                {renderInput(
+                  t("createVehicle.brandOptional"),
+                  "brand",
+                  "Ford"
+                )}
               </View>
               <View style={styles.halfInput}>
-                {renderInput("Model", "model", "Transit")}
+                {renderInput(
+                  t("createVehicle.modelOptional"),
+                  "model",
+                  "Transit"
+                )}
               </View>
             </View>
 
-            {renderInput("Yil", "year", "2023", "numeric")}
+            {renderInput(t("createVehicle.year"), "year", "2023", "numeric")}
           </Card>
 
-          {renderSelector("Yakit Tipi", "fuel_type", fuelTypes)}
-          {renderSelector("Durum", "status", statusTypes)}
+          {renderSelector(
+            t("createVehicle.fuelType"),
+            "fuel_type",
+            fuelTypes,
+            "adminVehicles.fuelTypes"
+          )}
+          {renderSelector(
+            t("createVehicle.status"),
+            "status",
+            statusTypes,
+            "adminVehicles.status"
+          )}
 
           <TouchableOpacity
             style={[styles.saveButton, loading && styles.saveButtonDisabled]}
@@ -171,7 +198,9 @@ const EditVehicleScreen = ({ navigation, route }) => {
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color={COLORS.WHITE} />
-                <Text style={styles.saveButtonText}>Guncelle</Text>
+                <Text style={styles.saveButtonText}>
+                  {t("createVehicle.updateButton")}
+                </Text>
               </>
             )}
           </TouchableOpacity>

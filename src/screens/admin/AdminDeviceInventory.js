@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -19,6 +20,7 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI } from "../../services/api";
 
 const AdminDeviceInventory = () => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
@@ -55,7 +57,7 @@ const AdminDeviceInventory = () => {
       const list = Array.isArray(data) ? data : data?.devices || [];
       setDevices(list);
     } catch (err) {
-      Alert.alert("Error", "Failed to fetch devices");
+      Alert.alert(t("common.error"), t("deviceInventory.fetchFailed"));
       console.error(err);
     } finally {
       setLoadingList(false);
@@ -87,22 +89,28 @@ const AdminDeviceInventory = () => {
       const serialRegex = /^TF-\d{4}-\d{5}-[A-Z0-9]$/;
       if (!serialRegex.test(serial)) {
         Alert.alert(
-          "Invalid Serial",
-          "QR code must contain a valid serial number (TF-XXXX-XXXXX-X)"
+          t("deviceInventory.invalidSerialTitle"),
+          t("deviceInventory.invalidSerialMessage")
         );
         return;
       }
 
       Alert.alert(
-        "Add to Stock",
-        `Serial: ${serial}\n\nAdd this device to stock?`,
+        t("deviceInventory.addToStockTitle"),
+        t("deviceInventory.addToStockConfirm", { serial }),
         [
-          { text: "Cancel", style: "cancel" },
-          { text: "Add to Stock", onPress: () => handleAddToStock(serial) },
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("deviceInventory.addToStock"),
+            onPress: () => handleAddToStock(serial),
+          },
         ]
       );
     } catch (err) {
-      Alert.alert("Error", err.message || "Failed to scan QR code");
+      Alert.alert(
+        t("common.error"),
+        err.message || t("deviceInventory.scanFailed")
+      );
     } finally {
       setTimeout(() => {
         scanLock.current = false;
@@ -118,17 +126,20 @@ const AdminDeviceInventory = () => {
 
       if (result?.success) {
         Alert.alert(
-          "Success",
-          result.message || `Device ${serial} added to stock!`
+          t("common.success"),
+          result.message || t("deviceInventory.addedToStock", { serial })
         );
         fetchDevices();
       } else {
-        Alert.alert("Error", result?.error || "Failed to add device");
+        Alert.alert(
+          t("common.error"),
+          result?.error || t("deviceInventory.addFailed")
+        );
       }
     } catch (err) {
       Alert.alert(
-        "Error",
-        err.response?.data?.error || "Failed to add device to stock"
+        t("common.error"),
+        err.response?.data?.error || t("deviceInventory.addFailedStock")
       );
     } finally {
       setLoadingActionDeviceId(null);
@@ -138,7 +149,7 @@ const AdminDeviceInventory = () => {
   // Serial No Arama
   const handleSearchSerial = async () => {
     if (!searchSerial.trim()) {
-      Alert.alert("Error", "Enter a serial number");
+      Alert.alert(t("common.error"), t("deviceInventory.enterSerial"));
       return;
     }
 
@@ -148,7 +159,10 @@ const AdminDeviceInventory = () => {
       const results = Array.isArray(data) ? data : data?.devices || [];
       setSearchResults(results);
     } catch (err) {
-      Alert.alert("Not Found", err.response?.data?.error || "Device not found");
+      Alert.alert(
+        t("deviceInventory.notFoundTitle"),
+        err.response?.data?.error || t("deviceInventory.notFound")
+      );
       setSearchResults([]);
     } finally {
       setLoadingAction(false);
@@ -163,23 +177,32 @@ const AdminDeviceInventory = () => {
       // DeviceId'den serial'ı bul
       const device = searchResults.find((d) => d.id === deviceId);
       if (!device || !device.serial) {
-        Alert.alert("Error", "Device serial not found");
+        Alert.alert(t("common.error"), t("deviceInventory.serialNotFound"));
         return;
       }
 
       const result = await adminAPI.addToStockBySerial(device.serial);
 
       if (result?.success) {
-        Alert.alert("Success", result.message || "Device added to stock!");
+        Alert.alert(
+          t("common.success"),
+          result.message || t("deviceInventory.addedToStockSimple")
+        );
         setSearchModal(false);
         setSearchResults([]);
         setSearchSerial("");
         fetchDevices();
       } else {
-        Alert.alert("Error", result?.error || "Failed to add device");
+        Alert.alert(
+          t("common.error"),
+          result?.error || t("deviceInventory.addFailed")
+        );
       }
     } catch (err) {
-      Alert.alert("Error", err.response?.data?.error || "Failed to add device");
+      Alert.alert(
+        t("common.error"),
+        err.response?.data?.error || t("deviceInventory.addFailed")
+      );
     } finally {
       setLoadingActionDeviceId(null);
     }
@@ -197,15 +220,19 @@ const AdminDeviceInventory = () => {
   const groupedDevices = useMemo(() => {
     return [
       {
-        title: `Online (${devices.filter((d) => d.is_online).length})`,
+        title: t("deviceInventory.online", {
+          count: devices.filter((d) => d.is_online).length,
+        }),
         data: devices.filter((d) => d.is_online),
       },
       {
-        title: `Offline (${devices.filter((d) => !d.is_online).length})`,
+        title: t("deviceInventory.offline", {
+          count: devices.filter((d) => !d.is_online).length,
+        }),
         data: devices.filter((d) => !d.is_online),
       },
     ];
-  }, [devices]);
+  }, [devices, t]);
 
   const renderDeviceItem = ({ item }) => (
     <Card variant="flat">
@@ -220,25 +247,25 @@ const AdminDeviceInventory = () => {
       <View style={styles.cardBody}>
         {item.plate_no && (
           <>
-            <Text style={styles.label}>Vehicle:</Text>
+            <Text style={styles.label}>{t("deviceInventory.vehicle")}</Text>
             <Text style={styles.value}>{item.plate_no}</Text>
           </>
         )}
 
         {item.driver_name && (
           <>
-            <Text style={styles.label}>Driver:</Text>
+            <Text style={styles.label}>{t("deviceInventory.driver")}</Text>
             <Text style={styles.value}>{item.driver_name}</Text>
           </>
         )}
 
-        <Text style={styles.label}>QR Status:</Text>
+        <Text style={styles.label}>{t("deviceInventory.qrStatus")}</Text>
         <Text style={styles.qrStatus}>
           {item.qr?.has_active
             ? item.qr?.used
-              ? "✅ Used"
-              : "🔓 Active"
-            : "⭕ None"}
+              ? `✅ ${t("deviceInventory.qrUsed")}`
+              : `🔓 ${t("deviceInventory.qrActive")}`
+            : `⭕ ${t("deviceInventory.qrNone")}`}
         </Text>
       </View>
 
@@ -256,7 +283,9 @@ const AdminDeviceInventory = () => {
           {loadingActionDeviceId === item.id ? (
             <ActivityIndicator size="small" color={COLORS.WHITE} />
           ) : (
-            <Text style={styles.btnText}>📦 Add to Stock</Text>
+            <Text style={styles.btnText}>
+              📦 {t("deviceInventory.addToStock")}
+            </Text>
           )}
         </TouchableOpacity>
       )}
@@ -275,7 +304,7 @@ const AdminDeviceInventory = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Device Inventory</Text>
+        <Text style={styles.title}>{t("deviceInventory.title")}</Text>
         <TouchableOpacity onPress={fetchDevices}>
           <Text style={styles.headerBtn}>🔄</Text>
         </TouchableOpacity>
@@ -290,7 +319,9 @@ const AdminDeviceInventory = () => {
           ]}
           onPress={() => setFilterAssigned("all")}
         >
-          <Text style={styles.filterBtnText}>All Devices</Text>
+          <Text style={styles.filterBtnText}>
+            {t("deviceInventory.allDevices")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -300,7 +331,9 @@ const AdminDeviceInventory = () => {
           ]}
           onPress={() => setFilterAssigned("assigned")}
         >
-          <Text style={styles.filterBtnText}>Assigned</Text>
+          <Text style={styles.filterBtnText}>
+            {t("deviceInventory.assigned")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -310,7 +343,9 @@ const AdminDeviceInventory = () => {
           ]}
           onPress={() => setFilterAssigned("unassigned")}
         >
-          <Text style={styles.filterBtnText}>Unassigned</Text>
+          <Text style={styles.filterBtnText}>
+            {t("deviceInventory.unassigned")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -320,14 +355,18 @@ const AdminDeviceInventory = () => {
           style={[styles.actionBtn, styles.actionBtnPrimary]}
           onPress={openScanner}
         >
-          <Text style={styles.actionBtnText}>📷 Scan QR</Text>
+          <Text style={styles.actionBtnText}>
+            📷 {t("deviceInventory.scanQr")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnSecondary]}
           onPress={() => setSearchModal(true)}
         >
-          <Text style={styles.actionBtnText}>🔍 Search</Text>
+          <Text style={styles.actionBtnText}>
+            🔍 {t("common.search")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -344,7 +383,7 @@ const AdminDeviceInventory = () => {
         onRefresh={fetchDevices}
         ListEmptyComponent={
           <View style={styles.center}>
-            <Text style={styles.value}>No devices found</Text>
+            <Text style={styles.value}>{t("deviceInventory.empty")}</Text>
           </View>
         }
       />
@@ -356,14 +395,16 @@ const AdminDeviceInventory = () => {
             <View style={styles.permissionContainer}>
               <ActivityIndicator size="large" color={COLORS.PRIMARY} />
               <Text style={styles.permissionText}>
-                Requesting camera permission...
+                {t("camera.requestingPermission")}
               </Text>
             </View>
           ) : !permission.granted ? (
             <View style={styles.permissionContainer}>
-              <Text style={styles.errorText}>✗ Camera permission denied</Text>
+              <Text style={styles.errorText}>
+                ✗ {t("camera.permissionDenied")}
+              </Text>
               <Text style={styles.permissionText}>
-                Please enable camera in settings
+                {t("camera.enableInSettings")}
               </Text>
               <TouchableOpacity
                 style={[
@@ -373,7 +414,9 @@ const AdminDeviceInventory = () => {
                 ]}
                 onPress={requestPermission}
               >
-                <Text style={styles.btnText}>Request Permission</Text>
+                <Text style={styles.btnText}>
+                  {t("camera.grantPermission")}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -395,7 +438,7 @@ const AdminDeviceInventory = () => {
             ]}
             onPress={() => setScannerModal(false)}
           >
-            <Text style={styles.btnText}>Close</Text>
+            <Text style={styles.btnText}>{t("common.close")}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -409,13 +452,15 @@ const AdminDeviceInventory = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Search Device by Serial</Text>
+            <Text style={styles.modalTitle}>
+              {t("deviceInventory.searchBySerial")}
+            </Text>
 
             <TextInput
               style={styles.input}
               value={searchSerial}
               onChangeText={setSearchSerial}
-              placeholder="Enter serial number (TF-XXXX-XXXXX-X)"
+              placeholder={t("deviceInventory.serialPlaceholder")}
               placeholderTextColor={COLORS.MUTED}
               autoCapitalize="characters"
               autoCorrect={false}
@@ -429,7 +474,7 @@ const AdminDeviceInventory = () => {
               {loadingAction ? (
                 <ActivityIndicator size="small" color={COLORS.WHITE} />
               ) : (
-                <Text style={styles.btnText}>🔍 Search</Text>
+                <Text style={styles.btnText}>🔍 {t("common.search")}</Text>
               )}
             </TouchableOpacity>
 
@@ -443,7 +488,9 @@ const AdminDeviceInventory = () => {
                 renderItem={({ item }) => (
                   <View style={styles.searchItem}>
                     <Text style={styles.serial}>{item.serial}</Text>
-                    <Text style={styles.value}>Status: {item.status}</Text>
+                    <Text style={styles.value}>
+                      {t("deviceInventory.statusLine", { status: item.status })}
+                    </Text>
 
                     {item.can_claim ? (
                       <TouchableOpacity
@@ -462,12 +509,14 @@ const AdminDeviceInventory = () => {
                             color={COLORS.WHITE}
                           />
                         ) : (
-                          <Text style={styles.btnText}>📦 Add</Text>
+                          <Text style={styles.btnText}>
+                            📦 {t("deviceInventory.add")}
+                          </Text>
                         )}
                       </TouchableOpacity>
                     ) : (
                       <Text style={styles.disabledText}>
-                        Cannot claim (assigned)
+                        {t("deviceInventory.cannotClaim")}
                       </Text>
                     )}
                   </View>
@@ -487,7 +536,7 @@ const AdminDeviceInventory = () => {
                 setSearchResults([]);
               }}
             >
-              <Text style={styles.btnText}>Close</Text>
+              <Text style={styles.btnText}>{t("common.close")}</Text>
             </TouchableOpacity>
           </View>
         </View>

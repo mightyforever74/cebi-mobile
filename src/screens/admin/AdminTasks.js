@@ -31,6 +31,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { withAlpha } from "../../utils/colorUtils";
+import { formatDateTime } from "../../utils/helpers";
 import { taskAPI } from "../../services/api";
 
 // ─────────────────────────────────────────────
@@ -126,7 +127,7 @@ const makeStyles = (COLORS) =>
 const AdminTasks = ({ navigation }) => {
   const styles     = useThemedStyles(makeStyles);
   const { COLORS } = useTheme();
-  const { t, i18n }= useTranslation();
+  const { t } = useTranslation();
 
   const [tasks,        setTasks]        = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -183,11 +184,7 @@ const AdminTasks = ({ navigation }) => {
   }, [tasks, activeFilter]);
 
   // ── Formatters ──
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const localeMap = { tr:"tr-TR", en:"en-US", nl:"nl-NL", it:"it-IT", bg:"bg-BG", es:"es-ES", ku:"ku" };
-    return new Date(dateString).toLocaleDateString(localeMap[i18n.language] || "en-US", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-  };
+  const formatDate = (dateString) => formatDateTime(dateString);
 
   // ── Actions ──
   const handleSendOffer = async (task) => {

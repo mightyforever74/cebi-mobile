@@ -24,6 +24,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { driverAPI } from "../../services/api";
+import { formatNumber } from "../../utils/helpers";
 
 // ─────────────────────────────────────────────
 // FILTER TABS
@@ -451,7 +452,7 @@ const AdminDrivers = ({ navigation }) => {
                   {t("adminDrivers.totalKm")}
                 </Text>
                 <Text style={styles.detailValue}>
-                  {Number(item.total_km_driven).toLocaleString()} km
+                  {formatNumber(Number(item.total_km_driven))} km
                 </Text>
               </View>
             ) : null}

@@ -22,6 +22,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import api from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
+import { formatDate as formatDateHelper } from "../../utils/helpers";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -45,27 +46,9 @@ const TAB_ICONS = {
 const trimName = (first, last) =>
   `${(first || "").trim()} ${(last || "").trim()}`.trim() || "—";
 
-const formatDate = (isoString, language) => {
+const formatDate = (isoString) => {
   try {
-    const localeMap = {
-      tr: "tr-TR",
-      en: "en-GB",
-      nl: "nl-NL",
-      de: "de-DE",
-      fr: "fr-FR",
-      es: "es-ES",
-      it: "it-IT",
-      bg: "bg-BG",
-      ku: "tr-TR",
-    };
-    return new Date(isoString).toLocaleDateString(
-      localeMap[language] || "en-GB",
-      {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }
-    );
+    return formatDateHelper(isoString);
   } catch {
     return isoString;
   }

@@ -22,6 +22,8 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/config";
 import { clampHeading } from "../../utils/mapMath";
+import { formatTime } from "../../utils/helpers";
+import { useTranslation } from "react-i18next";
 
 // ============================================================================
 // CONSTANTS
@@ -49,6 +51,7 @@ const VehicleInfoSheet = ({
   onPressHistory,
   isTablet = false,
 }) => {
+  const { t } = useTranslation();
   // Animation
   const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
 
@@ -92,10 +95,15 @@ const VehicleInfoSheet = ({
 
   // Last update
   const lastUpdateDisplay = vehicle.lastLocationTime
-    ? new Date(vehicle.lastLocationTime).toLocaleTimeString("tr-TR")
+    ? formatTime(vehicle.lastLocationTime)
     : vehicle.last_location_time
-    ? new Date(vehicle.last_location_time).toLocaleTimeString("tr-TR")
+    ? formatTime(vehicle.last_location_time)
     : "-";
+
+  const statusLabel =
+    vehicle.status === "offline" || !STATUS_CONFIG[vehicle.status]
+      ? t("adminVehicles.offline")
+      : t(`adminVehicles.status.${vehicle.status}`);
 
   return (
     <Animated.View
@@ -118,7 +126,7 @@ const VehicleInfoSheet = ({
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.plateText}>
-              {vehicle.plate_no || "Plaka Yok"}
+              {vehicle.plate_no || t("common.none")}
             </Text>
             <Text style={styles.vehicleModel}>
               {vehicle.brand} {vehicle.model}
@@ -171,7 +179,7 @@ const VehicleInfoSheet = ({
         <InfoItem
           icon="radio-button-on"
           label="Durum"
-          value={status.label}
+          value={statusLabel}
           valueColor={status.color}
         />
       </View>
@@ -185,7 +193,9 @@ const VehicleInfoSheet = ({
             onPress={() => onPressHistory(vehicle.id)}
           >
             <Ionicons name="time-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.actionButtonText}>Geçmiş Rota</Text>
+            <Text style={styles.actionButtonText}>
+              {t("vehicleInfo.historyRoute")}
+            </Text>
           </TouchableOpacity>
         )}
 
