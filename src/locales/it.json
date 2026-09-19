@@ -460,7 +460,6 @@
     "rejectTask": "Rifiuta Attività",
     "rejectTaskConfirm": "Sei sicuro di voler rifiutare \"{{title}}\"?",
     "taskRejected": "Attività Rifiutata",
-    "taskRejectedMessage": "Puoi vedere altre offerte nella schermata Le Mie Attività.",
     "couldNotRejectTask": "Impossibile rifiutare l'attività",
     "couldNotWithdrawTask": "Could not withdraw task",
     "error": "Error",
@@ -496,41 +495,21 @@
     "editProfileSubtitle": "Nome, cognome, telefono",
     "changePassword": "Cambia Password",
     "changePasswordSubtitle": "Sicurezza account",
-    "error": {
-      "title": "Errore",
-      "loadFailed": "Caricamento info veicolo fallito",
-      "saveFailed": "Salvataggio registro fallito",
-      "noVehicle": "Nessun veicolo assegnato",
-      "vehicleUpdateFailed": "Aggiornamento info veicolo fallito"
-    },
     "notifications": "NOTIFICHE",
     "notificationsTitle": "Notifiche",
     "notificationsSubtitle": "Notifiche attività",
     "locationSharing": "Condivisione Posizione",
     "locationSubtitle": "Richiesto per il tracciamento",
     "support": "SUPPORTO",
-    "notFullTankWarning": {
-      "title": "Avviso",
-      "message": "Se il serbatoio non è pieno, questo registro non verrà incluso nell'analisi dei consumi. Continuare?",
-      "cancel": "Annulla",
-      "saveAnyway": "Salva comunque"
-    },
     "help": "Help Center",
     "helpSubtitle": "FAQ e guida",
     "contactUs": "Contattaci",
     "about": "Informazioni",
     "version": "Versione",
-    "message": "Salvato!",
     "logout": "Esci",
     "logoutSubtitle": "Esci dal tuo account",
     "logoutConfirm": "Sei sicuro di voler uscire?",
     "cancel": "Annulla",
-    "fuelTypes": {
-      "diesel": "Diesel",
-      "gasoline": "Benzina",
-      "lpg": "GPL",
-      "electric": "Elettrico"
-    },
     "supportMessage": "Hai bisogno di aiuto?",
     "sendEmail": "Invia Email",
     "aboutTitle": "Informazioni su TulipFleet",
@@ -539,14 +518,10 @@
     "supportTitle": "Support"
   },
   "editProfile": {
-    "title": "Modifica Profilo",
     "firstName": "Nome",
     "lastName": "Cognome",
     "email": "Email",
     "phone": "Telefono",
-    "save": "Salva Modifiche",
-    "success": "Profilo aggiornato con successo",
-    "error": "Errore durante l'aggiornamento del profilo",
     "changePhoto": "Cambia foto",
     "emailReadonly": "L'e-mail non può essere modificata",
     "firstNamePlaceholder": "Inserisci il nome",
@@ -556,13 +531,9 @@
     "updated": "Profilo aggiornato"
   },
   "changePassword": {
-    "title": "Cambia Password",
     "currentPassword": "Password Attuale",
     "newPassword": "Nuova Password",
     "confirmPassword": "Conferma Nuova Password",
-    "save": "Cambia Password",
-    "success": "Password cambiata con successo",
-    "error": "Errore durante il cambio password",
     "mismatch": "Le password non corrispondono",
     "allFieldsRequired": "Compila tutti i campi",
     "confirmPlaceholder": "Reinserisci la nuova password",
@@ -578,12 +549,7 @@
   },
   "deviceSetup": {
     "title": "Configurazione Dispositivo",
-    "scanQR": "Scansiona Codice QR",
-    "enterSerial": "Inserisci Numero di Serie",
     "connecting": "Connessione...",
-    "connected": "Connesso",
-    "failed": "Connessione Fallita",
-    "retry": "Riprova",
     "activation": {
       "successStatus": "Dispositivo attivato con successo!",
       "successPending": "Configurazione completata. In attesa di conferma attivazione...",
@@ -1003,15 +969,7 @@
       "noVehicle": "No vehicle assigned",
       "saveFailed": "Failed to save record",
       "title": "Error",
-      "vehicleUpdateFailed": "Failed to update vehicle info",
-      "distSource": {
-        "title": "Fonte Distanza",
-        "gps": "GPS (Haversine)",
-        "route": "Percorso Stimato",
-        "manual": "Manuale",
-        "unknown": "Sconosciuto",
-        "tasks": "attività"
-      }
+      "vehicleUpdateFailed": "Failed to update vehicle info"
     },
     "firstRecordNote": "This is the first record, consumption will be calculated on the next entry.",
     "fuelType": "Fuel Type",
@@ -1744,11 +1702,6 @@
   "reports": {
     "loading": "Caricamento report...",
     "tabs": {
-      "summary": "Riepilogo",
-      "vehicles": "Veicoli",
-      "drivers": "Autisti",
-      "alerts": "Avvisi",
-      "tasks": "Compiti",
       "operations": "Operazioni",
       "fuel": "Carburante & Costi",
       "driving": "Qualità di guida",

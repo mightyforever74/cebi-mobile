@@ -1260,14 +1260,6 @@
       "submitFailed": "Failed to save record"
     },
     "error": {
-      "distSource": {
-        "title": "Distance Source",
-        "gps": "GPS (Haversine)",
-        "route": "Route Fallback",
-        "manual": "Manual",
-        "unknown": "Unknown",
-        "tasks": "tasks"
-      },
       "title": "Error",
       "loadFailed": "Failed to load vehicle info",
       "saveFailed": "Failed to save record",
