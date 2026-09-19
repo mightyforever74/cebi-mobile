@@ -2675,7 +2675,13 @@
       "startDate": "Start",
       "lastPayment": "Laatste betaling",
       "nextPayment": "Volgende betaling",
-      "recentPayments": "Recente betalingen"
+      "recentPayments": "Recente betalingen",
+      "daysLeft": "nog {{count}} dagen",
+      "assignedDevices": "Toegewezen apparaten ({{count}})",
+      "system": "Systeem",
+      "emptyHint": "Tik op + om een bedrijf aan te maken",
+      "cancelled": "Geannuleerd",
+      "feeFormula": "{{count}} {{unit}} × €{{fee}} = €{{total}}"
     },
     "create": {
       "nameRequired": "Bedrijfsnaam is verplicht",

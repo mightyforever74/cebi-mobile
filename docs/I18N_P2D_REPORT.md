@@ -14,12 +14,14 @@ Canlı SuperAdmin `RootNavigator` → `AppNavigator` (drawer title’lar zaten `
 | 1 | `7e62266` | patch dosyaları + 8 sözlük (KU yok) |
 | 2 | `227a1fa` | 11 superadmin ekranı `t()` / helpers + leftover key’ler |
 | 3 | `ccd602c` | navigation başlık / logout / placeholder / sürüm |
-| 4 | (bu commit) | `docs/I18N_P2D_REPORT.md` |
+| 4 | `2ab8e30` | `docs/I18N_P2D_REPORT.md` |
+| 5 | (bu commit) | şirket leftover 6 key + `t()` + rapor AFTER |
 
 ```
 7e62266 fix(i18n): add P2-d Superadmin and navigation keys
 227a1fa fix(i18n): migrate Superadmin screens to t()
 ccd602c fix(i18n): migrate navigation titles and logout copy to t()
+2ab8e30 docs(i18n): P2-d Superadmin goc raporu
 ```
 
 ## Adım 0 — envanter (önce / sonra)
@@ -64,6 +66,7 @@ P0 §B5: Superadmin 143 literal + 64 Alert. Bu pakette ek nav + form/label seti.
 ### Sonra (kapsam içi göç seti)
 
 Superadmin + listelenen nav dosyaları kullanıcıya görünen göç seti = **0**.
+Commit 2 sonrası kalan 6 kopya (commit 5): `gün kaldı`, `Atanmış Cihazlar`, audit `Sistem`, emptyHint, cancelled rozeti, fee formülü.
 Kalan: BACKEND fallback, skip placeholder, marka, API `notes`.
 
 `toLocale*` Superadmin = **0**.
@@ -101,21 +104,22 @@ Nav: `useTranslation` navigator bileşeninde; `options={{ title: t(...) }}` / `g
 |---|---|---|
 | `p2d-superadmin.json` (351 key) | added=2808 skipped_lang=351 files=8 | identical=2808 **0 değişiklik** |
 | leftover round-trip (→378 key) | added=88+56+72 | identical=3024 **0 değişiklik** |
+| leftover round 2 (→384 key) | added=48 skipped_lang=384 | identical=3072 **0 değişiklik** |
 | `p2d-nav.json` (16 key) | added=112 skipped_exists=13 identical=3 skipped_lang=16 files=8 | 0 değişiklik |
 
-378×8 = 3024 superadmin yazımı. KU yok (`skipped_lang` = key×1).
+384×8 = 3072 superadmin yazımı. KU yok (`skipped_lang` = key×1).
 
-UNION +392 (378 superadmin + 14 yeni nav; 2 nav key TR’de zaten vardı).
+UNION +398 (384 superadmin + 14 yeni nav; 2 nav key TR’de zaten vardı).
 
 TR/EN/NL: Cursor. DE/FR/ES/IT/BG: EN kopya + **SUSPECT**.
 
 ### SUSPECT
 
-DE/FR/ES/IT/BG tüm 378 `superadmin.*` + 14 yeni nav key.
+DE/FR/ES/IT/BG tüm 384 `superadmin.*` + 14 yeni nav key.
 
-### KU_OMITTED (378 + 14 nav)
+### KU_OMITTED (384 + 14 nav)
 
-`ku.json` bu pakette değişmedi. P2-d yeni key’lerin tamamı KU_OMITTED (tr fallback). Silinmedi.
+`ku.json` bu pakette değişmedi. P2-d yeni key’lerin tamamı KU_OMITTED (tr fallback). Silinmedi. Leftover round 2: +6 key, KU hâlâ omit.
 
 ## Adım 3 — kod
 
@@ -129,35 +133,35 @@ DE/FR/ES/IT/BG tüm 378 `superadmin.*` + 14 yeni nav key.
 
 ### verify BEFORE / AFTER
 
-BEFORE = main `17e6e54` / P2-c AFTER. AFTER = P2-d commit 3 (`ccd602c`).
+BEFORE = main `17e6e54` / P2-c AFTER. AFTER = leftover round 2 (commit 5).
 
 Beş kapı: code-not-in-union, code-missing-in-tr, manifest-missing, interp, encoding.
 
-| | BEFORE (`17e6e54`) | AFTER (commit 3) |
+| | BEFORE (`17e6e54`) | AFTER (commit 5) |
 |---|---|---|
-| UNION | 2387 | **2779** (+392) |
+| UNION | 2387 | **2785** (+398) |
 | intersection | 1809 | **1809** (KU yeni key yok) |
 | code keys not in union | **0** | **0** |
 | code keys missing in tr | **0** | **0** |
 | manifest subkey missing | **0** | **0** |
 | interp mismatches | **0** | **0** |
 | encoding mojibake | **0** | **0** |
-| errors / warnings | 2632 / 2570 | 3024 / 5706 |
-| KU missing vs union | 444 | **836** (+392 KU_OMITTED) |
+| errors / warnings | 2632 / 2570 | 3030 / 5754 |
+| KU missing vs union | 444 | **842** (+398 KU_OMITTED) |
 
 Dil tablosu AFTER:
 
 ```
 lang  keys  missing  extra
-tr    2473      306    664
-en    2479      300    670
-nl    2581      198    772
-de    2498      281    689
-fr    2498      281    689
-es    2530      249    721
-it    2512      267    703
-bg    2473      306    664
-ku    1943      836    134
+tr    2479      306    670
+en    2485      300    676
+nl    2587      198    778
+de    2504      281    695
+fr    2504      281    695
+es    2536      249    727
+it    2518      267    709
+bg    2479      306    670
+ku    1943      842    134
 ```
 
 `missing_key` (dil vs UNION) hâlâ hata sayılır — P2-a ile aynı politika; P2-d **beş kapı 0**.
@@ -488,8 +492,8 @@ P2-e adayı (tr’de yok; nl/ku/es’te var) — silme yok:
 | P2-a Driver | +59 | VehiclePicker / WiFiPassword / Profile / Settings / FuelEntry UI / Task* tarih | helpers `getTimeAgo/formatDate*` |
 | P2-b Admin | +72 | Admin ekran + inventory + fuel kart | `data.limitations[]` BACKEND |
 | P2-c DeviceSetup/BLE | +10 | DeviceSetup concat + WaypointsPanel + WIFI kod | bleService kod döner |
-| P2-d Superadmin/nav | +392 | 143+64 P0 Superadmin + nav title/logout/placeholder | 378 `superadmin.*` + 14 nav |
-| **P2 toplam** | **+533** (2246→2779) | Superadmin/nav kapanır | KU_OMITTED birikimli 836 |
+| P2-d Superadmin/nav | +398 | 143+64 P0 Superadmin + nav + şirket leftover 6 | 384 `superadmin.*` + 14 nav |
+| **P2 toplam** | **+539** (2246→2785) | Superadmin/nav kapanır | KU_OMITTED birikimli 842 |
 
 ### Kalan BACKEND
 

@@ -600,7 +600,7 @@ const useStatusConfig = (COLORS) => {
       cancelled: {
         bg: withAlpha(COLORS.MUTED, 0.14),
         text: COLORS.MUTED,
-        label: t("common.cancel"),
+        label: t("superadmin.companies.cancelled"),
       },
     }),
     [COLORS, t]
@@ -994,7 +994,9 @@ const CompaniesScreen = ({ navigation }) => {
                     ]}
                   >
                     <Text style={[styles.badgeText, { color: COLORS.WARNING }]}>
-                      {company.days_left} gün kaldı
+                      {t("superadmin.companies.daysLeft", {
+                        count: company.days_left,
+                      })}
                     </Text>
                   </View>
                 </View>
@@ -1610,7 +1612,9 @@ const CompanyDetailModal = ({
               {activeTab === "devices" && (
                 <View style={styles.tabContent}>
                   <Text style={styles.sectionTitle}>
-                    Atanmış Cihazlar ({detail?.devices?.length || 0})
+                    {t("superadmin.companies.assignedDevices", {
+                      count: detail?.devices?.length || 0,
+                    })}
                   </Text>
 
                   {detail?.devices?.map((device) => {
@@ -1670,7 +1674,8 @@ const CompanyDetailModal = ({
                         </Text>
                         <Text style={styles.auditMeta}>
                           {formatDate(log.created_at)} •{" "}
-                          {log.changed_by_name || "Sistem"}
+                          {log.changed_by_name ||
+                            t("superadmin.companies.system")}
                         </Text>
                         {log.reason ? (
                           <Text style={styles.auditReason}>{log.reason}</Text>
@@ -1849,10 +1854,13 @@ const PaymentModal = ({
 
           <View style={styles.calculatedFee}>
             <Text style={styles.calculatedFeeText}>
-              {company.vehicle_count || 0} {t("superadmin.companies.vehicle")} ×
-              €
-              {company.per_vehicle_fee || 0} = €
-              {(company.vehicle_count || 0) * (company.per_vehicle_fee || 0)}
+              {t("superadmin.companies.feeFormula", {
+                count: company.vehicle_count || 0,
+                unit: t("superadmin.companies.vehicle"),
+                fee: company.per_vehicle_fee || 0,
+                total:
+                  (company.vehicle_count || 0) * (company.per_vehicle_fee || 0),
+              })}
             </Text>
             <Text style={styles.calculatedFeeTier}>
               {t("superadmin.companies.packageTag", { label: tier.label })}

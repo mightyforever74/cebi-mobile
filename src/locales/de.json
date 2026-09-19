@@ -2572,7 +2572,13 @@
       "startDate": "Start",
       "lastPayment": "Last payment",
       "nextPayment": "Next payment",
-      "recentPayments": "Recent payments"
+      "recentPayments": "Recent payments",
+      "daysLeft": "{{count}} days left",
+      "assignedDevices": "Assigned devices ({{count}})",
+      "system": "System",
+      "emptyHint": "Tap + to create a company",
+      "cancelled": "Cancelled",
+      "feeFormula": "{{count}} {{unit}} × €{{fee}} = €{{total}}"
     },
     "create": {
       "nameRequired": "Company name is required",

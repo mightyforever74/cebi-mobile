@@ -2545,7 +2545,13 @@
       "startDate": "Başlangıç",
       "lastPayment": "Son Ödeme",
       "nextPayment": "Sonraki Ödeme",
-      "recentPayments": "Son Ödemeler"
+      "recentPayments": "Son Ödemeler",
+      "daysLeft": "{{count}} gün kaldı",
+      "assignedDevices": "Atanmış Cihazlar ({{count}})",
+      "system": "Sistem",
+      "emptyHint": "+ butonuna basarak yeni şirket oluşturun",
+      "cancelled": "İptal",
+      "feeFormula": "{{count}} {{unit}} × €{{fee}} = €{{total}}"
     },
     "create": {
       "nameRequired": "Şirket adı gerekli",

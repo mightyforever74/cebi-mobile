@@ -3778,5 +3778,65 @@
     "es": "Recent payments",
     "it": "Recent payments",
     "bg": "Recent payments"
+  },
+  "superadmin.companies.daysLeft": {
+    "tr": "{{count}} gün kaldı",
+    "en": "{{count}} days left",
+    "nl": "nog {{count}} dagen",
+    "de": "{{count}} days left",
+    "fr": "{{count}} days left",
+    "es": "{{count}} days left",
+    "it": "{{count}} days left",
+    "bg": "{{count}} days left"
+  },
+  "superadmin.companies.assignedDevices": {
+    "tr": "Atanmış Cihazlar ({{count}})",
+    "en": "Assigned devices ({{count}})",
+    "nl": "Toegewezen apparaten ({{count}})",
+    "de": "Assigned devices ({{count}})",
+    "fr": "Assigned devices ({{count}})",
+    "es": "Assigned devices ({{count}})",
+    "it": "Assigned devices ({{count}})",
+    "bg": "Assigned devices ({{count}})"
+  },
+  "superadmin.companies.system": {
+    "tr": "Sistem",
+    "en": "System",
+    "nl": "Systeem",
+    "de": "System",
+    "fr": "System",
+    "es": "System",
+    "it": "System",
+    "bg": "System"
+  },
+  "superadmin.companies.emptyHint": {
+    "tr": "+ butonuna basarak yeni şirket oluşturun",
+    "en": "Tap + to create a company",
+    "nl": "Tik op + om een bedrijf aan te maken",
+    "de": "Tap + to create a company",
+    "fr": "Tap + to create a company",
+    "es": "Tap + to create a company",
+    "it": "Tap + to create a company",
+    "bg": "Tap + to create a company"
+  },
+  "superadmin.companies.cancelled": {
+    "tr": "İptal",
+    "en": "Cancelled",
+    "nl": "Geannuleerd",
+    "de": "Cancelled",
+    "fr": "Cancelled",
+    "es": "Cancelled",
+    "it": "Cancelled",
+    "bg": "Cancelled"
+  },
+  "superadmin.companies.feeFormula": {
+    "tr": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "en": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "nl": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "de": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "fr": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "es": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "it": "{{count}} {{unit}} × €{{fee}} = €{{total}}",
+    "bg": "{{count}} {{unit}} × €{{fee}} = €{{total}}"
   }
 }

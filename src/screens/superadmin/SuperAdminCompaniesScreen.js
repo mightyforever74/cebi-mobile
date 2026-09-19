@@ -848,7 +848,7 @@ const SuperAdminCompaniesScreen = ({ navigation }) => {
               {t("superadmin.companies.emptyList")}
             </Text>
             <Text style={styles.emptySubtext}>
-              + butonuna basarak yeni şirket oluşturun
+              {t("superadmin.companies.emptyHint")}
             </Text>
           </View>
         }
