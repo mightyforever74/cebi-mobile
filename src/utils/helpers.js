@@ -21,13 +21,23 @@ const getDateLocale = () => {
 export const formatDate = (date) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleDateString(getDateLocale());
+  return d.toLocaleDateString(getDateLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 export const formatDateTime = (date) => {
   if (!date) return "-";
   const d = new Date(date);
-  return d.toLocaleString(getDateLocale());
+  return d.toLocaleString(getDateLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export const formatTime = (date) => {
@@ -69,7 +79,7 @@ export const getTimeAgo = (date) => {
 // Number helpers
 export const formatNumber = (num) => {
   if (num === null || num === undefined) return "-";
-  return num.toLocaleString("tr-TR");
+  return new Intl.NumberFormat(getDateLocale()).format(num);
 };
 
 export const formatCurrency = (amount, currency = "TRY") => {
