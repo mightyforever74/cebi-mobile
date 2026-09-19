@@ -2528,7 +2528,24 @@
       "maxDriversLabel": "Max drivers:",
       "createdAt": "Created",
       "total": "Total",
-      "active": "Active"
+      "active": "Active",
+      "usersCount": "Users ({{count}})",
+      "slugRequired": "Slug is required",
+      "actionPaymentReceived": "Payment recorded",
+      "actionSuspended": "Suspended",
+      "actionTierChanged": "Plan changed",
+      "actionTrialExtended": "Trial extended",
+      "actionCreated": "Company created",
+      "actionActivated": "Activated",
+      "adminInfo": "Admin details",
+      "usage": "Usage",
+      "dates": "Dates",
+      "vehicleFee": "Per-vehicle fee",
+      "monthlyTotal": "Monthly total",
+      "startDate": "Start",
+      "lastPayment": "Last payment",
+      "nextPayment": "Next payment",
+      "recentPayments": "Recent payments"
     },
     "create": {
       "nameRequired": "Company name is required",
@@ -2635,7 +2652,13 @@
       "offline": "Offline",
       "hwNew": "v2.0 (new case)",
       "hwOld": "v1.0 (legacy)",
-      "fwCurrent": "v4.4.1 (current)"
+      "fwCurrent": "v4.4.1 (current)",
+      "registerSuccessTitle": "Registration successful",
+      "registerModalTitle": "Register new device",
+      "listCount": "{{count}} devices",
+      "tokenHint": "Note the serial and device token.",
+      "provisionHint": "Used automatically during ESP32 provisioning.",
+      "serialMonitor": "From ESP32 serial monitor"
     },
     "device": {
       "selectCompany": "Please select a company",
@@ -2687,7 +2710,10 @@
       "cmdStatus": "Status",
       "cmdCalibrate": "Calibrate",
       "cmdReset": "Reset",
-      "cmdClearWifi": "Clear WiFi"
+      "cmdClearWifi": "Clear WiFi",
+      "send": "Send",
+      "assignToName": "Assign to {{name}}",
+      "selectCompanyPlaceholder": "Select a company"
     },
     "qr": {
       "fetchFailed": "Failed to fetch devices",
@@ -2713,7 +2739,8 @@
       "modalTitle": "QR code",
       "device": "Device:",
       "token": "Token:",
-      "expiresIn": "Expires in:"
+      "expiresIn": "Expires in:",
+      "expiresMinutes": "{{count}} minutes"
     },
     "users": {
       "loadFailed": "Could not load users",

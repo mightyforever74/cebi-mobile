@@ -3,6 +3,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -221,6 +222,7 @@ const makeStyles = (COLORS) =>
   });
 
 const SuperAdminDashboard = ({ navigation }) => {
+  const { t } = useTranslation();
   const { user, token } = useAuth();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -290,7 +292,7 @@ const SuperAdminDashboard = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Hata", "Veriler yüklenemedi");
+      Alert.alert(t("common.error"), t("superadmin.dashboard.loadFailed"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -310,25 +312,25 @@ const SuperAdminDashboard = ({ navigation }) => {
       {
         key: "companies",
         value: stats.totalCompanies,
-        label: "Şirket",
+        labelKey: "superadmin.dashboard.company",
         bg: COLORS.PRIMARY,
       },
       {
         key: "users",
         value: stats.totalUsers,
-        label: "Kullanıcı",
+        labelKey: "superadmin.dashboard.user",
         bg: COLORS.SUCCESS,
       },
       {
         key: "vehicles",
         value: stats.totalVehicles,
-        label: "Araç",
+        labelKey: "superadmin.dashboard.vehicle",
         bg: COLORS.WARNING,
       },
       {
         key: "drivers",
         value: stats.totalDrivers,
-        label: "Sürücü",
+        labelKey: "superadmin.dashboard.driver",
         bg: COLORS.INFO,
       },
     ],
@@ -339,7 +341,7 @@ const SuperAdminDashboard = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -358,10 +360,10 @@ const SuperAdminDashboard = ({ navigation }) => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Hoş Geldiniz,</Text>
+        <Text style={styles.welcomeText}>{t("superadmin.dashboard.welcome")}</Text>
         <Text style={styles.userName}>{user?.email}</Text>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Super Admin</Text>
+          <Text style={styles.badgeText}>{t("roles.superAdmin")}</Text>
         </View>
       </View>
 
@@ -372,7 +374,7 @@ const SuperAdminDashboard = ({ navigation }) => {
             style={[styles.statCard, { backgroundColor: c.bg }]}
           >
             <Text style={styles.statNumber}>{c.value}</Text>
-            <Text style={styles.statLabel}>{c.label}</Text>
+            <Text style={styles.statLabel}>{t(c.labelKey)}</Text>
           </View>
         ))}
       </View>
@@ -387,16 +389,23 @@ const SuperAdminDashboard = ({ navigation }) => {
             <View style={styles.deviceStatsContent}>
               <Ionicons name="hardware-chip" size={32} color={COLORS.PRIMARY} />
               <View style={styles.deviceStatsInfo}>
-                <Text style={styles.deviceStatsTitle}>ESP32 Cihazlar</Text>
+                <Text style={styles.deviceStatsTitle}>
+                  {t("superadmin.dashboard.esp32")}
+                </Text>
                 <Text style={styles.deviceStatsSubtitle}>
-                  {stats.onlineDevices} / {stats.totalDevices} online
+                  {t("superadmin.dashboard.onlineOf", {
+                    online: stats.onlineDevices,
+                    total: stats.totalDevices,
+                  })}
                 </Text>
               </View>
             </View>
             <View style={styles.deviceOnlineIndicator}>
               <View style={styles.onlineDot} />
               <Text style={styles.onlineText}>
-                {stats.onlineDevices} Online
+                {t("superadmin.dashboard.onlineCount", {
+                  count: stats.onlineDevices,
+                })}
               </Text>
             </View>
           </View>
@@ -404,32 +413,34 @@ const SuperAdminDashboard = ({ navigation }) => {
       )}
 
       <Card variant="flat" style={styles.section}>
-        <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
+        <Text style={styles.sectionTitle}>
+          {t("superadmin.dashboard.quickActions")}
+        </Text>
         <View style={styles.actionsContainer}>
           {[
             {
               screen: "Companies",
               icon: "business",
               color: COLORS.PRIMARY,
-              label: "Şirketler",
+              label: t("superadmin.dashboard.companies"),
             },
             {
               screen: "CreateCompany",
               icon: "add-circle",
               color: COLORS.SUCCESS,
-              label: "Yeni Şirket",
+              label: t("superadmin.dashboard.newCompany"),
             },
             {
               screen: "Devices",
               icon: "hardware-chip",
               color: COLORS.WARNING,
-              label: "Cihazlar",
+              label: t("superadmin.dashboard.devices"),
             },
             {
               screen: "PlatformUsers",
               icon: "people",
               color: COLORS.INFO,
-              label: "Kullanıcılar",
+              label: t("superadmin.dashboard.users"),
             },
           ].map((a) => (
             <TouchableOpacity
@@ -447,12 +458,16 @@ const SuperAdminDashboard = ({ navigation }) => {
 
       <Card variant="flat" style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Son Şirketler</Text>
+          <Text style={styles.sectionTitle}>
+            {t("superadmin.dashboard.recentCompanies")}
+          </Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("Companies")}
             activeOpacity={0.85}
           >
-            <Text style={styles.seeAllText}>Tümünü Gör →</Text>
+            <Text style={styles.seeAllText}>
+              {t("superadmin.dashboard.seeAll")}
+            </Text>
           </TouchableOpacity>
         </View>
         {companies.slice(0, 5).map((company, index) => (
@@ -468,8 +483,8 @@ const SuperAdminDashboard = ({ navigation }) => {
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>{company.name}</Text>
               <Text style={styles.companyStats}>
-                {company.vehicle_count || 0} araç • {company.driver_count || 0}{" "}
-                sürücü
+                {company.vehicle_count || 0} {t("superadmin.dashboard.vehicle")}{" "}
+                • {company.driver_count || 0} {t("superadmin.dashboard.driver")}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={COLORS.MUTED} />
@@ -482,20 +497,26 @@ const SuperAdminDashboard = ({ navigation }) => {
               size={48}
               color={COLORS.DISABLED}
             />
-            <Text style={styles.emptyText}>Henüz şirket yok</Text>
+            <Text style={styles.emptyText}>
+              {t("superadmin.dashboard.emptyCompanies")}
+            </Text>
             <TouchableOpacity
               style={styles.emptyButton}
               onPress={() => navigation.navigate("CreateCompany")}
               activeOpacity={0.85}
             >
-              <Text style={styles.emptyButtonText}>İlk Şirketi Oluştur</Text>
+              <Text style={styles.emptyButtonText}>
+                {t("superadmin.dashboard.createFirst")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
       </Card>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>TulipFleet Super Admin Panel v1.0</Text>
+        <Text style={styles.footerText}>
+          {t("superadmin.dashboard.footerVersion", { version: "1.0" })}
+        </Text>
       </View>
     </ScrollView>
   );

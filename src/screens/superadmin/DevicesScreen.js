@@ -21,10 +21,12 @@ import {
   View,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
 import { API_URL } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { getTimeAgo } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA ---
 const withAlpha = (hex, alpha01) => {
@@ -58,17 +60,6 @@ const CHIP_MODELS = [
   { label: "ESP32-S3-N16R8", value: "ESP32-S3-N16R8" },
   { label: "ESP32-S3-WROOM", value: "ESP32-S3-WROOM" },
   { label: "ESP32-WROOM-32", value: "ESP32-WROOM-32" },
-];
-
-const HW_VERSIONS = [
-  { label: "v2.0 (Yeni Kasa)", value: "v2.0" },
-  { label: "v1.0 (Eski)", value: "v1.0" },
-];
-
-const FW_VERSIONS = [
-  { label: "v4.4.1 (Güncel)", value: "v4.4.1" },
-  { label: "v4.4.0", value: "v4.4.0" },
-  { label: "v4.3.11", value: "v4.3.11" },
 ];
 
 const makeStyles = (COLORS) =>
@@ -410,9 +401,21 @@ const makeStyles = (COLORS) =>
   });
 
 const DevicesScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
+
+  const HW_VERSIONS = [
+    { label: t("superadmin.devices.hwNew"), value: "v2.0" },
+    { label: t("superadmin.devices.hwOld"), value: "v1.0" },
+  ];
+
+  const FW_VERSIONS = [
+    { label: t("superadmin.devices.fwCurrent"), value: "v4.4.1" },
+    { label: "v4.4.0", value: "v4.4.0" },
+    { label: "v4.3.11", value: "v4.3.11" },
+  ];
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -452,7 +455,10 @@ const DevicesScreen = ({ navigation }) => {
   const fetchDevices = async () => {
     try {
       if (!token) {
-        Alert.alert("Hata", "Oturum süresi dolmuş. Lütfen tekrar giriş yapın.");
+        Alert.alert(
+          t("common.error"),
+          t("superadmin.sessionExpiredLong")
+        );
         setLoading(false);
         return;
       }
@@ -474,11 +480,14 @@ const DevicesScreen = ({ navigation }) => {
         setStats(data.stats || {});
       } else {
         const errorData = await response.json().catch(() => ({}));
-        Alert.alert("Hata", errorData.error || "Cihazlar yüklenemedi");
+        Alert.alert(
+          t("common.error"),
+          errorData.error || t("superadmin.devices.loadFailed")
+        );
       }
     } catch (error) {
       console.error("Fetch devices error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -498,16 +507,13 @@ const DevicesScreen = ({ navigation }) => {
   const handleRegister = async () => {
     // Validation
     if (!form.device_code.trim()) {
-      return Alert.alert("Hata", "Device Code zorunlu");
+      return Alert.alert(t("common.error"), t("superadmin.devices.codeRequired"));
     }
     if (!form.mac_address || form.mac_address.length < 17) {
-      return Alert.alert(
-        "Hata",
-        "Geçerli MAC adresi girin (XX:XX:XX:XX:XX:XX)"
-      );
+      return Alert.alert(t("common.error"), t("superadmin.devices.macInvalid"));
     }
     if (!form.esp_chip_id.trim()) {
-      return Alert.alert("Hata", "ESP Chip ID zorunlu");
+      return Alert.alert(t("common.error"), t("superadmin.devices.chipRequired"));
     }
 
     setRegistering(true);
@@ -537,13 +543,13 @@ const DevicesScreen = ({ navigation }) => {
         fetchDevices(); // Refresh list
       } else {
         Alert.alert(
-          "Kayıt Hatası",
-          data.details || data.error || "Cihaz kaydedilemedi"
+          t("superadmin.devices.registerError"),
+          data.details || data.error || t("superadmin.devices.registerFailed")
         );
       }
     } catch (error) {
       console.error("Register device error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setRegistering(false);
     }
@@ -588,15 +594,9 @@ const DevicesScreen = ({ navigation }) => {
     return STATUS_COLORS.default;
   };
 
-  const getTimeDifference = (dateStr) => {
-    if (!dateStr) return "Hiç görülmedi";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return `${diff} sn önce`;
-    if (diff < 3600) return `${Math.floor(diff / 60)} dk önce`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} saat önce`;
-    return `${Math.floor(diff / 86400)} gün önce`;
+  const lastSeenText = (dateStr) => {
+    if (!dateStr) return t("superadmin.devices.neverSeen");
+    return getTimeAgo(dateStr);
   };
 
   // ============ STAT CARD ============
@@ -631,7 +631,9 @@ const DevicesScreen = ({ navigation }) => {
               </Text>
               {item.is_online && (
                 <View style={styles.onlineBadge}>
-                  <Text style={styles.onlineText}>ONLINE</Text>
+                  <Text style={styles.onlineText}>
+                    {t("superadmin.devices.online")}
+                  </Text>
                 </View>
               )}
             </View>
@@ -642,12 +644,16 @@ const DevicesScreen = ({ navigation }) => {
 
           <View style={styles.deviceInfo}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>MAC:</Text>
+              <Text style={styles.infoLabel}>
+                {t("superadmin.devices.mac")}
+              </Text>
               <Text style={styles.infoValue}>{item.mac_address || "-"}</Text>
             </View>
             {item.company_name ? (
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Şirket:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("superadmin.devices.company")}
+                </Text>
                 <Text
                   style={[styles.infoValue, { color: COLORS.PRIMARY }]}
                   numberOfLines={1}
@@ -668,22 +674,26 @@ const DevicesScreen = ({ navigation }) => {
                     { color: COLORS.WARNING, marginLeft: 4 },
                   ]}
                 >
-                  Atanmamış
+                  {t("device.unassigned")}
                 </Text>
               </View>
             )}
             {item.vehicle_plate && (
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Araç:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("superadmin.devices.vehicle")}
+                </Text>
                 <Text style={[styles.infoValue, { color: COLORS.SUCCESS }]}>
                   {item.vehicle_plate}
                 </Text>
               </View>
             )}
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Son görülme:</Text>
+              <Text style={styles.infoLabel}>
+                {t("superadmin.devices.lastSeen")}
+              </Text>
               <Text style={styles.infoValue}>
-                {getTimeDifference(item.last_seen_at)}
+                {lastSeenText(item.last_seen_at)}
               </Text>
             </View>
           </View>
@@ -723,7 +733,9 @@ const DevicesScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>Cihazlar yükleniyor...</Text>
+        <Text style={styles.loadingText}>
+          {t("superadmin.devices.loading")}
+        </Text>
       </View>
     );
   }
@@ -733,25 +745,25 @@ const DevicesScreen = ({ navigation }) => {
       {/* İstatistikler */}
       <View style={styles.statsContainer}>
         <StatCard
-          title="Toplam"
+          title={t("superadmin.devices.total")}
           value={stats.total || 0}
           color={COLORS.PRIMARY}
           filterKey="all"
         />
         <StatCard
-          title="Online"
+          title={t("device.online")}
           value={stats.online_now || 0}
           color={COLORS.SUCCESS}
           filterKey="active"
         />
         <StatCard
-          title="Bekleyen"
+          title={t("superadmin.devices.pending")}
           value={stats.pending || 0}
           color={COLORS.WARNING}
           filterKey="pending"
         />
         <StatCard
-          title="Arızalı"
+          title={t("superadmin.device.statusFaulty")}
           value={stats.faulty || 0}
           color={COLORS.ERROR}
           filterKey="faulty"
@@ -763,7 +775,7 @@ const DevicesScreen = ({ navigation }) => {
         <Ionicons name="search" size={18} color={COLORS.MUTED} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Cihaz kodu, MAC, şirket ara..."
+          placeholder={t("superadmin.devices.searchPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.MUTED}
@@ -781,11 +793,11 @@ const DevicesScreen = ({ navigation }) => {
       {/* Filtre */}
       <View style={styles.filterContainer}>
         {[
-          { key: "all", label: "Tümü" },
-          { key: "active", label: "Aktif" },
-          { key: "pending", label: "Bekleyen" },
-          { key: "offline", label: "Offline" },
-          { key: "faulty", label: "Arızalı" },
+          { key: "all", label: t("common.all") },
+          { key: "active", label: t("superadmin.device.statusActive") },
+          { key: "pending", label: t("superadmin.devices.pending") },
+          { key: "offline", label: t("superadmin.devices.offline") },
+          { key: "faulty", label: t("superadmin.device.statusFaulty") },
         ].map((f) => (
           <TouchableOpacity
             key={f.key}
@@ -811,7 +823,9 @@ const DevicesScreen = ({ navigation }) => {
       {/* Özet + Kayıt Butonu */}
       <View style={styles.summaryBar}>
         <Text style={styles.summaryText}>
-          {filteredDevices.length} cihaz {filter !== "all" && `(${filter})`}
+          {t("superadmin.devices.listCount", {
+            count: filteredDevices.length,
+          })}
         </Text>
         <TouchableOpacity
           style={styles.fab}
@@ -819,7 +833,9 @@ const DevicesScreen = ({ navigation }) => {
           activeOpacity={0.85}
         >
           <Ionicons name="add-circle" size={18} color={COLORS.WHITE} />
-          <Text style={styles.fabText}>Yeni Cihaz</Text>
+          <Text style={styles.fabText}>
+            {t("superadmin.devices.newDevice")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -844,13 +860,15 @@ const DevicesScreen = ({ navigation }) => {
               size={64}
               color={withAlpha(COLORS.MUTED, 0.35) || COLORS.MUTED}
             />
-            <Text style={styles.emptyTitle}>Cihaz Bulunamadı</Text>
+            <Text style={styles.emptyTitle}>
+              {t("superadmin.devices.empty")}
+            </Text>
             <Text style={styles.emptyText}>
               {searchQuery
-                ? "Arama kriterlerine uygun cihaz yok"
+                ? t("superadmin.devices.emptySearch")
                 : filter !== "all"
-                  ? `${filter} durumunda cihaz yok`
-                  : "Henüz cihaz kaydedilmemiş"}
+                  ? t("superadmin.devices.emptyFilter", { filter })
+                  : t("superadmin.devices.emptyNone")}
             </Text>
           </View>
         }
@@ -872,7 +890,9 @@ const DevicesScreen = ({ navigation }) => {
             {/* Header */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {registerResult ? "✅ Kayıt Başarılı" : "📟 Yeni Cihaz Kayıt"}
+                {registerResult
+                  ? `✅ ${t("superadmin.devices.registerSuccessTitle")}`
+                  : `📟 ${t("superadmin.devices.registerModalTitle")}`}
               </Text>
               <TouchableOpacity
                 onPress={resetRegisterForm}
@@ -890,33 +910,45 @@ const DevicesScreen = ({ navigation }) => {
                 /* ===== RESULT VIEW ===== */
                 <View>
                   <View style={styles.resultCard}>
-                    <Text style={styles.resultTitle}>Cihaz Kaydedildi!</Text>
+                    <Text style={styles.resultTitle}>
+                      {t("superadmin.devices.registered")}
+                    </Text>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>Device Code</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.deviceCode")}
+                      </Text>
                       <Text style={styles.resultValue}>
                         {registerResult.device?.device_code}
                       </Text>
                     </View>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>Serial</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.serial")}
+                      </Text>
                       <Text style={styles.resultValue}>
                         {registerResult.device?.serial}
                       </Text>
                     </View>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>MAC</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.mac")}
+                      </Text>
                       <Text style={styles.resultValue}>
                         {registerResult.device?.mac_address}
                       </Text>
                     </View>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>Chip ID</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.chipId")}
+                      </Text>
                       <Text style={styles.resultValue}>
                         {registerResult.device?.esp_chip_id}
                       </Text>
                     </View>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>Device Token</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.deviceToken")}
+                      </Text>
                       <Text
                         style={[styles.resultValue, { fontSize: 10 }]}
                         selectable
@@ -925,7 +957,9 @@ const DevicesScreen = ({ navigation }) => {
                       </Text>
                     </View>
                     <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>QR Token</Text>
+                      <Text style={styles.resultLabel}>
+                        {t("superadmin.devices.qrToken")}
+                      </Text>
                       <Text
                         style={[styles.resultValue, { fontSize: 10 }]}
                         selectable
@@ -941,8 +975,9 @@ const DevicesScreen = ({ navigation }) => {
                       { textAlign: "center", marginBottom: 20 },
                     ]}
                   >
-                    Serial ve Device Token bilgilerini not edin.{"\n"}
-                    ESP32 provisioning sırasında otomatik kullanılacak.
+                    {t("superadmin.devices.tokenHint")}
+                    {"\n"}
+                    {t("superadmin.devices.provisionHint")}
                   </Text>
                 </View>
               ) : (
@@ -950,63 +985,77 @@ const DevicesScreen = ({ navigation }) => {
                 <View>
                   {/* Cihaz Kimlik */}
                   <View style={styles.modalSection}>
-                    <Text style={styles.modalSectionTitle}>Cihaz Kimlik</Text>
+                    <Text style={styles.modalSectionTitle}>
+                      {t("superadmin.devices.identity")}
+                    </Text>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>Device Code *</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.deviceCode")}
+                      </Text>
                       <TextInput
                         style={styles.formInput}
                         placeholder="FLEET-009"
                         value={form.device_code}
-                        onChangeText={(t) => updateForm("device_code", t)}
+                        onChangeText={(text) => updateForm("device_code", text)}
                         placeholderTextColor={COLORS.MUTED}
                         autoCapitalize="characters"
                       />
-                      <Text style={styles.formHint}>Kısa tanımlayıcı kod</Text>
+                      <Text style={styles.formHint}>
+                        {t("superadmin.devices.shortCodeHint")}
+                      </Text>
                     </View>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>MAC Address *</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.macAddress")}
+                      </Text>
                       <TextInput
                         style={styles.formInput}
                         placeholder="AA:BB:CC:DD:EE:FF"
                         value={form.mac_address}
-                        onChangeText={(t) =>
-                          updateForm("mac_address", formatMacAddress(t))
+                        onChangeText={(text) =>
+                          updateForm("mac_address", formatMacAddress(text))
                         }
                         placeholderTextColor={COLORS.MUTED}
                         maxLength={17}
                         autoCapitalize="characters"
                       />
                       <Text style={styles.formHint}>
-                        ESP32 Serial Monitor'dan
+                        {t("superadmin.devices.serialMonitor")}
                       </Text>
                     </View>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>ESP Chip ID *</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.espChipId")}
+                      </Text>
                       <TextInput
                         style={styles.formInput}
                         placeholder="83E8B0AF6E8"
                         value={form.esp_chip_id}
-                        onChangeText={(t) =>
-                          updateForm("esp_chip_id", t.toUpperCase())
+                        onChangeText={(text) =>
+                          updateForm("esp_chip_id", text.toUpperCase())
                         }
                         placeholderTextColor={COLORS.MUTED}
                         autoCapitalize="characters"
                       />
                       <Text style={styles.formHint}>
-                        ESP32 Serial Monitor'dan
+                        {t("superadmin.devices.serialMonitor")}
                       </Text>
                     </View>
                   </View>
 
                   {/* Donanım */}
                   <View style={styles.modalSection}>
-                    <Text style={styles.modalSectionTitle}>Donanım</Text>
+                    <Text style={styles.modalSectionTitle}>
+                      {t("superadmin.devices.hardware")}
+                    </Text>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>Chip Model</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.chipModel")}
+                      </Text>
                       <Selector
                         options={CHIP_MODELS}
                         value={form.chip_model}
@@ -1015,7 +1064,9 @@ const DevicesScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>Hardware Version</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.hardwareVersion")}
+                      </Text>
                       <Selector
                         options={HW_VERSIONS}
                         value={form.hardware_version}
@@ -1024,7 +1075,9 @@ const DevicesScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>Firmware</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.firmware")}
+                      </Text>
                       <Selector
                         options={FW_VERSIONS}
                         value={form.firmware_version}
@@ -1035,17 +1088,21 @@ const DevicesScreen = ({ navigation }) => {
 
                   {/* Notlar */}
                   <View style={styles.modalSection}>
-                    <Text style={styles.modalSectionTitle}>Ek Bilgi</Text>
+                    <Text style={styles.modalSectionTitle}>
+                      {t("superadmin.devices.extra")}
+                    </Text>
                     <View style={styles.formGroup}>
-                      <Text style={styles.formLabel}>Notlar</Text>
+                      <Text style={styles.formLabel}>
+                        {t("superadmin.devices.notes")}
+                      </Text>
                       <TextInput
                         style={[
                           styles.formInput,
                           { minHeight: 60, textAlignVertical: "top" },
                         ]}
-                        placeholder="3D baskı kasa v2, harici GPS anten..."
+                        placeholder={t("superadmin.devices.notesPlaceholder")}
                         value={form.notes}
-                        onChangeText={(t) => updateForm("notes", t)}
+                        onChangeText={(text) => updateForm("notes", text)}
                         placeholderTextColor={COLORS.MUTED}
                         multiline
                       />
@@ -1063,7 +1120,7 @@ const DevicesScreen = ({ navigation }) => {
                 activeOpacity={0.85}
               >
                 <Text style={styles.btnCancelText}>
-                  {registerResult ? "Kapat" : "İptal"}
+                  {registerResult ? t("common.close") : t("common.cancel")}
                 </Text>
               </TouchableOpacity>
 
@@ -1087,7 +1144,9 @@ const DevicesScreen = ({ navigation }) => {
                     />
                   )}
                   <Text style={styles.btnRegisterText}>
-                    {registering ? "Kaydediliyor..." : "Cihazı Kaydet"}
+                    {registering
+                      ? t("superadmin.devices.saving")
+                      : t("superadmin.devices.saveDevice")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -1111,7 +1170,9 @@ const DevicesScreen = ({ navigation }) => {
                   activeOpacity={0.85}
                 >
                   <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
-                  <Text style={styles.btnRegisterText}>Başka Cihaz Ekle</Text>
+                  <Text style={styles.btnRegisterText}>
+                    {t("superadmin.devices.addAnother")}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>

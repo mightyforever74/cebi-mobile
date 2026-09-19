@@ -2528,7 +2528,24 @@
       "maxDriversLabel": "Max sürücü:",
       "createdAt": "Oluşturulma",
       "total": "Toplam",
-      "active": "Aktif"
+      "active": "Aktif",
+      "usersCount": "Kullanıcılar ({{count}})",
+      "slugRequired": "Slug gerekli",
+      "actionPaymentReceived": "Ödeme kaydedildi",
+      "actionSuspended": "Askıya alındı",
+      "actionTierChanged": "Paket değiştirildi",
+      "actionTrialExtended": "Trial uzatıldı",
+      "actionCreated": "Şirket oluşturuldu",
+      "actionActivated": "Aktifleştirildi",
+      "adminInfo": "Admin Bilgileri",
+      "usage": "Kullanım",
+      "dates": "Tarihler",
+      "vehicleFee": "Araç Ücreti",
+      "monthlyTotal": "Aylık Toplam",
+      "startDate": "Başlangıç",
+      "lastPayment": "Son Ödeme",
+      "nextPayment": "Sonraki Ödeme",
+      "recentPayments": "Son Ödemeler"
     },
     "create": {
       "nameRequired": "Şirket adı gerekli",
@@ -2635,7 +2652,13 @@
       "offline": "Offline",
       "hwNew": "v2.0 (Yeni Kasa)",
       "hwOld": "v1.0 (Eski)",
-      "fwCurrent": "v4.4.1 (Güncel)"
+      "fwCurrent": "v4.4.1 (Güncel)",
+      "registerSuccessTitle": "Kayıt Başarılı",
+      "registerModalTitle": "Yeni Cihaz Kayıt",
+      "listCount": "{{count}} cihaz",
+      "tokenHint": "Serial ve Device Token bilgilerini not edin.",
+      "provisionHint": "ESP32 provisioning sırasında otomatik kullanılacak.",
+      "serialMonitor": "ESP32 Serial Monitor'dan"
     },
     "device": {
       "selectCompany": "Lütfen bir şirket seçin",
@@ -2687,7 +2710,10 @@
       "cmdStatus": "Durum",
       "cmdCalibrate": "Kalibre",
       "cmdReset": "Reset",
-      "cmdClearWifi": "WiFi Sil"
+      "cmdClearWifi": "WiFi Sil",
+      "send": "Gönder",
+      "assignToName": "{{name}}'e Ata",
+      "selectCompanyPlaceholder": "Şirket Seçin"
     },
     "qr": {
       "fetchFailed": "Cihazlar yüklenemedi",
@@ -2713,7 +2739,8 @@
       "modalTitle": "QR Code",
       "device": "Device:",
       "token": "Token:",
-      "expiresIn": "Expires In:"
+      "expiresIn": "Expires In:",
+      "expiresMinutes": "{{count}} dakika"
     },
     "users": {
       "loadFailed": "Kullanıcılar yüklenemedi",

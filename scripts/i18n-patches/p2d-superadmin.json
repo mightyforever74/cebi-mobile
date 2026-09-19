@@ -3508,5 +3508,275 @@
     "es": "Session expired. Please sign in again.",
     "it": "Session expired. Please sign in again.",
     "bg": "Session expired. Please sign in again."
+  },
+  "superadmin.companies.usersCount": {
+    "tr": "Kullanıcılar ({{count}})",
+    "en": "Users ({{count}})",
+    "nl": "Gebruikers ({{count}})",
+    "de": "Users ({{count}})",
+    "fr": "Users ({{count}})",
+    "es": "Users ({{count}})",
+    "it": "Users ({{count}})",
+    "bg": "Users ({{count}})"
+  },
+  "superadmin.companies.slugRequired": {
+    "tr": "Slug gerekli",
+    "en": "Slug is required",
+    "nl": "Slug is verplicht",
+    "de": "Slug is required",
+    "fr": "Slug is required",
+    "es": "Slug is required",
+    "it": "Slug is required",
+    "bg": "Slug is required"
+  },
+  "superadmin.companies.actionPaymentReceived": {
+    "tr": "Ödeme kaydedildi",
+    "en": "Payment recorded",
+    "nl": "Betaling vastgelegd",
+    "de": "Payment recorded",
+    "fr": "Payment recorded",
+    "es": "Payment recorded",
+    "it": "Payment recorded",
+    "bg": "Payment recorded"
+  },
+  "superadmin.companies.actionSuspended": {
+    "tr": "Askıya alındı",
+    "en": "Suspended",
+    "nl": "Opgeschort",
+    "de": "Suspended",
+    "fr": "Suspended",
+    "es": "Suspended",
+    "it": "Suspended",
+    "bg": "Suspended"
+  },
+  "superadmin.companies.actionTierChanged": {
+    "tr": "Paket değiştirildi",
+    "en": "Plan changed",
+    "nl": "Pakket gewijzigd",
+    "de": "Plan changed",
+    "fr": "Plan changed",
+    "es": "Plan changed",
+    "it": "Plan changed",
+    "bg": "Plan changed"
+  },
+  "superadmin.companies.actionTrialExtended": {
+    "tr": "Trial uzatıldı",
+    "en": "Trial extended",
+    "nl": "Proef verlengd",
+    "de": "Trial extended",
+    "fr": "Trial extended",
+    "es": "Trial extended",
+    "it": "Trial extended",
+    "bg": "Trial extended"
+  },
+  "superadmin.companies.actionCreated": {
+    "tr": "Şirket oluşturuldu",
+    "en": "Company created",
+    "nl": "Bedrijf aangemaakt",
+    "de": "Company created",
+    "fr": "Company created",
+    "es": "Company created",
+    "it": "Company created",
+    "bg": "Company created"
+  },
+  "superadmin.companies.actionActivated": {
+    "tr": "Aktifleştirildi",
+    "en": "Activated",
+    "nl": "Geactiveerd",
+    "de": "Activated",
+    "fr": "Activated",
+    "es": "Activated",
+    "it": "Activated",
+    "bg": "Activated"
+  },
+  "superadmin.devices.registerSuccessTitle": {
+    "tr": "Kayıt Başarılı",
+    "en": "Registration successful",
+    "nl": "Registratie gelukt",
+    "de": "Registration successful",
+    "fr": "Registration successful",
+    "es": "Registration successful",
+    "it": "Registration successful",
+    "bg": "Registration successful"
+  },
+  "superadmin.devices.registerModalTitle": {
+    "tr": "Yeni Cihaz Kayıt",
+    "en": "Register new device",
+    "nl": "Nieuw apparaat registreren",
+    "de": "Register new device",
+    "fr": "Register new device",
+    "es": "Register new device",
+    "it": "Register new device",
+    "bg": "Register new device"
+  },
+  "superadmin.qr.expiresMinutes": {
+    "tr": "{{count}} dakika",
+    "en": "{{count}} minutes",
+    "nl": "{{count}} minuten",
+    "de": "{{count}} minutes",
+    "fr": "{{count}} minutes",
+    "es": "{{count}} minutes",
+    "it": "{{count}} minutes",
+    "bg": "{{count}} minutes"
+  },
+  "superadmin.devices.listCount": {
+    "tr": "{{count}} cihaz",
+    "en": "{{count}} devices",
+    "nl": "{{count}} apparaten",
+    "de": "{{count}} devices",
+    "fr": "{{count}} devices",
+    "es": "{{count}} devices",
+    "it": "{{count}} devices",
+    "bg": "{{count}} devices"
+  },
+  "superadmin.devices.tokenHint": {
+    "tr": "Serial ve Device Token bilgilerini not edin.",
+    "en": "Note the serial and device token.",
+    "nl": "Noteer serial en apparaat-token.",
+    "de": "Note the serial and device token.",
+    "fr": "Note the serial and device token.",
+    "es": "Note the serial and device token.",
+    "it": "Note the serial and device token.",
+    "bg": "Note the serial and device token."
+  },
+  "superadmin.devices.provisionHint": {
+    "tr": "ESP32 provisioning sırasında otomatik kullanılacak.",
+    "en": "Used automatically during ESP32 provisioning.",
+    "nl": "Wordt automatisch gebruikt bij ESP32-provisioning.",
+    "de": "Used automatically during ESP32 provisioning.",
+    "fr": "Used automatically during ESP32 provisioning.",
+    "es": "Used automatically during ESP32 provisioning.",
+    "it": "Used automatically during ESP32 provisioning.",
+    "bg": "Used automatically during ESP32 provisioning."
+  },
+  "superadmin.devices.serialMonitor": {
+    "tr": "ESP32 Serial Monitor'dan",
+    "en": "From ESP32 serial monitor",
+    "nl": "Van ESP32 serial monitor",
+    "de": "From ESP32 serial monitor",
+    "fr": "From ESP32 serial monitor",
+    "es": "From ESP32 serial monitor",
+    "it": "From ESP32 serial monitor",
+    "bg": "From ESP32 serial monitor"
+  },
+  "superadmin.device.send": {
+    "tr": "Gönder",
+    "en": "Send",
+    "nl": "Versturen",
+    "de": "Send",
+    "fr": "Send",
+    "es": "Send",
+    "it": "Send",
+    "bg": "Send"
+  },
+  "superadmin.device.assignToName": {
+    "tr": "{{name}}'e Ata",
+    "en": "Assign to {{name}}",
+    "nl": "Toewijzen aan {{name}}",
+    "de": "Assign to {{name}}",
+    "fr": "Assign to {{name}}",
+    "es": "Assign to {{name}}",
+    "it": "Assign to {{name}}",
+    "bg": "Assign to {{name}}"
+  },
+  "superadmin.device.selectCompanyPlaceholder": {
+    "tr": "Şirket Seçin",
+    "en": "Select a company",
+    "nl": "Selecteer een bedrijf",
+    "de": "Select a company",
+    "fr": "Select a company",
+    "es": "Select a company",
+    "it": "Select a company",
+    "bg": "Select a company"
+  },
+  "superadmin.companies.adminInfo": {
+    "tr": "Admin Bilgileri",
+    "en": "Admin details",
+    "nl": "Admin-gegevens",
+    "de": "Admin details",
+    "fr": "Admin details",
+    "es": "Admin details",
+    "it": "Admin details",
+    "bg": "Admin details"
+  },
+  "superadmin.companies.usage": {
+    "tr": "Kullanım",
+    "en": "Usage",
+    "nl": "Gebruik",
+    "de": "Usage",
+    "fr": "Usage",
+    "es": "Usage",
+    "it": "Usage",
+    "bg": "Usage"
+  },
+  "superadmin.companies.dates": {
+    "tr": "Tarihler",
+    "en": "Dates",
+    "nl": "Datums",
+    "de": "Dates",
+    "fr": "Dates",
+    "es": "Dates",
+    "it": "Dates",
+    "bg": "Dates"
+  },
+  "superadmin.companies.vehicleFee": {
+    "tr": "Araç Ücreti",
+    "en": "Per-vehicle fee",
+    "nl": "Prijs per voertuig",
+    "de": "Per-vehicle fee",
+    "fr": "Per-vehicle fee",
+    "es": "Per-vehicle fee",
+    "it": "Per-vehicle fee",
+    "bg": "Per-vehicle fee"
+  },
+  "superadmin.companies.monthlyTotal": {
+    "tr": "Aylık Toplam",
+    "en": "Monthly total",
+    "nl": "Maandtotal",
+    "de": "Monthly total",
+    "fr": "Monthly total",
+    "es": "Monthly total",
+    "it": "Monthly total",
+    "bg": "Monthly total"
+  },
+  "superadmin.companies.startDate": {
+    "tr": "Başlangıç",
+    "en": "Start",
+    "nl": "Start",
+    "de": "Start",
+    "fr": "Start",
+    "es": "Start",
+    "it": "Start",
+    "bg": "Start"
+  },
+  "superadmin.companies.lastPayment": {
+    "tr": "Son Ödeme",
+    "en": "Last payment",
+    "nl": "Laatste betaling",
+    "de": "Last payment",
+    "fr": "Last payment",
+    "es": "Last payment",
+    "it": "Last payment",
+    "bg": "Last payment"
+  },
+  "superadmin.companies.nextPayment": {
+    "tr": "Sonraki Ödeme",
+    "en": "Next payment",
+    "nl": "Volgende betaling",
+    "de": "Next payment",
+    "fr": "Next payment",
+    "es": "Next payment",
+    "it": "Next payment",
+    "bg": "Next payment"
+  },
+  "superadmin.companies.recentPayments": {
+    "tr": "Son Ödemeler",
+    "en": "Recent payments",
+    "nl": "Recente betalingen",
+    "de": "Recent payments",
+    "fr": "Recent payments",
+    "es": "Recent payments",
+    "it": "Recent payments",
+    "bg": "Recent payments"
   }
 }

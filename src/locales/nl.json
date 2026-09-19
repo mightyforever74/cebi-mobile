@@ -2658,7 +2658,24 @@
       "maxDriversLabel": "Max chauffeurs:",
       "createdAt": "Aangemaakt",
       "total": "Totaal",
-      "active": "Actief"
+      "active": "Actief",
+      "usersCount": "Gebruikers ({{count}})",
+      "slugRequired": "Slug is verplicht",
+      "actionPaymentReceived": "Betaling vastgelegd",
+      "actionSuspended": "Opgeschort",
+      "actionTierChanged": "Pakket gewijzigd",
+      "actionTrialExtended": "Proef verlengd",
+      "actionCreated": "Bedrijf aangemaakt",
+      "actionActivated": "Geactiveerd",
+      "adminInfo": "Admin-gegevens",
+      "usage": "Gebruik",
+      "dates": "Datums",
+      "vehicleFee": "Prijs per voertuig",
+      "monthlyTotal": "Maandtotal",
+      "startDate": "Start",
+      "lastPayment": "Laatste betaling",
+      "nextPayment": "Volgende betaling",
+      "recentPayments": "Recente betalingen"
     },
     "create": {
       "nameRequired": "Bedrijfsnaam is verplicht",
@@ -2765,7 +2782,13 @@
       "offline": "Offline",
       "hwNew": "v2.0 (nieuwe behuizing)",
       "hwOld": "v1.0 (oud)",
-      "fwCurrent": "v4.4.1 (actueel)"
+      "fwCurrent": "v4.4.1 (actueel)",
+      "registerSuccessTitle": "Registratie gelukt",
+      "registerModalTitle": "Nieuw apparaat registreren",
+      "listCount": "{{count}} apparaten",
+      "tokenHint": "Noteer serial en apparaat-token.",
+      "provisionHint": "Wordt automatisch gebruikt bij ESP32-provisioning.",
+      "serialMonitor": "Van ESP32 serial monitor"
     },
     "device": {
       "selectCompany": "Selecteer een bedrijf",
@@ -2817,7 +2840,10 @@
       "cmdStatus": "Status",
       "cmdCalibrate": "Kalibreren",
       "cmdReset": "Reset",
-      "cmdClearWifi": "WiFi wissen"
+      "cmdClearWifi": "WiFi wissen",
+      "send": "Versturen",
+      "assignToName": "Toewijzen aan {{name}}",
+      "selectCompanyPlaceholder": "Selecteer een bedrijf"
     },
     "qr": {
       "fetchFailed": "Apparaten laden mislukt",
@@ -2843,7 +2869,8 @@
       "modalTitle": "QR-code",
       "device": "Apparaat:",
       "token": "Token:",
-      "expiresIn": "Verloopt over:"
+      "expiresIn": "Verloopt over:",
+      "expiresMinutes": "{{count}} minuten"
     },
     "users": {
       "loadFailed": "Gebruikers laden mislukt",

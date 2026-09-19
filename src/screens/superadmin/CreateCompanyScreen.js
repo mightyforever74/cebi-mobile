@@ -3,6 +3,7 @@
 // Updated: UI System Guide v3 uyumlu
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +23,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 
 const CreateCompanyScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -62,26 +64,26 @@ const CreateCompanyScreen = ({ navigation }) => {
   };
   const validateStep1 = () => {
     if (!companyName.trim()) {
-      Alert.alert("Hata", "Şirket adı gerekli");
+      Alert.alert(t("common.error"), t("superadmin.create.nameRequired"));
       return false;
     }
     if (!companySlug.trim()) {
-      Alert.alert("Hata", "Şirket slug gerekli");
+      Alert.alert(t("common.error"), t("superadmin.create.slugRequired"));
       return false;
     }
     return true;
   };
   const validateStep2 = () => {
     if (!adminEmail.trim()) {
-      Alert.alert("Hata", "Admin email gerekli");
+      Alert.alert(t("common.error"), t("superadmin.create.adminEmailRequired"));
       return false;
     }
     if (!adminEmail.includes("@")) {
-      Alert.alert("Hata", "Geçerli bir email adresi girin");
+      Alert.alert(t("common.error"), t("superadmin.create.emailInvalid"));
       return false;
     }
     if (!adminPassword || adminPassword.length < 6) {
-      Alert.alert("Hata", "Şifre en az 6 karakter olmalı");
+      Alert.alert(t("common.error"), t("superadmin.create.passwordShort"));
       return false;
     }
     return true;
@@ -116,16 +118,22 @@ const CreateCompanyScreen = ({ navigation }) => {
       const data = await response.json();
       if (response.ok) {
         Alert.alert(
-          "Başarılı!",
-          `"${companyName}" şirketi ve admin hesabı oluşturuldu.\n\nAdmin: ${adminEmail}`,
-          [{ text: "Tamam", onPress: () => navigation.goBack() }]
+          t("common.success"),
+          t("superadmin.create.success", {
+            name: companyName,
+            email: adminEmail,
+          }),
+          [{ text: t("common.ok"), onPress: () => navigation.goBack() }]
         );
       } else {
-        Alert.alert("Hata", data.error || "Şirket oluşturulamadı");
+        Alert.alert(
+          t("common.error"),
+          data.error || t("superadmin.create.failed")
+        );
       }
     } catch (error) {
       console.error("Create error:", error);
-      Alert.alert("Hata", "Bağlantı hatası");
+      Alert.alert(t("common.error"), t("superadmin.connectionError"));
     } finally {
       setLoading(false);
     }
@@ -161,46 +169,46 @@ const CreateCompanyScreen = ({ navigation }) => {
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Şirket Bilgileri</Text>
+      <Text style={styles.stepTitle}>{t("superadmin.create.companyInfo")}</Text>
       <Text style={styles.stepDescription}>
-        Yeni şirketin temel bilgilerini girin
+        {t("superadmin.create.step1desc")}
       </Text>
       <InputField
-        label="Şirket Adı *"
+        label={t("superadmin.create.companyName")}
         value={companyName}
         onChangeText={handleCompanyNameChange}
-        placeholder="Örn: ABC Lojistik"
+        placeholder={t("superadmin.create.namePlaceholder")}
       />
       <InputField
-        label="Slug (URL) *"
+        label={t("superadmin.create.slugUrl")}
         value={companySlug}
         onChangeText={setCompanySlug}
         placeholder="abc-lojistik"
         autoCapitalize="none"
       />
       <InputField
-        label="Vergi No"
+        label={t("superadmin.create.taxId")}
         value={taxId}
         onChangeText={setTaxId}
-        placeholder="Vergi numarası"
+        placeholder={t("superadmin.create.taxPlaceholder")}
         keyboardType="numeric"
       />
       <InputField
-        label="Şehir"
+        label={t("superadmin.create.city")}
         value={city}
         onChangeText={setCity}
-        placeholder="İstanbul"
+        placeholder={t("superadmin.create.cityPlaceholder")}
       />
       <InputField
-        label="Adres"
+        label={t("superadmin.create.address")}
         value={address}
         onChangeText={setAddress}
-        placeholder="Tam adres"
+        placeholder={t("superadmin.create.addressPlaceholder")}
         multiline
         numberOfLines={3}
       />
       <InputField
-        label="Telefon"
+        label={t("superadmin.create.phone")}
         value={phone}
         onChangeText={setPhone}
         placeholder="+90 5XX XXX XX XX"
@@ -210,19 +218,19 @@ const CreateCompanyScreen = ({ navigation }) => {
         style={styles.nextButton}
         onPress={() => validateStep1() && setStep(2)}
       >
-        <Text style={styles.nextButtonText}>İleri →</Text>
+        <Text style={styles.nextButtonText}>{t("superadmin.create.next")}</Text>
       </TouchableOpacity>
     </View>
   );
 
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Admin Hesabı</Text>
+      <Text style={styles.stepTitle}>{t("superadmin.create.adminAccount")}</Text>
       <Text style={styles.stepDescription}>
-        Şirket yöneticisinin giriş bilgilerini oluşturun
+        {t("superadmin.create.adminAccountDesc")}
       </Text>
       <InputField
-        label="Email *"
+        label={t("superadmin.create.email")}
         value={adminEmail}
         onChangeText={setAdminEmail}
         placeholder="admin@sirket.com"
@@ -230,26 +238,26 @@ const CreateCompanyScreen = ({ navigation }) => {
         autoCapitalize="none"
       />
       <InputField
-        label="Şifre *"
+        label={t("superadmin.create.password")}
         value={adminPassword}
         onChangeText={setAdminPassword}
-        placeholder="En az 6 karakter"
+        placeholder={t("createDriver.passwordPlaceholder")}
         secureTextEntry
       />
       <InputField
-        label="Ad"
+        label={t("superadmin.create.firstName")}
         value={adminFirstName}
         onChangeText={setAdminFirstName}
-        placeholder="Admin adı"
+        placeholder={t("superadmin.create.firstNamePlaceholder")}
       />
       <InputField
-        label="Soyad"
+        label={t("superadmin.create.lastName")}
         value={adminLastName}
         onChangeText={setAdminLastName}
-        placeholder="Admin soyadı"
+        placeholder={t("superadmin.create.lastNamePlaceholder")}
       />
       <InputField
-        label="Telefon"
+        label={t("superadmin.create.phone")}
         value={adminPhone}
         onChangeText={setAdminPhone}
         placeholder="+90 5XX XXX XX XX"
@@ -260,13 +268,15 @@ const CreateCompanyScreen = ({ navigation }) => {
           style={[styles.navButton, styles.backBtn]}
           onPress={() => setStep(1)}
         >
-          <Text style={styles.backBtnText}>← Geri</Text>
+          <Text style={styles.backBtnText}>{t("superadmin.create.back")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.navButton, styles.nextButton]}
           onPress={() => validateStep2() && setStep(3)}
         >
-          <Text style={styles.nextButtonText}>İleri →</Text>
+          <Text style={styles.nextButtonText}>
+            {t("superadmin.create.next")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -274,19 +284,21 @@ const CreateCompanyScreen = ({ navigation }) => {
 
   const renderStep3 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Paket Limitleri</Text>
+      <Text style={styles.stepTitle}>
+        {t("superadmin.create.packageLimits")}
+      </Text>
       <Text style={styles.stepDescription}>
-        Şirketin kullanabileceği kaynak limitlerini belirleyin
+        {t("superadmin.create.packageLimitsDesc")}
       </Text>
       <InputField
-        label="Maksimum Araç Sayısı"
+        label={t("superadmin.create.maxVehiclesCount")}
         value={maxVehicles}
         onChangeText={setMaxVehicles}
         placeholder="10"
         keyboardType="numeric"
       />
       <InputField
-        label="Maksimum Sürücü Sayısı"
+        label={t("superadmin.create.maxDriversCount")}
         value={maxDrivers}
         onChangeText={setMaxDrivers}
         placeholder="10"
@@ -294,13 +306,19 @@ const CreateCompanyScreen = ({ navigation }) => {
       />
 
       <Card variant="flat" style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Özet</Text>
+        <Text style={styles.summaryTitle}>{t("superadmin.create.summary")}</Text>
         {[
-          { label: "Şirket:", value: companyName },
-          { label: "Admin:", value: adminEmail },
           {
-            label: "Limitler:",
-            value: `${maxVehicles} araç, ${maxDrivers} sürücü`,
+            label: t("superadmin.create.summaryCompany"),
+            value: companyName,
+          },
+          { label: t("superadmin.create.summaryAdmin"), value: adminEmail },
+          {
+            label: t("superadmin.create.summaryLimitsLabel"),
+            value: t("superadmin.create.summaryLimits", {
+              vehicles: maxVehicles,
+              drivers: maxDrivers,
+            }),
           },
         ].map((row, i) => (
           <View key={i} style={styles.summaryRow}>
@@ -315,7 +333,7 @@ const CreateCompanyScreen = ({ navigation }) => {
           style={[styles.navButton, styles.backBtn]}
           onPress={() => setStep(2)}
         >
-          <Text style={styles.backBtnText}>← Geri</Text>
+          <Text style={styles.backBtnText}>{t("superadmin.create.back")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.navButton, styles.createBtn]}
@@ -325,7 +343,9 @@ const CreateCompanyScreen = ({ navigation }) => {
           {loading ? (
             <ActivityIndicator color={COLORS.WHITE} size="small" />
           ) : (
-            <Text style={styles.createBtnText}>✓ Oluştur</Text>
+            <Text style={styles.createBtnText}>
+              {t("superadmin.create.submit")}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -363,7 +383,11 @@ const CreateCompanyScreen = ({ navigation }) => {
                   <Text style={styles.progressDotText}>{s}</Text>
                 </View>
                 <Text style={styles.progressLabel}>
-                  {s === 1 ? "Şirket" : s === 2 ? "Admin" : "Paket"}
+                  {s === 1
+                    ? t("superadmin.dashboard.company")
+                    : s === 2
+                      ? t("superadmin.users.admin")
+                      : t("superadmin.companies.package")}
                 </Text>
               </View>
             </View>

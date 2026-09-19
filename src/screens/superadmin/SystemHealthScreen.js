@@ -4,6 +4,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -16,8 +17,10 @@ import Card from "../../components/ui/Card";
 import { API_URL } from "../../constants/config";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { formatTime } from "../../utils/helpers";
 
 const SystemHealthScreen = () => {
+  const { t } = useTranslation();
   const { COLORS } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [loading, setLoading] = useState(true);
@@ -37,28 +40,28 @@ const SystemHealthScreen = () => {
           api: {
             status: "online",
             responseTime,
-            message: "API sunucusu çalışıyor",
+            messageKey: "superadmin.health.apiOnline",
           },
           database: {
             status: data.database === "connected" ? "online" : "offline",
-            message:
+            messageKey:
               data.database === "connected"
-                ? "PostgreSQL bağlantısı aktif"
-                : "Veritabanı bağlantı sorunu",
+                ? "superadmin.health.dbConnected"
+                : "superadmin.health.dbError",
           },
           mqtt: {
             status: data.mqtt === "connected" ? "online" : "offline",
-            message:
+            messageKey:
               data.mqtt === "connected"
-                ? "EMQX broker bağlantısı aktif"
-                : "MQTT bağlantı sorunu",
+                ? "superadmin.health.mqttConnected"
+                : "superadmin.health.mqttError",
           },
           redis: {
             status: data.redis === "connected" ? "online" : "offline",
-            message:
+            messageKey:
               data.redis === "connected"
-                ? "Redis cache aktif"
-                : "Redis bağlantı sorunu",
+                ? "superadmin.health.redisOnline"
+                : "superadmin.health.redisError",
           },
           uptime: data.uptime || null,
           version: data.version || "3.0.0",
@@ -68,11 +71,17 @@ const SystemHealthScreen = () => {
           api: {
             status: "offline",
             responseTime,
-            message: "API yanıt vermiyor",
+            messageKey: "superadmin.health.apiOffline",
           },
-          database: { status: "unknown", message: "Kontrol edilemedi" },
-          mqtt: { status: "unknown", message: "Kontrol edilemedi" },
-          redis: { status: "unknown", message: "Kontrol edilemedi" },
+          database: {
+            status: "unknown",
+            messageKey: "superadmin.health.unchecked",
+          },
+          mqtt: { status: "unknown", messageKey: "superadmin.health.unchecked" },
+          redis: {
+            status: "unknown",
+            messageKey: "superadmin.health.unchecked",
+          },
         });
       }
       setLastCheck(new Date());
@@ -82,11 +91,12 @@ const SystemHealthScreen = () => {
         api: {
           status: "offline",
           responseTime: null,
-          message: "Bağlantı hatası: " + error.message,
+          messageKey: "superadmin.health.connectionError",
+          messageParams: { detail: error.message },
         },
-        database: { status: "unknown", message: "Kontrol edilemedi" },
-        mqtt: { status: "unknown", message: "Kontrol edilemedi" },
-        redis: { status: "unknown", message: "Kontrol edilemedi" },
+        database: { status: "unknown", messageKey: "superadmin.health.unchecked" },
+        mqtt: { status: "unknown", messageKey: "superadmin.health.unchecked" },
+        redis: { status: "unknown", messageKey: "superadmin.health.unchecked" },
       });
       setLastCheck(new Date());
     } finally {
@@ -129,16 +139,24 @@ const SystemHealthScreen = () => {
   };
 
   const formatUptime = (seconds) => {
-    if (!seconds) return "Bilinmiyor";
+    if (!seconds) return t("common.unknown");
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    if (days > 0) return `${days} gün ${hours} saat`;
-    if (hours > 0) return `${hours} saat ${minutes} dk`;
-    return `${minutes} dakika`;
+    if (days > 0) return t("superadmin.health.uptimeDays", { days, hours });
+    if (hours > 0)
+      return t("superadmin.health.uptimeHours", { hours, minutes });
+    return t("superadmin.health.uptimeMinutes", { minutes });
   };
 
-  const ServiceCard = ({ title, icon, status, message, extra }) => {
+  const ServiceCard = ({
+    title,
+    icon,
+    status,
+    messageKey,
+    messageParams,
+    extra,
+  }) => {
     const statusColor = getStatusColor(status);
     const statusIconName = getStatusIcon(status);
     return (
@@ -152,14 +170,16 @@ const SystemHealthScreen = () => {
             <Ionicons name={statusIconName} size={14} color={COLORS.WHITE} />
             <Text style={styles.statusText}>
               {status === "online"
-                ? "Aktif"
+                ? t("superadmin.health.statusActive")
                 : status === "offline"
-                  ? "Kapalı"
-                  : "?"}
+                  ? t("superadmin.health.statusOffline")
+                  : t("superadmin.health.statusUnknown")}
             </Text>
           </View>
         </View>
-        <Text style={styles.serviceMessage}>{message}</Text>
+        <Text style={styles.serviceMessage}>
+          {messageKey ? t(messageKey, messageParams) : ""}
+        </Text>
         {extra && <View style={styles.extraInfo}>{extra}</View>}
       </Card>
     );
@@ -169,9 +189,7 @@ const SystemHealthScreen = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>
-          Sistem durumu kontrol ediliyor...
-        </Text>
+        <Text style={styles.loadingText}>{t("superadmin.health.checking")}</Text>
       </View>
     );
   }
@@ -207,56 +225,67 @@ const SystemHealthScreen = () => {
         />
         <Text style={styles.overallTitle}>
           {allOnline
-            ? "Tüm Sistemler Çalışıyor"
-            : "Sistem Sorunu Tespit Edildi"}
+            ? t("superadmin.health.allOk")
+            : t("superadmin.health.systemIssue")}
         </Text>
         <Text style={styles.overallSubtitle}>
-          Son kontrol: {lastCheck?.toLocaleTimeString("tr-TR") || "-"}
+          {t("superadmin.health.lastCheck", { time: formatTime(lastCheck) })}
         </Text>
       </View>
 
       {/* Servis Kartları */}
       <View style={styles.servicesContainer}>
         <ServiceCard
-          title="API Sunucusu"
+          title={t("superadmin.health.apiServer")}
           icon="server-outline"
           status={health?.api?.status}
-          message={health?.api?.message}
+          messageKey={health?.api?.messageKey}
+          messageParams={health?.api?.messageParams}
           extra={
             health?.api?.responseTime && (
               <Text style={styles.responseTime}>
-                Yanıt süresi: {health.api.responseTime}ms
+                {t("superadmin.health.responseTime", {
+                  ms: health.api.responseTime,
+                })}
               </Text>
             )
           }
         />
         <ServiceCard
-          title="PostgreSQL Veritabanı"
+          title={t("superadmin.health.postgres")}
           icon="server-outline"
           status={health?.database?.status}
-          message={health?.database?.message}
+          messageKey={health?.database?.messageKey}
         />
         <ServiceCard
-          title="MQTT Broker (EMQX)"
+          title={t("superadmin.health.mqttBroker")}
           icon="git-network-outline"
           status={health?.mqtt?.status}
-          message={health?.mqtt?.message}
+          messageKey={health?.mqtt?.messageKey}
         />
         <ServiceCard
-          title="Redis Cache"
+          title={t("superadmin.health.redis")}
           icon="flash-outline"
           status={health?.redis?.status}
-          message={health?.redis?.message}
+          messageKey={health?.redis?.messageKey}
         />
       </View>
 
       {/* Sistem Bilgileri */}
       <Card variant="flat" style={styles.systemInfo}>
-        <Text style={styles.sectionTitle}>Sistem Bilgileri</Text>
+        <Text style={styles.sectionTitle}>
+          {t("superadmin.health.systemInfo")}
+        </Text>
         {[
-          { label: "API Versiyonu", value: `v${health?.version || "3.0.0"}` },
-          { label: "Uptime", value: formatUptime(health?.uptime) },
-          { label: "API URL", value: API_URL },
+          {
+            label: t("superadmin.health.apiVersion"),
+            value: `v${health?.version || "3.0.0"}`,
+          },
+          {
+            label: t("superadmin.health.uptime"),
+            value: formatUptime(health?.uptime),
+          },
+          { label: t("superadmin.health.apiUrl"), value: API_URL },
         ].map((row, i) => (
           <View key={i} style={styles.infoRow}>
             <Text style={styles.infoLabel}>{row.label}</Text>
@@ -269,24 +298,30 @@ const SystemHealthScreen = () => {
 
       {/* IoT Cihazları */}
       <Card variant="flat" style={styles.deviceStatus}>
-        <Text style={styles.sectionTitle}>IoT Cihazları</Text>
+        <Text style={styles.sectionTitle}>{t("superadmin.health.iot")}</Text>
         <View style={styles.deviceCard}>
           <Ionicons name="hardware-chip" size={24} color={COLORS.SUCCESS} />
           <View style={styles.deviceInfo}>
-            <Text style={styles.deviceTitle}>ESP32 Cihazları</Text>
-            <Text style={styles.deviceSubtitle}>MQTT üzerinden bağlı</Text>
+            <Text style={styles.deviceTitle}>
+              {t("superadmin.health.esp32")}
+            </Text>
+            <Text style={styles.deviceSubtitle}>
+              {t("superadmin.health.mqtt")}
+            </Text>
           </View>
           <View
             style={[styles.statusBadge, { backgroundColor: COLORS.SUCCESS }]}
           >
-            <Text style={styles.statusText}>1 Online</Text>
+            <Text style={styles.statusText}>
+              {t("superadmin.health.onlineCount", { count: 1 })}
+            </Text>
           </View>
         </View>
       </Card>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Sayfa her 30 saniyede otomatik güncellenir
+          {t("superadmin.health.autoRefresh")}
         </Text>
       </View>
     </ScrollView>
