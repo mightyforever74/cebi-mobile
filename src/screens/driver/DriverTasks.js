@@ -48,13 +48,13 @@ const getStatusConfig = (COLORS) => ({
   },
   completed: {
     color: COLORS.SUCCESS,
-    bg: COLORS.INPUT_SUCCESS,
+    bg: withAlpha(COLORS.SUCCESS, 0.18),
     icon: "checkmark-done",
     key: "completed",
   },
   rejected: {
     color: COLORS.ERROR,
-    bg: COLORS.INPUT_ERROR,
+    bg: withAlpha(COLORS.ERROR, 0.18),
     icon: "close-circle",
     key: "rejected",
   },
@@ -72,7 +72,7 @@ const getStatusConfig = (COLORS) => ({
   },
   cancelled: {
     color: COLORS.ERROR,
-    bg: COLORS.INPUT_ERROR,
+    bg: withAlpha(COLORS.ERROR, 0.18),
     icon: "close-circle",
     key: "cancelled",
   },
@@ -1474,7 +1474,7 @@ const DriverTasks = ({ navigation }) => {
         )}
 
         {/* Go to nav */}
-        {status === "accepted" && (
+        {(status === "accepted" || status === "assigned") && (
           <TouchableOpacity
             style={styles.goToNavButton}
             onPress={() => navigateToMap(item)}

@@ -507,17 +507,18 @@ const DriverTaskDetail = ({ route, navigation }) => {
     return taskNo;
   };
 
-  const getOrigin = () => {
-    if (task?.route_json?.origin) return task.route_json.origin;
-    if (task?.start_location) return task.start_location;
-    return t("taskDetail.info.notSpecified");
-  };
+  const addressText = (value) =>
+    typeof value === "string" && value.trim() ? value.trim() : null;
 
-  const getDestination = () => {
-    if (task?.route_json?.destination) return task.route_json.destination;
-    if (task?.end_location) return task.end_location;
-    return t("taskDetail.info.notSpecified");
-  };
+  const getOrigin = () =>
+    addressText(task?.route_json?.origin) ||
+    addressText(task?.start_location) ||
+    t("taskDetail.info.notSpecified");
+
+  const getDestination = () =>
+    addressText(task?.route_json?.destination) ||
+    addressText(task?.end_location) ||
+    t("taskDetail.info.notSpecified");
 
   const getDistance = () => {
     if (task?.route_json?.distance) return task.route_json.distance;

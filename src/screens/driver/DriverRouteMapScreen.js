@@ -1529,18 +1529,17 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     return { origin, destination, waypoints };
   };
 
+  const addressText = (value) =>
+    typeof value === "string" && value.trim() ? value.trim() : null;
+
   const getStartLocation = () => {
-    // route_json.origin koordinat objesidir ({lat,lng}) â€” render edilemez
-    // Adres string'i icin start_location kullan
-    if (task?.start_location) return task.start_location;
-    return null;
+    // route_json.origin is a {lat,lng} object and is not rendered.
+    return addressText(task?.start_location);
   };
 
   const getEndLocation = () => {
-    // route_json.destination koordinat objesidir ({lat,lng}) â€” render edilemez
-    // Adres string'i icin end_location kullan
-    if (task?.end_location) return task.end_location;
-    return null;
+    // route_json.destination is a {lat,lng} object and is not rendered.
+    return addressText(task?.end_location);
   };
 
   const getEndLocationCoords = () => {
