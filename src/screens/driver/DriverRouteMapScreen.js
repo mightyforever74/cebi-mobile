@@ -34,15 +34,85 @@ const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 if (!GOOGLE_MAPS_API_KEY) {
   console.error(
-    "[Nav] EXPO_PUBLIC_GOOGLE_MAPS_API_KEY missing - polyline will fail"
+    "[Nav] EXPO_PUBLIC_GOOGLE_MAPS_API_KEY missing - text-address geocoding fallback will fail"
   );
 }
 
-// Waypoint limiti (Google Directions API limiti 25)
-const MAX_WAYPOINTS = 10;
+// Rota tek kaynak (10 Eki 2026): tasks.route_json.public_route.geometry (HERE truck,
+// core publicTrack.js yazar). Google Directions kaldirildi; musteri takip sayfasi ile
+// surucu ayni yolu gorur. Arac geometrinin disindayken anlik konumdan en yakin
+// geometri noktasina kesikli baglanti cizgisi cizilir; yeniden rota hesabi yok.
+const ON_ROUTE_THRESHOLD_M = 60;
+// fitToCoordinates icin nokta ust siniri (HERE geometrisi ~10k nokta olabilir)
+const FIT_MAX_POINTS = 200;
+// Core, Baslat'ta public_route'u arka planda yazar; gecikirse gorevi yeniden cek
+const PUBLIC_ROUTE_RETRY_MS = 4000;
+const PUBLIC_ROUTE_MAX_RETRIES = 3;
 
-// Route nokta limiti (performans icin)
-const MAX_ROUTE_POINTS = 500;
+const toLatLng = (p) => {
+  if (!p) return null;
+  const lat = Array.isArray(p) ? Number(p[0]) : Number(p.lat ?? p.latitude);
+  const lng = Array.isArray(p) ? Number(p[1]) : Number(p.lng ?? p.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat === 0 && lng === 0) return null;
+  return { latitude: lat, longitude: lng };
+};
+
+// route_json.public_route -> { geometry, origin, destination, distanceKm, durationMin } | null
+const publicRouteFromTask = (task) => {
+  const pr = task?.route_json?.public_route;
+  if (!pr || typeof pr !== "object" || Array.isArray(pr)) return null;
+  const geometry = Array.isArray(pr.geometry)
+    ? pr.geometry.map(toLatLng).filter(Boolean)
+    : [];
+  if (geometry.length < 2) return null;
+  const distanceKm = Number.isFinite(pr.distance_m)
+    ? pr.distance_m / 1000
+    : null;
+  const durationMin = Number.isFinite(pr.duration_s)
+    ? Math.ceil(pr.duration_s / 60)
+    : null;
+  return {
+    geometry,
+    origin: toLatLng(pr.origin),
+    destination: toLatLng(pr.destination),
+    distanceKm,
+    durationMin,
+    computedAt: pr.computed_at || null,
+  };
+};
+
+// Metre cinsinden hizli mesafe (equirectangular; kisa mesafede yeterli)
+const quickDistanceM = (a, b) => {
+  const R = 6371000;
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLng =
+    (((b.longitude - a.longitude) * Math.PI) / 180) *
+    Math.cos(((a.latitude + b.latitude) * Math.PI) / 360);
+  return R * Math.sqrt(dLat * dLat + dLng * dLng);
+};
+
+const nearestOnRoute = (point, coords) => {
+  let best = -1;
+  let bestD = Infinity;
+  for (let i = 0; i < coords.length; i++) {
+    const d = quickDistanceM(point, coords[i]);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return { index: best, distanceM: bestD };
+};
+
+const sampleForFit = (coords) => {
+  if (coords.length <= FIT_MAX_POINTS) return coords;
+  const step = Math.ceil(coords.length / FIT_MAX_POINTS);
+  const out = coords.filter((_, i) => i % step === 0);
+  if (out[out.length - 1] !== coords[coords.length - 1])
+    out.push(coords[coords.length - 1]);
+  return out;
+};
 
 // Geocoding cache - ayni adres icin tekrar API cagrisini onle
 const geocodeCache = new Map();
@@ -618,6 +688,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   const getInitialDestinationCoords = () => {
     if (!initialTask) return null;
 
+    const pr0 = publicRouteFromTask(initialTask);
+    if (pr0?.destination) return pr0.destination;
+
     const c1 = initialTask?.route_json?.destination_coords;
     const n1 = normalizeCoords(c1);
     if (n1) return n1;
@@ -661,6 +734,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
   const routeFetchedRef = useRef(false);
   const lastRouteTaskIdRef = useRef(null);
+  const publicRouteRetryRef = useRef({ taskId: null, count: 0, timer: null });
   const watchSubscriptionRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -706,13 +780,21 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       ":" +
       geocodedDestination.latitude +
       ":" +
-      geocodedDestination.longitude;
+      geocodedDestination.longitude +
+      ":" +
+      (task?.route_json?.public_route?.computed_at || "none");
     if (lastRouteTaskIdRef.current === routeKey) return;
 
     lastRouteTaskIdRef.current = routeKey;
     routeFetchedRef.current = true;
     fetchRouteAndStartNav();
-  }, [task?.status, task?.id, location, geocodedDestination]);
+  }, [
+    task?.status,
+    task?.id,
+    location,
+    geocodedDestination,
+    task?.route_json?.public_route?.computed_at,
+  ]);
 
   // ======
   // GEOCODING - Text adres -> Koordinat (cache + abort + normalize)
@@ -731,6 +813,13 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     const controller = new AbortController();
 
     const geocodeDestination = async () => {
+      // 0. HERE rotasinin varis noktasi (takip sayfasiyla ayni nokta)
+      const pr = publicRouteFromTask(task);
+      if (pr?.destination) {
+        setGeocodedDestination(pr.destination);
+        return;
+      }
+
       // 1. route_json'dan koordinat (normalize edilmis)
       if (task?.route_json?.destination_coords) {
         const normalized = normalizeCoords(task.route_json.destination_coords);
@@ -854,6 +943,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     task?.route_json?.dest_lng,
     destCoordsKey,
     task?.waypoints?.length,
+    task?.route_json?.public_route?.computed_at,
     normalizeCoords,
   ]);
 
@@ -941,262 +1031,19 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
-  // ====
-  // GOOGLE DIRECTIONS API
   // ======
-
-  const decodePolyline = (encoded) => {
-    if (!encoded || typeof encoded !== "string") return [];
-
-    const points = [];
-    let index = 0,
-      lat = 0,
-      lng = 0;
-
-    while (index < encoded.length) {
-      let b,
-        shift = 0,
-        result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
-      lng += dlng;
-
-      points.push({
-        latitude: lat / 1e5,
-        longitude: lng / 1e5,
-      });
-    }
-    return points;
-  };
-
-  const downsampleRoute = (points, maxPoints = MAX_ROUTE_POINTS) => {
-    if (!points || points.length <= maxPoints) return points;
-
-    // Ramer-Douglas-Peucker: virajlari koruyarak nokta azaltir
-    const perpDist = (p, a, b) => {
-      const dx = b.longitude - a.longitude;
-      const dy = b.latitude - a.latitude;
-      const lenSq = dx * dx + dy * dy;
-      if (lenSq === 0) {
-        const ex = p.longitude - a.longitude;
-        const ey = p.latitude - a.latitude;
-        return Math.sqrt(ex * ex + ey * ey);
-      }
-      const t = Math.max(
-        0,
-        Math.min(
-          1,
-          ((p.longitude - a.longitude) * dx + (p.latitude - a.latitude) * dy) /
-            lenSq
-        )
-      );
-      const projLng = a.longitude + t * dx;
-      const projLat = a.latitude + t * dy;
-      const ex = p.longitude - projLng;
-      const ey = p.latitude - projLat;
-      return Math.sqrt(ex * ex + ey * ey);
-    };
-
-    const rdp = (pts, eps) => {
-      if (pts.length <= 2) return pts;
-      let maxD = 0,
-        idx = 0;
-      const first = pts[0],
-        last = pts[pts.length - 1];
-      for (let i = 1; i < pts.length - 1; i++) {
-        const d = perpDist(pts[i], first, last);
-        if (d > maxD) {
-          maxD = d;
-          idx = i;
-        }
-      }
-      if (maxD > eps) {
-        const left = rdp(pts.slice(0, idx + 1), eps);
-        const right = rdp(pts.slice(idx), eps);
-        return left.slice(0, -1).concat(right);
-      }
-      return [first, last];
-    };
-
-    // Adaptive epsilon: kucuk baslayip buyuterek maxPoints'e yakinlastir
-    let eps = 0.00005; // ~5m
-    let result = rdp(points, eps);
-    let iterations = 0;
-    while (result.length > maxPoints && iterations < 10) {
-      eps *= 2;
-      result = rdp(points, eps);
-      iterations++;
-    }
-
-    console.log(
-      `[Nav] Smart downsample: ${points.length} -> ${result.length} points (eps=${eps.toFixed(6)})`
-    );
-
-    // Guard: RDP cok agresif sadeleÅŸtiyse orijinal noktalara geri don
-    if (result.length < 50)
-      return points.slice(0, Math.min(points.length, maxPoints));
-
-    return result;
-  };
-
-  // Helper: pushDedup - only push if not duplicate (prevents zigzag artifacts)
-  const pushDedup = (arr, pts) => {
-    for (const p of pts) {
-      const last = arr[arr.length - 1];
-      if (
-        !last ||
-        Math.abs(last.latitude - p.latitude) > 1e-6 ||
-        Math.abs(last.longitude - p.longitude) > 1e-6
-      ) {
-        arr.push(p);
-      }
-    }
-  };
-
-  const fetchRouteFromGoogle = async (origin, destination, waypoints = []) => {
-    try {
-      const limitedWaypoints = waypoints.slice(0, MAX_WAYPOINTS);
-      if (waypoints.length > MAX_WAYPOINTS) {
-        console.log(
-          `[Nav] Waypoints limited: ${waypoints.length} -> ${MAX_WAYPOINTS}`
-        );
-      }
-
-      let url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=${GOOGLE_MAPS_API_KEY}`;
-
-      if (limitedWaypoints.length > 0) {
-        const waypointStr = limitedWaypoints
-          .map((wp) => `${wp.latitude},${wp.longitude}`)
-          .join("|");
-        url += `&waypoints=${encodeURIComponent(waypointStr)}`;
-      }
-
-      console.log("[Nav] Fetching route from Google Directions API...");
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.status === "OK" && data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-
-        //  BEST: build path from legs[].steps[].polyline (most road-accurate)
-        const stepCoords = [];
-        (route.legs || []).forEach((leg) => {
-          (leg.steps || []).forEach((step) => {
-            const pts = step?.polyline?.points;
-            const decoded = decodePolyline(pts);
-            if (decoded.length) pushDedup(stepCoords, decoded);
-          });
-        });
-
-        if (stepCoords.length > 0) {
-          const sampled = stepCoords; // downsample KAPALI - steps polyline zaten yol geometrisini birebir verir
-          let totalDistance = 0;
-          let totalDuration = 0;
-          (route.legs || []).forEach((leg) => {
-            totalDistance += leg.distance?.value || 0;
-            totalDuration += leg.duration?.value || 0;
-          });
-
-          return {
-            coordinates: sampled,
-            distance: totalDistance / 1000,
-            duration: Math.ceil(totalDuration / 60),
-          };
-        }
-
-        //  1) overview_path varsa onu kullan (daha guvenilir yol geometrisi)
-        if (
-          Array.isArray(route.overview_path) &&
-          route.overview_path.length > 0
-        ) {
-          let pathCoords = route.overview_path.map((p) => ({
-            latitude: p.lat,
-            longitude: p.lng,
-          }));
-          pathCoords = downsampleRoute(pathCoords);
-
-          let totalDistance = 0;
-          let totalDuration = 0;
-          (route.legs || []).forEach((leg) => {
-            totalDistance += leg.distance?.value || 0;
-            totalDuration += leg.duration?.value || 0;
-          });
-
-          return {
-            coordinates: pathCoords,
-            distance: totalDistance / 1000,
-            duration: Math.ceil(totalDuration / 60),
-          };
-        }
-
-        //  2) fallback: overview_polyline decode (mevcut davranisin)
-        const points = route.overview_polyline?.points;
-        let decodedPoints = decodePolyline(points);
-        decodedPoints = downsampleRoute(decodedPoints);
-
-        let totalDistance = 0;
-        let totalDuration = 0;
-        (route.legs || []).forEach((leg) => {
-          totalDistance += leg.distance?.value || 0;
-          totalDuration += leg.duration?.value || 0;
-        });
-
-        console.log(
-          "[Nav] Route fetched:",
-          decodedPoints.length,
-          "points,",
-          (totalDistance / 1000).toFixed(1),
-          "km,",
-          Math.ceil(totalDuration / 60),
-          "min"
-        );
-
-        return {
-          coordinates: decodedPoints,
-          distance: totalDistance / 1000,
-          duration: Math.ceil(totalDuration / 60),
-        };
-      } else {
-        console.log(
-          "[Nav] Directions API error:",
-          data.status,
-          data.error_message || ""
-        );
-        return null;
-      }
-    } catch (error) {
-      console.log("[Nav] Directions API fetch error:", error.message || error);
-      return null;
-    }
-  };
-
-  // ======
-  // NAVIGATION & ROUTE
+  // ROUTE (HERE geometry from route_json.public_route; no client-side routing)
   // ======
 
   const fetchRouteAndStartNav = async () => {
     if (!location) {
-      console.log("[Nav] No location, skipping route fetch");
+      console.log("[Nav] No location, skipping route draw");
       return;
     }
 
     const endCoords = getEndLocationCoords();
     if (!endCoords) {
-      console.log("[Nav] No destination coordinates, skipping route fetch");
+      console.log("[Nav] No destination coordinates, skipping route draw");
       return;
     }
 
@@ -1205,76 +1052,86 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     try {
       stopLocationTracking();
 
-      //  Waypoints: gorev ara noktalari
-      let waypoints = (task?.waypoints || [])
-        .map((wp) => {
-          if (wp.lat && wp.lng) return { latitude: wp.lat, longitude: wp.lng };
-          if (wp.latitude && wp.longitude)
-            return { latitude: wp.latitude, longitude: wp.longitude };
-          return null;
-        })
-        .filter(Boolean);
+      const pr = publicRouteFromTask(task);
 
-      //  FIX: Gorevin baslangic noktasini (origin_coords) ilk waypoint olarak ekle
-      // Arac (ESP32 GPS) gorevin origin'inden farkli yerde olabilir.
-      // rnek: Arac stanbul'da, gorev Ankara'dan basliyor -> Ankara ilk waypoint olmali.
-      const sameCoord = (a, b, eps = 1e-4) =>
-        Math.abs(a.latitude - b.latitude) < eps &&
-        Math.abs(a.longitude - b.longitude) < eps;
-
-      const originCoords = normalizeCoords(task?.route_json?.origin_coords);
-      if (
-        originCoords &&
-        (!waypoints[0] || !sameCoord(waypoints[0], originCoords))
-      ) {
-        waypoints = [originCoords, ...waypoints];
-        console.log("[Nav] Added task origin as first waypoint:", originCoords);
-      }
-
-      const routeData = await fetchRouteFromGoogle(
-        { latitude: location.latitude, longitude: location.longitude },
-        endCoords,
-        waypoints
-      );
-
-      if (routeData?.coordinates?.length > 0) {
-        setRouteCoords(routeData.coordinates);
+      if (pr) {
+        setRouteCoords(pr.geometry);
         setNavigationInfo({
-          distance: routeData.distance.toFixed(1),
-          eta: routeData.duration,
+          distance:
+            pr.distanceKm != null
+              ? pr.distanceKm.toFixed(1)
+              : getDistance() || "?",
+          eta: pr.durationMin != null ? pr.durationMin : "?",
         });
+        console.log(
+          "[Nav] HERE public_route drawn:",
+          pr.geometry.length,
+          "points,",
+          pr.distanceKm != null ? pr.distanceKm.toFixed(1) + " km" : "? km"
+        );
 
         setTimeout(() => {
-          if (mapRef.current && routeData.coordinates.length > 1) {
-            // fitToCoordinates icin max 200 nokta (crash engelle)
-            const fitCoords =
-              routeData.coordinates.length > 200
-                ? routeData.coordinates.filter(
-                    (_, i) =>
-                      i % Math.ceil(routeData.coordinates.length / 200) === 0
-                  )
-                : routeData.coordinates;
-            mapRef.current.fitToCoordinates(fitCoords, {
-              edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
-              animated: true,
-            });
+          if (mapRef.current && pr.geometry.length > 1) {
+            mapRef.current.fitToCoordinates(
+              sampleForFit([
+                { latitude: location.latitude, longitude: location.longitude },
+                ...pr.geometry,
+              ]),
+              {
+                edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
+                animated: true,
+              }
+            );
           }
         }, 500);
       } else {
-        console.log("[Nav] No valid route coordinates received");
+        // Henuz HERE geometrisi yok: duz kesikli cizgi (connector) cizilir,
+        // core'un Baslat'ta yazdigi public_route icin gorev yeniden cekilir.
+        setRouteCoords([]);
         setNavigationInfo({
           distance: getDistance() || "?",
           eta: "?",
         });
+        schedulePublicRouteRetry();
       }
 
       startLocationTracking();
     } catch (error) {
-      console.log("[Nav] Route fetch error:", error);
+      console.log("[Nav] Route draw error:", error);
     } finally {
       setRouteLoading(false);
     }
   };
+
+  const schedulePublicRouteRetry = () => {
+    const ref = publicRouteRetryRef.current;
+    if (!task?.id) return;
+    if (ref.taskId !== task.id) {
+      ref.taskId = task.id;
+      ref.count = 0;
+    }
+    if (ref.timer) return;
+    if (ref.count >= PUBLIC_ROUTE_MAX_RETRIES) {
+      console.log(
+        "[Nav] public_route still missing after retries; keeping connector line"
+      );
+      return;
+    }
+    ref.count += 1;
+    ref.timer = setTimeout(() => {
+      publicRouteRetryRef.current.timer = null;
+      console.log("[Nav] Re-fetching task for public_route, attempt", ref.count);
+      loadActiveTask();
+    }, PUBLIC_ROUTE_RETRY_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      const ref = publicRouteRetryRef.current;
+      if (ref.timer) clearTimeout(ref.timer);
+      ref.timer = null;
+    };
+  }, []);
 
   const startLocationTracking = async () => {
     try {
@@ -1387,6 +1244,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const updated = { ...task, status: "in_progress" };
       setTask(updated);
       console.log("[Nav] Task started, status: in_progress");
+      // Core /start, public_route'u arka planda yazar; kisa gecikmeyle yeniden cek
+      setTimeout(() => {
+        loadActiveTask();
+      }, 1500);
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
@@ -1573,9 +1434,22 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   }, [location]);
 
+  // Kesikli baglanti cizgisi: arac HERE geometrisinin disindaysa en yakin geometri
+  // noktasina; geometri yoksa dogrudan varis noktasina.
+  const connectorCoords = useMemo(() => {
+    if (!location || task?.status !== "in_progress") return null;
+    if (routeCoords.length > 1) {
+      const { index, distanceM } = nearestOnRoute(location, routeCoords);
+      if (index < 0 || distanceM <= ON_ROUTE_THRESHOLD_M) return null;
+      return [location, routeCoords[index]];
+    }
+    if (geocodedDestination) return [location, geocodedDestination];
+    return null;
+  }, [location, routeCoords, geocodedDestination, task?.status]);
+
   const fitToRoute = useCallback(() => {
     if (mapRef.current && routeCoords.length > 1) {
-      mapRef.current.fitToCoordinates(routeCoords, {
+      mapRef.current.fitToCoordinates(sampleForFit(routeCoords), {
         edgePadding: { top: 100, right: 50, bottom: 120, left: 50 },
         animated: true,
       });
@@ -1695,7 +1569,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
               <Polyline
                 coordinates={routeCoords}
                 strokeWidth={8}
-                strokeColor={COLORS.PRIMARY + "4D"}
+                strokeColor={withAlpha(COLORS.PRIMARY, 0.3)}
               />
               <Polyline
                 coordinates={routeCoords}
@@ -1703,6 +1577,16 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 strokeColor={COLORS.PRIMARY}
               />
             </>
+          )}
+
+          {/* Connector: vehicle -> route (or -> destination when no geometry yet) */}
+          {isNavigating && connectorCoords && (
+            <Polyline
+              coordinates={connectorCoords}
+              strokeWidth={3}
+              strokeColor={withAlpha(COLORS.PRIMARY, 0.85)}
+              lineDashPattern={[12, 10]}
+            />
           )}
 
           {/* Waypoint Markers */}
