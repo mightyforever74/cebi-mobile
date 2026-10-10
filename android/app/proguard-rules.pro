@@ -11,4 +11,16 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# react-native-ble-plx (Polidea RxAndroidBle tabanlı) — R8/ProGuard açılırken
+# BLE tarama/eşleştirme JNI-reflection ağırlıklı, keep-rule olmadan kırılma riski yüksek
+-keep class com.polidea.rxandroidble2.** { *; }
+-keep interface com.polidea.rxandroidble2.** { *; }
+-dontwarn com.polidea.rxandroidble2.**
+-keep class com.polidea.reactnativeble.** { *; }
+
+# react-native-maps / Google Maps SDK — marker/overlay custom view stripping bilinen sorun
+-keep class com.google.android.gms.maps.** { *; }
+-keep interface com.google.android.gms.maps.** { *; }
+-keep class com.airbnb.android.react.maps.** { *; }
+
 # Add any project specific keep options here:
