@@ -25,6 +25,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { adminAPI, taskAPI } from "../../services/api";
+import { syncLanguageToBackend } from "../../locales/syncLanguage";
 import { formatDate, formatNumber, formatTime } from "../../utils/helpers";
 
 // --- helper: #RRGGBB => #RRGGBBAA ---
@@ -893,6 +894,7 @@ const AdminDashboard = () => {
     LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
   const handleChangeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
+    syncLanguageToBackend(langCode); // P1-3b: push sablonlari da bu dili kullansin
     setShowLangModal(false);
   };
 

@@ -22,6 +22,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { LANGUAGES } from "../locales/i18n";
+import { syncLanguageToBackend } from "../locales/syncLanguage";
 import { taskOffersAPI } from "../services/api";
 
 // ============================================
@@ -336,6 +337,7 @@ const DrawerContent = ({ navigation, state }) => {
   // Change language with force re-render
   const changeLanguage = async (langCode) => {
     await i18n.changeLanguage(langCode);
+    syncLanguageToBackend(langCode); // P1-3b: push sablonlari da bu dili kullansin
     setLangModalVisible(false);
   };
 

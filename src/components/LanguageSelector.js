@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { LANGUAGES } from "../locales/i18n";
+import { syncLanguageToBackend } from "../locales/syncLanguage";
 
 const LanguageSelector = () => {
   const { t, i18n } = useTranslation();
@@ -20,6 +21,7 @@ const LanguageSelector = () => {
 
   const changeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
+    syncLanguageToBackend(langCode); // P1-3b: push sablonlari da bu dili kullansin
     setModalVisible(false);
   };
 

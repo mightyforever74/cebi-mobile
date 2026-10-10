@@ -31,6 +31,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
+import { syncLanguageToBackend } from "../../locales/syncLanguage";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
 import { withAlpha } from "../../utils/colorUtils";
 
@@ -631,6 +632,7 @@ const DriverDashboard = () => {
 
   const changeLanguage = (code) => {
     i18n.changeLanguage(code);
+    syncLanguageToBackend(code); // P1-3b: push sablonlari da bu dili kullansin
     setLangModalVisible(false);
   };
 
