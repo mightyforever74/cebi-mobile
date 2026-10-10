@@ -888,6 +888,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       const activeTask =
         res.tasks?.find((t) => t.status === "in_progress") ||
         res.tasks?.find((t) => t.status === "accepted") ||
+        res.tasks?.find((t) => t.status === "assigned") ||
         res.tasks?.find((t) => t.status === "pending_review") ||
         null;
       const active = activeTask ? normalizeTaskPayload(activeTask) : null;
@@ -1625,7 +1626,9 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   }
 
   const isNavigating = task?.status === "in_progress";
-  const isAccepted = task?.status === "accepted";
+  // Dispatcher gorevleri "assigned" baslar (kabul adimi yok): kart + Baslat ayni
+  const isAccepted =
+    task?.status === "accepted" || task?.status === "assigned";
   const isPendingReview = task?.status === "pending_review";
   const showTaskCard = task && isAccepted;
 

@@ -6,6 +6,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -644,6 +645,19 @@ const DriverTasks = ({ navigation }) => {
     useCallback(() => {
       fetchTasks();
       fetchPendingOffers();
+      // Ekran odaktayken 30 sn'de bir yenile; push gelince hemen yenile
+      const poll = setInterval(() => {
+        fetchTasks();
+        fetchPendingOffers();
+      }, 30000);
+      const sub = Notifications.addNotificationReceivedListener(() => {
+        fetchTasks();
+        fetchPendingOffers();
+      });
+      return () => {
+        clearInterval(poll);
+        sub.remove();
+      };
     }, [activeTab])
   );
   const onRefresh = useCallback(() => {

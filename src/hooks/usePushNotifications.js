@@ -37,8 +37,9 @@ export function usePushNotifications() {
       return null;
     }
 
-    // 2) Fiziksel cihaz (emülatörde sessiz çıkış — toast yok)
-    if (!Device.isDevice) {
+    // 2) Fiziksel cihaz. Android emulatoru Play Services ile token alabilir,
+    //    o yuzden yalniz iOS simulatorunde cik (sessiz, toast yok)
+    if (!Device.isDevice && Platform.OS !== "android") {
       console.log("[push] skipped: not a physical device");
       return null;
     }
