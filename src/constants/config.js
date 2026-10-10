@@ -183,7 +183,7 @@ export const APP_CONFIG = {
   name: "TulipFleet",
   version: "2.0.0",
   enableBLE: true,
-  enablePushNotifications: false, // Firebase/FCM kurulumu yapılana kadar kapalı
+  enablePushNotifications: true,
   debugMode: __DEV__,
 };
 

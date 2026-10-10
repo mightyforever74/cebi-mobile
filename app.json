@@ -80,8 +80,6 @@
           }
         }
       ],
-      "./plugins/withFirebaseFix",
-      "@react-native-firebase/app",
       "@react-native-community/datetimepicker",
       [
         "react-native-bootsplash",

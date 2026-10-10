@@ -1,5 +1,5 @@
 // src/hooks/usePushNotifications.js
-// TulipFleet - Push Notification Hook
+// TulipFleet - Push Notification Hook (expo-notifications only)
 // Fixed for Expo SDK 54
 
 import Constants from "expo-constants";
@@ -7,6 +7,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
+import { APP_CONFIG } from "../constants/config";
 import { pushAPI } from "../services/api";
 
 // Bildirim gösterim ayarları
@@ -30,10 +31,15 @@ export function usePushNotifications() {
   async function registerForPushNotifications() {
     let token = null;
 
-    // Fiziksel cihaz kontrolü
+    // 1) Feature flag
+    if (!APP_CONFIG.enablePushNotifications) {
+      console.log("[push] skipped: APP_CONFIG.enablePushNotifications=false");
+      return null;
+    }
+
+    // 2) Fiziksel cihaz (emülatörde sessiz çıkış — toast yok)
     if (!Device.isDevice) {
-      console.log("⚠️ Push notifications require a physical device");
-      setError("Push bildirimleri fiziksel cihaz gerektirir");
+      console.log("[push] skipped: not a physical device");
       return null;
     }
 
@@ -58,19 +64,18 @@ export function usePushNotifications() {
       });
     }
 
-    // Mevcut izin durumunu kontrol et
+    // 3) İzin
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    // İzin yoksa iste
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
     if (finalStatus !== "granted") {
-      console.log("❌ Push notification permission denied");
+      console.log("[push] permission denied");
       setError("Bildirim izni verilmedi");
       return null;
     }

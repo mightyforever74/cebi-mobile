@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "eject": "expo eject",
-    "prebuild": "echo '🚫 YASAK: expo prebuild android/ ve ios/ klasörlerini siler. Bkz: NATIVE_REPO.md' && exit 1"
+    "prebuild": "echo '🚫 YASAK: expo prebuild android/ ve ios/ klasörlerini siler. Bkz: NATIVE_REPO.md' && exit 1",
+    "test": "node --check App.js && node --check src/hooks/usePushNotifications.js && node --check src/constants/config.js"
   },
   "repository": {
     "type": "git",
@@ -19,9 +20,6 @@
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-community/slider": "5.0.1",
-    "@react-native-firebase/app": "^23.7.0",
-    "@react-native-firebase/crashlytics": "^23.7.0",
-    "@react-native-firebase/messaging": "^23.7.0",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@react-native/assets-registry": "^0.76.0",
     "@react-native/codegen": "^0.82.1",

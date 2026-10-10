@@ -13,7 +13,6 @@ try {
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import PushNotificationService from "./services/pushNotificationService";
 import "./src/locales/i18n";
 
 // AuthProvider import
@@ -90,11 +89,6 @@ export default function App() {
       }
     }
     prepare();
-  }, []);
-
-  useEffect(() => {
-    // Push notification başlat
-    PushNotificationService.initialize();
   }, []);
 
   if (!appIsReady) {
