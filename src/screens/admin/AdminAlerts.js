@@ -147,6 +147,11 @@ const ALERT_CONFIG_MAP = {
     icon: "warning",
     i18nKey: "adminAlerts.types.harsh_brake",
   },
+  gps_odometer_deviation: {
+    severity: "warning",
+    icon: "git-compare-outline",
+    i18nKey: "adminAlerts.types.gpsOdometerDeviation",
+  },
   default: {
     severity: "info",
     icon: "notifications",

@@ -1658,7 +1658,8 @@
       "speeding": "Exceso de velocidad",
       "harsh_brake": "Frenado brusco",
       "geofence_entry": "Entrada a Zona",
-      "geofence_exit": "Salida de Zona"
+      "geofence_exit": "Salida de Zona",
+      "gpsOdometerDeviation": "Discrepancia GPS/Odómetro"
     },
     "time": {
       "justNow": "Ahora mismo",

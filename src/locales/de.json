@@ -686,7 +686,8 @@
       "speeding": "Geschwindigkeitsüberschreitung",
       "harsh_brake": "Hartes Bremsen",
       "geofence_entry": "Eintritt in Zone",
-      "geofence_exit": "Austritt aus Zone"
+      "geofence_exit": "Austritt aus Zone",
+      "gpsOdometerDeviation": "GPS/Kilometerzähler-Abweichung"
     },
     "filterVehicle": "Fahrzeug"
   },

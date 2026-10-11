@@ -1797,7 +1797,8 @@
       "speeding": "Zêdekirina lezê",
       "harsh_brake": "Frêna tûj",
       "geofence_entry": "Ketina Deverê",
-      "geofence_exit": "Derketina Deverê"
+      "geofence_exit": "Derketina Deverê",
+      "gpsOdometerDeviation": "Cudahiya GPS/Odometre"
     },
     "time": {
       "justNow": "Naha",

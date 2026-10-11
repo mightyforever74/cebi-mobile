@@ -1912,7 +1912,8 @@
       "speeding": "Hız İhlali",
       "harsh_brake": "Sert Fren",
       "geofence_entry": "Bölgeye Giriş",
-      "geofence_exit": "Bölgeden Çıkış"
+      "geofence_exit": "Bölgeden Çıkış",
+      "gpsOdometerDeviation": "GPS Sayaç Sapması"
     },
     "time": {
       "justNow": "Az önce",

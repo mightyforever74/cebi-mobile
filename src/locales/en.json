@@ -1904,7 +1904,8 @@
       "speeding": "Speeding",
       "harsh_brake": "Harsh Braking",
       "geofence_entry": "Zone Entry",
-      "geofence_exit": "Zone Exit"
+      "geofence_exit": "Zone Exit",
+      "gpsOdometerDeviation": "GPS/Odometer Mismatch"
     },
     "time": {
       "justNow": "Just now",

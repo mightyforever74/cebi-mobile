@@ -1911,7 +1911,8 @@
       "speeding": "Превишена скорост",
       "harsh_brake": "Рязко спиране",
       "geofence_entry": "Влизане в зона",
-      "geofence_exit": "Излизане от зона"
+      "geofence_exit": "Излизане от зона",
+      "gpsOdometerDeviation": "Разминаване GPS/Одометър"
     },
     "time": {
       "justNow": "Току-що",

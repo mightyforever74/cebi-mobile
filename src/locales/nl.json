@@ -1785,7 +1785,8 @@
       "speeding": "Snelheidsovertreding",
       "harsh_brake": "Hard remmen",
       "geofence_entry": "Zone Binnenkomst",
-      "geofence_exit": "Zone Verlaten"
+      "geofence_exit": "Zone Verlaten",
+      "gpsOdometerDeviation": "GPS/Kilometerteller Afwijking"
     },
     "time": {
       "justNow": "Zojuist",

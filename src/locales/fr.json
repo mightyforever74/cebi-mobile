@@ -686,7 +686,8 @@
       "speeding": "Excès de vitesse",
       "harsh_brake": "Freinage brusque",
       "geofence_entry": "Entrée en zone",
-      "geofence_exit": "Sortie de zone"
+      "geofence_exit": "Sortie de zone",
+      "gpsOdometerDeviation": "Écart GPS/Compteur"
     },
     "filterVehicle": "Véhicule"
   },
