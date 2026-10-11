@@ -34,6 +34,14 @@ const EditVehicleScreen = ({ navigation, route }) => {
     year: vehicle.year ? String(vehicle.year) : "",
     fuel_type: vehicle.fuel_type || "diesel",
     status: vehicle.status || "available",
+    cargo_capacity_volume_m3:
+      vehicle.cargo_capacity_volume_m3 != null
+        ? String(vehicle.cargo_capacity_volume_m3)
+        : "",
+    cargo_capacity_weight_kg:
+      vehicle.cargo_capacity_weight_kg != null
+        ? String(vehicle.cargo_capacity_weight_kg)
+        : "",
   });
 
   const fuelTypes = [
@@ -75,6 +83,13 @@ const EditVehicleScreen = ({ navigation, route }) => {
         year: formData.year ? parseInt(formData.year) : null,
         fuel_type: formData.fuel_type,
         status: formData.status,
+        // FEAT-020 Phase 1.1 (2026-10-12): bkz. CreateVehicleScreen ayni not.
+        cargo_capacity_volume_m3: formData.cargo_capacity_volume_m3
+          ? parseFloat(formData.cargo_capacity_volume_m3)
+          : null,
+        cargo_capacity_weight_kg: formData.cargo_capacity_weight_kg
+          ? parseFloat(formData.cargo_capacity_weight_kg)
+          : null,
       };
 
       await vehicleAPI.update(vehicle.id, data);
@@ -173,6 +188,25 @@ const EditVehicleScreen = ({ navigation, route }) => {
             </View>
 
             {renderInput(t("createVehicle.year"), "year", "2023", "numeric")}
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                {renderInput(
+                  t("createVehicle.cargoVolumeM3"),
+                  "cargo_capacity_volume_m3",
+                  "40",
+                  "numeric"
+                )}
+              </View>
+              <View style={styles.halfInput}>
+                {renderInput(
+                  t("createVehicle.cargoWeightKg"),
+                  "cargo_capacity_weight_kg",
+                  "3500",
+                  "numeric"
+                )}
+              </View>
+            </View>
           </Card>
 
           {renderSelector(

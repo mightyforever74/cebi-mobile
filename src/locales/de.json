@@ -2391,6 +2391,8 @@
     "modelOptional": "Modell",
     "year": "Jahr",
     "fuelType": "Kraftstoffart",
+    "cargoVolumeM3": "Laderaumvolumen (m³)",
+    "cargoWeightKg": "Zuladung (kg)",
     "status": "Status",
     "navTitle": "Add vehicle"
   },

@@ -32,6 +32,8 @@ const CreateVehicleScreen = ({ navigation }) => {
     model: "",
     year: "",
     fuelType: "diesel",
+    cargo_capacity_volume_m3: "",
+    cargo_capacity_weight_kg: "",
   });
 
   const fuelTypes = [
@@ -73,6 +75,16 @@ const CreateVehicleScreen = ({ navigation }) => {
         model: formData.model.trim(),
         year: formData.year ? parseInt(formData.year) : null,
         fuel_type: formData.fuelType,
+        // FEAT-020 Phase 1.1 (2026-10-12): opsiyonel kargo kapasitesi —
+        // bos birakilirsa backend (routes/vehicleCapacityHelpers.js) null
+        // olarak kaydeder, cargoScorer aktiflesene kadar veri toplanmaya
+        // baslar.
+        cargo_capacity_volume_m3: formData.cargo_capacity_volume_m3
+          ? parseFloat(formData.cargo_capacity_volume_m3)
+          : null,
+        cargo_capacity_weight_kg: formData.cargo_capacity_weight_kg
+          ? parseFloat(formData.cargo_capacity_weight_kg)
+          : null,
       };
 
       await vehicleAPI.create(data);
@@ -141,6 +153,26 @@ const CreateVehicleScreen = ({ navigation }) => {
 
             {/* Yil */}
             {renderInput(t("createVehicle.year"), "year", "2023", "numeric")}
+
+            {/* FEAT-020 Phase 1.1 — Kargo kapasitesi (opsiyonel) */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                {renderInput(
+                  t("createVehicle.cargoVolumeM3"),
+                  "cargo_capacity_volume_m3",
+                  "40",
+                  "numeric"
+                )}
+              </View>
+              <View style={styles.halfInput}>
+                {renderInput(
+                  t("createVehicle.cargoWeightKg"),
+                  "cargo_capacity_weight_kg",
+                  "3500",
+                  "numeric"
+                )}
+              </View>
+            </View>
 
             {/* Yakit Tipi */}
             <View style={styles.inputContainer}>

@@ -2391,6 +2391,8 @@
     "modelOptional": "Model",
     "year": "Jaar",
     "fuelType": "Brandstoftype",
+    "cargoVolumeM3": "Laadvolume (m³)",
+    "cargoWeightKg": "Laadgewicht (kg)",
     "status": "Status",
     "navTitle": "Voertuig toevoegen"
   },

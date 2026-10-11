@@ -2391,6 +2391,8 @@
     "modelOptional": "Model",
     "year": "Yıl",
     "fuelType": "Yakıt Tipi",
+    "cargoVolumeM3": "Kargo Hacmi (m³)",
+    "cargoWeightKg": "Kargo Ağırlığı (kg)",
     "status": "Durum",
     "navTitle": "Araç Ekle"
   },
