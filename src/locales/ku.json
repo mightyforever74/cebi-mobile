@@ -1914,7 +1914,9 @@
       "contextClean": "0 bûyer · pûana temam",
       "scoreNA": "Pûan nayê hesibandin",
       "reasonInsufficient": "dûrî têrnakin",
-      "reasonNoData": "dane têrnakin"
+      "reasonNoData": "dane têrnakin",
+      "comparePrevious": "Li gorî Dema Berê",
+      "insufficientHistory": "Berawirdî tune (nû)"
     },
     "distSource": {
       "title": "Çavkaniya Dûrahiyê",
@@ -1965,6 +1967,7 @@
     "scoreRisk": "Xetere",
     "scoreNA": "Daneya tune",
     "scoreInsufficientDist": "Mesafe têra nake (<10km)",
+    "scoreDeltaInsufficientHistory": "Berawirdî tune (nû)",
     "minAbbr": "deq",
     "driverCount": "{{count}} ajokar"
   },

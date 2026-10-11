@@ -2040,7 +2040,9 @@
       "contextClean": "0 gebeurtenissen · perfecte score",
       "scoreNA": "Score niet beschikbaar",
       "reasonInsufficient": "onvoldoende afstand",
-      "reasonNoData": "onvoldoende gegevens"
+      "reasonNoData": "onvoldoende gegevens",
+      "comparePrevious": "T.o.v. Vorige Periode",
+      "insufficientHistory": "Geen vergelijking (nieuw)"
     },
     "distSource": {
       "title": "Afstandsbron",
@@ -2091,6 +2093,7 @@
     "scoreRisk": "Risico",
     "scoreNA": "Geen gegevens",
     "scoreInsufficientDist": "Onvoldoende afstand (<10km)",
+    "scoreDeltaInsufficientHistory": "Geen vergelijking (nieuw)",
     "minAbbr": "min",
     "driverCount": "{{count}} chauffeurs"
   },

@@ -1775,7 +1775,9 @@
       "contextClean": "0 eventi · punteggio pieno",
       "scoreNA": "Punteggio non calcolabile",
       "reasonInsufficient": "distanza insufficiente",
-      "reasonNoData": "dati insufficienti"
+      "reasonNoData": "dati insufficienti",
+      "comparePrevious": "Vs Periodo Precedente",
+      "insufficientHistory": "Nessun confronto (nuovo)"
     },
     "distSource": {
       "title": "Fonte Distanza",
@@ -1826,6 +1828,7 @@
     "scoreRisk": "Rischio",
     "scoreNA": "N/D",
     "scoreInsufficientDist": "Distanza insufficiente (<10km)",
+    "scoreDeltaInsufficientHistory": "Nessun confronto (nuovo)",
     "minAbbr": "min",
     "driverCount": "{{count}} autisti"
   },

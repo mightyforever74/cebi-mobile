@@ -192,6 +192,22 @@ const buildOpsHtml = (data, days, t, language) => {
 
 // ─── DRIVING QUALITY HTML GENERATOR ─────────────────────────────────────────
 
+// §5 Reports — "Driving Quality trend" (compare_with_previous, 11 Ekim 2026).
+// Saf/UI-bağımsız: hem buildDrivingHtml (PDF) hem DrivingQualityTab (ekran)
+// AYNI karardan geçer, böylece badge/renk ikisinde de birebir eşleşir.
+// Cem'in "yarım dönem" gereksinimi: previous_driving_score yoksa (yeni
+// sürücü / önceki dönem <10km) bu bir skor DÜŞÜŞÜ değildir —
+// trend_note === "insufficient_history" ile ayırt edilir, delta YOK sayılır.
+const getScoreDeltaDisplay = (d) => {
+  if (d.score_delta === null || d.score_delta === undefined) {
+    if (d.trend_note === "insufficient_history") return { kind: "insufficient" };
+    return null; // compare_with_previous kapalı, veya güncel dönem zaten N/A
+  }
+  const arrow = d.trend === "up" ? "▲" : d.trend === "down" ? "▼" : "–";
+  const signed = d.score_delta > 0 ? `+${d.score_delta}` : `${d.score_delta}`;
+  return { kind: "delta", arrow, signed, trend: d.trend };
+};
+
 const buildDrivingHtml = (data, days, t, language) => {
   if (!data) return "";
   const drivers = (data.drivers || []).filter((d) => d.total_tasks > 0);
@@ -245,6 +261,12 @@ const buildDrivingHtml = (data, days, t, language) => {
         d.driving_score !== null && d.driving_score !== undefined
           ? d.driving_score
           : "—";
+      const delta = getScoreDeltaDisplay(d);
+      const deltaHtml = !delta
+        ? ""
+        : delta.kind === "insufficient"
+          ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">${t("reports.scoreDeltaInsufficientHistory")}</div>`
+          : `<div style="font-size:10px;margin-top:2px;font-weight:600;color:${delta.trend === "up" ? "#10B981" : delta.trend === "down" ? "#EF4444" : "#9CA3AF"}">${delta.arrow} ${delta.signed}</div>`;
 
       return `
     <tr>
@@ -264,6 +286,7 @@ const buildDrivingHtml = (data, days, t, language) => {
           <span style="font-size:15px;font-weight:700;color:${color}">${scoreDisplay}</span>
         </div>
         <div style="font-size:10px;color:${color};margin-top:4px;font-weight:600">${getScoreLabel(d.driving_score, d.score_note)}</div>
+        ${deltaHtml}
       </td>
       <td style="padding:12px;border-bottom:1px solid #eee;font-size:12px;color:#6B7280">${eventsText}</td>
       <td style="padding:12px;border-bottom:1px solid #eee;text-align:center;font-size:13px;color:${d.total_alerts > 0 ? "#F59E0B" : "#9CA3AF"};font-weight:${d.total_alerts > 0 ? "700" : "400"}">${d.total_alerts}</td>
@@ -524,6 +547,14 @@ const makeStyles = (COLORS) =>
     scoreLabel: {
       fontSize: COLORS.TYPOGRAPHY.sizes.xs,
       color: COLORS.TEXT_MUTED,
+    },
+    // §5 Reports — "Driving Quality trend" (compare_with_previous, 11 Ekim 2026)
+    scoreDeltaText: {
+      fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+      fontWeight: COLORS.TYPOGRAPHY.weights.semibold,
+      marginTop: 4,
+      textAlign: "center",
+      maxWidth: 70,
     },
     alertRow: {
       flexDirection: "row",
@@ -1194,24 +1225,57 @@ const DrivingQualityTab = ({
                     {buildScoreContext(d, t)}
                   </Text>
                 </View>
-                <View style={[styles.scoreCircle, { borderColor: scoreColor }]}>
-                  {d.driving_score !== null ? (
-                    <Text style={[styles.scoreValue, { color: scoreColor }]}>
-                      {d.driving_score}
-                    </Text>
-                  ) : (
-                    <Text
-                      style={[
-                        styles.scoreValue,
-                        {
-                          color: COLORS.TEXT_MUTED,
-                          fontSize: COLORS.TYPOGRAPHY.sizes.xs,
-                        },
-                      ]}
-                    >
-                      N/A
-                    </Text>
-                  )}
+                <View style={{ alignItems: "center" }}>
+                  <View
+                    style={[styles.scoreCircle, { borderColor: scoreColor }]}
+                  >
+                    {d.driving_score !== null ? (
+                      <Text style={[styles.scoreValue, { color: scoreColor }]}>
+                        {d.driving_score}
+                      </Text>
+                    ) : (
+                      <Text
+                        style={[
+                          styles.scoreValue,
+                          {
+                            color: COLORS.TEXT_MUTED,
+                            fontSize: COLORS.TYPOGRAPHY.sizes.xs,
+                          },
+                        ]}
+                      >
+                        N/A
+                      </Text>
+                    )}
+                  </View>
+                  {(() => {
+                    const delta = getScoreDeltaDisplay(d);
+                    if (!delta) return null;
+                    if (delta.kind === "insufficient") {
+                      return (
+                        <Text
+                          style={[
+                            styles.scoreDeltaText,
+                            { color: COLORS.TEXT_MUTED },
+                          ]}
+                        >
+                          {t("reports.driving.insufficientHistory")}
+                        </Text>
+                      );
+                    }
+                    const deltaColor =
+                      delta.trend === "up"
+                        ? COLORS.SUCCESS
+                        : delta.trend === "down"
+                          ? COLORS.ERROR
+                          : COLORS.TEXT_MUTED;
+                    return (
+                      <Text
+                        style={[styles.scoreDeltaText, { color: deltaColor }]}
+                      >
+                        {delta.arrow} {delta.signed}
+                      </Text>
+                    );
+                  })()}
                 </View>
               </View>
 
@@ -1326,6 +1390,8 @@ const AdminReportsScreen = () => {
   const [drvData, setDrvData] = useState(null);
   const [drvLoading, setDrvLoading] = useState(false);
   const [drvError, setDrvError] = useState(null);
+  // §5 Reports — "Driving Quality trend" (compare_with_previous, 11 Ekim 2026)
+  const [comparePrev, setComparePrev] = useState(false);
 
   const fetchOps = useCallback(async (days) => {
     try {
@@ -1340,12 +1406,15 @@ const AdminReportsScreen = () => {
     }
   }, []);
 
-  const fetchDriving = useCallback(async (days) => {
+  const fetchDriving = useCallback(async (days, compareWithPrevious) => {
     try {
       setDrvLoading(true);
       setDrvError(null);
+      const compareParam = compareWithPrevious
+        ? "&compare_with_previous=true"
+        : "";
       const res = await api.get(
-        `/api/reports/drivers/performance?days=${days}`
+        `/api/reports/drivers/performance?days=${days}${compareParam}`
       );
       setDrvData(res.data?.data || res.data);
     } catch (e) {
@@ -1413,18 +1482,27 @@ const AdminReportsScreen = () => {
   // Driving tab'a geçilince lazy fetch
   useEffect(() => {
     if (activeTab === "driving" && !drvData && !drvLoading) {
-      fetchDriving(selectedDays);
+      fetchDriving(selectedDays, comparePrev);
     }
-  }, [activeTab, drvData, drvLoading, selectedDays, fetchDriving]);
+  }, [activeTab, drvData, drvLoading, selectedDays, comparePrev, fetchDriving]);
+
+  // Toggle değişince mevcut veriyi düşür, yeniden çek (ayrı effect — days
+  // değişimiyle aynı lazy-fetch mantığına girmesin, toggle her zaman tetiklenir)
+  useEffect(() => {
+    if (activeTab === "driving") {
+      setDrvData(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparePrev]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     if (activeTab === "driving") {
       setDrvData(null);
-      fetchDriving(selectedDays);
+      fetchDriving(selectedDays, comparePrev);
     }
     fetchOps(selectedDays);
-  }, [selectedDays, activeTab, fetchOps, fetchDriving]);
+  }, [selectedDays, activeTab, comparePrev, fetchOps, fetchDriving]);
 
   const handleTabChange = (key) => {
     setActiveTab(key);
@@ -1467,7 +1545,7 @@ const AdminReportsScreen = () => {
             data={drvData}
             loading={drvLoading}
             error={drvError}
-            onRetry={() => fetchDriving(selectedDays)}
+            onRetry={() => fetchDriving(selectedDays, comparePrev)}
             styles={styles}
             COLORS={COLORS}
             t={t}
@@ -1538,6 +1616,30 @@ const AdminReportsScreen = () => {
                 color={COLORS.ERROR}
               />
             )}
+          </TouchableOpacity>
+        )}
+
+        {activeTab === "driving" && (
+          <TouchableOpacity
+            style={[
+              styles.rangeBtn,
+              {
+                backgroundColor: comparePrev
+                  ? COLORS.PRIMARY
+                  : withAlpha(COLORS.PRIMARY, 0.08),
+                marginLeft: "auto",
+              },
+            ]}
+            onPress={() => setComparePrev((v) => !v)}
+          >
+            <Text
+              style={[
+                styles.rangeBtnText,
+                { color: comparePrev ? COLORS.WHITE : COLORS.TEXT_SECONDARY },
+              ]}
+            >
+              {t("reports.driving.comparePrevious")}
+            </Text>
           </TouchableOpacity>
         )}
 

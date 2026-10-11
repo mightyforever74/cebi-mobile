@@ -1912,7 +1912,9 @@
       "contextClean": "0 eventos · puntuación perfecta",
       "scoreNA": "Puntuación no disponible",
       "reasonInsufficient": "distancia insuficiente",
-      "reasonNoData": "datos insuficientes"
+      "reasonNoData": "datos insuficientes",
+      "comparePrevious": "Vs Periodo Anterior",
+      "insufficientHistory": "Sin comparación (nuevo)"
     },
     "distSource": {
       "title": "Fuente de Distancia",
@@ -1963,6 +1965,7 @@
     "scoreRisk": "Riesgo",
     "scoreNA": "N/D",
     "scoreInsufficientDist": "Distancia insuficiente (<10km)",
+    "scoreDeltaInsufficientHistory": "Sin comparación (nuevo)",
     "minAbbr": "min",
     "driverCount": "{{count}} conductores"
   },

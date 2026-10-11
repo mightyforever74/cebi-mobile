@@ -2037,7 +2037,9 @@
       "contextClean": "0 събития · пълен резултат",
       "scoreNA": "Резултатът не е наличен",
       "reasonInsufficient": "недостатъчно разстояние",
-      "reasonNoData": "недостатъчно данни"
+      "reasonNoData": "недостатъчно данни",
+      "comparePrevious": "Спрямо предходен период",
+      "insufficientHistory": "Без сравнение (нов)"
     },
     "distSource": {
       "title": "Източник на разстояние",
@@ -2088,6 +2090,7 @@
     "scoreRisk": "Риск",
     "scoreNA": "Няма данни",
     "scoreInsufficientDist": "Недостатъчно разстояние (<10км)",
+    "scoreDeltaInsufficientHistory": "Без сравнение (нов)",
     "minAbbr": "мин",
     "driverCount": "{{count}} шофьори"
   },

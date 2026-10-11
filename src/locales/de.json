@@ -1007,7 +1007,9 @@
       "contextClean": "0 Ereignisse · perfekte Punktzahl",
       "scoreNA": "Punktzahl nicht verfügbar",
       "reasonInsufficient": "unzureichende Distanz",
-      "reasonNoData": "unzureichende Daten"
+      "reasonNoData": "unzureichende Daten",
+      "comparePrevious": "Im Vergleich zum Vorzeitraum",
+      "insufficientHistory": "Kein Vergleich (neu)"
     },
     "distSource": {
       "title": "Entfernungsquelle",
@@ -1058,6 +1060,7 @@
     "scoreRisk": "Risiko",
     "scoreNA": "Keine Daten",
     "scoreInsufficientDist": "Unzureichende Strecke (<10km)",
+    "scoreDeltaInsufficientHistory": "Kein Vergleich (neu)",
     "minAbbr": "Min",
     "driverCount": "{{count}} Fahrer"
   },

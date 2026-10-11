@@ -2037,7 +2037,9 @@
       "contextClean": "0 olay · tam puan",
       "scoreNA": "Skor hesaplanamadı",
       "reasonInsufficient": "mesafe yetersiz",
-      "reasonNoData": "yetersiz veri"
+      "reasonNoData": "yetersiz veri",
+      "comparePrevious": "Önceki Döneme Göre",
+      "insufficientHistory": "Karşılaştırma yok (yeni)"
     },
     "distSource": {
       "title": "Mesafe Kaynağı",
@@ -2088,6 +2090,7 @@
     "scoreRisk": "Risk",
     "scoreNA": "Yetersiz veri",
     "scoreInsufficientDist": "Yetersiz mesafe (<10km)",
+    "scoreDeltaInsufficientHistory": "Karşılaştırma yok (yeni)",
     "minAbbr": "dk",
     "driverCount": "{{count}} sürücü"
   },
