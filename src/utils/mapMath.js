@@ -197,6 +197,56 @@ export const lerpHeading = (current, target, factor = SMOOTHING_CONFIG.LERP_FACT
 };
 
 // ============================================================================
+// A.5 - HEADING RETRACK (Android tracksViewChanges "pulse" — §9.7)
+// ============================================================================
+
+/**
+ * react-native-maps Android'de custom marker child view'ları bir bitmap'e
+ * snapshot'lanır; tracksViewChanges=false olduğunda bu snapshot bir daha
+ * alınmaz, yani CSS transform (rotate) güncellemesi ekrana yansımaz.
+ * Heading yeterince değiştiğinde tracksViewChanges'i kısa süreli true'ya
+ * çekip yeniden snapshot tetiklemek gerekir (bkz. VehicleMarker.js).
+ * Bu eşik, gereksiz sık tetiklemeyi (performans) önler.
+ */
+export const HEADING_RETRACK_THRESHOLD_DEG = 5;
+
+/**
+ * İki heading arasındaki en kısa işaretli açısal farkı döndürür.
+ * Sonuç (-180, 180] aralığındadır (359° → 1° farkı 358° değil, 2°'dir).
+ * @param {number} a - Başlangıç heading (0-360 veya herhangi bir sayı)
+ * @param {number} b - Bitiş heading
+ * @returns {number} İşaretli açısal fark (derece)
+ */
+export const angleDiff = (a, b) => {
+  let diff = (clampHeading(b) - clampHeading(a)) % 360;
+  if (diff > 180) diff -= 360;
+  if (diff <= -180) diff += 360;
+  return diff;
+};
+
+/**
+ * Android marker bitmap snapshot'ının yeniden tetiklenmesi (tracksViewChanges
+ * pulse) gerekip gerekmediğine karar verir.
+ * @param {number|null|undefined} lastSnapshotHeading - Son snapshot alınan heading
+ * @param {number|null|undefined} newHeading - Yeni hesaplanan heading
+ * @param {number} thresholdDeg - Tetikleme eşiği (derece)
+ * @returns {boolean} tracksViewChanges pulse tetiklenmeli mi
+ */
+export const shouldRetrackForHeadingChange = (
+  lastSnapshotHeading,
+  newHeading,
+  thresholdDeg = HEADING_RETRACK_THRESHOLD_DEG
+) => {
+  if (newHeading === null || newHeading === undefined || isNaN(newHeading)) {
+    return false;
+  }
+  if (lastSnapshotHeading === null || lastSnapshotHeading === undefined || isNaN(lastSnapshotHeading)) {
+    return true; // ilk heading — ilk snapshot zaten normal render'da alınır ama referans yoksa güvenli taraf true
+  }
+  return Math.abs(angleDiff(lastSnapshotHeading, newHeading)) >= thresholdDeg;
+};
+
+// ============================================================================
 // A.4 - PERFORMANCE HELPERS
 // ============================================================================
 
@@ -315,4 +365,9 @@ export default {
   // A.3 Follow
   FOLLOW_CONFIG,
   createFollowRegion,
+
+  // A.5 Heading retrack (§9.7)
+  HEADING_RETRACK_THRESHOLD_DEG,
+  angleDiff,
+  shouldRetrackForHeadingChange,
 };

@@ -10,7 +10,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Platform, StyleSheet, View } from "react-native";
 import { Marker } from "react-native-maps";
 import {
@@ -19,10 +19,16 @@ import {
   clampHeading,
   lerpCoordinate,
   lerpHeading,
+  shouldRetrackForHeadingChange,
   shouldSmooth,
   SMOOTHING_CONFIG,
   toFloat,
 } from "../../utils/mapMath";
+
+// §9.7: Android'de tracksViewChanges=true kaldığı sürenin üst sınırı.
+// Native bitmap snapshot'ının alınmasına yetecek kadar uzun, markeri
+// sürekli "tracked" bırakmayacak kadar kısa (performans).
+const HEADING_RETRACK_PULSE_MS = 120;
 
 // ============================================================================
 // CONSTANTS
@@ -57,6 +63,11 @@ const VehicleMarker = memo(
     const currentHeadingRef = useRef(0);
     const lastUpdateTimeRef = useRef(Date.now());
     const animationFrameRef = useRef(null);
+
+    // §9.7: Android marker heading retrack ("pulse") state
+    const lastSnapshotHeadingRef = useRef(null);
+    const pulseTimeoutRef = useRef(null);
+    const [headingRetrackPulse, setHeadingRetrackPulse] = useState(false);
 
     // Animated values
     const animatedCoord = useRef(
@@ -113,6 +124,23 @@ const VehicleMarker = memo(
     // ============================================================================
 
     useEffect(() => {
+      // §9.7: Android'de custom marker child view'ı bitmap'e snapshot'lanır;
+      // tracksViewChanges=false iken bu snapshot yenilenmediği için heading
+      // değişimi (ok rotasyonu) ekrana yansımayabilir. Yeni bir konum
+      // güncellemesinde heading eşiği aşıldıysa kısa süreli
+      // tracksViewChanges=true tetikleyip snapshot'ı yenile.
+      if (shouldRetrackForHeadingChange(lastSnapshotHeadingRef.current, targetHeading)) {
+        lastSnapshotHeadingRef.current = targetHeading;
+        setHeadingRetrackPulse(true);
+        if (pulseTimeoutRef.current) {
+          clearTimeout(pulseTimeoutRef.current);
+        }
+        pulseTimeoutRef.current = setTimeout(() => {
+          setHeadingRetrackPulse(false);
+          pulseTimeoutRef.current = null;
+        }, HEADING_RETRACK_PULSE_MS);
+      }
+
       const now = Date.now();
       const timeDelta = now - lastUpdateTimeRef.current;
 
@@ -212,6 +240,10 @@ const VehicleMarker = memo(
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
+        if (pulseTimeoutRef.current) {
+          clearTimeout(pulseTimeoutRef.current);
+          pulseTimeoutRef.current = null;
+        }
       };
     }, [targetPosition.latitude, targetPosition.longitude, targetHeading]);
 
@@ -238,7 +270,7 @@ const VehicleMarker = memo(
         coordinate={coordinate}
         zIndex={zIndex}
         anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={tracksViewChanges || isSelected}
+        tracksViewChanges={tracksViewChanges || isSelected || headingRetrackPulse}
         onPress={() => onPress && onPress(vehicle)}
       >
         <View style={styles.markerContainer}>
