@@ -1,0 +1,22 @@
+{
+  "createVehicle.hazmatTitle": {
+    "tr": "Tehlikeli Madde Sertifikaları",
+    "en": "Hazmat Certifications",
+    "nl": "ADR-certificeringen",
+    "de": "Gefahrgut-Zertifizierungen",
+    "fr": "Certifications matières dangereuses",
+    "es": "Certificaciones de mercancías peligrosas",
+    "it": "Certificazioni merci pericolose",
+    "bg": "Сертификати за опасни товари"
+  },
+  "createVehicle.hazmatClass": {
+    "tr": "Sınıf {{n}}",
+    "en": "Class {{n}}",
+    "nl": "Klasse {{n}}",
+    "de": "Klasse {{n}}",
+    "fr": "Classe {{n}}",
+    "es": "Clase {{n}}",
+    "it": "Classe {{n}}",
+    "bg": "Клас {{n}}"
+  }
+}

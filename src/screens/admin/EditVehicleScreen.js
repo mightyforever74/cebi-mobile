@@ -42,7 +42,32 @@ const EditVehicleScreen = ({ navigation, route }) => {
       vehicle.cargo_capacity_weight_kg != null
         ? String(vehicle.cargo_capacity_weight_kg)
         : "",
+    hazmat_certified_classes: Array.isArray(vehicle.hazmat_certified_classes)
+      ? vehicle.hazmat_certified_classes
+      : [],
   });
+
+  // FEAT-013 W12 (2026-10-14): bkz. CreateVehicleScreen aynı not.
+  const hazmatClassOptions = [
+    "Sinif 1",
+    "Sinif 2",
+    "Sinif 3",
+    "Sinif 4",
+    "Sinif 5",
+    "Sinif 6",
+    "Sinif 7",
+    "Sinif 8",
+    "Sinif 9",
+  ];
+
+  const toggleHazmatClass = (cls) => {
+    setFormData((prev) => ({
+      ...prev,
+      hazmat_certified_classes: prev.hazmat_certified_classes.includes(cls)
+        ? prev.hazmat_certified_classes.filter((c) => c !== cls)
+        : [...prev.hazmat_certified_classes, cls],
+    }));
+  };
 
   const fuelTypes = [
     { value: "diesel" },
@@ -90,6 +115,8 @@ const EditVehicleScreen = ({ navigation, route }) => {
         cargo_capacity_weight_kg: formData.cargo_capacity_weight_kg
           ? parseFloat(formData.cargo_capacity_weight_kg)
           : null,
+        // FEAT-013 W12 (2026-10-14): bkz. CreateVehicleScreen ayni not.
+        hazmat_certified_classes: formData.hazmat_certified_classes,
       };
 
       await vehicleAPI.update(vehicle.id, data);
@@ -207,6 +234,36 @@ const EditVehicleScreen = ({ navigation, route }) => {
                 )}
               </View>
             </View>
+            {/* FEAT-013 W12 — Hazmat sertifikaları (opsiyonel) */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>{t("createVehicle.hazmatTitle")}</Text>
+              <View style={styles.selectorContainer}>
+                {hazmatClassOptions.map((cls) => {
+                  const n = cls.replace(/\D/g, "");
+                  const selected =
+                    formData.hazmat_certified_classes.includes(cls);
+                  return (
+                    <TouchableOpacity
+                      key={cls}
+                      style={[
+                        styles.selectorButton,
+                        selected && styles.hazmatActive,
+                      ]}
+                      onPress={() => toggleHazmatClass(cls)}
+                    >
+                      <Text
+                        style={[
+                          styles.selectorText,
+                          selected && styles.selectorTextActive,
+                        ]}
+                      >
+                        {t("createVehicle.hazmatClass", { n })}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
           </Card>
 
           {renderSelector(
@@ -299,6 +356,11 @@ const makeStyles = (COLORS) =>
     selectorActive: {
       backgroundColor: COLORS.PRIMARY,
       borderColor: COLORS.PRIMARY,
+    },
+    // FEAT-013 W12: dispatcher'daki Chip color="warning" karşılığı
+    hazmatActive: {
+      backgroundColor: COLORS.WARNING,
+      borderColor: COLORS.WARNING,
     },
     selectorText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,

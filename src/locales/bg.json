@@ -2394,7 +2394,9 @@
     "cargoVolumeM3": "Товарен обем (м³)",
     "cargoWeightKg": "Товароносимост (кг)",
     "status": "Статус",
-    "navTitle": "Add vehicle"
+    "navTitle": "Add vehicle",
+    "hazmatTitle": "Сертификати за опасни товари",
+    "hazmatClass": "Клас {{n}}"
   },
   "deviceInventory": {
     "title": "Инвентар на устройства",

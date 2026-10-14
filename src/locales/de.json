@@ -2394,7 +2394,9 @@
     "cargoVolumeM3": "Laderaumvolumen (m³)",
     "cargoWeightKg": "Zuladung (kg)",
     "status": "Status",
-    "navTitle": "Add vehicle"
+    "navTitle": "Add vehicle",
+    "hazmatTitle": "Gefahrgut-Zertifizierungen",
+    "hazmatClass": "Klasse {{n}}"
   },
   "deviceInventory": {
     "title": "Gerätebestand",

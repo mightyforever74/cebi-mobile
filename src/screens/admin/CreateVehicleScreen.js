@@ -34,7 +34,33 @@ const CreateVehicleScreen = ({ navigation }) => {
     fuelType: "diesel",
     cargo_capacity_volume_m3: "",
     cargo_capacity_weight_kg: "",
+    hazmat_certified_classes: [],
   });
+
+  // FEAT-013 W12 (2026-10-14): dispatcher'daki HAZMAT_CLASS_OPTIONS ile
+  // birebir aynı literal string'ler (types/metadata.ts) — buildHereProblem
+  // yalnızca dizinin boş olup olmadığına bakar (hangi sınıf olduğuna değil,
+  // Phase 2'ye ertelendi), ama rapor/UI tutarlılığı için aynı değerler.
+  const hazmatClassOptions = [
+    "Sinif 1",
+    "Sinif 2",
+    "Sinif 3",
+    "Sinif 4",
+    "Sinif 5",
+    "Sinif 6",
+    "Sinif 7",
+    "Sinif 8",
+    "Sinif 9",
+  ];
+
+  const toggleHazmatClass = (cls) => {
+    setFormData((prev) => ({
+      ...prev,
+      hazmat_certified_classes: prev.hazmat_certified_classes.includes(cls)
+        ? prev.hazmat_certified_classes.filter((c) => c !== cls)
+        : [...prev.hazmat_certified_classes, cls],
+    }));
+  };
 
   const fuelTypes = [
     { value: "diesel" },
@@ -85,6 +111,10 @@ const CreateVehicleScreen = ({ navigation }) => {
         cargo_capacity_weight_kg: formData.cargo_capacity_weight_kg
           ? parseFloat(formData.cargo_capacity_weight_kg)
           : null,
+        // FEAT-013 W12 (2026-10-14): backend (vehicleCapacityHelpers.js)
+        // bos diziyi "hazmat yok" olarak kabul eder; hic gonderilmezse de
+        // ayni ([] varsayilan) — kasitli olarak her zaman gonderilir.
+        hazmat_certified_classes: formData.hazmat_certified_classes,
       };
 
       await vehicleAPI.create(data);
@@ -171,6 +201,37 @@ const CreateVehicleScreen = ({ navigation }) => {
                   "3500",
                   "numeric"
                 )}
+              </View>
+            </View>
+
+            {/* FEAT-013 W12 — Hazmat sertifikaları (opsiyonel) */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>{t("createVehicle.hazmatTitle")}</Text>
+              <View style={styles.fuelTypeContainer}>
+                {hazmatClassOptions.map((cls) => {
+                  const n = cls.replace(/\D/g, "");
+                  const selected =
+                    formData.hazmat_certified_classes.includes(cls);
+                  return (
+                    <TouchableOpacity
+                      key={cls}
+                      style={[
+                        styles.fuelTypeButton,
+                        selected && styles.hazmatActive,
+                      ]}
+                      onPress={() => toggleHazmatClass(cls)}
+                    >
+                      <Text
+                        style={[
+                          styles.fuelTypeText,
+                          selected && styles.fuelTypeTextActive,
+                        ]}
+                      >
+                        {t("createVehicle.hazmatClass", { n })}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
 
@@ -279,6 +340,11 @@ const makeStyles = (COLORS) =>
     fuelTypeActive: {
       backgroundColor: COLORS.PRIMARY,
       borderColor: COLORS.PRIMARY,
+    },
+    // FEAT-013 W12: dispatcher'daki Chip color="warning" karşılığı
+    hazmatActive: {
+      backgroundColor: COLORS.WARNING,
+      borderColor: COLORS.WARNING,
     },
     fuelTypeText: {
       ...COLORS.TYPOGRAPHY.styles.bodySmall,
