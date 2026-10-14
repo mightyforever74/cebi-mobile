@@ -1,7 +1,18 @@
 // src/services/mqttService.js
 // TulipFleet - MQTT Service (Pure JS - mqtt.js)
-
+//
+// SEC (14.10.2026): bu dosya önceden process.env.MQTT_* okuyordu, ama RN/Expo
+// bundle'ında çıplak process.env.* hiçbir zaman doldurulmaz (react-native-dotenv
+// yalnızca "@env" importlarını derleme zamanında değiştirir — bkz.
+// babel.config.js + src/constants/config.js'deki gerçek kullanım). Yani bu
+// servis GERÇEKTE .env'den hiçbir değer okuyamıyordu ve sabit kodlanmış
+// "Admin2024Pass!" değerine HER ZAMAN düşüyordu — kaynak kodda açık metin
+// bir MQTT admin şifresi (CWE-798). Ekran (MQTTTest.js) hiçbir navigator'a
+// bağlı değil/ölü kod, ama secret yine de repodan temizlendi: artık diğer
+// MQTT_CONFIG (constants/config.js) ile aynı "@env" yolunu kullanıyor ve
+// sabit bir şifre fallback'i YOK.
 import { createClient } from "mqtt";
+import { MQTT_HOST, MQTT_PASSWORD, MQTT_PORT, MQTT_USERNAME } from "@env";
 
 class MQTTService {
   constructor() {
@@ -14,13 +25,22 @@ class MQTTService {
    * MQTT Broker'a bağlan
    */
   connect(options = {}) {
+    if (!MQTT_PASSWORD) {
+      console.warn(
+        "[MQTT] MQTT_PASSWORD .env içinde tanımlı değil — sabit bir şifreye " +
+          "ASLA düşülmez, bağlantı kimlik bilgisi eksik kalacak."
+      );
+    }
+
     const defaultOptions = {
       // EMQX WebSocket URL (TLS için wss://)
-      url: process.env.MQTT_BROKER_URL || "ws://192.168.1.107:8083/mqtt",
+      url: MQTT_HOST
+        ? `ws://${MQTT_HOST}:${MQTT_PORT || 8083}/mqtt`
+        : "ws://192.168.1.107:8083/mqtt",
 
-      // Credentials
-      username: process.env.MQTT_USERNAME || "admin",
-      password: process.env.MQTT_PASSWORD || "Admin2024Pass!",
+      // Credentials — .env'de yoksa undefined kalır, ASLA sabit şifreye düşmez
+      username: MQTT_USERNAME,
+      password: MQTT_PASSWORD,
 
       // Client ID (unique)
       clientId: `tulipfleet-mobile-${Math.random().toString(16).slice(2)}`,
