@@ -28,6 +28,10 @@ import { useTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import i18n from "../../locales/i18n";
 import { driverAPI, driverTaskAPI, vehicleAPI } from "../../services/api";
+import {
+  startTracking as startTelemetryTracking,
+  stopTracking as stopTelemetryTracking,
+} from "../../services/telemetrySync";
 import { withAlpha } from "../../utils/colorUtils";
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -752,8 +756,27 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
 
     return () => {
       stopLocationTracking();
+      // ADR-CE-01/ADR-CE-02: ekrandan ayrilirken mobil telemetri takibini
+      // de durdur (kuyrukta kalan ping'leri son bir kez senkronize etmeye
+      // calisir — bkz. services/telemetrySync.js).
+      stopTelemetryTracking();
     };
   }, []);
+
+  // ADR-CE-01/ADR-CE-02: Mobil GPS telemetri takibi, sefer "in_progress"
+  // oldugu surece acik olmali — hem handleStartTask sonrasi (yeni baslayan
+  // sefer) hem de ekran yeniden odaklandiginda/yeniden monte edildiginde
+  // (zaten in_progress olan bir sefere donus) bu tek efekt uzerinden
+  // yonetilir. V1 kapsami: sadece FOREGROUND (ekran acik) takip — gercek
+  // arka plan takibi icin expo-task-manager gerekir, bu projede henuz yok
+  // (native rebuild gerektirir, bu oturumda test edilemez).
+  useEffect(() => {
+    if (task?.id && task.status === "in_progress") {
+      startTelemetryTracking(task.id);
+    } else {
+      stopTelemetryTracking();
+    }
+  }, [task?.id, task?.status]);
 
   // BUG-3a fix (2026-07-31): gorev baska ekrandan baslatilip bu ekrana
   // donulunce task state bayat kaliyordu (mount-only fetch) -> rota cizilmiyordu.
@@ -1251,7 +1274,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.response?.data?.message || e.message || t("routeMap.taskCouldNotStart")
+        e.response?.data?.error || e.response?.data?.message || e.message || t("routeMap.taskCouldNotStart")
       );
     } finally {
       setActionLoading(false);
@@ -1275,6 +1298,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
       }
       await driverTaskAPI.completeTask(task.id, data);
       stopLocationTracking();
+      // ADR-CE-02: sefer tamamlandi — kuyrukta kalan telemetri ping'lerini
+      // son bir kez senkronize et (gecikmeli ping'ler dahi mesru, bkz.
+      // routes/mobileTelemetry.js'in durum kisitlamamasi).
+      stopTelemetryTracking();
       setTask(null);
       setRouteCoords([]);
       setNavigationInfo(null);
@@ -1288,7 +1315,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.response?.data?.message || e.message || t("routeMap.taskCouldNotComplete")
+        e.response?.data?.error || e.response?.data?.message || e.message || t("routeMap.taskCouldNotComplete")
       );
     } finally {
       setActionLoading(false);
@@ -1305,7 +1332,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     } catch (e) {
       Alert.alert(
         t("routeMap.error"),
-        e.response?.data?.message || e.message || t("routeMap.taskCouldNotAccept")
+        e.response?.data?.error || e.response?.data?.message || e.message || t("routeMap.taskCouldNotAccept")
       );
     } finally {
       setActionLoading(false);
@@ -1333,7 +1360,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
           } catch (e) {
             Alert.alert(
               t("routeMap.error"),
-              e.response?.data?.message || e.message || t("routeMap.taskCouldNotReject")
+              e.response?.data?.error || e.response?.data?.message || e.message || t("routeMap.taskCouldNotReject")
             );
           } finally {
             setActionLoading(false);

@@ -911,6 +911,23 @@ export const driverTaskAPI = {
 };
 
 // ============================================
+// MOBIL TELEMETRI API (ADR-CE-01 / ADR-CE-02)
+// ============================================
+// Sunucu: POST /api/driver/telemetry/batch — idempotent (client_ping_id
+// UNIQUE + ON CONFLICT DO NOTHING), taskId durumu kisitlamiyor, bu yuzden
+// geciken/offline ping'ler guvenle (hatta sefer tamamlandiktan sonra da)
+// gonderilebilir.
+export const telemetryAPI = {
+  sendBatch: async (taskId, pings) => {
+    const response = await api.post("/api/driver/telemetry/batch", {
+      taskId,
+      pings,
+    });
+    return response.data;
+  },
+};
+
+// ============================================
 // PUSH NOTIFICATION API
 // ============================================
 
