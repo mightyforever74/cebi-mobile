@@ -24,7 +24,7 @@ Push sırasında GitHub şu uyarıyı verdi: `android/kotlin_log.txt` — 95.64 
 
 **2026-10-18 (fork anında):** `EXPO_PUBLIC_API_URL` ana projenin `api.tulipfleet.com`'una fallback yapıyordu (`src/constants/config.js`); ayrıca (fork sırasında fark edilmemiş, Faz 4'te bulunan) `DEV_API_URL` ve `WS_URL` ana projenin sunucu IP'sine (`46.224.1.192`) sabitlenmişti.
 
-**2026-10-18 (Faz 4, commit `f159e12`) — düzeltildi:** Üç sabit değer de kaldırıldı. `EXPO_PUBLIC_API_URL` tanımsızsa artık sessizce ana projeye düşmüyor — boş döner ve açık bir hata loglanır (ADR-CE-03). Bu repo build edilip test edilecekse `.env`'de `EXPO_PUBLIC_API_URL` **zorunlu olarak** `cebi-backend`'in kendi adresine ayarlanmalı (bkz. `cebi-backend/DEPLOYMENT_RUNBOOK.md` — henüz gerçek bir sunucu adresi yok, açık karar).
+**2026-10-18 (Faz 4, commit `f159e12`) — düzeltildi:** Üç sabit değer de kaldırıldı. `EXPO_PUBLIC_API_URL` tanımsızsa artık sessizce ana projeye düşmüyor — boş döner ve açık bir hata loglanır (ADR-CE-03). Bu repo build edilip test edilecekse `.env`'de `EXPO_PUBLIC_API_URL` **zorunlu olarak** `cebi-backend`'in kendi adresine ayarlanmalı — henüz gerçek bir sunucu adresi yok (sunucu `fleet-enterprise-01` olarak kararlaştırıldı, domain/subdomain adlandırması açık — bkz. `cebi-backend/FORK_BASELINE.md`).
 
 ## Değişiklik günlüğü
 
