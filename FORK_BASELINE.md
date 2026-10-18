@@ -26,9 +26,12 @@ Push sırasında GitHub şu uyarıyı verdi: `android/kotlin_log.txt` — 95.64 
 
 **2026-10-18 (Faz 4, commit `f159e12`) — düzeltildi:** Üç sabit değer de kaldırıldı. `EXPO_PUBLIC_API_URL` tanımsızsa artık sessizce ana projeye düşmüyor — boş döner ve açık bir hata loglanır (ADR-CE-03). Bu repo build edilip test edilecekse `.env`'de `EXPO_PUBLIC_API_URL` **zorunlu olarak** `cebi-backend`'in kendi adresine ayarlanmalı — henüz gerçek bir sunucu adresi yok (sunucu `fleet-enterprise-01` olarak kararlaştırıldı, domain/subdomain adlandırması açık — bkz. `cebi-backend/FORK_BASELINE.md`).
 
+**2026-10-18 (gece) — henüz ayrışmamış, tespit edildi:** `app.json`'daki Google Maps API key (`googleMapsApiKey`/`config.googleMaps.apiKey`) ve `GoogleService-Info.plist`/`google-services.json`'daki Firebase credential'ları fork'tan aynen geldi — hâlâ ana projenin (`tulipfleet`, Firebase projesi `tulipfleet-523be`) kimlik bilgileri, Cebi'ye özel değil. GitGuardian'ın Maps key için verdiği sızıntı uyarısı analiz edilirken fark edildi (detay: `SESSION_NOTE.md`). ADR-CE-03 gereği bu ikisinin de ayrıştırılması gerekiyor — henüz yapılmadı, acil değil (mevcut key zaten API-scope restriction'lı, risk kota/maliyet seviyesinde).
+
 ## Değişiklik günlüğü
 
 | Tarih | Not |
 |---|---|
 | 2026-10-18 | Fork oluşturuldu, baseline sabitlendi. |
 | 2026-10-18 | Faz 4: ana projeye ait sabit URL/IP fallback'leri kaldırıldı (commit `f159e12`). |
+| 2026-10-18 | GitGuardian Google Maps API key sızıntı uyarısı analiz edildi; key'in ana projeyle paylaşıldığı ve API-scope ile sınırlı (restriction'lı) olduğu teyit edildi; rotasyon acil değil, bölme/ayrıştırma bir sonraki release'e planlandı. Detay: `SESSION_NOTE.md`. |
