@@ -1,26 +1,29 @@
 import { MQTT_HOST, MQTT_PASSWORD, MQTT_PORT, MQTT_USERNAME } from "@env";
 
 // ═══════════════════════════════════════════════════════════════════
-// API URL CONFIGURATION
-// Priority: ENV_API_URL > Production default
+// API URL CONFIGURATION — TulipFleet Customer Edition (Cebi)
+// ADR-CE-03 "Bağımsız Çalışma Zamanı": hiçbir fallback ana projenin
+// (tulipfleet.com / 46.224.1.192) adreslerine işaret etmez. Bu dosyadaki
+// eski sabit değerler (PRODUCTION_API_URL=api.tulipfleet.com,
+// DEV_API_URL=46.224.1.192, WS_URL=46.224.1.192) ana projeden fork
+// sırasında birebir taşınmıştı (bkz. FORK_BASELINE.md) — Faz 4
+// bağımsızlaştırmasıyla kaldırıldı. EXPO_PUBLIC_API_URL eksikse artık
+// sessizce/örtük biçimde ana projeye düşülmüyor; tanımsız kalıp
+// istekler görünür şekilde başarısız olur.
 // ═══════════════════════════════════════════════════════════════════
 
-// Production URLs
-const PRODUCTION_API_URL = "https://api.tulipfleet.com";
-const STAGING_API_URL = "https://staging-api.tulipfleet.com";
-const DEV_API_URL = "http://46.224.1.192:3000";
-
-// Determine API URL based on environment
-// Build profile'ın eas.json env bloğundan gelir (EXPO_PUBLIC_ öneki şart:
-// yalnızca bu önekli env'ler JS bundle'a gömülür). Eksikse sessizce
-// production'a düşmek yerine önce log basar (BUILD.md §14.2).
+// Determine API URL — EXPO_PUBLIC_API_URL build profile'ın eas.json env
+// bloğundan gelir (EXPO_PUBLIC_ öneki şart: yalnızca bu önekli env'ler JS
+// bundle'a gömülür). Eksikse boş döner ve hata loglanır; ana projeye veya
+// başka bir sabit adrese fallback YAPILMAZ (ADR-CE-03).
 const getApiUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (!envUrl) {
     console.error(
-      "[Config] EXPO_PUBLIC_API_URL missing — falling back to production!"
+      "[Config] EXPO_PUBLIC_API_URL tanımlı değil — cebi-backend adresi olmadan bu uygulama çalışamaz. " +
+        "Ana projeye (api.tulipfleet.com) veya başka bir sabit adrese fallback yapılmıyor (ADR-CE-03)."
     );
-    return PRODUCTION_API_URL;
+    return "";
   }
   return envUrl;
 };
@@ -171,9 +174,11 @@ export const MQTT_TOPICS = {
 // WebSocket Configuration
 // ═══════════════════════════════════════════════════════════════════
 
-export const WS_URL = __DEV__
-  ? "ws://46.224.1.192:3000"
-  : "wss://46.224.1.192:3000";
+// Tanımsız bırakıldı: bu sabit kodda hiç import edilmiyor (ölü kod, Faz 1
+// keşfinde tespit edildi) ama ana projenin IP'sine (46.224.1.192) işaret
+// ediyordu — ADR-CE-03 ihlali olduğu için kaldırıldı. Kullanılacaksa
+// EXPO_PUBLIC_API_URL'den türetilmeli.
+export const WS_URL = API_URL ? API_URL.replace(/^http/, "ws") : "";
 
 // ═══════════════════════════════════════════════════════════════════
 // App Configuration
