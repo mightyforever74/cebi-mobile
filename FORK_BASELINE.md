@@ -20,12 +20,15 @@ Bu dosya, `cebi-mobile` reposunun "doğum sertifikası"dır. Fork anındaki duru
 
 Push sırasında GitHub şu uyarıyı verdi: `android/kotlin_log.txt` — 95.64 MB (GitHub'ın 50 MB önerisinin üzerinde, 100 MB sert limitin altında; push başarılı oldu). Bu, commit edilmiş bir build/log artefaktı — ileride `.gitignore`'a eklenip geçmişten temizlenmesi (ayrı bir karar, history rewrite gerektirir) değerlendirilebilir.
 
-## Bağımsızlık durumu (fork anında — henüz uygulanmadı)
+## Bağımsızlık durumu
 
-`EXPO_PUBLIC_API_URL` henüz ana projenin `api.tulipfleet.com`'una fallback yapıyor (kod tarafı, `src/services/api.js`) — Dedicated DB/backend kurulana kadar bu repo build edilip test edilecekse `.env`'de `EXPO_PUBLIC_API_URL` **açıkça** `cebi-backend`'in kendi adresine ayarlanmalı, yoksa sessizce ana projeye bağlanır.
+**2026-10-18 (fork anında):** `EXPO_PUBLIC_API_URL` ana projenin `api.tulipfleet.com`'una fallback yapıyordu (`src/constants/config.js`); ayrıca (fork sırasında fark edilmemiş, Faz 4'te bulunan) `DEV_API_URL` ve `WS_URL` ana projenin sunucu IP'sine (`46.224.1.192`) sabitlenmişti.
+
+**2026-10-18 (Faz 4, commit `f159e12`) — düzeltildi:** Üç sabit değer de kaldırıldı. `EXPO_PUBLIC_API_URL` tanımsızsa artık sessizce ana projeye düşmüyor — boş döner ve açık bir hata loglanır (ADR-CE-03). Bu repo build edilip test edilecekse `.env`'de `EXPO_PUBLIC_API_URL` **zorunlu olarak** `cebi-backend`'in kendi adresine ayarlanmalı (bkz. `cebi-backend/DEPLOYMENT_RUNBOOK.md` — henüz gerçek bir sunucu adresi yok, açık karar).
 
 ## Değişiklik günlüğü
 
 | Tarih | Not |
 |---|---|
 | 2026-10-18 | Fork oluşturuldu, baseline sabitlendi. |
+| 2026-10-18 | Faz 4: ana projeye ait sabit URL/IP fallback'leri kaldırıldı (commit `f159e12`). |
