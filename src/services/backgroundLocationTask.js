@@ -1,9 +1,9 @@
 // src/services/backgroundLocationTask.js
 // ============================================================
-// ADR-CE-02 §4.2 — gercek arka plan GPS takibi (ekran kapali veya
+// ADR-CE-02 §4.2; gercek arka plan GPS takibi (ekran kapali veya
 // uygulama arka plandayken konum toplama).
 //
-// ONEMLI — bu dosya index.js'in EN BASINDA, herhangi bir component
+// ONEMLI; bu dosya index.js'in EN BASINDA, herhangi bir component
 // render edilmeden once import edilmelidir (bkz. index.js). expo-location
 // ve expo-task-manager, TaskManager.defineTask'in component agaci
 // DISINDA, modul yuklenirken calismasini sart kosar; aksi halde native
@@ -15,18 +15,18 @@
 // o an ne kadar surer bilinmedigi icin "sonra gonderilir" degil "simdi
 // dene, olmazsa kuyrukta kalsin" yaklasimi). Ayni idempotency/dedup
 // garantisi (clientPingId UUID, sunucu ON CONFLICT DO NOTHING) foreground
-// akisiyla (telemetrySync.js) birebir aynidir — iki kaynaktan gelen
+// akisiyla (telemetrySync.js) birebir aynidir; iki kaynaktan gelen
 // ping'ler kuyrukta ve sunucuda sorunsuz karisir.
 //
 // TEST DURUMU (onemli, Cem icin): bu kod expo-location@19.0.8 /
 // expo-task-manager@14.0.9'un dokumante edilen ve kaynagindan dogrulanan
-// API'sine gore yazildi (bkz. commit mesaji — paket kaynagi indirilip
+// API'sine gore yazildi (bkz. commit mesaji; paket kaynagi indirilip
 // AndroidManifest.xml + config-plugin kodu okunarak dogrulandi). AMA bu
 // oturumda gercek cihaz/simulator erisimi YOK; native rebuild (EAS build)
 // ve GERCEK CIHAZDA test edilmeden canliya guvenilmemeli. Ozellikle:
 //   - Android'de OEM-spesifik agresif pil optimizasyonu (Xiaomi/Huawei/
 //     Samsung'un kendi "arka plan uygulamalarini oldur" davranisi)
-//     foreground service'e ragmen takibi kesebilir — cihazda dogrulanmali.
+//     foreground service'e ragmen takibi kesebilir; cihazda dogrulanmali.
 //   - iOS'ta kullanici "Her Zaman" yerine "Uygulamayi Kullanirken" secerse
 //     arka plan guncellemesi hic gelmez; kod bunu status kontrolu ile
 //     ele aliyor (startBackgroundTracking status!=='granted' ise sessizce
@@ -70,7 +70,7 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK_NAME, async ({ data, error }) =>
   }
 
   // Firsatci flush: hangi sefer icin takip aciksa kalici depodan okunur
-  // (bkz. activeTrackingTaskId.js basligi — in-memory state'e guvenilemez).
+  // (bkz. activeTrackingTaskId.js basligi; in-memory state'e guvenilemez).
   const taskId = await getActiveTrackingTaskId();
   if (taskId) {
     await flushQueue(taskId);

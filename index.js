@@ -4,7 +4,7 @@ import "react-native-reanimated";
 
 // ADR-CE-02 §4.2: arka plan GPS task'i component agaci disinda,
 // mumkun oldugunca erken tanimlanmali (TaskManager.defineTask side-effect
-// import'u) — aksi halde native taraf uygulama arka planda/kapaliyken
+// import'u); aksi halde native taraf uygulama arka planda/kapaliyken
 // tetiklenen guncellemelerde bu task'i bulamaz.
 import "./src/services/backgroundLocationTask";
 

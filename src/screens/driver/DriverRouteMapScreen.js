@@ -769,7 +769,7 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   // (zaten in_progress olan bir sefere donus) bu tek efekt uzerinden
   // yonetilir. v3 (2026-10-19): startTelemetryTracking artik hem foreground
   // hem (izin verilirse) gercek arka plan takibini baslatiyor (bkz.
-  // services/telemetrySync.js) — bu ekranin kendisi degismedi, cagri
+  // services/telemetrySync.js) ; bu ekranin kendisi degismedi, cagri
   // sekli ayni kaldi.
   useEffect(() => {
     if (task?.id && task.status === "in_progress") {

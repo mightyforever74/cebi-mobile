@@ -1,6 +1,6 @@
 // src/services/telemetryFlush.js
 // ============================================================
-// ADR-CE-02 — Mobil Telemetri: kuyruktaki ping'leri sunucuya gonderme
+// ADR-CE-02; Mobil Telemetri: kuyruktaki ping'leri sunucuya gonderme
 // mantigi. telemetrySync.js (foreground interval + stopTracking'in son
 // flush'u) VE backgroundLocationTask.js (arka plan guncellemesinde
 // firsatci flush) tarafindan ortak kullanilir.
@@ -28,7 +28,7 @@ function toPingPayload(stored) {
 }
 
 // Kuyrukta ne varsa (birden fazla parti halinde) sunucuya gondermeye
-// calisir. Ag hatasinda sessizce durur — ping'ler kuyrukta kalir, bir
+// calisir. Ag hatasinda sessizce durur; ping'ler kuyrukta kalir, bir
 // sonraki cagrida tekrar denenir. HICBIR ZAMAN throw ETMEZ: ne sefer
 // akisini (foreground), ne de arka plan task callback'ini kesintiye
 // ugratmali.

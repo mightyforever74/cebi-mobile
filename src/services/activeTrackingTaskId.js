@@ -1,12 +1,12 @@
 // src/services/activeTrackingTaskId.js
 // ============================================================
-// ADR-CE-02 §4.2 — aktif takip edilen dispatcher task'inin (sefer) id'si,
+// ADR-CE-02 §4.2; aktif takip edilen dispatcher task'inin (sefer) id'si,
 // kalici (AsyncStorage) depoda tutulur.
 //
 // NEDEN GEREKLI: telemetrySync.js'teki in-memory `currentTaskId` degiskeni
 // sadece foreground JS context'i canliyken anlamlidir. Ama arka plan konum
 // guncellemeleri (backgroundLocationTask.js), uygulama arka plandayken
-// veya isletim sistemi JS motorunu yeniden baslattiginda calisabilir — bu
+// veya isletim sistemi JS motorunu yeniden baslattiginda calisabilir; bu
 // durumda modul-seviyesi in-memory state sifirlanmis olabilir. Bu yuzden
 // "hangi sefer icin takip aciksa" bilgisi ayrica kalici depoya yazilir;
 // arka plan task'i gonderecegi flush cagrisi icin taskId'yi buradan okur.

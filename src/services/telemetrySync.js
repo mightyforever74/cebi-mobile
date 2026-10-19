@@ -1,6 +1,6 @@
 // src/services/telemetrySync.js
 // ============================================================
-// ADR-CE-01 / ADR-CE-02 — Mobil Telemetri: GPS toplama (foreground +
+// ADR-CE-01 / ADR-CE-02; Mobil Telemetri: GPS toplama (foreground +
 // arka plan) ve periyodik senkronizasyon orkestrasyonu.
 //
 // GUNCELLEME (§4.2, bu tur): gercek arka plan takibi eklendi. Daha once
@@ -9,17 +9,17 @@
 // kapali/uygulama arka planda iken de konum toplanabiliyor (bkz.
 // backgroundLocationTask.js). GRACEFUL DEGRADATION: arka plan izni
 // reddedilirse veya API hata verirse, foreground takip yine de calismaya
-// devam eder — sefer baslatma/takip HICBIR ZAMAN bu yuzden engellenmez.
+// devam eder; sefer baslatma/takip HICBIR ZAMAN bu yuzden engellenmez.
 //
 // Akis:
 //   startTracking(taskId):
-//     1. Foreground izni istenir (zorunlu — reddedilirse takip hic
+//     1. Foreground izni istenir (zorunlu; reddedilirse takip hic
 //        baslamaz, eskisi gibi).
 //     2. watchPositionAsync ile foreground GPS toplama baslar, periyodik
 //        (FLUSH_INTERVAL_MS) sunucuya toplu gonderilir.
 //     3. Aktif taskId kalici depoya yazilir (bkz. activeTrackingTaskId.js
-//        basligi — arka plan task'inin okuyabilmesi icin).
-//     4. Arka plan izni istenir (opsiyonel — reddedilirse sessizce
+//        basligi; arka plan task'inin okuyabilmesi icin).
+//     4. Arka plan izni istenir (opsiyonel; reddedilirse sessizce
 //        atlanir, foreground takip etkilenmez). Verilirse
 //        startLocationUpdatesAsync ile arka plan takibi de baslar.
 //   stopTracking(): hem foreground watch'i hem (varsa) arka plan
@@ -28,10 +28,10 @@
 //
 // Idempotency: her ping'e mobilde uretilen bir clientPingId (UUID)
 // atanir; sunucu ayni id'yi ikinci kez gorurse sessizce yok sayar
-// (ON CONFLICT DO NOTHING) — ag kopmasi sonrasi tekrar gonderim VE
+// (ON CONFLICT DO NOTHING); ag kopmasi sonrasi tekrar gonderim VE
 // foreground+background'dan ayni anda gelebilecek ping'ler guvenlidir.
 //
-// flushQueue artik telemetryFlush.js'te (bkz. o dosyanin basligi —
+// flushQueue artik telemetryFlush.js'te (bkz. o dosyanin basligi;
 // backgroundLocationTask.js ile dongusel import'u onlemek icin tasindi);
 // burada geriye-donuk uyumluluk icin re-export edilir.
 // ============================================================
@@ -48,7 +48,7 @@ import {
 
 export { flushQueue };
 
-const FLUSH_INTERVAL_MS = 20000; // 20s — periyodik senkronizasyon
+const FLUSH_INTERVAL_MS = 20000; // 20s; periyodik senkronizasyon
 const LOCATION_TIME_INTERVAL_MS = 10000; // GPS guncellemesi: en az 10s'de bir
 const LOCATION_DISTANCE_INTERVAL_M = 25; // veya 25m hareket
 
@@ -76,7 +76,7 @@ async function tryStartBackgroundUpdates() {
       distanceInterval: LOCATION_DISTANCE_INTERVAL_M,
       // Android: kullaniciya bildirim gosteren bir foreground service
       // gerektirir (API 34+ icin FOREGROUND_SERVICE_LOCATION iznini de
-      // ister — bkz. AndroidManifest.xml, native rebuild notu).
+      // ister; bkz. AndroidManifest.xml, native rebuild notu).
       foregroundService: {
         notificationTitle: "TulipFleet sefer takibi aktif",
         notificationBody: "Sefer devam ederken konumunuz paylasiliyor.",
@@ -160,7 +160,7 @@ export async function startTracking(taskId) {
       flushQueue(currentTaskId);
     }, FLUSH_INTERVAL_MS);
 
-    // Arka plan takibi opsiyonel/best-effort — sonucu foreground takibin
+    // Arka plan takibi opsiyonel/best-effort; sonucu foreground takibin
     // basarisini ETKILEMEZ (yukaridaki return true zaten verildi say).
     await tryStartBackgroundUpdates();
 
