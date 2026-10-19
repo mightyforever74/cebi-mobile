@@ -3,6 +3,13 @@
   <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <!-- ADR-CE-02 S4.2: gercek arka plan GPS takibi. Normalde expo-location'in
+       config-plugin'i (app.json) bunlari `expo prebuild` sirasinda ekler, ama
+       bu projenin CI'si prebuild CALISTIRMIYOR (dogrudan bu commit'lenmis
+       klasorden build alir); bu yuzden elle eklendi. -->
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
   <uses-permission android:name="android.permission.BLUETOOTH"/>
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>

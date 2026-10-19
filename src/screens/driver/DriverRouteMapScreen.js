@@ -767,9 +767,10 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
   // oldugu surece acik olmali — hem handleStartTask sonrasi (yeni baslayan
   // sefer) hem de ekran yeniden odaklandiginda/yeniden monte edildiginde
   // (zaten in_progress olan bir sefere donus) bu tek efekt uzerinden
-  // yonetilir. V1 kapsami: sadece FOREGROUND (ekran acik) takip — gercek
-  // arka plan takibi icin expo-task-manager gerekir, bu projede henuz yok
-  // (native rebuild gerektirir, bu oturumda test edilemez).
+  // yonetilir. v3 (2026-10-19): startTelemetryTracking artik hem foreground
+  // hem (izin verilirse) gercek arka plan takibini baslatiyor (bkz.
+  // services/telemetrySync.js) — bu ekranin kendisi degismedi, cagri
+  // sekli ayni kaldi.
   useEffect(() => {
     if (task?.id && task.status === "in_progress") {
       startTelemetryTracking(task.id);

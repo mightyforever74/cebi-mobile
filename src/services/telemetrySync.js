@@ -1,89 +1,119 @@
 // src/services/telemetrySync.js
 // ============================================================
-// ADR-CE-01 / ADR-CE-02 — Mobil Telemetri: foreground GPS toplama +
-// periyodik senkronizasyon orkestrasyonu.
+// ADR-CE-01 / ADR-CE-02 — Mobil Telemetri: GPS toplama (foreground +
+// arka plan) ve periyodik senkronizasyon orkestrasyonu.
 //
-// KAPSAM (bilerek sinirlandi — bkz. asagidaki not):
-//   V1 kapsami SADECE "foreground" (uygulama acik/aktif) takiptir.
-//   Gercek arka plan takibi (ekran kapali veya uygulama tamamen
-//   kapatilmisken GPS toplama) icin `expo-task-manager` +
-//   `expo-background-fetch`/`expo-location`'in background-location
-//   API'si gerekir — bu paket bu projede HENUZ YOK ve eklenmesi native
-//   bir rebuild (EAS build) gerektirir; bu oturumda cihaz/simulator
-//   erisimi olmadigindan test edilemez. Bu nedenle V1, ADR-CE-01'in
-//   "sefer basinca takip acilir, sefer boyunca surer, kapaninca durur"
-//   kuralini EKRANIN ACIK OLDUGU surece karsilar (DriverRouteMapScreen
-//   mount/unmount + sefer baslangic/tamamlanma olaylarina baglanir).
-//   Arka plan destegi ayri bir takip maddesi olarak ele alinmali.
+// GUNCELLEME (§4.2, bu tur): gercek arka plan takibi eklendi. Daha once
+// (v2) bu dosyanin kapsami "sadece ekran acikken" idi; simdi
+// `Location.startLocationUpdatesAsync` + `expo-task-manager` ile ekran
+// kapali/uygulama arka planda iken de konum toplanabiliyor (bkz.
+// backgroundLocationTask.js). GRACEFUL DEGRADATION: arka plan izni
+// reddedilirse veya API hata verirse, foreground takip yine de calismaya
+// devam eder — sefer baslatma/takip HICBIR ZAMAN bu yuzden engellenmez.
 //
 // Akis:
-//   startTracking(taskId) -> expo-location watchPositionAsync baslar,
-//     her konum guncellemesi local kuyruga (telemetryQueue) yazilir ve
-//     periyodik olarak (FLUSH_INTERVAL_MS) sunucuya toplu gonderilir.
-//   stopTracking() -> izlemeyi durdurur, kuyrukta kalani son bir kez
-//     senkronize etmeye calisir (best-effort, basarisiz olursa kuyrukta
-//     kalir — bir sonraki startTracking/flush'ta tekrar denenir).
+//   startTracking(taskId):
+//     1. Foreground izni istenir (zorunlu — reddedilirse takip hic
+//        baslamaz, eskisi gibi).
+//     2. watchPositionAsync ile foreground GPS toplama baslar, periyodik
+//        (FLUSH_INTERVAL_MS) sunucuya toplu gonderilir.
+//     3. Aktif taskId kalici depoya yazilir (bkz. activeTrackingTaskId.js
+//        basligi — arka plan task'inin okuyabilmesi icin).
+//     4. Arka plan izni istenir (opsiyonel — reddedilirse sessizce
+//        atlanir, foreground takip etkilenmez). Verilirse
+//        startLocationUpdatesAsync ile arka plan takibi de baslar.
+//   stopTracking(): hem foreground watch'i hem (varsa) arka plan
+//     guncellemelerini durdurur, kuyrukta kalani son bir kez senkronize
+//     etmeye calisir (best-effort).
 //
 // Idempotency: her ping'e mobilde uretilen bir clientPingId (UUID)
 // atanir; sunucu ayni id'yi ikinci kez gorurse sessizce yok sayar
-// (ON CONFLICT DO NOTHING) — bu sayede ag kopmasi sonrasi tekrar
-// gonderim guvenlidir.
+// (ON CONFLICT DO NOTHING) — ag kopmasi sonrasi tekrar gonderim VE
+// foreground+background'dan ayni anda gelebilecek ping'ler guvenlidir.
+//
+// flushQueue artik telemetryFlush.js'te (bkz. o dosyanin basligi —
+// backgroundLocationTask.js ile dongusel import'u onlemek icin tasindi);
+// burada geriye-donuk uyumluluk icin re-export edilir.
 // ============================================================
 
 import * as Location from "expo-location";
-import { telemetryAPI } from "./api";
 import { generateUuidV4 } from "../utils/uuid";
+import { enqueuePing } from "./telemetryQueue";
+import { flushQueue } from "./telemetryFlush";
+import { BACKGROUND_LOCATION_TASK_NAME } from "./backgroundLocationTask";
 import {
-  enqueuePing,
-  peekQueue,
-  removeFromQueue,
-} from "./telemetryQueue";
+  setActiveTrackingTaskId,
+  clearActiveTrackingTaskId,
+} from "./activeTrackingTaskId";
+
+export { flushQueue };
 
 const FLUSH_INTERVAL_MS = 20000; // 20s — periyodik senkronizasyon
-const FLUSH_BATCH_SIZE = 300; // tek istekte gonderilecek ust limit (sunucu MAX_BATCH_SIZE=500)
 const LOCATION_TIME_INTERVAL_MS = 10000; // GPS guncellemesi: en az 10s'de bir
 const LOCATION_DISTANCE_INTERVAL_M = 25; // veya 25m hareket
 
 let watchSubscription = null;
 let flushIntervalId = null;
 let currentTaskId = null;
+let backgroundTrackingActive = false;
 
-function toPingPayload(stored) {
-  return {
-    clientPingId: stored.clientPingId,
-    latitude: stored.latitude,
-    longitude: stored.longitude,
-    speed: stored.speed,
-    heading: stored.heading,
-    accuracy: stored.accuracy,
-    recordedAt: stored.recordedAt,
-  };
+// Arka plan izni iste ve verildiyse startLocationUpdatesAsync baslat.
+// Best-effort: hicbir hata/red foreground takibi durdurmamali, bu yuzden
+// throw etmez, sadece true/false doner (cagiran taraf sonucu loglar).
+async function tryStartBackgroundUpdates() {
+  try {
+    const { status } = await Location.requestBackgroundPermissionsAsync();
+    if (status !== "granted") {
+      console.warn(
+        "telemetrySync: arka plan konum izni verilmedi, sadece foreground takip devam ediyor"
+      );
+      return false;
+    }
+
+    await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK_NAME, {
+      accuracy: Location.Accuracy.High,
+      timeInterval: LOCATION_TIME_INTERVAL_MS,
+      distanceInterval: LOCATION_DISTANCE_INTERVAL_M,
+      // Android: kullaniciya bildirim gosteren bir foreground service
+      // gerektirir (API 34+ icin FOREGROUND_SERVICE_LOCATION iznini de
+      // ister — bkz. AndroidManifest.xml, native rebuild notu).
+      foregroundService: {
+        notificationTitle: "TulipFleet sefer takibi aktif",
+        notificationBody: "Sefer devam ederken konumunuz paylasiliyor.",
+      },
+      // iOS: konum guncellemeleri arasinda uygulamanin askiya alinmasini
+      // engelleyen bir gosterge (durum cubugunda mavi seritle belirtilir,
+      // kullaniciya seffaf).
+      showsBackgroundLocationIndicator: true,
+    });
+
+    backgroundTrackingActive = true;
+    return true;
+  } catch (error) {
+    console.warn(
+      "telemetrySync: arka plan takibi baslatilamadi, sadece foreground devam ediyor:",
+      error?.message || error
+    );
+    return false;
+  }
 }
 
-// Kuyrukta ne varsa (birden fazla parti halinde) sunucuya gondermeye
-// calisir. Ag hatasinda sessizce durur — ping'ler kuyrukta kalir, bir
-// sonraki cagrida tekrar denenir. Sefer tamamlanmasini ENGELLEMEMELI:
-// bu fonksiyon asla throw etmez.
-export async function flushQueue(taskId) {
-  if (!taskId) return;
-  // eslenmemis/bosa dongu riskini sinirlamak icin makul bir ust sinir
-  for (let i = 0; i < 20; i++) {
-    const batch = await peekQueue(FLUSH_BATCH_SIZE);
-    if (batch.length === 0) return;
-    try {
-      await telemetryAPI.sendBatch(
-        taskId,
-        batch.map(toPingPayload)
-      );
-      await removeFromQueue(batch.map((p) => p.clientPingId));
-      if (batch.length < FLUSH_BATCH_SIZE) return; // kuyruk tukendi
-    } catch (error) {
-      console.warn(
-        "telemetrySync.flushQueue: senkronizasyon basarisiz, kuyrukta birakildi:",
-        error?.message || error
-      );
-      return;
+async function stopBackgroundUpdatesIfActive() {
+  if (!backgroundTrackingActive) return;
+  try {
+    const isRunning = await Location.hasStartedLocationUpdatesAsync(
+      BACKGROUND_LOCATION_TASK_NAME
+    );
+    if (isRunning) {
+      await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK_NAME);
     }
+  } catch (error) {
+    console.warn(
+      "telemetrySync: arka plan takibi durdurulurken hata (yok sayildi):",
+      error?.message || error
+    );
+  } finally {
+    backgroundTrackingActive = false;
   }
 }
 
@@ -104,6 +134,7 @@ export async function startTracking(taskId) {
     }
 
     currentTaskId = taskId;
+    await setActiveTrackingTaskId(taskId);
 
     watchSubscription = await Location.watchPositionAsync(
       {
@@ -129,6 +160,10 @@ export async function startTracking(taskId) {
       flushQueue(currentTaskId);
     }, FLUSH_INTERVAL_MS);
 
+    // Arka plan takibi opsiyonel/best-effort — sonucu foreground takibin
+    // basarisini ETKILEMEZ (yukaridaki return true zaten verildi say).
+    await tryStartBackgroundUpdates();
+
     return true;
   } catch (error) {
     console.error("telemetrySync.startTracking error:", error);
@@ -147,7 +182,9 @@ export async function stopTracking() {
     watchSubscription.remove();
     watchSubscription = null;
   }
+  await stopBackgroundUpdatesIfActive();
   currentTaskId = null;
+  await clearActiveTrackingTaskId();
 
   // Kuyrukta kalani son bir kez senkronize etmeye calis (best-effort).
   if (taskId) {
@@ -157,4 +194,8 @@ export async function stopTracking() {
 
 export function isTracking() {
   return !!watchSubscription;
+}
+
+export function isBackgroundTracking() {
+  return backgroundTrackingActive;
 }

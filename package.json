@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "eject": "expo eject",
     "prebuild": "echo '🚫 YASAK: expo prebuild android/ ve ios/ klasörlerini siler. Bkz: NATIVE_REPO.md' && exit 1",
-    "test": "node --check App.js && node --check src/hooks/usePushNotifications.js && node --check src/constants/config.js"
+    "test": "node --check App.js && node --check src/hooks/usePushNotifications.js && node --check src/constants/config.js && node --check index.js && node --check src/services/telemetrySync.js && node --check src/services/telemetryFlush.js && node --check src/services/backgroundLocationTask.js && node --check src/services/activeTrackingTaskId.js && node --check src/screens/driver/DriverRouteMapScreen.js"
   },
   "repository": {
     "type": "git",
@@ -53,6 +53,7 @@
     "expo-sharing": "~14.0.8",
     "expo-speech": "~14.0.8",
     "expo-splash-screen": "~31.0.10",
+    "expo-task-manager": "~14.0.9",
     "expo-updates": "~29.0.15",
     "galio-framework": "^0.8.0",
     "i18next": "^25.7.4",

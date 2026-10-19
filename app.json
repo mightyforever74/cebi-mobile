@@ -59,6 +59,16 @@
       ],
       "react-native-ble-plx",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "TulipFleet, sefer devam ederken konumunuzu uygulama arka plandayken de paylaşabilmek için 'Her Zaman' konum izni ister.",
+          "locationAlwaysPermission": "TulipFleet, sefer devam ederken konumunuzu uygulama arka plandayken de paylaşabilmek için 'Her Zaman' konum izni ister.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      "expo-task-manager",
+      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
