@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "851514187466",
-    "project_id": "tulipfleet-523be",
-    "storage_bucket": "tulipfleet-523be.firebasestorage.app"
+    "project_number": "631643994904",
+    "project_id": "cebi-mobile",
+    "storage_bucket": "cebi-mobile.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:851514187466:android:3dcb28cd52a0eb417c1e33",
+        "mobilesdk_app_id": "1:631643994904:android:cf20f2fd6fb11d66cafc6d",
         "android_client_info": {
           "package_name": "com.tulipfleet.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBw8h5r7M_5XxkSz-aUohlAHrV5o_lrSig"
+          "current_key": "AIzaSyArByYajxwW3sbYamRU4QTy2nValdDxcmM"
         }
       ],
       "services": {
