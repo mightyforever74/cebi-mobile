@@ -2,6 +2,21 @@
 
 Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik günlüğüdür (yeni kayıtlar en üste eklenir). `FORK_BASELINE.md` fork'un "doğum sertifikası"dır ve sabittir; bu dosya ise ilerleyen her oturumun hikayesini, karşılaşılan hataları ve çözümlerini tutar — standart: `SESSION_NOTE.md` + `FORK_BASELINE.md` + ADR, başka doküman türü eklenmez.
 
+## 2026-10-19 (öğleden önce) — Risk #14 kapatıldı: `cebi-mobile`, ana `tulipfleet` ile paylaşılan Firebase/Maps credential'larından ayrıştı
+
+**Bağlam:** 18 Ekim gece bulunan açık (bkz. aşağıdaki "GitGuardian" kaydı) planlanan iyileştirme olarak bırakılmıştı — bu turda Cem'in sağladığı yeni credential'larla kapatıldı.
+
+**Cem'in yaptığı (Console'dan elle):** Yeni, boş Firebase projesi oluşturuldu (`cebi-mobile`, proje numarası `631643994904`), Maps Platform etkinleştirildi, iki kısıtlı Maps key üretildi (`cebi-mobile-maps-android`: paket adı + **debug keystore SHA-1** kısıtlı; `cebi-mobile-maps-ios`: bundle ID kısıtlı). `google-services.json`/`GoogleService-Info.plist` + iki key değeri Claude'a iletildi.
+
+**Yapılan (3 commit):**
+1. `3d0991c` — kök `google-services.json`/`GoogleService-Info.plist`, eski paylaşılan `tulipfleet-523be` projesinden yeni `cebi-mobile` projesine değiştirildi.
+2. `f0ef8b9` — `app.json`'daki `ios.config.googleMapsApiKey` ve `android.config.googleMaps.apiKey`, yeni iki kısıtlı key'e çevrildi. Kod doğrulaması: `cebi-mobile`'da `@react-native-firebase` bağımlılığı yok, push `expo-notifications` üzerinden gidiyor — Maps-only key kısıtlaması başka bir şeyi kırmıyor.
+3. `cb53858` — **kritik tamamlayıcı düzeltme:** ilk iki commit sadece proje-kökü güncelledi, ama `cebi-mobile`'ın CI'si (`android-build.yml`) `expo prebuild` ÇALIŞTIRMIYOR, doğrudan commit'lenmiş `android/` klasöründen build alıyor (ana `tulipfleet` ile aynı desen, bkz. `tulipfleet-qa/BUILD.md` §14.14). Gerçek Gradle `google-services` plugin'inin okuduğu `android/app/google-services.json` ve `AndroidManifest.xml`'deki hardcoded `com.google.android.geo.API_KEY` meta-data hâlâ eski projeye işaret ediyordu — ikisi de ayrıca düzeltildi, yoksa gerçek derlenen AAB eski paylaşılan credential'ları taşımaya devam edecekti.
+
+**Açık alt-risk (kod değişikliği gerektirmiyor, ileride ele alınacak):** Android Maps key şu an sadece **debug keystore SHA-1**'ine kısıtlı — `cebi-mobile` kendi gerçek release imzalama anahtarıyla (henüz yok, Play Console listesi yok) ilk kez yayına çıkarken bu SHA-1 de key kısıtlamasına eklenmeli, aksi halde release build'de Maps `REQUEST_DENIED` döner.
+
+---
+
 ## 2026-10-19 — Offline-First / dayanıklılık: önce düzeltme (kuyruk zaten vardı), sonra 2 somut gerçek açık kapatıldı
 
 **Cem'in talimatı:** "Offline-First & Local Cache" başlığına geçelim (donanım bağımsız, kod tabanında ilerleyebileceğimiz bir iş).
