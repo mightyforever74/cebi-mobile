@@ -33,6 +33,11 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { LANGUAGES } from "../../locales/i18n";
 import { syncLanguageToBackend } from "../../locales/syncLanguage";
 import { driverAPI, driverProvisionAPI } from "../../services/api";
+import {
+  clearActiveTrackingTaskId,
+  getActiveTrackingTaskId,
+} from "../../services/activeTrackingTaskId";
+import { isTracking } from "../../services/telemetrySync";
 import { withAlpha } from "../../utils/colorUtils";
 
 // ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
@@ -559,6 +564,51 @@ const DriverDashboard = () => {
     return labels ? labels[i18n.language] || labels.en : fuelType;
   };
 
+  // Offline-First dayaniklilik: uygulama bir sefer "in_progress" iken
+  // oldurulup (OS/batarya optimizasyonu, manuel force-stop, cokme) yeniden
+  // acilirsa, foreground GPS takibi (telemetrySync.js'teki watchPositionAsync
+  // + interval) JS context'i sifirdan baslatildigi icin OTOMATIK DEVAM ETMEZ
+  // — surucu DriverDashboard'a (surucu rolunun varsayilan/initial ekrani,
+  // bkz. AppNavigator.js/MainNavigator.js) iner, DriverRouteMapScreen
+  // yeniden MOUNT edilene kadar (surucu manuel olarak gorevine geri
+  // girene kadar) hicbir takip kodu calismaz. Bu kontrol, her dashboard
+  // focus'unda (ilk soguk acilis dahil) kalici activeTrackingTaskId'yi
+  // (bkz. activeTrackingTaskId.js) hala "in_progress" olan bir gorevle
+  // eslestirip surucuyu otomatik olarak o gorevin takip ekranina geri
+  // gonderir — boylece takip kendiliginden devam eder.
+  const resumeActiveTrackingIfNeeded = useCallback(
+    async (allTasks) => {
+      try {
+        // Bu JS context'inde takip zaten aktifse (ornegin surucu Drawer
+        // menusunden Dashboard'a gecti ama DriverRouteMapScreen arka planda
+        // hala mount'lu ve takip ediyor) MUDAHALE ETME — gereksiz yere
+        // surucuyu takip ekranina geri atmak rahatsiz edici olur.
+        if (isTracking()) return;
+
+        const activeTaskId = await getActiveTrackingTaskId();
+        if (!activeTaskId) return;
+
+        const match = allTasks.find(
+          (t) => t.id === activeTaskId && t.status === "in_progress"
+        );
+        if (match) {
+          navigation.navigate("Navigation", { task: match });
+        } else {
+          // Gorev artik in_progress degil (tamamlandi/iptal edildi/baska
+          // surucuye atandi, uygulama kapaliyken) veya hic bulunamadi —
+          // bayat state'i temizle, her focus'ta tekrar denenmesin.
+          await clearActiveTrackingTaskId();
+        }
+      } catch (error) {
+        console.warn(
+          "DriverDashboard: aktif takip devam ettirme kontrolu basarisiz (yok sayildi):",
+          error?.message || error
+        );
+      }
+    },
+    [navigation]
+  );
+
   const fetchDashboardData = useCallback(async () => {
     try {
       setError(null);
@@ -575,6 +625,7 @@ const DriverDashboard = () => {
         )
       );
       setStats(statsRes.stats || {});
+      await resumeActiveTrackingIfNeeded(allTasks);
 
       // Drive Assist  -  aktif görevi ilet
       const active =
@@ -591,7 +642,7 @@ const DriverDashboard = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [t]);
+  }, [t, resumeActiveTrackingIfNeeded]);
 
   useFocusEffect(
     useCallback(() => {

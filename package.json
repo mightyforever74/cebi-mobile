@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "eject": "expo eject",
     "prebuild": "echo '🚫 YASAK: expo prebuild android/ ve ios/ klasörlerini siler. Bkz: NATIVE_REPO.md' && exit 1",
-    "test": "node --check App.js && node --check src/hooks/usePushNotifications.js && node --check src/constants/config.js && node --check index.js && node --check src/services/telemetrySync.js && node --check src/services/telemetryFlush.js && node --check src/services/backgroundLocationTask.js && node --check src/services/activeTrackingTaskId.js && node --check src/screens/driver/DriverRouteMapScreen.js"
+    "test": "node --check App.js && node --check src/hooks/usePushNotifications.js && node --check src/constants/config.js && node --check index.js && node --check src/services/telemetrySync.js && node --check src/services/telemetryFlush.js && node --check src/services/backgroundLocationTask.js && node --check src/services/activeTrackingTaskId.js && node --check src/screens/driver/DriverRouteMapScreen.js && node --check src/screens/driver/DriverDashboard.js"
   },
   "repository": {
     "type": "git",

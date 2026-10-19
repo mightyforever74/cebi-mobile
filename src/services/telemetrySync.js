@@ -34,9 +34,19 @@
 // flushQueue artik telemetryFlush.js'te (bkz. o dosyanin basligi;
 // backgroundLocationTask.js ile dongusel import'u onlemek icin tasindi);
 // burada geriye-donuk uyumluluk icin re-export edilir.
+//
+// GUNCELLEME (Offline-First dayaniklilik, bu tur): NetInfo ile baglanti
+// farkindaligi eklendi. (1) telemetryFlush.js artik kesin offline
+// durumunda bosuna fetch denemiyor (batarya). (2) Burada, offline'dan
+// online'a gecince FLUSH_INTERVAL_MS'yi beklemeden hemen flush tetiklenir
+// (uzun offline donem sonrasi senkronizasyon gecikmesini azaltir).
+// Mevcut kalici kuyruk (telemetryQueue.js, AsyncStorage) zaten uygulama
+// oldurulse/yeniden baslatilsa bile ping kaybetmiyordu — bu, o mekanizmayi
+// DEGISTIRMEZ, sadece ne zaman/ne siklikta denendigini optimize eder.
 // ============================================================
 
 import * as Location from "expo-location";
+import NetInfo from "@react-native-community/netinfo";
 import { generateUuidV4 } from "../utils/uuid";
 import { enqueuePing } from "./telemetryQueue";
 import { flushQueue } from "./telemetryFlush";
@@ -56,6 +66,7 @@ let watchSubscription = null;
 let flushIntervalId = null;
 let currentTaskId = null;
 let backgroundTrackingActive = false;
+let netInfoUnsubscribe = null;
 
 // Arka plan izni iste ve verildiyse startLocationUpdatesAsync baslat.
 // Best-effort: hicbir hata/red foreground takibi durdurmamali, bu yuzden
@@ -160,6 +171,24 @@ export async function startTracking(taskId) {
       flushQueue(currentTaskId);
     }, FLUSH_INTERVAL_MS);
 
+    // Baglanti offline'dan online'a donunce FLUSH_INTERVAL_MS'yi (20s)
+    // beklemeden hemen senkronize et — uzun bir offline donemden sonra
+    // (tunel, zayif sinyal bolgesi) kuyruktaki ping'lerin dispatcher
+    // haritasina daha hizli yansimasi icin. Best-effort: dinleyici
+    // kurulamazsa normal interval zaten calismaya devam eder.
+    try {
+      netInfoUnsubscribe = NetInfo.addEventListener((state) => {
+        if (state.isConnected && currentTaskId) {
+          flushQueue(currentTaskId);
+        }
+      });
+    } catch (error) {
+      console.warn(
+        "telemetrySync: NetInfo dinleyicisi kurulamadi (yok sayildi, periyodik flush devam ediyor):",
+        error?.message || error
+      );
+    }
+
     // Arka plan takibi opsiyonel/best-effort; sonucu foreground takibin
     // basarisini ETKILEMEZ (yukaridaki return true zaten verildi say).
     await tryStartBackgroundUpdates();
@@ -181,6 +210,10 @@ export async function stopTracking() {
   if (watchSubscription) {
     watchSubscription.remove();
     watchSubscription = null;
+  }
+  if (netInfoUnsubscribe) {
+    netInfoUnsubscribe();
+    netInfoUnsubscribe = null;
   }
   await stopBackgroundUpdatesIfActive();
   currentTaskId = null;
