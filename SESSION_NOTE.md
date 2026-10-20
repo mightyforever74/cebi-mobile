@@ -2,6 +2,18 @@
 
 Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik günlüğüdür (yeni kayıtlar en üste eklenir). `FORK_BASELINE.md` fork'un "doğum sertifikası"dır ve sabittir; bu dosya ise ilerleyen her oturumun hikayesini, karşılaşılan hataları ve çözümlerini tutar — standart: `SESSION_NOTE.md` + `FORK_BASELINE.md` + ADR, başka doküman türü eklenmez.
 
+## 2026-10-20 (devam) — Yeni risk bulundu ve kapatıldı: `eas.json`'daki tüm build profilleri ana projenin API adresine işaret ediyordu
+
+**Bağlam:** Risk #16 testi için driver kullanıcısı + test seferi oluşturulup gerçek telefonda giriş denendi — "sessizce kalıyor" (hata mesajı yok, login hiç olmuyor).
+
+**Kök neden (kod okunarak doğrulandı):** `src/constants/config.js`, `EXPO_PUBLIC_API_URL`'i build-time env'den okuyor, eksikse boş string dönüp ADR-CE-03 gereği hiçbir sabit adrese fallback yapmıyor (bilinçli tasarım). Ama `eas.json`'daki `development`/`preview`/`production` profillerinin hepsinde `EXPO_PUBLIC_API_URL`/`API_URL` hâlâ ana projenin adresiydi (`https://api.tulipfleet.com`, `development`'ta ise ana projenin sunucu IP'si `http://46.224.1.192:3000`) — Risk #14/paket kimliği ile aynı aile: fork sırasında birebir taşınmış, hiç güncellenmemişti. Demin alınan `preview` build'i bu yüzden `cebi-api.tulipfleet.com`'a değil, ana projenin backend'ine istek atıyordu — `driver@cebi-test.local` orada olmadığından login sessizce başarısız oluyordu.
+
+**Yapılan (bu commit):** Üç profilin de `EXPO_PUBLIC_API_URL`/`MQTT_HOST` değerleri `https://cebi-api.tulipfleet.com`'a çevrildi. `staging` profiline dokunulmadı — Cebi'nin ayrı bir staging ortamı yok, bu profil şu an kullanılmıyor/anlamsız, ileride gerekirse ele alınır.
+
+**Sonuç — YENİ BİR BUILD GEREKİYOR:** Bu değişiklik build-time env'e gömülüyor, mevcut kurulu APK'da düzelmez. `npx eas-cli build --platform android --profile preview` tekrar çalıştırılıp yeni APK telefona kurulmalı.
+
+---
+
 ## 2026-10-20 — Yeni risk bulundu ve kapatıldı: paket kimliği (`applicationId`/`bundleIdentifier`) ana `tulipfleet` ile birebir aynıydı
 
 **Bağlam:** Cem, ana `tulipfleet` reposunda yapılan bir GitHub Actions build/Play Console yayını konuşulurken şu soruyu sordu: "yeni mobil app için yaptığımız build'i isim değiştirmeden ana mobil app yerine paste edecek şekilde mi yaptın?" Kontrol edilince o build'in cebi-mobile'a hiç dokunmadığı doğrulandı, ama soru gerçek ve o ana kadar belgelenmemiş bir riski ortaya çıkardı.

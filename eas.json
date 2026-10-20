@@ -8,8 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "API_URL": "http://46.224.1.192:3000",
-        "MQTT_HOST": "46.224.1.192"
+        "EXPO_PUBLIC_API_URL": "https://cebi-api.tulipfleet.com",
+        "MQTT_HOST": "cebi-api.tulipfleet.com"
       },
       "android": {
         "buildType": "apk",
@@ -38,8 +38,8 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.tulipfleet.com",
-        "MQTT_HOST": "mqtt.tulipfleet.com"
+        "EXPO_PUBLIC_API_URL": "https://cebi-api.tulipfleet.com",
+        "MQTT_HOST": "cebi-api.tulipfleet.com"
       },
       "android": {
         "buildType": "apk"
@@ -52,8 +52,8 @@
       "node": "20.19.4",
       "credentialsSource": "remote",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.tulipfleet.com",
-        "MQTT_HOST": "46.224.1.192",
+        "EXPO_PUBLIC_API_URL": "https://cebi-api.tulipfleet.com",
+        "MQTT_HOST": "cebi-api.tulipfleet.com",
         "MQTT_PORT": "8883",
         "MQTT_USERNAME": "fleet-backend",
         "MQTT_USE_SSL": "true"
