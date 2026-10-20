@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
 import * as Speech from "expo-speech";
+import * as Location from "expo-location";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -1013,6 +1014,29 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
     }
   };
 
+  // Dev/test fallback: ESP32 henuz konum gondermemis olabilir (acik risk,
+  // bkz. SESSION_NOTE.md "No location data"). Ekran tamamen bos/beyaz
+  // kalmak yerine suruculu telefonun kendi GPS'ini kullanarak harita/rota
+  // test edilebilir kaliyor; ESP32 gercek veri gondermeye basladiginda
+  // vehicleAPI sonucu normal akiste oncelikli kalmaya devam eder.
+  const getFallbackPhoneLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return null;
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      return {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        heading: pos.coords.heading || 0,
+      };
+    } catch (e) {
+      console.log("[Nav] Phone GPS fallback failed:", e);
+      return null;
+    }
+  };
+
   const getLocation = async () => {
     try {
       // Resolve vehicle id: prefer task.vehicle_id, fallback to driver's assigned vehicle
@@ -1045,11 +1069,30 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
         if (loc.heading !== undefined && loc.heading !== null)
           setHeading(parseFloat(loc.heading) || 0);
       } else {
-        setLocationError(t("routeMap.locationNotAvailable"));
+        console.log("[Nav] Vehicle location not available, trying phone GPS fallback");
+        const fallback = await getFallbackPhoneLocation();
+        if (fallback) {
+          setLocation({
+            latitude: fallback.latitude,
+            longitude: fallback.longitude,
+          });
+          setHeading(fallback.heading);
+        } else {
+          setLocationError(t("routeMap.locationNotAvailable"));
+        }
       }
     } catch (e) {
       console.log("[Nav] Location error:", e);
-      setLocationError(t("routeMap.locationNotAvailable"));
+      const fallback = await getFallbackPhoneLocation();
+      if (fallback) {
+        setLocation({
+          latitude: fallback.latitude,
+          longitude: fallback.longitude,
+        });
+        setHeading(fallback.heading);
+      } else {
+        setLocationError(t("routeMap.locationNotAvailable"));
+      }
     } finally {
       setLoading(false);
     }
@@ -1221,6 +1264,26 @@ const DriverRouteMapScreen = ({ navigation, route }) => {
                 heading: parseFloat(loc.heading) || 0,
                 zoom: 17,
               });
+            }
+          } else {
+            // ESP32 bu pollingde de veri gondermedi: telefon GPS'inden
+            // tek seferlik bir konum alip haritayi canli tutuyoruz.
+            const fallback = await getFallbackPhoneLocation();
+            if (fallback) {
+              const fallbackCoords = {
+                latitude: fallback.latitude,
+                longitude: fallback.longitude,
+              };
+              setLocation(fallbackCoords);
+              setHeading(fallback.heading);
+              if (followMode && mapRef.current) {
+                mapRef.current.animateCamera({
+                  center: fallbackCoords,
+                  pitch: 45,
+                  heading: fallback.heading,
+                  zoom: 17,
+                });
+              }
             }
           }
         } catch (e) {
