@@ -2,6 +2,26 @@
 
 Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik günlüğüdür (yeni kayıtlar en üste eklenir). `FORK_BASELINE.md` fork'un "doğum sertifikası"dır ve sabittir; bu dosya ise ilerleyen her oturumun hikayesini, karşılaşılan hataları ve çözümlerini tutar — standart: `SESSION_NOTE.md` + `FORK_BASELINE.md` + ADR, başka doküman türü eklenmez.
 
+## 2026-10-20 (akşam) — Harita beyaz ekran arızası: kök neden ESP32 konum vermemesiydi (credential DEĞİL), DriverRouteMapScreen'e telefon GPS fallback'i eklendi
+
+**Bağlam:** Gerçek cihazda (ADR-CE-02 §4.2 kapsamında, ilk kez) harita ekranı test edilirken tamamen boş/beyaz kaldığı rapor edildi (grid yok, Google logosu yok, zoom butonu yok; alttaki rota kutusu görünüyordu). Önce bu, Risk #14/#15'in (19–20 Ekim paket kimliği + Maps/Firebase credential ayırımı) eksik kalan bir tarafı sanılıp uzun bir süre o yönde incelendi.
+
+**Dışlanan ihtimaller (hepsi tek tek doğrulandı, sorun bunlarda değildi):**
+- `cebi-mobile-maps-android` key'inin Application restriction'ı: paket adı `com.tulipfleet.cebi` ve SHA-1 doğru (Console'dan teyit edildi).
+- Kurulu APK'nin gerçek imzalama sertifikasının SHA-1'i (`apksigner verify --print-certs` ile çıkarıldı: `746864bdbecc09459a6f6981ebf2f4c323d345d0`) key kısıtlamasıyla birebir eşleşiyor.
+- `cebi-mobile` GCP projesinde billing hesabı aktif (Paid account, `013EA7-88C2C2-65AF28`) ve Maps SDK for Android enabled.
+- Manifest/app.json'daki gömülü key değeri (`AIzaSyArByYajxwW3sbYamRU4QTy2nValdDxcmM`) Console'daki `cebi-mobile-maps-android` key'iyle aynı.
+- Cihazın genel internet/DNS erişimi sorunsuz (tarayıcıdan `google.com/maps` açılıyor), VPN/firewall yok.
+
+**Gerçek kök neden (filtresiz logcat ile bulundu):** Credential/ağ ile hiç ilgisi yoktu. Backend, test aracının (`eeb6b27c-3188-435d-bd8e-83031f97f4e4`) konumu istendiğinde `404 { error: "No location data", message: "ESP32 henuz konum gondermedi" }` döndürüyordu — yani o aracın ESP32 GPS takipçisi hiç konum göndermemişti. `DriverRouteMapScreen.js`'deki `getLocation()`/`pollLocation()`, `vehicleAPI.getLatestLocation()` başarısız olunca `location` state'ini `null` bırakıyordu; harita merkezlenecek koordinat bulamayınca boş/beyaz kalıyordu. Telefonun kendi GPS'i (fused_location_provider) ayrı çalışıp normal çalıştığı için bu, yanlışlıkla credential sorunu sanılmasına yol açtı.
+
+**Yapılan (`8ee34bd`):** `src/screens/driver/DriverRouteMapScreen.js`'e `getFallbackPhoneLocation()` eklendi — `vehicleAPI.getLatestLocation()` konum döndürmezse/hata verirse (hem ilk yükleme hem 7s'lik polling döngüsünde) `expo-location` ile telefonun kendi GPS'inden konum alınıp harita bu veriyle gösteriliyor; ESP32 gerçek veri göndermeye başladığında vehicleAPI sonucu normal akışta öncelikli kalmaya devam eder. `expo-location` zaten mevcut bağımlılık (`telemetrySync.js` de kullanıyor), yeni native paket eklenmedi — salt JS değişikliği, yeni native build şart değil (dev-client reload ya da `eas update` OTA yeterli). `npm test`'teki syntax kontrolü (`node --check`) geçti.
+
+**Ayrıca rastlantısal bulunan, bu oturumda dokunulmayan iki açık konu:**
+1. Repo genelinde (~229 dosya) çalışma kopyası (CRLF) ile git nesneleri (LF) arasında satır sonu tutarsızlığı tespit edildi — muhtemelen Cem'in kendi git/`core.autocrlf` ayarları bunu şeffafça gizliyor (kendi `git status`'u temiz görünebilir), ama başka bir ortamdan (ör. bu oturumun bağlandığı shell) bakıldığında hepsi değişmiş görünüyor. Gerçek içerik değil, sadece satır sonu temsili — ileride `.gitattributes` ile netleştirilebilir.
+2. `android/app/src/main/AndroidManifest.xml` ve `android/app/src/main/res/values/strings.xml`'de commit edilmemiş yerel değişiklikler var (muhtemelen eski bir `expo prebuild` çalıştırmasından kalma) — manifest'teki değişiklik, ADR-CE-02 §4.2'yi açıklayan bir yorum satırının kaybolması (izin satırının kendisi hâlâ duruyor). Cem'in kendi ortamında incelemesi/karar vermesi gerekiyor.
+
+---
 ## 2026-10-20 (devam) — Yeni risk bulundu ve kapatıldı: `eas.json`'daki tüm build profilleri ana projenin API adresine işaret ediyordu
 
 **Bağlam:** Risk #16 testi için driver kullanıcısı + test seferi oluşturulup gerçek telefonda giriş denendi — "sessizce kalıyor" (hata mesajı yok, login hiç olmuyor).
