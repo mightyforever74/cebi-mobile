@@ -34,9 +34,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.tulipfleet.app'
+    namespace 'com.tulipfleet.cebi'
     defaultConfig {
-        applicationId 'com.tulipfleet.app'
+        applicationId 'com.tulipfleet.cebi'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 29

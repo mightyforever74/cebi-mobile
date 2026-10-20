@@ -14,7 +14,7 @@
     "runtimeVersion": "2.0.0",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tulipfleet.app",
+      "bundleIdentifier": "com.tulipfleet.cebi",
       "buildNumber": "30",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
@@ -31,7 +31,7 @@
     },
     "android": {
       "googleServicesFile": "./google-services.json",
-      "package": "com.tulipfleet.app",
+      "package": "com.tulipfleet.cebi",
       "versionCode": 28,
       "config": {
         "googleMaps": {

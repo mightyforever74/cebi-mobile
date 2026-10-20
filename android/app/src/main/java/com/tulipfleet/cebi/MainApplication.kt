@@ -1,4 +1,4 @@
-package com.tulipfleet.app
+package com.tulipfleet.cebi
 
 import android.app.Application
 import android.content.res.Configuration

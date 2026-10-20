@@ -2,6 +2,29 @@
 
 Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik günlüğüdür (yeni kayıtlar en üste eklenir). `FORK_BASELINE.md` fork'un "doğum sertifikası"dır ve sabittir; bu dosya ise ilerleyen her oturumun hikayesini, karşılaşılan hataları ve çözümlerini tutar — standart: `SESSION_NOTE.md` + `FORK_BASELINE.md` + ADR, başka doküman türü eklenmez.
 
+## 2026-10-20 — Yeni risk bulundu ve kapatıldı: paket kimliği (`applicationId`/`bundleIdentifier`) ana `tulipfleet` ile birebir aynıydı
+
+**Bağlam:** Cem, ana `tulipfleet` reposunda yapılan bir GitHub Actions build/Play Console yayını konuşulurken şu soruyu sordu: "yeni mobil app için yaptığımız build'i isim değiştirmeden ana mobil app yerine paste edecek şekilde mi yaptın?" Kontrol edilince o build'in cebi-mobile'a hiç dokunmadığı doğrulandı, ama soru gerçek ve o ana kadar belgelenmemiş bir riski ortaya çıkardı.
+
+**Bulgu (kod okunarak doğrulandı, Risk #14 kapanışında atlanmış):** `android/app/build.gradle` (`applicationId`/`namespace`) ve `app.json` (`ios.bundleIdentifier`/`android.package`) hâlâ `com.tulipfleet.app` — ana projeyle birebir aynı. Risk #14 (19 Ekim) sadece Firebase/Maps credential'larını ayrıştırmıştı, paket kimliğine dokunmamıştı. Sonuç: bu haliyle bir build alınıp mağazaya/gerçek cihaza gönderilse, Google Play/Apple bunu "aynı uygulamanın güncellemesi" sayar — farklı imzalama anahtarıyla reddedilir, ya da (daha kötü) aynı imzalama kimlik bilgileri yanlışlıkla kullanılırsa canlı ana uygulamanın üzerine yazılması mümkündü. ADR-CE-03'ün "Bağımsız Çalışma Zamanı" ilkesini ihlal ediyordu.
+
+**Cem'in kararı:** Yeni paket adı `com.tulipfleet.cebi` onaylandı.
+
+**Yapılan (bu commit):**
+- `android/app/build.gradle`: `namespace`/`applicationId` → `com.tulipfleet.cebi`.
+- `app.json`: `ios.bundleIdentifier`, `android.package` → `com.tulipfleet.cebi`.
+- `android/app/src/main/java/com/tulipfleet/app/{MainActivity,MainApplication}.kt` → dizin `com/tulipfleet/cebi/`'ye taşındı, `package` bildirimleri güncellendi.
+- `.env.example`: kullanılmayan (hiçbir script tarafından okunmuyor, grep ile doğrulandı) `IOS_BUNDLE_ID`/`PACKAGE_NAME` placeholder'ları tutarlılık için güncellendi.
+
+**AÇIK RİSK — bu commit build'i KIRAR, ayrıca ele alınmalı (Cem'in Console erişimi gerekiyor):**
+1. **Firebase config artık uyuşmuyor:** `google-services.json` (kök + `android/app/`) ve `GoogleService-Info.plist` hâlâ `package_name`/`BUNDLE_ID: com.tulipfleet.app` taşıyor. Google Services Gradle plugin paket adı eşleşmesini build-time'da zorunlu kılıyor — bu dosyalar güncellenmeden Android build'i düşer. Çözüm: Cem, mevcut `cebi-mobile` Firebase projesinde (proje no `631643994904`) `com.tulipfleet.cebi` paket adıyla yeni bir Android app + (varsa) iOS app kaydetmeli, yeni `google-services.json`/`GoogleService-Info.plist` dosyalarını indirip buraya iletmeli.
+2. **Maps key kısıtlamaları:** `cebi-mobile-maps-android`/`-ios` key'leri eski paket/bundle adına kısıtlı (Risk #14 notunda kayıtlı) — Google Cloud Console'da kısıtlamalar `com.tulipfleet.cebi`'ye güncellenmeli, yoksa Maps istekleri `REQUEST_DENIED` döner.
+3. **EAS projesi paylaşılıyor (yeni bulgu, henüz çözülmedi):** `app.json`'daki `extra.eas.projectId` (`7c0ea9e5-7cc1-4723-ad38-3fbe23256d50`) ve `updates.url`, `tulipfleet-qa/BUILD.md`'de kayıtlı ana projenin EAS projesiyle **aynı** (`mightyforever / tulipfleet`, aynı `7c0ea9e5` öneki). Bu oturum EAS CLI'ya kimlik doğrulayamıyor (Expo hesap girişi gerektiriyor); Cem'in kendi ortamında `eas init` ile cebi-mobile'a ayrı bir EAS projesi bağlaması, ya da en azından `eas update`'i hiç bu projeden çalıştırmaması gerekiyor — aksi halde OTA update kanalı ana app'inkiyle çakışabilir. Bloklayıcı değil (henüz hiçbir cebi-mobile build/update denenmedi) ama native build'den önce netleşmeli.
+
+**Yapılmadı (kapsam dışı, not edildi):** `docs/I18N_P0_DISCOVERY.md`'deki eski paket adı referansları — o doküman 18 Ekim'deki bir keşif raporu, geçmişe dönük sabit kayıt, güncellenmedi.
+
+---
+
 ## 2026-10-19 (öğleden önce) — Risk #14 kapatıldı: `cebi-mobile`, ana `tulipfleet` ile paylaşılan Firebase/Maps credential'larından ayrıştı
 
 **Bağlam:** 18 Ekim gece bulunan açık (bkz. aşağıdaki "GitGuardian" kaydı) planlanan iyileştirme olarak bırakılmıştı — bu turda Cem'in sağladığı yeni credential'larla kapatıldı.
