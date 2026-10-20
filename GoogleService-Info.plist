@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCZ8c143eugWAgg08XaCAXa-aJa5YLTDSA</string>
+	<string>AIzaSyC766gDkD4ZEKV-nX9nbWxJ9mYznzEdVFk</string>
 	<key>GCM_SENDER_ID</key>
 	<string>631643994904</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.tulipfleet.app</string>
+	<string>com.tulipfleet.cebi</string>
 	<key>PROJECT_ID</key>
 	<string>cebi-mobile</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:631643994904:ios:4a9b300bf130c020cafc6d</string>
+	<string>1:631643994904:ios:884573c16fe006facafc6d</string>
 </dict>
 </plist>
