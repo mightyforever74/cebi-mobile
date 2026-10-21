@@ -1,14 +1,13 @@
 {
   "expo": {
-    "name": "TulipFleet",
-    "slug": "tulipfleet",
+    "name": "TulipFleet Cebi",
+    "slug": "cebi-mobile",
     "version": "2.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "updates": {
       "enabled": true,
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/7c0ea9e5-7cc1-4723-ad38-3fbe23256d50"
+      "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": ["**/*"],
     "runtimeVersion": "2.0.0",
@@ -104,11 +103,6 @@
         }
       ]
     ],
-    "owner": "mightyforever",
-    "extra": {
-      "eas": {
-        "projectId": "7c0ea9e5-7cc1-4723-ad38-3fbe23256d50"
-      }
-    }
+    "owner": "mightyforever"
   }
 }
