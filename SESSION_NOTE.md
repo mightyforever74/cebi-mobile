@@ -34,6 +34,18 @@ Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik
 
 ---
 
+## 2026-10-20 (geriye dönük kayıt, 21 Ekim'de eklendi) — Firebase config paket adına güncellendi
+
+**Not:** Bu iki commit (`fef9c5e`, `e446cff`, 12:57-13:02) aşağıdaki "paket kimliği" kaydının AÇIK RİSK #1 maddesini aynı gün kapatmıştı, ama o sırada burada ayrı bir giriş olarak kaydedilmemişti — 21 Ekim'deki rapor/doküman doğrulama turunda fark edildi, geriye dönük işleniyor.
+
+**Yapılan:** Cem, mevcut `cebi-mobile` Firebase projesinde (`631643994904`) yeni paket adıyla (`com.tulipfleet.cebi`) bir Android app + bir iOS app (bundle ID `com.tulipfleet.cebi`) kaydetti.
+- `fef9c5e`: kök + `android/app/` `google-services.json`'a yeni client eklendi — dosya artık hem eski (`com.tulipfleet.app`) hem yeni client'ı taşıyor, Google Services Gradle plugin build anında `applicationId`'ye göre doğru olanı seçiyor.
+- `e446cff`: `GoogleService-Info.plist` güncellendi — `API_KEY`/`GOOGLE_APP_ID` yeni app'e ait, `BUNDLE_ID` artık `com.tulipfleet.cebi`.
+
+**Sonuç:** Firebase config paket/bundle adı artık tutarlı — bu madde kapandı. Maps key restriction (Console) ve EAS projectId ayrışması (aşağıda madde 2-3) hâlâ açık.
+
+---
+
 ## 2026-10-20 — Yeni risk bulundu ve kapatıldı: paket kimliği (`applicationId`/`bundleIdentifier`) ana `tulipfleet` ile birebir aynıydı
 
 **Bağlam:** Cem, ana `tulipfleet` reposunda yapılan bir GitHub Actions build/Play Console yayını konuşulurken şu soruyu sordu: "yeni mobil app için yaptığımız build'i isim değiştirmeden ana mobil app yerine paste edecek şekilde mi yaptın?" Kontrol edilince o build'in cebi-mobile'a hiç dokunmadığı doğrulandı, ama soru gerçek ve o ana kadar belgelenmemiş bir riski ortaya çıkardı.
@@ -49,9 +61,9 @@ Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik
 - `.env.example`: kullanılmayan (hiçbir script tarafından okunmuyor, grep ile doğrulandı) `IOS_BUNDLE_ID`/`PACKAGE_NAME` placeholder'ları tutarlılık için güncellendi.
 
 **AÇIK RİSK — bu commit build'i KIRAR, ayrıca ele alınmalı (Cem'in Console erişimi gerekiyor):**
-1. **Firebase config artık uyuşmuyor:** `google-services.json` (kök + `android/app/`) ve `GoogleService-Info.plist` hâlâ `package_name`/`BUNDLE_ID: com.tulipfleet.app` taşıyor. Google Services Gradle plugin paket adı eşleşmesini build-time'da zorunlu kılıyor — bu dosyalar güncellenmeden Android build'i düşer. Çözüm: Cem, mevcut `cebi-mobile` Firebase projesinde (proje no `631643994904`) `com.tulipfleet.cebi` paket adıyla yeni bir Android app + (varsa) iOS app kaydetmeli, yeni `google-services.json`/`GoogleService-Info.plist` dosyalarını indirip buraya iletmeli.
-2. **Maps key kısıtlamaları:** `cebi-mobile-maps-android`/`-ios` key'leri eski paket/bundle adına kısıtlı (Risk #14 notunda kayıtlı) — Google Cloud Console'da kısıtlamalar `com.tulipfleet.cebi`'ye güncellenmeli, yoksa Maps istekleri `REQUEST_DENIED` döner.
-3. **EAS projesi paylaşılıyor (yeni bulgu, henüz çözülmedi):** `app.json`'daki `extra.eas.projectId` (`7c0ea9e5-7cc1-4723-ad38-3fbe23256d50`) ve `updates.url`, `tulipfleet-qa/BUILD.md`'de kayıtlı ana projenin EAS projesiyle **aynı** (`mightyforever / tulipfleet`, aynı `7c0ea9e5` öneki). Bu oturum EAS CLI'ya kimlik doğrulayamıyor (Expo hesap girişi gerektiriyor); Cem'in kendi ortamında `eas init` ile cebi-mobile'a ayrı bir EAS projesi bağlaması, ya da en azından `eas update`'i hiç bu projeden çalıştırmaması gerekiyor — aksi halde OTA update kanalı ana app'inkiyle çakışabilir. Bloklayıcı değil (henüz hiçbir cebi-mobile build/update denenmedi) ama native build'den önce netleşmeli.
+1. ~~**Firebase config artık uyuşmuyor**~~ → **aynı gün (20 Ekim, 12:57-13:02) kapandı**, bkz. aşağıdaki "Firebase config paket adına güncellendi" kaydı.
+2. **Maps key kısıtlamaları (hâlâ açık):** `cebi-mobile-maps-android`/`-ios` key'leri eski paket/bundle adına kısıtlı (Risk #14 notunda kayıtlı) — Google Cloud Console'da kısıtlamalar `com.tulipfleet.cebi`'ye güncellenmeli, yoksa Maps istekleri `REQUEST_DENIED` döner.
+3. **EAS projesi paylaşılıyor (hâlâ açık):** `app.json`'daki `extra.eas.projectId` (`7c0ea9e5-7cc1-4723-ad38-3fbe23256d50`) ve `updates.url`, `tulipfleet-qa/BUILD.md`'de kayıtlı ana projenin EAS projesiyle **aynı** (`mightyforever / tulipfleet`, aynı `7c0ea9e5` öneki). Bu oturum EAS CLI'ya kimlik doğrulayamıyor (Expo hesap girişi gerektiriyor); Cem'in kendi ortamında `eas init` ile cebi-mobile'a ayrı bir EAS projesi bağlaması, ya da en azından `eas update`'i hiç bu projeden çalıştırmaması gerekiyor — aksi halde OTA update kanalı ana app'inkiyle çakışabilir. Bloklayıcı değil (henüz hiçbir cebi-mobile build/update denenmedi) ama native build'den önce netleşmeli.
 
 **Yapılmadı (kapsam dışı, not edildi):** `docs/I18N_P0_DISCOVERY.md`'deki eski paket adı referansları — o doküman 18 Ekim'deki bir keşif raporu, geçmişe dönük sabit kayıt, güncellenmedi.
 

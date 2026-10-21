@@ -28,6 +28,12 @@ Push sırasında GitHub şu uyarıyı verdi: `android/kotlin_log.txt` — 95.64 
 
 **2026-10-18 (gece) — henüz ayrışmamış, tespit edildi:** `app.json`'daki Google Maps API key (`googleMapsApiKey`/`config.googleMaps.apiKey`) ve `GoogleService-Info.plist`/`google-services.json`'daki Firebase credential'ları fork'tan aynen geldi — hâlâ ana projenin (`tulipfleet`, Firebase projesi `tulipfleet-523be`) kimlik bilgileri, Cebi'ye özel değil. GitGuardian'ın Maps key için verdiği sızıntı uyarısı analiz edilirken fark edildi (detay: `SESSION_NOTE.md`). ADR-CE-03 gereği bu ikisinin de ayrıştırılması gerekiyor — henüz yapılmadı, acil değil (mevcut key zaten API-scope restriction'lı, risk kota/maliyet seviyesinde).
 
+**2026-10-19 — kapandı (Risk #14):** Ayrı, boş bir Firebase projesi (`cebi-mobile`, proje no `631643994904`) + iki kısıtlı Maps key (Android: paket adı+debug SHA-1; iOS: bundle ID) oluşturuldu; kök + `android/app/` `google-services.json`, `GoogleService-Info.plist`, `app.json`'daki Maps key'ler yeni projeye çevrildi. Detay/commit'ler: `SESSION_NOTE.md` "2026-10-19 (öğleden önce)".
+
+**2026-10-20 — paket kimliği ayrıştı, 3 yeni açık madde çıktı, 1'i aynı gün kapandı:** `applicationId`/`bundleIdentifier` ana projeyle birebir aynıydı (`com.tulipfleet.app`) — `com.tulipfleet.cebi`'ye değiştirildi (commit `958dacf`). Bu değişiklik anında 3 maddeyi açtı: (1) Firebase config paket adıyla uyuşmuyor → **aynı gün kapandı**, aynı Firebase projesinde (`631643994904`) yeni paket adıyla Android+iOS app kaydedilip `google-services.json`/`GoogleService-Info.plist` güncellendi (commit `fef9c5e`, `e446cff`); (2) Maps key restriction'ları hâlâ eski paket/bundle adına kısıtlı — **açık**, Google Cloud Console'da güncellenmeli; (3) `app.json`'daki EAS `projectId` (`7c0ea9e5-7cc1-4723-ad38-3fbe23256d50`) hâlâ ana projeyle (`tulipfleet-qa`/`mightyforever/tulipfleet`) paylaşılan aynı ID — **açık**, native build öncesi ayrıştırılmalı (`eas init` veya bu projeden hiç `eas update` çalıştırılmaması). Detay: `SESSION_NOTE.md` "2026-10-20".
+
+**2026-10-20 (devam) — yeni bulgu, kapandı:** `eas.json`'ın `development`/`preview`/`production` profillerinin hepsi hâlâ ana projenin API adresine (`api.tulipfleet.com`, `development`'ta ana sunucu IP'si) işaret ediyordu — fork sırasında taşınmış, hiç güncellenmemişti; gerçek cihazda sessiz login hatasına yol açtı. `cebi-api.tulipfleet.com`'a çevrildi (commit `0473125`). **Build-time env olduğundan mevcut kurulu APK'da düzelmez — yeni build gerekiyor.**
+
 ## Değişiklik günlüğü
 
 | Tarih | Not |
@@ -35,3 +41,6 @@ Push sırasında GitHub şu uyarıyı verdi: `android/kotlin_log.txt` — 95.64 
 | 2026-10-18 | Fork oluşturuldu, baseline sabitlendi. |
 | 2026-10-18 | Faz 4: ana projeye ait sabit URL/IP fallback'leri kaldırıldı (commit `f159e12`). |
 | 2026-10-18 | GitGuardian Google Maps API key sızıntı uyarısı analiz edildi; key'in ana projeyle paylaşıldığı ve API-scope ile sınırlı (restriction'lı) olduğu teyit edildi; rotasyon acil değil, bölme/ayrıştırma bir sonraki release'e planlandı. Detay: `SESSION_NOTE.md`. |
+| 2026-10-19 | Risk #14 kapandı: ayrı Firebase projesi + Maps key'leri (`631643994904`) devreye alındı. |
+| 2026-10-20 | Paket kimliği `com.tulipfleet.cebi`'ye ayrıştırıldı; Firebase config yeni pakete güncellendi (aynı gün kapandı); Maps key restriction + EAS projectId ayrışması hâlâ açık. |
+| 2026-10-20 | `eas.json` API adresi düzeltildi — yeni build bekliyor. |
