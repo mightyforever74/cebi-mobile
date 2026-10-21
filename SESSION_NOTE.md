@@ -42,7 +42,7 @@ Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik
 - `fef9c5e`: kök + `android/app/` `google-services.json`'a yeni client eklendi — dosya artık hem eski (`com.tulipfleet.app`) hem yeni client'ı taşıyor, Google Services Gradle plugin build anında `applicationId`'ye göre doğru olanı seçiyor.
 - `e446cff`: `GoogleService-Info.plist` güncellendi — `API_KEY`/`GOOGLE_APP_ID` yeni app'e ait, `BUNDLE_ID` artık `com.tulipfleet.cebi`.
 
-**Sonuç:** Firebase config paket/bundle adı artık tutarlı — bu madde kapandı. Maps key restriction (Console) ve EAS projectId ayrışması (aşağıda madde 2-3) hâlâ açık.
+**Sonuç:** Firebase config paket/bundle adı artık tutarlı — bu madde kapandı. Maps key restriction ve EAS projectId ayrışması da kapandı — detay aşağıdaki madde 2-3'te ve dosyanın en üstündeki "21 Ekim" kaydında.
 
 ---
 
@@ -62,8 +62,8 @@ Bu dosya, `cebi-mobile` üzerinde yapılan çalışma oturumlarının kronolojik
 
 **AÇIK RİSK — bu commit build'i KIRAR, ayrıca ele alınmalı (Cem'in Console erişimi gerekiyor):**
 1. ~~**Firebase config artık uyuşmuyor**~~ → **aynı gün (20 Ekim, 12:57-13:02) kapandı**, bkz. aşağıdaki "Firebase config paket adına güncellendi" kaydı.
-2. **Maps key kısıtlamaları (hâlâ açık):** `cebi-mobile-maps-android`/`-ios` key'leri eski paket/bundle adına kısıtlı (Risk #14 notunda kayıtlı) — Google Cloud Console'da kısıtlamalar `com.tulipfleet.cebi`'ye güncellenmeli, yoksa Maps istekleri `REQUEST_DENIED` döner.
-3. **EAS projesi paylaşılıyor (hâlâ açık):** `app.json`'daki `extra.eas.projectId` (`7c0ea9e5-7cc1-4723-ad38-3fbe23256d50`) ve `updates.url`, `tulipfleet-qa/BUILD.md`'de kayıtlı ana projenin EAS projesiyle **aynı** (`mightyforever / tulipfleet`, aynı `7c0ea9e5` öneki). Bu oturum EAS CLI'ya kimlik doğrulayamıyor (Expo hesap girişi gerektiriyor); Cem'in kendi ortamında `eas init` ile cebi-mobile'a ayrı bir EAS projesi bağlaması, ya da en azından `eas update`'i hiç bu projeden çalıştırmaması gerekiyor — aksi halde OTA update kanalı ana app'inkiyle çakışabilir. Bloklayıcı değil (henüz hiçbir cebi-mobile build/update denenmedi) ama native build'den önce netleşmeli.
+2. ~~**Maps key kısıtlamaları**~~ → **kapandı.** Cem, 21 Ekim'de Google Cloud Console'u bizzat kontrol etti: `cebi-mobile-maps-android` key'i ayrı `cebi-mobile` GCP projesinde, Application restriction = Android apps, kayıtlı tek paket `com.tulipfleet.cebi` + doğru debug SHA-1 (`74:68:64:BD:...`), API kısıtlaması yalnızca "Maps SDK for Android". Bu madde muhtemelen Risk #14 kapanışı (19 Ekim) sırasında zaten doğru kurulmuştu — bu dosyada hiç ayrı not düşülmediği için 3 kez "hâlâ açık" diye yanlış raporlandı. Ders: Console/harici sistem durumunu doğrulamadan "açık" diye tekrar etme.
+3. ~~**EAS projesi paylaşılıyor**~~ → **21 Ekim'de kapandı.** `app.json`'daki `name`/`slug` ("TulipFleet"/"tulipfleet") ve `extra.eas.projectId`/`updates.url` ayrıştırıldı (commit `74c5da0`); Cem kendi ortamında `npx eas-cli init` çalıştırdı, yeni ve tamamen bağımsız proje oluştu: `@mightyforever/cebi-mobile`, projectId `14378253-7bd3-451e-98bc-3ee3b59376a5` (commit `4549e1f`). Artık `eas update`/`eas build` ana `tulipfleet` projesiyle hiçbir şekilde kesişmiyor.
 
 **Yapılmadı (kapsam dışı, not edildi):** `docs/I18N_P0_DISCOVERY.md`'deki eski paket adı referansları — o doküman 18 Ekim'deki bir keşif raporu, geçmişe dönük sabit kayıt, güncellenmedi.
 
